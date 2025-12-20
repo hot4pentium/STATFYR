@@ -89,10 +89,9 @@ export default function CoachSettings() {
 
           {/* Settings Content */}
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 bg-card/50 border border-white/10 backdrop-blur-sm p-1 [&>*]:pl-[18px] [&>*]:pr-[18px]">
+            <TabsList className="grid w-full grid-cols-2 bg-card/50 border border-white/10 backdrop-blur-sm p-1 [&>*]:pl-[18px] [&>*]:pr-[18px]">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="badge">Badge</TabsTrigger>
-              <TabsTrigger value="code" className="bg-[#39994b]">Team Code</TabsTrigger>
             </TabsList>
 
             {/* General Tab */}
@@ -128,6 +127,34 @@ export default function CoachSettings() {
                       className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
                     />
                     <p className="text-xs text-muted-foreground">Current season year or label</p>
+                  </div>
+
+                  {/* Team Code */}
+                  <div className="space-y-2 border-t border-white/10 pt-6">
+                    <Label className="text-sm font-medium uppercase tracking-wider">Team Code</Label>
+                    <p className="text-xs text-muted-foreground">Share this code with athletes and supporters to join your team</p>
+                    <div className="flex gap-2">
+                      <div className="flex-1 relative">
+                        <Input
+                          value={teamCode}
+                          readOnly
+                          data-testid="input-team-code"
+                          className="bg-background/50 border-white/10 pr-12 h-11 font-mono font-bold"
+                        />
+                      </div>
+                      <Button
+                        onClick={copyToClipboard}
+                        data-testid="button-copy-code"
+                        variant="outline"
+                        className="border-white/10 hover:bg-white/5"
+                      >
+                        {copied ? (
+                          <Check className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
 
                   <Button onClick={handleSaveChanges} data-testid="button-save" className="w-full md:w-auto shadow-lg shadow-primary/30">
@@ -171,46 +198,6 @@ export default function CoachSettings() {
               </Card>
             </TabsContent>
 
-            {/* Team Code Tab */}
-            <TabsContent value="code" className="space-y-6">
-              <Card className="bg-card/80 backdrop-blur-sm border-white/5">
-                <CardHeader>
-                  <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Team Code</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <p className="text-sm text-muted-foreground">Share this code with athletes and supporters to join your team</p>
-                  
-                  <div className="flex gap-2">
-                    <div className="flex-1 relative">
-                      <Input
-                        value={teamCode}
-                        readOnly
-                        data-testid="input-team-code"
-                        className="bg-background/50 border-white/10 pr-12 h-11 font-mono font-bold"
-                      />
-                    </div>
-                    <Button
-                      onClick={copyToClipboard}
-                      data-testid="button-copy-code"
-                      variant="outline"
-                      className="border-white/10 hover:bg-white/5"
-                    >
-                      {copied ? (
-                        <Check className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-
-                  <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <p className="text-xs text-blue-200">
-                      💡 This code was generated when you created your team and is unique to your organization. Keep it safe and only share with authorized members.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
           </Tabs>
 
           {/* App Info */}
