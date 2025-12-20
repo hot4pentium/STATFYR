@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ATHLETES, EVENTS, TEAM_NAME } from "@/lib/mockData";
-import { Calendar, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X } from "lucide-react";
+import { Calendar, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useState, useRef, useEffect } from "react";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
@@ -14,6 +14,7 @@ export default function AthleteDashboard() {
   const athlete = ATHLETES[0];
   const nextEvent = EVENTS[0];
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [isHypeCardFlipped, setIsHypeCardFlipped] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const heroBannerRef = useRef<HTMLDivElement>(null);
 
@@ -155,60 +156,94 @@ export default function AthleteDashboard() {
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background/80 pointer-events-none" />
         
         <div className="relative z-20 space-y-6">
-          {/* HYPE Card - Sports Trading Card Style */}
-          <div className="max-w-md mx-auto lg:mx-0 relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
-            <div className="relative w-full bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-              {/* Card Background */}
-              <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-              
-              {/* Card Content */}
-              <div className="relative p-6 space-y-5 flex flex-col justify-between min-h-96">
-                {/* Top - Title */}
-                <div className="text-center">
-                  <div className="inline-block px-3 py-1 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold uppercase tracking-wider rounded-full mb-2">
-                    HYPE Card
-                  </div>
-                  <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter">{athlete.name}</h3>
-                  <p className="text-xs text-accent font-bold uppercase tracking-wider">{athlete.position}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase mt-1">{TEAM_NAME}</p>
-                </div>
+          {/* HYPE Card - Sports Trading Card Style with Flip */}
+          <div className="max-w-md mx-auto lg:mx-0">
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
+              <div className={`relative w-full bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl transition-all duration-500 ${isHypeCardFlipped ? 'scale-y-95' : ''}`}>
+                {/* Card Background */}
+                <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+                
+                {/* Front of Card */}
+                {!isHypeCardFlipped ? (
+                  <div className="relative p-6 space-y-4 flex flex-col justify-between min-h-96">
+                    {/* Top - Header */}
+                    <div className="text-center">
+                      <div className="inline-block px-3 py-1 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold uppercase tracking-wider rounded-full mb-3">
+                        HYPE Card
+                      </div>
+                      <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter">{athlete.name}</h3>
+                      <p className="text-[10px] text-muted-foreground uppercase mt-2 tracking-wider">{TEAM_NAME}</p>
+                    </div>
 
-                {/* Middle - Player Image/Avatar */}
-                <div className="relative mx-auto">
-                  <div className="w-36 h-36 rounded-lg overflow-hidden border-2 border-accent shadow-lg">
-                    <img src={athlete.avatar} alt={athlete.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="absolute -bottom-3 -right-3 bg-gradient-to-br from-accent to-primary rounded-lg p-3 shadow-lg">
-                    <span className="text-white font-display font-bold text-xl">#{athlete.number}</span>
-                  </div>
-                </div>
+                    {/* Middle - Player Image/Avatar */}
+                    <div className="relative mx-auto">
+                      <div className="w-40 h-40 rounded-lg overflow-hidden border-3 border-accent shadow-lg">
+                        <img src={athlete.avatar} alt={athlete.name} className="w-full h-full object-cover" />
+                      </div>
+                    </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-white/5 border border-white/10 rounded-lg p-2 text-center backdrop-blur-sm hover:bg-white/10 transition">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Goals</p>
-                    <p className="text-xl font-display font-bold text-primary">{athlete.stats?.goals || 0}</p>
-                  </div>
-                  <div className="bg-white/5 border border-white/10 rounded-lg p-2 text-center backdrop-blur-sm hover:bg-white/10 transition">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Assists</p>
-                    <p className="text-xl font-display font-bold text-accent">{athlete.stats?.assists || 0}</p>
-                  </div>
-                  <div className="bg-white/5 border border-white/10 rounded-lg p-2 text-center backdrop-blur-sm hover:bg-white/10 transition">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Rating</p>
-                    <p className="text-xl font-display font-bold text-green-400">8.5</p>
-                  </div>
-                </div>
+                    {/* Bottom - Info */}
+                    <div className="border-t border-white/10 pt-4 space-y-2 text-center">
+                      <p className="text-sm font-bold text-accent uppercase tracking-wider">{athlete.position}</p>
+                      <div className="inline-block bg-gradient-to-r from-accent to-primary rounded-lg p-3">
+                        <span className="text-white font-display font-bold text-2xl">#{athlete.number}</span>
+                      </div>
+                    </div>
 
-                {/* Bottom - Status */}
-                <div className="border-t border-white/10 pt-3 text-center">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Season Status</p>
-                  <p className="text-sm font-bold uppercase tracking-wider">
-                    <span className={athlete.status === 'Active' ? 'text-green-400' : 'text-orange-400'}>
-                      {athlete.status}
-                    </span>
-                  </p>
-                </div>
+                    {/* Flip Button */}
+                    <button
+                      onClick={() => setIsHypeCardFlipped(true)}
+                      className="absolute top-4 right-4 p-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-colors"
+                      data-testid="button-flip-hype-card"
+                    >
+                      <Repeat2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  /* Back of Card */
+                  <div className="relative p-6 space-y-4 flex flex-col justify-between min-h-96">
+                    {/* Back Header */}
+                    <div className="text-center">
+                      <p className="text-xs text-accent font-bold uppercase tracking-wider">Season Stats</p>
+                    </div>
+
+                    {/* Stats Grid */}
+                    <div className="space-y-3">
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center backdrop-blur-sm hover:bg-white/10 transition">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Goals</p>
+                        <p className="text-3xl font-display font-bold text-primary mt-1">{athlete.stats?.goals || 0}</p>
+                      </div>
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center backdrop-blur-sm hover:bg-white/10 transition">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Assists</p>
+                        <p className="text-3xl font-display font-bold text-accent mt-1">{athlete.stats?.assists || 0}</p>
+                      </div>
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center backdrop-blur-sm hover:bg-white/10 transition">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Games</p>
+                        <p className="text-3xl font-display font-bold text-green-400 mt-1">{athlete.stats?.games || 0}</p>
+                      </div>
+                    </div>
+
+                    {/* Status */}
+                    <div className="border-t border-white/10 pt-3 text-center">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Status</p>
+                      <p className="text-sm font-bold uppercase tracking-wider mt-1">
+                        <span className={athlete.status === 'Active' ? 'text-green-400' : 'text-orange-400'}>
+                          {athlete.status}
+                        </span>
+                      </p>
+                    </div>
+
+                    {/* Flip Back Button */}
+                    <button
+                      onClick={() => setIsHypeCardFlipped(false)}
+                      className="absolute top-4 right-4 p-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-colors"
+                      data-testid="button-flip-hype-card-back"
+                    >
+                      <Repeat2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
