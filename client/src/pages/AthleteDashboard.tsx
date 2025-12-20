@@ -38,6 +38,7 @@ export default function AthleteDashboard() {
   };
   const contentRef = useRef<HTMLDivElement>(null);
   const heroBannerRef = useRef<HTMLDivElement>(null);
+  const hypeCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (selectedCard && contentRef.current) {
@@ -278,7 +279,7 @@ export default function AthleteDashboard() {
         
         <div className="relative z-20 max-w-full px-4 md:px-8 py-8">
           {/* HYPE Card & Quick Navigation Grid */}
-          <div className="grid grid-cols-[280px_1fr] gap-4 mb-6 items-center">
+          <div ref={hypeCardRef} className="grid grid-cols-[280px_1fr] gap-4 mb-6 items-center">
             {/* HYPE Card - Sports Trading Card Style with Flip */}
             <div className="w-60 space-y-2">
               {/* Share Button */}
@@ -619,8 +620,8 @@ export default function AthleteDashboard() {
                 onClick={() => {
                   setSelectedCard(null);
                   setTimeout(() => {
-                    if (heroBannerRef.current) {
-                      heroBannerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (hypeCardRef.current) {
+                      hypeCardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                   }, 50);
                 }}
