@@ -171,29 +171,40 @@ export default function AthleteDashboard() {
                     <img src={athlete.avatar} alt={athlete.name} className="absolute inset-0 w-full h-full object-cover" />
                     
                     {/* Gradient Overlays for text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
                     
-                    {/* Top - Header Overlay */}
-                    <div className="absolute top-0 left-0 right-0 p-4 text-center">
-                      <div className="inline-block px-3 py-1 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold uppercase tracking-wider rounded-full mb-2">
-                        HYPE Card
-                      </div>
-                      <h3 className="text-xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg">{athlete.name}</h3>
+                    {/* Top Left - Name Overlay */}
+                    <div className="absolute top-0 left-0 p-4 text-left">
+                      <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{athlete.name}</h3>
                       <p className="text-[10px] text-white/90 uppercase mt-1 tracking-wider drop-shadow-md font-semibold">{TEAM_NAME}</p>
                     </div>
 
-                    {/* Bottom - Info Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 text-center space-y-2">
+                    {/* Bottom Left - Position */}
+                    <div className="absolute bottom-0 left-0 p-4">
                       <p className="text-sm font-bold text-accent uppercase tracking-wider drop-shadow-lg">{athlete.position}</p>
-                      <div className="inline-block bg-gradient-to-r from-accent to-primary rounded-lg p-3 shadow-lg">
+                    </div>
+
+                    {/* Bottom Right - Number */}
+                    <div className="absolute bottom-0 right-0 p-4">
+                      <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-3 shadow-lg">
                         <span className="text-white font-display font-bold text-2xl drop-shadow">#{athlete.number}</span>
+                      </div>
+                    </div>
+
+                    {/* Right Center - HYPE Card Pill (Vertical) */}
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 p-2">
+                      <div className="flex flex-col items-center gap-1 px-2 py-4 bg-gradient-to-b from-primary to-accent rounded-full backdrop-blur-sm border border-white/30">
+                        <span className="text-[8px] text-white font-bold uppercase tracking-widest writing-vertical transform -rotate-90 whitespace-nowrap">HYPE</span>
+                        <div className="w-0.5 h-4 bg-white/50"></div>
+                        <span className="text-[8px] text-white font-bold uppercase tracking-widest writing-vertical transform -rotate-90 whitespace-nowrap">CARD</span>
                       </div>
                     </div>
 
                     {/* Flip Button */}
                     <button
                       onClick={() => setIsHypeCardFlipped(true)}
-                      className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg hover:bg-white/30 transition-colors z-10"
+                      className="absolute top-4 left-4 p-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg hover:bg-white/30 transition-colors z-10"
                       data-testid="button-flip-hype-card"
                     >
                       <Repeat2 className="h-4 w-4 text-white" />
