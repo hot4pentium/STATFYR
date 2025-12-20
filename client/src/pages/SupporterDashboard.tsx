@@ -9,8 +9,19 @@ import { useState, useRef, useEffect } from "react";
 export default function SupporterDashboard() {
   const nextMatch = EVENTS.find(e => e.type === 'Match') || EVENTS[0];
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [teamCode, setTeamCode] = useState<string>("");
+  const [hasAccess, setHasAccess] = useState(false);
+  const [inputCode, setInputCode] = useState<string>("");
   const contentRef = useRef<HTMLDivElement>(null);
   const heroBannerRef = useRef<HTMLDivElement>(null);
+
+  const handleTeamCodeSubmit = () => {
+    if (inputCode.trim()) {
+      setTeamCode(inputCode);
+      setHasAccess(true);
+      setInputCode("");
+    }
+  };
 
   useEffect(() => {
     if (selectedCard && contentRef.current) {
@@ -146,6 +157,46 @@ export default function SupporterDashboard() {
     }
   };
 
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-full max-w-md space-y-6 p-6 md:p-8">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-display font-bold">Join Team</h1>
+            <p className="text-muted-foreground">Enter your team code to access the dashboard</p>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-bold mb-2 block">Team Code</label>
+              <input
+                type="text"
+                value={inputCode}
+                onChange={(e) => setInputCode(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === "Enter" && handleTeamCodeSubmit()}
+                placeholder="Enter your 6-digit team code"
+                className="w-full px-4 py-2 bg-background/50 border border-white/10 rounded-lg text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 tracking-widest"
+                maxLength={6}
+              />
+            </div>
+            <Button 
+              onClick={handleTeamCodeSubmit}
+              className="w-full"
+              size="lg"
+            >
+              Access Dashboard
+            </Button>
+            <Link href="/">
+              <Button variant="outline" className="w-full">
+                Back Home
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -163,6 +214,7 @@ export default function SupporterDashboard() {
           </Link>
           
           <div className="flex items-center gap-3">
+            <span className="text-xs font-bold text-muted-foreground px-3 py-1 bg-white/5 border border-white/10 rounded-lg">Code: {teamCode}</span>
             <Link href="/supporter/settings">
               <Button
                 variant="outline"
