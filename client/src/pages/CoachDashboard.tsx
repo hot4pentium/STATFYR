@@ -4,7 +4,7 @@ import { EVENTS, PLAYS, RECENT_CHATS } from "@/lib/mockData";
 import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
@@ -13,7 +13,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function CoachDashboard() {
-  const { user, currentTeam, setCurrentTeam } = useUser();
+  const [, setLocation] = useLocation();
+  const { user, currentTeam, setCurrentTeam, logout } = useUser();
   const queryClient = useQueryClient();
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
@@ -49,6 +50,12 @@ export default function CoachDashboard() {
   });
 
   useEffect(() => {
+    if (!user) {
+      setLocation("/auth/coach");
+    }
+  }, [user, setLocation]);
+
+  useEffect(() => {
     if (user && !currentTeam && coachTeams) {
       if (coachTeams.length > 0) {
         setCurrentTeam(coachTeams[0]);
@@ -57,6 +64,11 @@ export default function CoachDashboard() {
       }
     }
   }, [user, currentTeam, coachTeams]);
+
+  const handleLogout = () => {
+    logout();
+    setLocation("/");
+  };
 
   const copyTeamCode = () => {
     if (currentTeam?.code) {

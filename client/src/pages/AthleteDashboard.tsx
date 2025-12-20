@@ -2,19 +2,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ATHLETES, EVENTS, TEAM_NAME } from "@/lib/mockData";
-import { Calendar, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2, Settings, LogOut, Share2, Moon, Sun } from "lucide-react";
-import { Link } from "wouter";
+import { EVENTS } from "@/lib/mockData";
+import { Calendar, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2, Settings, LogOut, Share2, Moon, Sun, Users } from "lucide-react";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
+import { useUser } from "@/lib/userContext";
+import { getTeamMembers, type TeamMember } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 
 export default function AthleteDashboard() {
-  // Mock logged in athlete
-  const athlete = ATHLETES[0];
+  const [, setLocation] = useLocation();
+  const { user, currentTeam, logout } = useUser();
   const nextEvent = EVENTS[0];
+  
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "members"],
+    queryFn: () => currentTeam ? getTeamMembers(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+  });
+
+  const athletes = teamMembers.filter((m: TeamMember) => m.role === "athlete");
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [isHypeCardFlipped, setIsHypeCardFlipped] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,7 +39,18 @@ export default function AthleteDashboard() {
     setMounted(true);
   }, []);
 
-  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/athlete/${athlete.id}` : '';
+  useEffect(() => {
+    if (!user || !currentTeam) {
+      setLocation("/athlete/onboarding");
+    }
+  }, [user, currentTeam, setLocation]);
+
+  const handleLogout = () => {
+    logout();
+    setLocation("/");
+  };
+
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/athlete/${user?.id || 1}` : '';
 
   const copyShareLink = () => {
     navigator.clipboard.writeText(shareUrl);
@@ -125,25 +147,25 @@ export default function AthleteDashboard() {
             <Card className="bg-background/40 border-white/10">
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1 uppercase">Goals</p>
-                <p className="text-3xl font-display font-bold">{athlete.stats?.goals || 0}</p>
+                <p className="text-3xl font-display font-bold">0</p>
               </CardContent>
             </Card>
             <Card className="bg-background/40 border-white/10">
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1 uppercase">Assists</p>
-                <p className="text-3xl font-display font-bold">{athlete.stats?.assists || 0}</p>
+                <p className="text-3xl font-display font-bold">0</p>
               </CardContent>
             </Card>
             <Card className="bg-background/40 border-white/10">
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1 uppercase">Games</p>
-                <p className="text-3xl font-display font-bold">{athlete.stats?.games || 0}</p>
+                <p className="text-3xl font-display font-bold">0</p>
               </CardContent>
             </Card>
             <Card className="bg-background/40 border-white/10">
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground mb-1 uppercase">Rating</p>
-                <p className="text-3xl font-display font-bold text-accent">8.5</p>
+                <p className="text-3xl font-display font-bold text-accent">-</p>
               </CardContent>
             </Card>
           </div>
@@ -209,19 +231,27 @@ export default function AthleteDashboard() {
       case "roster":
         return (
           <div className="space-y-3">
-            {ATHLETES.map((mate) => (
-              <div key={mate.id} className="flex items-center gap-3 p-3 rounded-lg bg-background/40 border border-white/10 hover:border-primary/50 transition-all">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={mate.avatar} alt={mate.name} />
-                  <AvatarFallback>{mate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{mate.name}</p>
-                  <p className="text-xs text-muted-foreground">{mate.position}</p>
-                </div>
-                <div className="text-sm font-bold text-accent">#{mate.number}</div>
+            {athletes.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-bold">No teammates yet</p>
+                <p className="text-sm">Teammates will appear here once they join the team.</p>
               </div>
-            ))}
+            ) : (
+              athletes.map((member: TeamMember) => (
+                <div key={member.id} className="flex items-center gap-3 p-3 rounded-lg bg-background/40 border border-white/10 hover:border-primary/50 transition-all">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={member.user.avatar || undefined} alt={member.user.name || ""} />
+                    <AvatarFallback>{member.user.name?.split(' ').map(n => n[0]).join('') || "A"}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{member.user.name || member.user.username}</p>
+                    <p className="text-xs text-muted-foreground">{member.user.position || "Player"}</p>
+                  </div>
+                  <div className="text-sm font-bold text-accent">#{member.user.number || "00"}</div>
+                </div>
+              ))
+            )}
           </div>
         );
       default:
@@ -332,7 +362,7 @@ export default function AthleteDashboard() {
                 {!isHypeCardFlipped ? (
                   <div className="relative w-full h-96 overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
                     {/* Full Image Background */}
-                    <img src={athlete.avatar} alt={athlete.name} className="absolute inset-0 w-full h-full object-contain" />
+                    <img src={user?.avatar || ""} alt={user?.name || ""} className="absolute inset-0 w-full h-full object-contain" />
                     
                     {/* Gradient Overlays for text readability */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
@@ -340,19 +370,19 @@ export default function AthleteDashboard() {
                     
                     {/* Top Left - Name Overlay */}
                     <div className="absolute top-0 left-0 p-4 text-left">
-                      <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{athlete.name}</h3>
-                      <p className="text-[10px] text-white/90 uppercase mt-1 tracking-wider drop-shadow-md font-semibold">{TEAM_NAME}</p>
+                      <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{user?.name || user?.username}</h3>
+                      <p className="text-[10px] text-white/90 uppercase mt-1 tracking-wider drop-shadow-md font-semibold">{currentTeam?.name || "Team"}</p>
                     </div>
 
                     {/* Bottom Left - Position */}
                     <div className="absolute bottom-0 left-0 p-4">
-                      <p className="text-sm font-bold text-accent uppercase tracking-wider drop-shadow-lg">{athlete.position}</p>
+                      <p className="text-sm font-bold text-accent uppercase tracking-wider drop-shadow-lg">{user?.position || "Player"}</p>
                     </div>
 
                     {/* Bottom Right - Number */}
                     <div className="absolute bottom-0 right-0 p-4">
                       <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-3 shadow-lg">
-                        <span className="text-white font-display font-bold text-2xl drop-shadow">#{athlete.number}</span>
+                        <span className="text-white font-display font-bold text-2xl drop-shadow">#{user?.number || "00"}</span>
                       </div>
                     </div>
 
@@ -391,19 +421,19 @@ export default function AthleteDashboard() {
                           <div>
                             <div className="flex justify-between items-end gap-1 mb-1">
                               <span className="text-[8px] text-white/70">Goals</span>
-                              <span className="text-[9px] font-bold text-primary">{athlete.stats?.goals || 0}</span>
+                              <span className="text-[9px] font-bold text-primary">0</span>
                             </div>
                             <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                              <div className="h-full bg-primary" style={{width: `${Math.min((athlete.stats?.goals || 0) * 10, 100)}%`}}></div>
+                              <div className="h-full bg-primary" style={{width: "0%"}}></div>
                             </div>
                           </div>
                           <div>
                             <div className="flex justify-between items-end gap-1 mb-1">
                               <span className="text-[8px] text-white/70">Assists</span>
-                              <span className="text-[9px] font-bold text-accent">{athlete.stats?.assists || 0}</span>
+                              <span className="text-[9px] font-bold text-accent">0</span>
                             </div>
                             <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                              <div className="h-full bg-accent" style={{width: `${Math.min((athlete.stats?.assists || 0) * 10, 100)}%`}}></div>
+                              <div className="h-full bg-accent" style={{width: "0%"}}></div>
                             </div>
                           </div>
                         </div>
@@ -498,7 +528,7 @@ export default function AthleteDashboard() {
                       {!isModalCardFlipped ? (
                         <div className="relative w-full h-full overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
                           {/* Full Image Background */}
-                          <img src={athlete.avatar} alt={athlete.name} className="absolute inset-0 w-full h-full object-contain" />
+                          <img src={user?.avatar || ""} alt={user?.name || ""} className="absolute inset-0 w-full h-full object-contain" />
                           
                           {/* Gradient Overlays for text readability */}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
@@ -506,19 +536,19 @@ export default function AthleteDashboard() {
                           
                           {/* Top Left - Name Overlay */}
                           <div className="absolute top-0 left-0 p-6 text-left">
-                            <h3 className="text-4xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{athlete.name}</h3>
-                            <p className="text-sm text-white/90 uppercase mt-2 tracking-wider drop-shadow-md font-semibold">{TEAM_NAME}</p>
+                            <h3 className="text-4xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{user?.name || user?.username}</h3>
+                            <p className="text-sm text-white/90 uppercase mt-2 tracking-wider drop-shadow-md font-semibold">{currentTeam?.name || "Team"}</p>
                           </div>
 
                           {/* Bottom Left - Position */}
                           <div className="absolute bottom-0 left-0 p-6">
-                            <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{athlete.position}</p>
+                            <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{user?.position || "Player"}</p>
                           </div>
 
                           {/* Bottom Right - Number */}
                           <div className="absolute bottom-0 right-0 p-6">
                             <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-4 shadow-lg">
-                              <span className="text-white font-display font-bold text-4xl drop-shadow">#{athlete.number}</span>
+                              <span className="text-white font-display font-bold text-4xl drop-shadow">#{user?.number || "00"}</span>
                             </div>
                           </div>
 
@@ -558,19 +588,19 @@ export default function AthleteDashboard() {
                                 <div>
                                   <div className="flex justify-between items-end gap-2 mb-1">
                                     <span className="text-xs text-white/70">Goals</span>
-                                    <span className="text-sm font-bold text-primary">{athlete.stats?.goals || 0}</span>
+                                    <span className="text-sm font-bold text-primary">0</span>
                                   </div>
                                   <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-primary" style={{width: `${Math.min((athlete.stats?.goals || 0) * 10, 100)}%`}}></div>
+                                    <div className="h-full bg-primary" style={{width: "0%"}}></div>
                                   </div>
                                 </div>
                                 <div>
                                   <div className="flex justify-between items-end gap-2 mb-1">
                                     <span className="text-xs text-white/70">Assists</span>
-                                    <span className="text-sm font-bold text-accent">{athlete.stats?.assists || 0}</span>
+                                    <span className="text-sm font-bold text-accent">0</span>
                                   </div>
                                   <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-accent" style={{width: `${Math.min((athlete.stats?.assists || 0) * 10, 100)}%`}}></div>
+                                    <div className="h-full bg-accent" style={{width: "0%"}}></div>
                                   </div>
                                 </div>
                               </div>
@@ -646,7 +676,7 @@ export default function AthleteDashboard() {
                 <Trophy className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-display font-bold">{athlete.stats?.goals || 0}</div>
+                <div className="text-3xl font-display font-bold">0</div>
                 <p className="text-xs text-muted-foreground mt-1">This season</p>
               </CardContent>
             </Card>
@@ -657,7 +687,7 @@ export default function AthleteDashboard() {
                 <TrendingUp className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-display font-bold">{athlete.stats?.assists || 0}</div>
+                <div className="text-3xl font-display font-bold">0</div>
                 <p className="text-xs text-muted-foreground mt-1">Team contribution</p>
               </CardContent>
             </Card>
@@ -668,7 +698,7 @@ export default function AthleteDashboard() {
                 <Activity className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-display font-bold">{athlete.stats?.games || 0}</div>
+                <div className="text-3xl font-display font-bold">0</div>
                 <p className="text-xs text-muted-foreground mt-1">Games played</p>
               </CardContent>
             </Card>
