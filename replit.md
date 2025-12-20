@@ -1,0 +1,64 @@
+# TeamPulse - Sports Management Platform
+
+## Overview
+
+TeamPulse is a comprehensive sports team management platform designed for coaches, athletes, and supporters. The application enables team roster management, event scheduling, performance statistics tracking, playbook design, and team communication. Built with a React frontend and Express backend, it uses PostgreSQL for data persistence and follows a role-based access pattern where coaches create teams, and athletes/supporters join via team codes.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+- **Framework**: React 18 with TypeScript
+- **Routing**: Wouter (lightweight React router)
+- **State Management**: TanStack React Query for server state, React Context for user session
+- **Styling**: Tailwind CSS v4 with shadcn/ui component library (New York style)
+- **Theming**: next-themes for dark/light mode support
+- **Build Tool**: Vite with custom plugins for meta images and Replit integration
+
+### Backend Architecture
+- **Framework**: Express.js with TypeScript
+- **Database**: PostgreSQL with Drizzle ORM
+- **Schema Validation**: Zod with drizzle-zod integration
+- **API Pattern**: RESTful endpoints under `/api` prefix
+- **Session Management**: Stateless (user stored in localStorage on client)
+
+### Data Model
+The database schema centers around three main entities:
+- **Users**: Store credentials, role (coach/athlete/supporter), and profile info
+- **Teams**: Created by coaches with unique 6-character join codes
+- **TeamMembers**: Junction table linking users to teams with role assignment
+
+### Role-Based Navigation
+- **Coaches**: Full dashboard with roster, events, playbook, stats, and chat management
+- **Athletes**: Personal profile, team schedule, stats view, and team chat
+- **Supporters**: Read-only view of team schedule, roster, and updates
+
+### Key Design Patterns
+- Path aliases configured (`@/` for client src, `@shared/` for shared code)
+- Shared schema between frontend and backend via `shared/schema.ts`
+- Mock data in `client/src/lib/mockData.ts` for UI development
+- Storage abstraction layer (`IStorage` interface) for database operations
+
+## External Dependencies
+
+### Database
+- **PostgreSQL**: Primary data store, configured via `DATABASE_URL` environment variable
+- **Drizzle ORM**: Type-safe database queries with schema migrations via `drizzle-kit`
+
+### UI Component Libraries
+- **shadcn/ui**: Radix UI primitives with Tailwind styling
+- **Lucide React**: Icon library
+- **Recharts**: Data visualization for stats pages
+- **Embla Carousel**: Carousel components
+
+### Build & Development
+- **Vite**: Frontend bundler with HMR
+- **esbuild**: Server bundling for production
+- **tsx**: TypeScript execution for development
+
+### Fonts
+- **Inter**: Primary sans-serif font
+- **Oswald**: Display font for headings (loaded via Google Fonts)
