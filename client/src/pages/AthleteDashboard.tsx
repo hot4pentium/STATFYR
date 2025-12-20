@@ -234,37 +234,70 @@ export default function AthleteDashboard() {
                     </div>
                   </div>
                 ) : (
-                  /* Back of Card */
-                  (<div className="relative p-6 space-y-4 flex flex-col justify-between min-h-96">
-                    {/* Back Header */}
-                    <div className="text-center">
-                      <p className="text-xs text-accent font-bold uppercase tracking-wider">Season Stats</p>
-                    </div>
-                    {/* Stats Grid */}
-                    <div className="space-y-3">
-                      <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center backdrop-blur-sm hover:bg-white/10 transition">
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Goals</p>
-                        <p className="text-3xl font-display font-bold text-primary mt-1">{athlete.stats?.goals || 0}</p>
+                  /* Back of Card - Four Quadrants */
+                  <div className="relative w-full h-96 overflow-hidden" style={{ transform: 'scaleX(-1)' }}>
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black" />
+                    <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+                    
+                    <div className="relative w-full h-full p-3 grid grid-cols-2 gap-2">
+                      {/* Top Left - Events */}
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3 overflow-hidden flex flex-col">
+                        <p className="text-[8px] text-accent font-bold uppercase tracking-widest mb-2">Events</p>
+                        <div className="space-y-1 text-[9px] text-white/70 flex-1 overflow-y-auto">
+                          {EVENTS.slice(0, 2).map((event) => (
+                            <div key={event.id} className="line-clamp-2">
+                              <span className="font-semibold text-white">{event.type}</span>
+                              <div className="text-[8px]">{new Date(event.date).toLocaleDateString()}</div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center backdrop-blur-sm hover:bg-white/10 transition">
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Assists</p>
-                        <p className="text-3xl font-display font-bold text-accent mt-1">{athlete.stats?.assists || 0}</p>
+
+                      {/* Top Right - Stats with Bars */}
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3 overflow-hidden flex flex-col">
+                        <p className="text-[8px] text-primary font-bold uppercase tracking-widest mb-2">Stats</p>
+                        <div className="space-y-2 flex-1">
+                          <div>
+                            <div className="flex justify-between items-end gap-1 mb-1">
+                              <span className="text-[8px] text-white/70">Goals</span>
+                              <span className="text-[9px] font-bold text-primary">{athlete.stats?.goals || 0}</span>
+                            </div>
+                            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-primary" style={{width: `${Math.min((athlete.stats?.goals || 0) * 10, 100)}%`}}></div>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between items-end gap-1 mb-1">
+                              <span className="text-[8px] text-white/70">Assists</span>
+                              <span className="text-[9px] font-bold text-accent">{athlete.stats?.assists || 0}</span>
+                            </div>
+                            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-accent" style={{width: `${Math.min((athlete.stats?.assists || 0) * 10, 100)}%`}}></div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center backdrop-blur-sm hover:bg-white/10 transition">
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Games</p>
-                        <p className="text-3xl font-display font-bold text-green-400 mt-1">{athlete.stats?.games || 0}</p>
+
+                      {/* Bottom Left - Highlights */}
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3 overflow-hidden flex flex-col">
+                        <p className="text-[8px] text-green-400 font-bold uppercase tracking-widest mb-2">Highlights</p>
+                        <div className="space-y-1 text-[9px] text-white/70 flex-1">
+                          <div>⚡ Crucial goal</div>
+                          <div>✨ MVP award</div>
+                          <div>🎯 Key assist</div>
+                        </div>
+                      </div>
+
+                      {/* Bottom Right - Shoutouts */}
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3 overflow-hidden flex flex-col">
+                        <p className="text-[8px] text-orange-400 font-bold uppercase tracking-widest mb-2">Shoutouts</p>
+                        <div className="text-[8px] text-white/70 italic flex-1">
+                          <p className="line-clamp-3">"Excellent form lately!"</p>
+                          <p className="text-[7px] mt-1 text-white/50">— Coach</p>
+                        </div>
                       </div>
                     </div>
-                    {/* Status */}
-                    <div className="border-t border-white/10 pt-3 text-center">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Status</p>
-                      <p className="text-sm font-bold uppercase tracking-wider mt-1">
-                        <span className={athlete.status === 'Active' ? 'text-green-400' : 'text-orange-400'}>
-                          {athlete.status}
-                        </span>
-                      </p>
-                    </div>
-                  </div>)
+                  </div>
                 )}
               </div>
             </div>
