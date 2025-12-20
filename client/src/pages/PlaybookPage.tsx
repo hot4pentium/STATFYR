@@ -2,15 +2,21 @@ import { Layout } from "@/components/layout/Layout";
 import { PLAYS } from "@/lib/mockData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Play, Share2 } from "lucide-react";
+import { Plus, Play, Share2, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "wouter";
 
 export default function PlaybookPage() {
   return (
     <Layout>
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center gap-3 md:gap-4">
+          <Link href="/dashboard">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="flex-1">
             <h1 className="text-3xl font-display font-bold uppercase tracking-tight text-foreground">Playbook</h1>
             <p className="text-muted-foreground">Design and distribute tactical plays.</p>
           </div>

@@ -3,8 +3,9 @@ import { EVENTS } from "@/lib/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Plus, MapPin, Clock } from "lucide-react";
+import { Plus, MapPin, Clock, ArrowLeft } from "lucide-react";
 import { useState } from "react";
+import { Link } from "wouter";
 
 export default function EventsPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -12,8 +13,13 @@ export default function EventsPage() {
   return (
     <Layout>
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center gap-3 md:gap-4">
+          <Link href="/dashboard">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="flex-1">
             <h1 className="text-3xl font-display font-bold uppercase tracking-tight text-foreground">Schedule</h1>
             <p className="text-muted-foreground">Games, practices, and team meetings.</p>
           </div>

@@ -1,7 +1,9 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, Legend } from "recharts";
-import { Activity, Trophy, TrendingUp, Target } from "lucide-react";
+import { Activity, Trophy, TrendingUp, Target, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 const PERFORMANCE_DATA = [
   { game: 'G1', goals: 2, possession: 45, xG: 1.2 },
@@ -23,9 +25,16 @@ export default function StatsPage() {
   return (
     <Layout>
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div>
-           <h1 className="text-3xl font-display font-bold uppercase tracking-tight text-foreground">Performance Analytics</h1>
-           <p className="text-muted-foreground">Deep dive into team metrics and player development.</p>
+        <div className="flex items-center gap-3 md:gap-4">
+          <Link href="/dashboard">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-display font-bold uppercase tracking-tight text-foreground">Performance Analytics</h1>
+            <p className="text-muted-foreground">Deep dive into team metrics and player development.</p>
+          </div>
         </div>
 
         {/* KPI Cards */}

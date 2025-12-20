@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, ShieldCheck, HeartPulse } from "lucide-react";
+import { Calendar, ShieldCheck, HeartPulse, ArrowLeft } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Link } from "wouter";
 
 export default function AthleteProfile() {
   // Mock logged in athlete
@@ -15,6 +16,14 @@ export default function AthleteProfile() {
     <Layout>
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
+
         {/* Profile Header */}
         <div className="relative h-48 rounded-xl bg-gradient-to-r from-primary/20 to-accent/20 border border-white/5 overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-30 mix-blend-overlay"></div>

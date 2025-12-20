@@ -3,7 +3,8 @@ import { ATHLETES, EVENTS, TEAM_NAME } from "@/lib/mockData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, Ticket, MapPin, Trophy } from "lucide-react";
+import { Calendar, Ticket, MapPin, Trophy, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 
 export default function SupporterDashboard() {
   const nextMatch = EVENTS.find(e => e.type === 'Match') || EVENTS[0];
@@ -12,6 +13,14 @@ export default function SupporterDashboard() {
     <Layout>
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
+        <div className="flex items-center gap-3">
+          <Link href="/">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
+
         {/* Hero Section */}
         <div className="relative rounded-2xl overflow-hidden bg-primary/10 border border-white/5 p-8 md:p-12 text-center md:text-left">
            <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-primary/20" />
