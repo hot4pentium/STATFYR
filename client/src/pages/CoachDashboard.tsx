@@ -314,7 +314,15 @@ export default function CoachDashboard() {
           {selectedCard && (
             <div ref={contentRef} className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300">
               <button
-                onClick={() => setSelectedCard(null)}
+                onClick={() => {
+                  setSelectedCard(null);
+                  // Immediately scroll to grid when close button is clicked
+                  setTimeout(() => {
+                    if (gridRef.current) {
+                      gridRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  }, 50);
+                }}
                 className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-5 w-5" />
