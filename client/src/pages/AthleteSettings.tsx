@@ -2,45 +2,119 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Upload, ArrowLeft, LogOut, Settings } from "lucide-react";
-import { useState } from "react";
+import { User, Upload, ArrowLeft, LogOut, Settings, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 
-export default function AthleteSettings() {
-  const [firstName, setFirstName] = useState("Marcus");
-  const [lastName, setLastName] = useState("Rashford");
-  const [avatarPreview, setAvatarPreview] = useState("https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100");
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+interface UserData {
+  id: string;
+  username: string;
+  role: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  name: string;
+  avatar: string | null;
+  position: string | null;
+  number: string | null;
+}
 
-  const email = "marcus.rashford@thunderbolts.com";
+export default function AthleteSettings() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
   const appVersion = "1.0.0";
 
-  const handleSaveChanges = () => {
-    toast.success("Profile settings saved successfully!");
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user: UserData = JSON.parse(storedUser);
+      setUserId(user.id);
+      setFirstName(user.firstName || "");
+      setLastName(user.lastName || "");
+      setEmail(user.email || "");
+      setAvatarPreview(user.avatar);
+    }
+  }, []);
+
+  const handleSaveChanges = async () => {
+    if (!userId) {
+      toast.error("User not found. Please log in again.");
+      return;
+    }
+
+    if (!firstName.trim() || !lastName.trim()) {
+      toast.error("First name and last name are required.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          name: `${firstName.trim()} ${lastName.trim()}`,
+          avatar: avatarPreview,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save changes");
+      }
+
+      const updatedUser = await response.json();
+      
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const currentUser = JSON.parse(storedUser);
+        const mergedUser = { ...currentUser, ...updatedUser };
+        localStorage.setItem("user", JSON.stringify(mergedUser));
+      }
+
+      toast.success("Profile settings saved successfully!");
+    } catch (error) {
+      console.error("Save failed:", error);
+      toast.error("Failed to save changes. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image must be less than 5MB");
+        return;
+      }
+      
       setIsUploadingAvatar(true);
-      // Simulate upload delay
-      setTimeout(() => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          setAvatarPreview(event.target?.result as string);
-          setIsUploadingAvatar(false);
-          toast.success("Avatar updated successfully!");
-        };
-        reader.readAsDataURL(file);
-      }, 500);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setAvatarPreview(event.target?.result as string);
+        setIsUploadingAvatar(false);
+        toast.success("Avatar updated! Click Save to keep changes.");
+      };
+      reader.onerror = () => {
+        setIsUploadingAvatar(false);
+        toast.error("Failed to load image");
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-full px-4 md:px-8 py-4 flex items-center justify-between">
           <Link href="/athlete/dashboard">
@@ -88,11 +162,9 @@ export default function AthleteSettings() {
           backgroundAttachment: 'scroll',
         }}
       >
-        {/* Overlay for readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background/80 pointer-events-none" />
         
         <div className="relative z-20 space-y-6 max-w-full px-4 md:px-8 py-8">
-          {/* Page Title */}
           <div className="space-y-2">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 bg-primary/20 backdrop-blur-md rounded-lg border border-primary/30 flex items-center justify-center">
@@ -105,18 +177,19 @@ export default function AthleteSettings() {
             </div>
           </div>
 
-          {/* Settings Content */}
           <div className="space-y-6">
-            {/* Avatar Section */}
             <Card className="bg-card/80 backdrop-blur-sm border-white/5">
               <CardHeader>
                 <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Profile Picture</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Avatar Preview */}
                 <div className="flex flex-col md:flex-row items-center gap-6">
-                  <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-accent shadow-lg flex-shrink-0">
-                    <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                  <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-accent shadow-lg flex-shrink-0 bg-background/50 flex items-center justify-center">
+                    {avatarPreview ? (
+                      <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="h-12 w-12 text-muted-foreground" />
+                    )}
                   </div>
                   
                   <div className="flex-1 space-y-4 w-full md:w-auto">
@@ -148,13 +221,11 @@ export default function AthleteSettings() {
               </CardContent>
             </Card>
 
-            {/* Personal Information */}
             <Card className="bg-card/80 backdrop-blur-sm border-white/5">
               <CardHeader>
                 <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Personal Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* First Name */}
                 <div className="space-y-2">
                   <Label htmlFor="first-name" className="text-sm font-medium uppercase tracking-wider">First Name</Label>
                   <Input
@@ -167,7 +238,6 @@ export default function AthleteSettings() {
                   />
                 </div>
 
-                {/* Last Name */}
                 <div className="space-y-2">
                   <Label htmlFor="last-name" className="text-sm font-medium uppercase tracking-wider">Last Name</Label>
                   <Input
@@ -180,7 +250,6 @@ export default function AthleteSettings() {
                   />
                 </div>
 
-                {/* Email */}
                 <div className="space-y-2 border-t border-white/10 pt-6">
                   <Label className="text-sm font-medium uppercase tracking-wider">Email Address</Label>
                   <Input
@@ -192,14 +261,25 @@ export default function AthleteSettings() {
                   <p className="text-xs text-muted-foreground">Your signup email cannot be changed</p>
                 </div>
 
-                <Button onClick={handleSaveChanges} data-testid="button-save" className="w-full md:w-auto shadow-lg shadow-primary/30">
-                  Save Changes
+                <Button 
+                  onClick={handleSaveChanges} 
+                  disabled={isSaving}
+                  data-testid="button-save" 
+                  className="w-full md:w-auto shadow-lg shadow-primary/30"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
                 </Button>
               </CardContent>
             </Card>
           </div>
 
-          {/* App Info */}
           <Card className="bg-card/80 backdrop-blur-sm border-white/5">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">App Information</CardTitle>
