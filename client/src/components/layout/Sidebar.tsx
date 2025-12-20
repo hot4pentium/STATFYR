@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { NAVIGATION, TEAM_NAME, ROLES } from "@/lib/mockData";
-import { Shield, LogOut, User, Trophy, Calendar, Home, MessageSquare, ClipboardList, Users, X } from "lucide-react";
+import { Shield, LogOut, User, Trophy, Calendar, Home, MessageSquare, ClipboardList, Users, X, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -26,6 +26,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
     { name: "Schedule", href: "/events", icon: Calendar },
     { name: "Team Stats", href: "/stats", icon: Trophy },
     { name: "Chat", href: "/chat", icon: MessageSquare },
+    { name: "Settings", href: "/athlete/settings", icon: Settings },
   ];
 
   const supporterLinks = [

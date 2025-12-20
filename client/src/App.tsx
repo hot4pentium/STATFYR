@@ -17,6 +17,7 @@ import SupporterDashboard from "@/pages/SupporterDashboard";
 import SupporterOnboarding from "@/pages/SupporterOnboarding";
 import ChatPage from "@/pages/ChatPage";
 import CoachSettings from "@/pages/CoachSettings";
+import AthleteSettings from "@/pages/AthleteSettings";
 
 function Router() {
   return (
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/stats" component={StatsPage} />
       <Route path="/chat" component={ChatPage} />
       <Route path="/settings" component={CoachSettings} />
+      <Route path="/athlete/settings" component={AthleteSettings} />
       <Route path="/profile/me" component={AthleteProfile} />
       <Route path="/athlete/onboarding" component={AthleteOnboarding} />
       <Route path="/athlete/dashboard" component={AthleteDashboard} />
