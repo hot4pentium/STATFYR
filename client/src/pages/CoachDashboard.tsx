@@ -14,16 +14,19 @@ export default function CoachDashboard() {
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Use requestAnimationFrame twice to ensure DOM is fully painted
-    requestAnimationFrame(() => {
+    if (selectedCard && contentRef.current) {
+      // Scroll to content area when card is selected
       requestAnimationFrame(() => {
-        if (selectedCard && contentRef.current) {
-          contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else if (!selectedCard && gridRef.current) {
-          gridRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        requestAnimationFrame(() => {
+          contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
       });
-    });
+    } else if (!selectedCard && gridRef.current) {
+      // Scroll to grid when content is closed
+      setTimeout(() => {
+        gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
   }, [selectedCard]);
 
   const quickActions = [
