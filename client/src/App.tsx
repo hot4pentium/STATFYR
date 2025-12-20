@@ -13,6 +13,7 @@ import StatsPage from "@/pages/StatsPage";
 import AthleteProfile from "@/pages/AthleteProfile";
 import SupporterDashboard from "@/pages/SupporterDashboard";
 import ChatPage from "@/pages/ChatPage";
+import CoachSettings from "@/pages/CoachSettings";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/playbook" component={PlaybookPage} />
       <Route path="/stats" component={StatsPage} />
       <Route path="/chat" component={ChatPage} />
+      <Route path="/settings" component={CoachSettings} />
       <Route path="/profile/me" component={AthleteProfile} />
       <Route path="/supporter/dashboard" component={SupporterDashboard} />
       <Route component={NotFound} />

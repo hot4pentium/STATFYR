@@ -6,7 +6,8 @@ import {
   MessageSquare, 
   Activity,
   Shield,
-  User
+  User,
+  Settings
 } from "lucide-react";
 
 export const TEAM_NAME = "Thunderbolts FC";
@@ -100,6 +101,7 @@ export const NAVIGATION = [
   { name: "Playbook", href: "/playbook", icon: ClipboardList },
   { name: "Stats", href: "/stats", icon: Trophy },
   { name: "Chat", href: "/chat", icon: MessageSquare },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export const RECENT_CHATS = [
