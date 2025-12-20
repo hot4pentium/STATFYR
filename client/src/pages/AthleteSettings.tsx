@@ -7,45 +7,30 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
-
-interface UserData {
-  id: string;
-  username: string;
-  role: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  name: string;
-  avatar: string | null;
-  position: string | null;
-  number: string | null;
-}
+import { useUser } from "@/lib/userContext";
 
 export default function AthleteSettings() {
+  const { user: contextUser, setUser } = useUser();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
 
   const appVersion = "1.0.0";
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const user: UserData = JSON.parse(storedUser);
-      setUserId(user.id);
-      setFirstName(user.firstName || "");
-      setLastName(user.lastName || "");
-      setEmail(user.email || "");
-      setAvatarPreview(user.avatar);
+    if (contextUser) {
+      setFirstName(contextUser.firstName || "");
+      setLastName(contextUser.lastName || "");
+      setEmail(contextUser.email || "");
+      setAvatarPreview(contextUser.avatar || null);
     }
-  }, []);
+  }, [contextUser]);
 
   const handleSaveChanges = async () => {
-    if (!userId) {
+    if (!contextUser) {
       toast.error("User not found. Please log in again.");
       return;
     }
@@ -57,7 +42,7 @@ export default function AthleteSettings() {
 
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/users/${userId}`, {
+      const response = await fetch(`/api/users/${contextUser.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -73,13 +58,7 @@ export default function AthleteSettings() {
       }
 
       const updatedUser = await response.json();
-      
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        const currentUser = JSON.parse(storedUser);
-        const mergedUser = { ...currentUser, ...updatedUser };
-        localStorage.setItem("user", JSON.stringify(mergedUser));
-      }
+      setUser({ ...contextUser, ...updatedUser });
 
       toast.success("Profile settings saved successfully!");
     } catch (error) {
