@@ -183,9 +183,16 @@ export default function AthleteDashboard() {
         <div className="relative z-20 space-y-6 max-w-full px-4 md:px-8 py-8">
           {/* HYPE Card - Sports Trading Card Style with Flip */}
           <div className="w-60 mx-auto lg:mx-0 space-y-2">
-            <div className="relative group cursor-pointer" onClick={() => setIsHypeCardFlipped(!isHypeCardFlipped)}>
+            <div className="relative group cursor-pointer" onClick={() => setIsHypeCardFlipped(!isHypeCardFlipped)} style={{ perspective: '1000px' }}>
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
-              <div className={`relative w-full bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl transition-all duration-500 ${isHypeCardFlipped ? 'scale-y-95' : ''}`}>
+              <div 
+                className="relative w-full bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
+                style={{
+                  transformStyle: 'preserve-3d',
+                  transform: isHypeCardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                  transition: 'transform 0.6s ease-in-out'
+                }}
+              >
                 {/* Card Background */}
                 <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
                 
