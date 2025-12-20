@@ -12,6 +12,7 @@ export default function CoachDashboard() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const heroBannerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (selectedCard && contentRef.current) {
@@ -244,7 +245,7 @@ export default function CoachDashboard() {
         
         <div className="relative z-20 space-y-6">
           {/* Hero Banner */}
-          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
+          <div ref={heroBannerRef} className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
             <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
             <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
@@ -316,10 +317,10 @@ export default function CoachDashboard() {
               <button
                 onClick={() => {
                   setSelectedCard(null);
-                  // Immediately scroll to grid when close button is clicked
+                  // Immediately scroll to hero banner when close button is clicked
                   setTimeout(() => {
-                    if (gridRef.current) {
-                      gridRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (heroBannerRef.current) {
+                      heroBannerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                   }, 50);
                 }}
