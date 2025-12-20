@@ -7,34 +7,42 @@ import { Shield, ArrowLeft, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
+import { useUser } from "@/lib/userContext";
+import { joinTeamByCode } from "@/lib/api";
 
 export default function AthleteOnboarding() {
   const [, setLocation] = useLocation();
+  const { user, setCurrentTeam } = useUser();
   const [teamCode, setTeamCode] = useState("");
   const [isJoining, setIsJoining] = useState(false);
   const [joinedTeam, setJoinedTeam] = useState(false);
 
-  const handleJoinTeam = () => {
+  const handleJoinTeam = async () => {
     if (!teamCode.trim()) {
       toast.error("Please enter a team code");
       return;
     }
 
-    // Mock validation - accept any code for mockup
-    if (teamCode.length < 4) {
-      toast.error("Invalid team code");
+    if (!user) {
+      toast.error("Please log in first");
+      setLocation("/");
       return;
     }
 
     setIsJoining(true);
-    setTimeout(() => {
-      setIsJoining(false);
+    try {
+      const result = await joinTeamByCode(teamCode, user.id, "athlete");
+      setCurrentTeam(result.team);
       setJoinedTeam(true);
-      toast.success(`Successfully joined team with code: ${teamCode}`);
+      toast.success(`Successfully joined ${result.team.name}!`);
       setTimeout(() => {
         setLocation("/athlete/dashboard");
       }, 1500);
-    }, 800);
+    } catch (error) {
+      toast.error("Invalid team code. Please check and try again.");
+    } finally {
+      setIsJoining(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -45,7 +53,6 @@ export default function AthleteOnboarding() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
-      {/* Background with overlay */}
       <div 
         className="absolute inset-0 z-0 opacity-20"
         style={{
@@ -57,7 +64,6 @@ export default function AthleteOnboarding() {
       <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
 
       <div className="relative z-10 w-full max-w-md px-4">
-        {/* Back Button */}
         <div className="mb-8">
           <Button 
             variant="ghost" 
@@ -94,7 +100,7 @@ export default function AthleteOnboarding() {
                     id="team-code"
                     data-testid="input-athlete-team-code"
                     type="text"
-                    placeholder="e.g., TC-7B4K2M9X"
+                    placeholder="e.g., ABC123"
                     value={teamCode}
                     onChange={(e) => setTeamCode(e.target.value.toUpperCase())}
                     onKeyPress={handleKeyPress}
@@ -118,21 +124,21 @@ export default function AthleteOnboarding() {
 
                 <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                   <p className="text-xs text-blue-200">
-                    💡 You'll need a valid team code from your coach to join. Don't have one? Contact your team administrator.
+                    You'll need a valid team code from your coach to join. Don't have one? Contact your team administrator.
                   </p>
                 </div>
               </>
             ) : (
-              <div className="space-y-6 text-center">
+              <div className="text-center space-y-4 py-4">
                 <div className="flex justify-center">
                   <div className="h-16 w-16 bg-green-500/20 rounded-full flex items-center justify-center">
-                    <CheckCircle className="h-8 w-8 text-green-500" />
+                    <CheckCircle className="h-10 w-10 text-green-500" />
                   </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-foreground mb-2">Welcome to the Team!</h3>
-                  <p className="text-sm text-muted-foreground">
-                    You've successfully joined. Redirecting to your dashboard...
+                <div className="space-y-1">
+                  <h3 className="font-display text-xl font-bold uppercase">Team Joined!</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Redirecting to your dashboard...
                   </p>
                 </div>
               </div>

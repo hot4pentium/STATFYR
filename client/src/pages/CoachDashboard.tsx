@@ -1,18 +1,73 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ATHLETES, EVENTS, PLAYS, RECENT_CHATS } from "@/lib/mockData";
-import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X } from "lucide-react";
+import { EVENTS, PLAYS, RECENT_CHATS } from "@/lib/mockData";
+import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
+import { useUser } from "@/lib/userContext";
+import { createTeam, getTeamMembers, getCoachTeams, type TeamMember } from "@/lib/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export default function CoachDashboard() {
+  const { user, currentTeam, setCurrentTeam } = useUser();
+  const queryClient = useQueryClient();
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const heroBannerRef = useRef<HTMLDivElement>(null);
+
+  const { data: coachTeams } = useQuery({
+    queryKey: ["/api/coach", user?.id, "teams"],
+    queryFn: () => user ? getCoachTeams(user.id) : Promise.resolve([]),
+    enabled: !!user && !currentTeam,
+  });
+
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "members"],
+    queryFn: () => currentTeam ? getTeamMembers(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+  });
+
+  const createTeamMutation = useMutation({
+    mutationFn: () => createTeam({
+      name: "Thunderbolts FC",
+      sport: "Football",
+      division: "Premier Division",
+      season: "2024-2025",
+      coachId: user!.id
+    }),
+    onSuccess: (team) => {
+      setCurrentTeam(team);
+      toast.success(`Team created! Share code: ${team.code}`);
+      queryClient.invalidateQueries({ queryKey: ["/api/coach"] });
+    },
+  });
+
+  useEffect(() => {
+    if (user && !currentTeam && coachTeams) {
+      if (coachTeams.length > 0) {
+        setCurrentTeam(coachTeams[0]);
+      } else {
+        createTeamMutation.mutate();
+      }
+    }
+  }, [user, currentTeam, coachTeams]);
+
+  const copyTeamCode = () => {
+    if (currentTeam?.code) {
+      navigator.clipboard.writeText(currentTeam.code);
+      setCodeCopied(true);
+      toast.success("Team code copied!");
+      setTimeout(() => setCodeCopied(false), 2000);
+    }
+  };
+
+  const athletes = teamMembers.filter((m: TeamMember) => m.role === "athlete");
 
   useEffect(() => {
     if (selectedCard && contentRef.current) {
@@ -68,33 +123,34 @@ export default function CoachDashboard() {
       case "roster":
         return (
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {ATHLETES.map((athlete) => (
-              <Card key={athlete.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
-                <CardContent className="p-4">
-                  <div className="flex flex-col items-center text-center gap-3">
-                    <Avatar className="h-12 w-12 border-2 border-white/20">
-                      <AvatarImage src={athlete.avatar} />
-                      <AvatarFallback>{athlete.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-bold text-foreground">#{athlete.number}</div>
-                      <div className="text-sm font-bold text-primary">{athlete.name}</div>
-                      <div className="text-xs text-muted-foreground">{athlete.position}</div>
-                    </div>
-                    <div className="flex gap-2 text-center text-xs w-full">
-                      <div className="flex-1">
-                        <div className="text-muted-foreground">Goals</div>
-                        <div className="font-mono font-bold">{athlete.stats.goals || 0}</div>
+            {athletes.length === 0 ? (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-bold">No athletes yet</p>
+                <p className="text-sm">Share your team code with athletes to have them join!</p>
+                {currentTeam?.code && (
+                  <p className="mt-2 font-mono text-primary text-lg">{currentTeam.code}</p>
+                )}
+              </div>
+            ) : (
+              athletes.map((member: TeamMember) => (
+                <Card key={member.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col items-center text-center gap-3">
+                      <Avatar className="h-12 w-12 border-2 border-white/20">
+                        <AvatarImage src={member.user.avatar || undefined} />
+                        <AvatarFallback>{member.user.name?.[0] || "A"}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-bold text-foreground">#{member.user.number || "00"}</div>
+                        <div className="text-sm font-bold text-primary">{member.user.name || member.user.username}</div>
+                        <div className="text-xs text-muted-foreground">{member.user.position || "Player"}</div>
                       </div>
-                      <div className="flex-1">
-                        <div className="text-muted-foreground">Assists</div>
-                        <div className="font-mono font-bold">{athlete.stats.assists || 0}</div>
-                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         );
       case "events":
@@ -200,14 +256,14 @@ export default function CoachDashboard() {
                 <CardTitle className="text-lg">Direct Messages</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {ATHLETES.slice(0, 3).map((athlete) => (
-                  <div key={athlete.id} className="p-3 rounded hover:bg-white/5 cursor-pointer transition flex items-center gap-2">
+                {athletes.slice(0, 3).map((member: TeamMember) => (
+                  <div key={member.id} className="p-3 rounded hover:bg-white/5 cursor-pointer transition flex items-center gap-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={athlete.avatar} />
-                      <AvatarFallback>{athlete.name[0]}</AvatarFallback>
+                      <AvatarImage src={member.user.avatar || undefined} />
+                      <AvatarFallback>{member.user.name?.[0] || "A"}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <div className="font-bold text-sm truncate">{athlete.name}</div>
+                      <div className="font-bold text-sm truncate">{member.user.name || member.user.username}</div>
                       <div className="text-xs text-muted-foreground truncate">Online now</div>
                     </div>
                   </div>
@@ -252,18 +308,28 @@ export default function CoachDashboard() {
                   <div className="space-y-3 flex-1">
                     <div className="space-y-1">
                       <h1 className="text-4xl md:text-6xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
-                        Thunderbolts
+                        {currentTeam?.name || "Thunderbolts FC"}
                       </h1>
-                      <h2 className="text-lg md:text-2xl text-white/80 font-bold uppercase tracking-wide">Football Club</h2>
+                      <h2 className="text-lg md:text-2xl text-white/80 font-bold uppercase tracking-wide">{currentTeam?.sport || "Football"}</h2>
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-3 pt-2">
                       <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                        <span className="text-sm font-bold text-white uppercase tracking-wider">Season 2024-2025</span>
+                        <span className="text-sm font-bold text-white uppercase tracking-wider">{currentTeam?.season || "Season 2024-2025"}</span>
                       </div>
                       <div className="px-4 py-2 bg-accent/20 backdrop-blur-sm rounded-lg border border-accent/30">
-                        <span className="text-sm font-bold text-accent-foreground uppercase tracking-wider">Premier Division</span>
+                        <span className="text-sm font-bold text-accent-foreground uppercase tracking-wider">{currentTeam?.division || "Premier Division"}</span>
                       </div>
+                      {currentTeam?.code && (
+                        <button
+                          onClick={copyTeamCode}
+                          className="px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-lg border border-green-500/30 flex items-center gap-2 hover:bg-green-500/30 transition-colors"
+                          data-testid="button-copy-team-code"
+                        >
+                          <span className="text-sm font-bold text-green-300 uppercase tracking-wider font-mono">Code: {currentTeam.code}</span>
+                          {codeCopied ? <Check className="h-4 w-4 text-green-300" /> : <Copy className="h-4 w-4 text-green-300" />}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -346,9 +412,9 @@ export default function CoachDashboard() {
                   <Users className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-display font-bold">{ATHLETES.filter(a => a.status === 'Active').length} / {ATHLETES.length}</div>
+                  <div className="text-3xl font-display font-bold">{athletes.length} / {teamMembers.length}</div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    <span className="text-orange-500 font-medium">1 Injured</span> (Luke Shaw)
+                    <span className="text-primary font-medium">{teamMembers.length} total members</span>
                   </p>
                 </CardContent>
               </Card>
@@ -392,34 +458,35 @@ export default function CoachDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {ATHLETES.slice(0, 3).map((athlete) => (
-                      <div key={athlete.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50 hover:bg-background transition-colors border border-transparent hover:border-white/5 group">
-                        <div className="flex items-center gap-4">
-                          <div className="font-display text-xl font-bold text-muted-foreground w-8 text-center group-hover:text-primary transition-colors">
-                            #{athlete.number}
-                          </div>
-                          <Avatar className="h-10 w-10 border border-white/10">
-                            <AvatarImage src={athlete.avatar} />
-                            <AvatarFallback>{athlete.name[0]}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-bold text-foreground">{athlete.name}</div>
-                            <div className="text-xs text-muted-foreground uppercase tracking-wider">{athlete.position}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-6 text-right">
-                           <div>
-                              <div className="text-xs text-muted-foreground uppercase">Goals</div>
-                              <div className="font-mono font-bold text-primary">{athlete.stats.goals || 0}</div>
-                           </div>
-                           <div>
-                              <div className="text-xs text-muted-foreground uppercase">Assists</div>
-                              <div className="font-mono font-bold text-foreground">{athlete.stats.assists || 0}</div>
-                           </div>
-                           <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
+                    {athletes.length === 0 ? (
+                      <div className="text-center py-6 text-muted-foreground">
+                        <p className="text-sm">No athletes yet. Share your team code to invite athletes!</p>
+                        {currentTeam?.code && (
+                          <p className="mt-2 font-mono text-primary">{currentTeam.code}</p>
+                        )}
                       </div>
-                    ))}
+                    ) : (
+                      athletes.slice(0, 3).map((member: TeamMember) => (
+                        <div key={member.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50 hover:bg-background transition-colors border border-transparent hover:border-white/5 group">
+                          <div className="flex items-center gap-4">
+                            <div className="font-display text-xl font-bold text-muted-foreground w-8 text-center group-hover:text-primary transition-colors">
+                              #{member.user.number || "00"}
+                            </div>
+                            <Avatar className="h-10 w-10 border border-white/10">
+                              <AvatarImage src={member.user.avatar || undefined} />
+                              <AvatarFallback>{member.user.name?.[0] || "A"}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-bold text-foreground">{member.user.name || member.user.username}</div>
+                              <div className="text-xs text-muted-foreground uppercase tracking-wider">{member.user.position || "Player"}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-6 text-right">
+                             <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>

@@ -3,20 +3,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useLocation } from "wouter";
 import { Shield, User, Users, Clipboard } from "lucide-react";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
+import { useUser } from "@/lib/userContext";
+import { registerUser } from "@/lib/api";
+import { useState } from "react";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
+  const { setUser } = useUser();
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (role: string) => {
-    // In a real app, this would handle auth. For mockup, we just route.
-    if (role === 'coach') setLocation("/dashboard");
-    else if (role === 'athlete') setLocation("/athlete/onboarding");
-    else setLocation("/supporter/onboarding");
+  const handleLogin = async (role: string) => {
+    setLoading(true);
+    try {
+      const username = `${role}_${Date.now()}`;
+      const user = await registerUser({
+        username,
+        password: "demo123",
+        role,
+        name: role === 'coach' ? 'Coach' : role === 'athlete' ? 'Athlete' : 'Supporter'
+      });
+      setUser(user);
+      
+      if (role === 'coach') setLocation("/dashboard");
+      else if (role === 'athlete') setLocation("/athlete/onboarding");
+      else setLocation("/supporter/onboarding");
+    } catch (error) {
+      console.error("Registration failed:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
-      {/* Background with overlay */}
       <div 
         className="absolute inset-0 z-0 opacity-20"
         style={{
@@ -64,6 +83,8 @@ export default function AuthPage() {
               size="lg" 
               className="w-full h-16 text-lg justify-start px-6 bg-primary hover:bg-primary/90 text-primary-foreground group relative overflow-hidden"
               onClick={() => handleLogin('coach')}
+              disabled={loading}
+              data-testid="button-coach"
             >
               <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
               <Clipboard className="mr-4 h-6 w-6" />
@@ -78,6 +99,8 @@ export default function AuthPage() {
               size="lg" 
               className="w-full h-16 text-lg justify-start px-6 bg-secondary hover:bg-secondary/80 border border-white/5"
               onClick={() => handleLogin('athlete')}
+              disabled={loading}
+              data-testid="button-athlete"
             >
               <User className="mr-4 h-6 w-6" />
               <div className="flex flex-col items-start">
@@ -91,6 +114,8 @@ export default function AuthPage() {
               size="lg" 
               className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
               onClick={() => handleLogin('supporter')}
+              disabled={loading}
+              data-testid="button-supporter"
             >
               <Users className="mr-4 h-6 w-6" />
               <div className="flex flex-col items-start">
