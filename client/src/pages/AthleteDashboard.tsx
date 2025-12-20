@@ -262,42 +262,42 @@ export default function AthleteDashboard() {
         
         <div className="relative z-20 max-w-full px-4 md:px-8 py-8">
           {/* HYPE Card & Quick Navigation Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-start">
             {/* HYPE Card - Sports Trading Card Style with Flip */}
-            <div className="space-y-2 flex flex-col items-center lg:items-start">
-            {/* Share Button */}
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowShareMenu(!showShareMenu)}
-                className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition"
-                data-testid="button-share-card"
-              >
-                <Share2 className="h-5 w-5" />
-              </button>
-              
-              {/* Share Menu */}
-              {showShareMenu && (
-                <div className="absolute mt-10 border border-white/10 rounded-lg p-3 backdrop-blur-sm space-y-2 z-50 bg-[#000000f2]">
-                  <div className="text-xs font-semibold text-white mb-2">Share HYPE Card</div>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      value={shareUrl}
-                      readOnly
-                      className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-xs text-white/70 font-mono"
-                      data-testid="input-share-url"
-                    />
-                    <button
-                      onClick={copyShareLink}
-                      className="bg-primary hover:bg-primary/80 text-white px-3 py-1 rounded text-xs font-semibold transition"
-                      data-testid="button-copy-share"
-                    >
-                      {copied ? '✓' : 'Copy'}
-                    </button>
+            <div className="w-60 space-y-2">
+              {/* Share Button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowShareMenu(!showShareMenu)}
+                  className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition"
+                  data-testid="button-share-card"
+                >
+                  <Share2 className="h-5 w-5" />
+                </button>
+                
+                {/* Share Menu */}
+                {showShareMenu && (
+                  <div className="absolute mt-10 border border-white/10 rounded-lg p-3 backdrop-blur-sm space-y-2 z-50 bg-[#000000f2]">
+                    <div className="text-xs font-semibold text-white mb-2">Share HYPE Card</div>
+                    <div className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        value={shareUrl}
+                        readOnly
+                        className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-xs text-white/70 font-mono"
+                        data-testid="input-share-url"
+                      />
+                      <button
+                        onClick={copyShareLink}
+                        className="bg-primary hover:bg-primary/80 text-white px-3 py-1 rounded text-xs font-semibold transition"
+                        data-testid="button-copy-share"
+                      >
+                        {copied ? '✓' : 'Copy'}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
             <div className="relative group cursor-pointer" onClick={() => setIsModalOpen(true)} style={{ perspective: '1000px' }}>
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div 
@@ -427,7 +427,7 @@ export default function AthleteDashboard() {
             </div>
 
             {/* Quick Navigation */}
-            <div className="lg:col-span-2">
+            <div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {quickActions.map((action) => (
                   <button
