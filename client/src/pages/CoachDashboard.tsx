@@ -279,7 +279,7 @@ export default function CoachDashboard() {
           </div>
 
           {/* Quick Navigation */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 bg-[#7d5e5e00]">
             {quickActions.map((action) => (
               <button
                 key={action.id}
