@@ -218,13 +218,11 @@ export default function AthleteDashboard() {
                       </div>
                     </div>
 
-                    {/* Right Center - HYPE Card Pill (Vertical) */}
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 p-2">
-                      <div className="flex flex-col items-center gap-1 px-2 py-4 bg-gradient-to-b from-primary to-accent rounded-full backdrop-blur-sm border border-white/30">
-                        <span className="text-[8px] text-white font-bold uppercase tracking-widest writing-vertical transform -rotate-90 whitespace-nowrap">HYPE</span>
-                        <div className="w-0.5 h-4 bg-white/50"></div>
-                        <span className="text-[8px] text-white font-bold uppercase tracking-widest writing-vertical transform -rotate-90 whitespace-nowrap">CARD</span>
-                      </div>
+                    {/* Right Center - HYPE Card Text (Vertical) */}
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
+                      <span className="text-[10px] text-white font-bold uppercase tracking-widest drop-shadow-lg">HYPE</span>
+                      <div className="w-0.5 h-3 bg-white/60"></div>
+                      <span className="text-[10px] text-white font-bold uppercase tracking-widest drop-shadow-lg">CARD</span>
                     </div>
 
                     {/* Flip Button */}
