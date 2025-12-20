@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ATHLETES, EVENTS, PLAYS, RECENT_CHATS } from "@/lib/mockData";
-import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare } from "lucide-react";
+import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare, Trophy, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "wouter";
@@ -48,15 +48,47 @@ export default function CoachDashboard() {
   return (
     <Layout>
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-display font-bold uppercase tracking-tight text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, Coach Carter. Here's what's happening.</p>
+        
+        {/* Hero Banner */}
+        <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
+          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+          <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
+          <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
+          
+          <div className="relative z-10 p-8 md:p-12">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="flex items-start gap-6 flex-1">
+                <div className="h-20 w-20 md:h-28 md:w-28 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
+                  <Shield className="h-10 w-10 md:h-16 md:w-16 text-white" />
+                </div>
+                
+                <div className="space-y-3 flex-1">
+                  <div className="space-y-1">
+                    <h1 className="text-4xl md:text-6xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
+                      Thunderbolts
+                    </h1>
+                    <h2 className="text-lg md:text-2xl text-white/80 font-bold uppercase tracking-wide">Football Club</h2>
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                    <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                      <span className="text-sm font-bold text-white uppercase tracking-wider">Season 2024-2025</span>
+                    </div>
+                    <div className="px-4 py-2 bg-accent/20 backdrop-blur-sm rounded-lg border border-accent/30">
+                      <span className="text-sm font-bold text-accent-foreground uppercase tracking-wider">Premier Division</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-full md:w-auto flex gap-2">
+                <Button size="lg" className="shadow-lg shadow-primary/30 flex-1 md:flex-none">
+                  <PlayCircle className="mr-2 h-5 w-5" />
+                  Start Practice Mode
+                </Button>
+              </div>
+            </div>
           </div>
-          <Button size="lg" className="shadow-lg shadow-primary/20">
-            <PlayCircle className="mr-2 h-5 w-5" />
-            Start Practice Mode
-          </Button>
         </div>
 
         {/* Quick Navigation */}
