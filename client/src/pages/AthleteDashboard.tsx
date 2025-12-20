@@ -166,38 +166,37 @@ export default function AthleteDashboard() {
                 
                 {/* Front of Card */}
                 {!isHypeCardFlipped ? (
-                  <div className="relative p-6 space-y-4 flex flex-col justify-between min-h-96">
-                    {/* Top - Header */}
-                    <div className="text-center">
-                      <div className="inline-block px-3 py-1 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold uppercase tracking-wider rounded-full mb-3">
+                  <div className="relative w-full h-96 overflow-hidden">
+                    {/* Full Image Background */}
+                    <img src={athlete.avatar} alt={athlete.name} className="absolute inset-0 w-full h-full object-cover" />
+                    
+                    {/* Gradient Overlays for text readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+                    
+                    {/* Top - Header Overlay */}
+                    <div className="absolute top-0 left-0 right-0 p-4 text-center">
+                      <div className="inline-block px-3 py-1 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold uppercase tracking-wider rounded-full mb-2">
                         HYPE Card
                       </div>
-                      <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter">{athlete.name}</h3>
-                      <p className="text-[10px] text-muted-foreground uppercase mt-2 tracking-wider">{TEAM_NAME}</p>
+                      <h3 className="text-xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg">{athlete.name}</h3>
+                      <p className="text-[10px] text-white/90 uppercase mt-1 tracking-wider drop-shadow-md font-semibold">{TEAM_NAME}</p>
                     </div>
 
-                    {/* Middle - Player Image/Avatar */}
-                    <div className="relative mx-auto">
-                      <div className="w-40 h-40 rounded-lg overflow-hidden border-3 border-accent shadow-lg">
-                        <img src={athlete.avatar} alt={athlete.name} className="w-full h-full object-cover" />
-                      </div>
-                    </div>
-
-                    {/* Bottom - Info */}
-                    <div className="border-t border-white/10 pt-4 space-y-2 text-center">
-                      <p className="text-sm font-bold text-accent uppercase tracking-wider">{athlete.position}</p>
-                      <div className="inline-block bg-gradient-to-r from-accent to-primary rounded-lg p-3">
-                        <span className="text-white font-display font-bold text-2xl">#{athlete.number}</span>
+                    {/* Bottom - Info Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 text-center space-y-2">
+                      <p className="text-sm font-bold text-accent uppercase tracking-wider drop-shadow-lg">{athlete.position}</p>
+                      <div className="inline-block bg-gradient-to-r from-accent to-primary rounded-lg p-3 shadow-lg">
+                        <span className="text-white font-display font-bold text-2xl drop-shadow">#{athlete.number}</span>
                       </div>
                     </div>
 
                     {/* Flip Button */}
                     <button
                       onClick={() => setIsHypeCardFlipped(true)}
-                      className="absolute top-4 right-4 p-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-colors"
+                      className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg hover:bg-white/30 transition-colors z-10"
                       data-testid="button-flip-hype-card"
                     >
-                      <Repeat2 className="h-4 w-4" />
+                      <Repeat2 className="h-4 w-4 text-white" />
                     </button>
                   </div>
                 ) : (
