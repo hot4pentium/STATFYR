@@ -428,12 +428,12 @@ export default function AthleteDashboard() {
 
             {/* Quick Navigation */}
             <div className="h-96">
-              <div className="grid grid-cols-2 gap-3.5 h-full">
+              <div className="grid grid-cols-2 gap-2 h-full">
                 {quickActions.map((action) => (
                   <button
                     key={action.id}
                     onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
-                    className={`h-full p-5 rounded-lg border transition-all duration-200 backdrop-blur-sm group text-left ${
+                    className={`h-full p-5.5 rounded-lg border transition-all duration-200 backdrop-blur-sm group text-left ${
                       selectedCard === action.id
                         ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
                         : `border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5`
