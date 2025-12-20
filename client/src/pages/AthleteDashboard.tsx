@@ -4,14 +4,141 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ATHLETES, EVENTS, TEAM_NAME } from "@/lib/mockData";
-import { Calendar, TrendingUp, Trophy, Activity, Clock, MapPin } from "lucide-react";
+import { Calendar, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useState, useRef, useEffect } from "react";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 
 export default function AthleteDashboard() {
   // Mock logged in athlete
   const athlete = ATHLETES[0];
   const nextEvent = EVENTS[0];
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const heroBannerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selectedCard && contentRef.current) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      });
+    }
+  }, [selectedCard]);
+
+  const quickActions = [
+    { 
+      name: "Schedule", 
+      id: "schedule",
+      icon: Calendar, 
+      color: "from-blue-500/20 to-blue-600/20",
+      description: "Your matches"
+    },
+    { 
+      name: "Stats", 
+      id: "stats",
+      icon: BarChart3, 
+      color: "from-orange-500/20 to-orange-600/20",
+      description: "Performance"
+    },
+    { 
+      name: "Playbook", 
+      id: "playbook",
+      icon: ClipboardList, 
+      color: "from-green-500/20 to-green-600/20",
+      description: "Tactics"
+    },
+    { 
+      name: "Chat", 
+      id: "chat",
+      icon: MessageSquare, 
+      color: "from-pink-500/20 to-pink-600/20",
+      description: "Messages"
+    },
+  ];
+
+  const renderContent = () => {
+    switch(selectedCard) {
+      case "schedule":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {EVENTS.map((event) => (
+              <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                <CardContent className="p-4">
+                  <div className="space-y-2">
+                    <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-white/10 border border-white/20">{event.type}</span>
+                    <h3 className="font-bold text-lg">{event.title}</h3>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(event.date).toLocaleDateString()}
+                      </div>
+                      <div className="text-xs">{event.location}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+      case "stats":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="bg-background/40 border-white/10">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground mb-1 uppercase">Goals</p>
+                <p className="text-3xl font-display font-bold">{athlete.stats?.goals || 0}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-background/40 border-white/10">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground mb-1 uppercase">Assists</p>
+                <p className="text-3xl font-display font-bold">{athlete.stats?.assists || 0}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-background/40 border-white/10">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground mb-1 uppercase">Games</p>
+                <p className="text-3xl font-display font-bold">{athlete.stats?.games || 0}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-background/40 border-white/10">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground mb-1 uppercase">Rating</p>
+                <p className="text-3xl font-display font-bold text-accent">8.5</p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case "playbook":
+        return (
+          <div className="p-4 bg-background/40 border border-white/10 rounded-lg">
+            <h4 className="font-bold mb-3">Team Tactics</h4>
+            <div className="space-y-2 text-sm">
+              <p>📋 High Press Alpha - Aggressive full-field defense strategy</p>
+              <p>⚡ Counter Attack Z - Fast-break offensive plays</p>
+              <p>🎯 Corner Setup 1 - Near-post set piece tactics</p>
+            </div>
+          </div>
+        );
+      case "chat":
+        return (
+          <div className="space-y-3">
+            <div className="p-3 bg-background/40 border border-white/10 rounded-lg">
+              <p className="text-sm font-bold">Coach Carter</p>
+              <p className="text-xs text-muted-foreground">Great performance last match! See you at practice.</p>
+            </div>
+            <div className="p-3 bg-background/40 border border-white/10 rounded-lg">
+              <p className="text-sm font-bold">Team Group</p>
+              <p className="text-xs text-muted-foreground">Practice moved to 5 PM today.</p>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Layout>
@@ -64,6 +191,56 @@ export default function AthleteDashboard() {
               </div>
             </div>
           </div>
+
+          {/* Quick Navigation */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {quickActions.map((action) => (
+              <button
+                key={action.id}
+                onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
+                className={`h-full p-4 rounded-lg border transition-all duration-200 backdrop-blur-sm group text-left ${
+                  selectedCard === action.id
+                    ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
+                    : `border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5`
+                }`}
+              >
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                    <action.icon className="h-5 w-5 md:h-6 md:w-6 text-primary group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm md:text-base">{action.name}</div>
+                    <div className="text-[10px] md:text-xs text-muted-foreground">{action.description}</div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Expanded Content Container */}
+          {selectedCard && (
+            <div ref={contentRef} className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300">
+              <button
+                onClick={() => {
+                  setSelectedCard(null);
+                  setTimeout(() => {
+                    if (heroBannerRef.current) {
+                      heroBannerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  }, 50);
+                }}
+                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <h3 className="text-lg font-display font-bold uppercase tracking-wide mb-6">
+                {quickActions.find(a => a.id === selectedCard)?.name}
+              </h3>
+              <div className="overflow-x-auto">
+                {renderContent()}
+              </div>
+            </div>
+          )}
 
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -3,11 +3,149 @@ import { ATHLETES, EVENTS, TEAM_NAME } from "@/lib/mockData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, Ticket, MapPin, Trophy, ArrowLeft } from "lucide-react";
+import { Calendar, Ticket, MapPin, Trophy, ArrowLeft, Users, BarChart3, MessageSquare, X } from "lucide-react";
 import { Link } from "wouter";
+import { useState, useRef, useEffect } from "react";
 
 export default function SupporterDashboard() {
   const nextMatch = EVENTS.find(e => e.type === 'Match') || EVENTS[0];
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const heroBannerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selectedCard && contentRef.current) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      });
+    }
+  }, [selectedCard]);
+
+  const quickActions = [
+    { 
+      name: "Schedule", 
+      id: "schedule",
+      icon: Calendar, 
+      color: "from-blue-500/20 to-blue-600/20",
+      description: "Match dates"
+    },
+    { 
+      name: "Roster", 
+      id: "roster",
+      icon: Users, 
+      color: "from-purple-500/20 to-purple-600/20",
+      description: "Team squad"
+    },
+    { 
+      name: "Stats", 
+      id: "stats",
+      icon: BarChart3, 
+      color: "from-orange-500/20 to-orange-600/20",
+      description: "Team stats"
+    },
+    { 
+      name: "Chat", 
+      id: "chat",
+      icon: MessageSquare, 
+      color: "from-pink-500/20 to-pink-600/20",
+      description: "Updates"
+    },
+  ];
+
+  const renderContent = () => {
+    switch(selectedCard) {
+      case "schedule":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {EVENTS.map((event) => (
+              <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                <CardContent className="p-4">
+                  <div className="space-y-2">
+                    <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-white/10 border border-white/20">{event.type}</span>
+                    <h3 className="font-bold text-lg">{event.title}</h3>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(event.date).toLocaleDateString()}
+                      </div>
+                      <div className="text-xs">{event.location}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+      case "roster":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {ATHLETES.map((athlete) => (
+              <Card key={athlete.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                <CardContent className="p-4">
+                  <div className="flex flex-col items-center text-center gap-3">
+                    <Avatar className="h-12 w-12 border-2 border-white/20">
+                      <AvatarImage src={athlete.avatar} />
+                      <AvatarFallback>{athlete.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-bold text-foreground">#{athlete.number}</div>
+                      <div className="text-sm font-bold text-primary">{athlete.name}</div>
+                      <div className="text-xs text-muted-foreground">{athlete.position}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+      case "stats":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="bg-background/40 border-white/10">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground mb-1 uppercase">Win Rate</p>
+                <p className="text-3xl font-display font-bold">78%</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-background/40 border-white/10">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground mb-1 uppercase">Goals For</p>
+                <p className="text-3xl font-display font-bold">34</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-background/40 border-white/10">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground mb-1 uppercase">Goals Against</p>
+                <p className="text-3xl font-display font-bold">12</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-background/40 border-white/10">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground mb-1 uppercase">Position</p>
+                <p className="text-3xl font-display font-bold text-accent">1st</p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case "chat":
+        return (
+          <div className="space-y-3">
+            <div className="p-3 bg-background/40 border border-white/10 rounded-lg">
+              <p className="text-sm font-bold">Team News</p>
+              <p className="text-xs text-muted-foreground">Team training went great! Ready for the derby.</p>
+            </div>
+            <div className="p-3 bg-background/40 border border-white/10 rounded-lg">
+              <p className="text-sm font-bold">Coach Update</p>
+              <p className="text-xs text-muted-foreground">Squad is in excellent form heading into the weekend.</p>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Layout>
@@ -45,6 +183,56 @@ export default function SupporterDashboard() {
               </div>
            </div>
         </div>
+
+        {/* Quick Navigation */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {quickActions.map((action) => (
+            <button
+              key={action.id}
+              onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
+              className={`h-full p-4 rounded-lg border transition-all duration-200 backdrop-blur-sm group text-left ${
+                selectedCard === action.id
+                  ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
+                  : `border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5`
+              }`}
+            >
+              <div className="flex flex-col items-center text-center gap-2">
+                <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                  <action.icon className="h-5 w-5 md:h-6 md:w-6 text-primary group-hover:scale-110 transition-transform" />
+                </div>
+                <div>
+                  <div className="font-bold text-sm md:text-base">{action.name}</div>
+                  <div className="text-[10px] md:text-xs text-muted-foreground">{action.description}</div>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Expanded Content Container */}
+        {selectedCard && (
+          <div ref={contentRef} className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300">
+            <button
+              onClick={() => {
+                setSelectedCard(null);
+                setTimeout(() => {
+                  if (heroBannerRef.current) {
+                    heroBannerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                }, 50);
+              }}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <h3 className="text-lg font-display font-bold uppercase tracking-wide mb-6">
+              {quickActions.find(a => a.id === selectedCard)?.name}
+            </h3>
+            <div className="overflow-x-auto">
+              {renderContent()}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
            {/* Team News / Feed */}
