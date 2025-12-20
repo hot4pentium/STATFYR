@@ -5,11 +5,20 @@ import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, B
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "wouter";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 
 export default function CoachDashboard() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selectedCard && contentRef.current) {
+      setTimeout(() => {
+        contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [selectedCard]);
 
   const quickActions = [
     { 
@@ -291,7 +300,7 @@ export default function CoachDashboard() {
 
           {/* Expanded Content Container */}
           {selectedCard && (
-            <div className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300">
+            <div ref={contentRef} className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300">
               <button
                 onClick={() => setSelectedCard(null)}
                 className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
