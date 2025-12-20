@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Copy, Check } from "lucide-react";
+import { Shield, Copy, Check, ArrowLeft } from "lucide-react";
 import { useState } from "react";
+import { Link } from "wouter";
+import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 
 export default function CoachSettings() {
@@ -16,6 +18,14 @@ export default function CoachSettings() {
 
   const teamCode = "TC-7B4K2M9X";
   const appVersion = "1.0.0";
+
+  const handleSaveChanges = () => {
+    toast.success("Team settings saved successfully!");
+  };
+
+  const handleSaveBadge = () => {
+    toast.success("Team badge updated successfully!");
+  };
 
   const badges = [
     { id: "shield", name: "Shield", icon: "🛡️" },
@@ -53,6 +63,18 @@ export default function CoachSettings() {
             <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
             
             <div className="relative z-10 p-8 md:p-12">
+              <div className="flex items-start justify-between gap-6 mb-4">
+                <Link href="/dashboard">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="border-white/20 hover:bg-white/10 text-white"
+                    data-testid="button-back-to-dashboard"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
               <div className="flex items-start gap-6">
                 <div className="h-16 w-16 md:h-20 md:w-20 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
                   <Shield className="h-8 w-8 md:h-10 md:w-10 text-white" />
@@ -108,7 +130,7 @@ export default function CoachSettings() {
                     <p className="text-xs text-muted-foreground">Current season year or label</p>
                   </div>
 
-                  <Button data-testid="button-save" className="w-full md:w-auto shadow-lg shadow-primary/30">
+                  <Button onClick={handleSaveChanges} data-testid="button-save" className="w-full md:w-auto shadow-lg shadow-primary/30">
                     Save Changes
                   </Button>
                 </CardContent>
@@ -142,7 +164,7 @@ export default function CoachSettings() {
                     ))}
                   </div>
 
-                  <Button data-testid="button-save-badge" className="w-full md:w-auto shadow-lg shadow-primary/30">
+                  <Button onClick={handleSaveBadge} data-testid="button-save-badge" className="w-full md:w-auto shadow-lg shadow-primary/30">
                     Save Badge
                   </Button>
                 </CardContent>
