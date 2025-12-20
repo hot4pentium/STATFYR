@@ -90,8 +90,8 @@ export default function AuthPage() {
       setUser(user);
       
       if (user.role === 'coach') setLocation("/dashboard");
-      else if (user.role === 'athlete') setLocation("/athlete");
-      else setLocation("/supporter");
+      else if (user.role === 'athlete') setLocation("/athlete/dashboard");
+      else setLocation("/supporter/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
       setErrors({ submit: "No account found with that email. Try signing up instead." });
