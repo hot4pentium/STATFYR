@@ -1,50 +1,211 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ATHLETES, EVENTS, PLAYS, RECENT_CHATS } from "@/lib/mockData";
-import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare, Trophy, Shield } from "lucide-react";
+import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "wouter";
+import { useState } from "react";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 
 export default function CoachDashboard() {
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+
   const quickActions = [
     { 
       name: "Roster", 
-      href: "/roster", 
+      id: "roster",
       icon: Users, 
       color: "from-blue-500/20 to-blue-600/20",
       description: "Manage squad"
     },
     { 
       name: "Events", 
-      href: "/events", 
+      id: "events",
       icon: CalendarClock, 
       color: "from-purple-500/20 to-purple-600/20",
       description: "Schedule"
     },
     { 
       name: "Playbook", 
-      href: "/playbook", 
+      id: "playbook",
       icon: ClipboardList, 
       color: "from-green-500/20 to-green-600/20",
       description: "Tactics"
     },
     { 
       name: "Stats", 
-      href: "/stats", 
+      id: "stats",
       icon: BarChart3, 
       color: "from-orange-500/20 to-orange-600/20",
       description: "Analytics"
     },
     { 
       name: "Chat", 
-      href: "/chat", 
+      id: "chat",
       icon: MessageSquare, 
       color: "from-pink-500/20 to-pink-600/20",
       description: "Messages"
     },
   ];
+
+  const renderContent = () => {
+    switch(selectedCard) {
+      case "roster":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {ATHLETES.map((athlete) => (
+              <Card key={athlete.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                <CardContent className="p-4">
+                  <div className="flex flex-col items-center text-center gap-3">
+                    <Avatar className="h-12 w-12 border-2 border-white/20">
+                      <AvatarImage src={athlete.avatar} />
+                      <AvatarFallback>{athlete.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-bold text-foreground">#{athlete.number}</div>
+                      <div className="text-sm font-bold text-primary">{athlete.name}</div>
+                      <div className="text-xs text-muted-foreground">{athlete.position}</div>
+                    </div>
+                    <div className="flex gap-2 text-center text-xs w-full">
+                      <div className="flex-1">
+                        <div className="text-muted-foreground">Goals</div>
+                        <div className="font-mono font-bold">{athlete.stats.goals || 0}</div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-muted-foreground">Assists</div>
+                        <div className="font-mono font-bold">{athlete.stats.assists || 0}</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+      case "events":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-x-auto pb-2">
+            {EVENTS.map((event) => (
+              <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all min-w-[300px]">
+                <CardContent className="p-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-white/10 border border-white/20">{event.type}</span>
+                    </div>
+                    <h3 className="font-bold text-lg">{event.title}</h3>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <div className="flex items-center gap-2">
+                        <CalendarClock className="h-4 w-4" />
+                        {new Date(event.date).toLocaleDateString()}
+                      </div>
+                      <div className="text-xs">{event.location}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+      case "playbook":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {PLAYS.map((play) => (
+              <Card key={play.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                <div className="h-24 bg-[#1a3c28]/50 relative overflow-hidden border-b border-white/5">
+                  <svg className="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1">
+                    <circle cx="50" cy="50" r="8" strokeDasharray="3 3" />
+                    <line x1="20" y1="20" x2="35" y2="35" />
+                    <path d="M 50 50 Q 65 35 80 50" strokeDasharray="2 2" />
+                  </svg>
+                </div>
+                <CardContent className="p-4">
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-foreground">{play.name}</h3>
+                    <div className="text-xs text-muted-foreground mb-2">{play.type}</div>
+                    <div className="flex flex-wrap gap-1">
+                      {play.tags.map(tag => (
+                        <span key={tag} className="text-[9px] uppercase font-bold bg-white/10 px-2 py-1 rounded text-muted-foreground">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+      case "stats":
+        return (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: "Avg Possession", value: "52%", subtext: "Season" },
+              { label: "Goals / Game", value: "1.8", subtext: "Average" },
+              { label: "Pass Accuracy", value: "84%", subtext: "Season" },
+              { label: "xG Differential", value: "+3.2", subtext: "Advantage" },
+              { label: "Clean Sheets", value: "6", subtext: "Games" },
+              { label: "Yellow Cards", value: "18", subtext: "Total" },
+              { label: "Red Cards", value: "1", subtext: "Total" },
+              { label: "Win Rate", value: "78%", subtext: "Conversion" },
+            ].map((stat, i) => (
+              <Card key={i} className="bg-background/40 border-white/10">
+                <CardContent className="p-4 text-center">
+                  <div className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">{stat.label}</div>
+                  <div className="text-3xl font-display font-bold text-primary mb-1">{stat.value}</div>
+                  <div className="text-xs text-muted-foreground">{stat.subtext}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+      case "chat":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="bg-background/40 border-white/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Team Channels</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="p-3 rounded bg-primary/10 border border-primary/20 cursor-pointer hover:bg-primary/20 transition">
+                  <div className="font-bold text-sm text-primary"># general</div>
+                  <div className="text-xs text-muted-foreground">12 new messages</div>
+                </div>
+                <div className="p-3 rounded hover:bg-white/5 cursor-pointer transition">
+                  <div className="font-bold text-sm"># announcements</div>
+                  <div className="text-xs text-muted-foreground">3 new messages</div>
+                </div>
+                <div className="p-3 rounded hover:bg-white/5 cursor-pointer transition">
+                  <div className="font-bold text-sm"># tactics</div>
+                  <div className="text-xs text-muted-foreground">5 new messages</div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-background/40 border-white/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Direct Messages</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {ATHLETES.slice(0, 3).map((athlete) => (
+                  <div key={athlete.id} className="p-3 rounded hover:bg-white/5 cursor-pointer transition flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={athlete.avatar} />
+                      <AvatarFallback>{athlete.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-sm truncate">{athlete.name}</div>
+                      <div className="text-xs text-muted-foreground truncate">Online now</div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Layout>
@@ -60,7 +221,7 @@ export default function CoachDashboard() {
         {/* Overlay for readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background/80 pointer-events-none" />
         
-        <div className="relative z-20 space-y-8">
+        <div className="relative z-20 space-y-6">
           {/* Hero Banner */}
           <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
@@ -106,161 +267,188 @@ export default function CoachDashboard() {
           {/* Quick Navigation */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {quickActions.map((action) => (
-              <Link key={action.name} href={action.href}>
-                <div className={`h-full p-4 rounded-lg border border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5 transition-all duration-200 cursor-pointer group backdrop-blur-sm`}>
-                  <div className="flex flex-col items-center text-center gap-2">
-                    <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                      <action.icon className="h-5 w-5 md:h-6 md:w-6 text-primary group-hover:scale-110 transition-transform" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-sm md:text-base">{action.name}</div>
-                      <div className="text-[10px] md:text-xs text-muted-foreground">{action.description}</div>
-                    </div>
+              <button
+                key={action.id}
+                onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
+                className={`h-full p-4 rounded-lg border transition-all duration-200 backdrop-blur-sm group text-left ${
+                  selectedCard === action.id
+                    ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
+                    : `border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5`
+                }`}
+              >
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                    <action.icon className="h-5 w-5 md:h-6 md:w-6 text-primary group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm md:text-base">{action.name}</div>
+                    <div className="text-[10px] md:text-xs text-muted-foreground">{action.description}</div>
                   </div>
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
 
+          {/* Expanded Content Container */}
+          {selectedCard && (
+            <div className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300">
+              <button
+                onClick={() => setSelectedCard(null)}
+                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <h3 className="text-lg font-display font-bold uppercase tracking-wide mb-6">
+                {quickActions.find(a => a.id === selectedCard)?.name}
+              </h3>
+              <div className="overflow-x-auto">
+                {renderContent()}
+              </div>
+            </div>
+          )}
+
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Win Rate</CardTitle>
-                <Activity className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-display font-bold">78%</div>
-                <p className="text-xs text-muted-foreground flex items-center mt-1">
-                  <TrendingUp className="h-3 w-3 text-green-500 mr-1" /> 
-                  <span className="text-green-500 font-medium">+12%</span> from last season
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Active Roster</CardTitle>
-                <Users className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-display font-bold">{ATHLETES.filter(a => a.status === 'Active').length} / {ATHLETES.length}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  <span className="text-orange-500 font-medium">1 Injured</span> (Luke Shaw)
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Next Event</CardTitle>
-                <CalendarClock className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-xl font-display font-bold truncate">Match vs. Eagles</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Tomorrow at 2:00 PM
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Plays Ready</CardTitle>
-                <Clipboard className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-display font-bold">{PLAYS.length}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  2 new added this week
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          {!selectedCard && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Win Rate</CardTitle>
+                  <Activity className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-display font-bold">78%</div>
+                  <p className="text-xs text-muted-foreground flex items-center mt-1">
+                    <TrendingUp className="h-3 w-3 text-green-500 mr-1" /> 
+                    <span className="text-green-500 font-medium">+12%</span> from last season
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Active Roster</CardTitle>
+                  <Users className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-display font-bold">{ATHLETES.filter(a => a.status === 'Active').length} / {ATHLETES.length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    <span className="text-orange-500 font-medium">1 Injured</span> (Luke Shaw)
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Next Event</CardTitle>
+                  <CalendarClock className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-display font-bold truncate">Match vs. Eagles</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Tomorrow at 2:00 PM
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Plays Ready</CardTitle>
+                  <Clipboard className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-display font-bold">{PLAYS.length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    2 new added this week
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
-          {/* Main Content Split */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {/* Roster Preview */}
-            <Card className="col-span-2 border-white/5 bg-card/80 backdrop-blur-sm">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="font-display uppercase tracking-wide">Top Performers</CardTitle>
-                <Link href="/roster">
-                  <Button variant="ghost" size="sm" className="text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground">View All</Button>
-                </Link>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {ATHLETES.slice(0, 3).map((athlete) => (
-                    <div key={athlete.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50 hover:bg-background transition-colors border border-transparent hover:border-white/5 group">
-                      <div className="flex items-center gap-4">
-                        <div className="font-display text-xl font-bold text-muted-foreground w-8 text-center group-hover:text-primary transition-colors">
-                          #{athlete.number}
-                        </div>
-                        <Avatar className="h-10 w-10 border border-white/10">
-                          <AvatarImage src={athlete.avatar} />
-                          <AvatarFallback>{athlete.name[0]}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-bold text-foreground">{athlete.name}</div>
-                          <div className="text-xs text-muted-foreground uppercase tracking-wider">{athlete.position}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-6 text-right">
-                         <div>
-                            <div className="text-xs text-muted-foreground uppercase">Goals</div>
-                            <div className="font-mono font-bold text-primary">{athlete.stats.goals || 0}</div>
-                         </div>
-                         <div>
-                            <div className="text-xs text-muted-foreground uppercase">Assists</div>
-                            <div className="font-mono font-bold text-foreground">{athlete.stats.assists || 0}</div>
-                         </div>
-                         <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Activity / Chat */}
-            <Card className="border-white/5 bg-card/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="font-display uppercase tracking-wide">Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                 <div className="space-y-6">
-                   {RECENT_CHATS.map(chat => (
-                     <div key={chat.id} className="flex gap-3">
-                       <div className="h-2 w-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                       <div>
-                         <div className="flex items-center gap-2 mb-1">
-                           <span className="text-sm font-bold text-foreground">{chat.user}</span>
-                           <span className="text-xs text-muted-foreground">{chat.time}</span>
-                         </div>
-                         <p className="text-sm text-muted-foreground bg-background/50 p-3 rounded-br-lg rounded-bl-lg rounded-tr-lg border border-white/5">
-                           {chat.message}
-                         </p>
-                       </div>
-                     </div>
-                   ))}
-                   
-                   <div className="pt-4 border-t border-white/5">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Upcoming Events</h4>
-                      {EVENTS.slice(0, 2).map(event => (
-                        <div key={event.id} className="mb-3 p-3 rounded bg-accent/5 border border-accent/10 flex gap-3">
-                          <div className="flex flex-col items-center justify-center px-2 border-r border-accent/10">
-                             <span className="text-xs font-bold text-accent uppercase">{new Date(event.date).toLocaleString('default', {month: 'short'})}</span>
-                             <span className="text-lg font-display font-bold text-foreground">{new Date(event.date).getDate()}</span>
+          {/* Main Content (Hidden when card selected) */}
+          {!selectedCard && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Roster Preview */}
+              <Card className="col-span-2 border-white/5 bg-card/80 backdrop-blur-sm">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="font-display uppercase tracking-wide">Top Performers</CardTitle>
+                  <Link href="/roster">
+                    <Button variant="ghost" size="sm" className="text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground">View All</Button>
+                  </Link>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {ATHLETES.slice(0, 3).map((athlete) => (
+                      <div key={athlete.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50 hover:bg-background transition-colors border border-transparent hover:border-white/5 group">
+                        <div className="flex items-center gap-4">
+                          <div className="font-display text-xl font-bold text-muted-foreground w-8 text-center group-hover:text-primary transition-colors">
+                            #{athlete.number}
                           </div>
+                          <Avatar className="h-10 w-10 border border-white/10">
+                            <AvatarImage src={athlete.avatar} />
+                            <AvatarFallback>{athlete.name[0]}</AvatarFallback>
+                          </Avatar>
                           <div>
-                             <div className="font-bold text-sm text-foreground">{event.title}</div>
-                             <div className="text-xs text-muted-foreground">{event.location}</div>
+                            <div className="font-bold text-foreground">{athlete.name}</div>
+                            <div className="text-xs text-muted-foreground uppercase tracking-wider">{athlete.position}</div>
                           </div>
                         </div>
-                      ))}
+                        <div className="flex items-center gap-6 text-right">
+                           <div>
+                              <div className="text-xs text-muted-foreground uppercase">Goals</div>
+                              <div className="font-mono font-bold text-primary">{athlete.stats.goals || 0}</div>
+                           </div>
+                           <div>
+                              <div className="text-xs text-muted-foreground uppercase">Assists</div>
+                              <div className="font-mono font-bold text-foreground">{athlete.stats.assists || 0}</div>
+                           </div>
+                           <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Activity / Chat */}
+              <Card className="border-white/5 bg-card/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="font-display uppercase tracking-wide">Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                   <div className="space-y-6">
+                     {RECENT_CHATS.map(chat => (
+                       <div key={chat.id} className="flex gap-3">
+                         <div className="h-2 w-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+                         <div>
+                           <div className="flex items-center gap-2 mb-1">
+                             <span className="text-sm font-bold text-foreground">{chat.user}</span>
+                             <span className="text-xs text-muted-foreground">{chat.time}</span>
+                           </div>
+                           <p className="text-sm text-muted-foreground bg-background/50 p-3 rounded-br-lg rounded-bl-lg rounded-tr-lg border border-white/5">
+                             {chat.message}
+                           </p>
+                         </div>
+                       </div>
+                     ))}
+                     
+                     <div className="pt-4 border-t border-white/5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Upcoming Events</h4>
+                        {EVENTS.slice(0, 2).map(event => (
+                          <div key={event.id} className="mb-3 p-3 rounded bg-accent/5 border border-accent/10 flex gap-3">
+                            <div className="flex flex-col items-center justify-center px-2 border-r border-accent/10">
+                               <span className="text-xs font-bold text-accent uppercase">{new Date(event.date).toLocaleString('default', {month: 'short'})}</span>
+                               <span className="text-lg font-display font-bold text-foreground">{new Date(event.date).getDate()}</span>
+                            </div>
+                            <div>
+                               <div className="font-bold text-sm text-foreground">{event.title}</div>
+                               <div className="text-xs text-muted-foreground">{event.location}</div>
+                            </div>
+                          </div>
+                        ))}
+                     </div>
                    </div>
-                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </Layout>
