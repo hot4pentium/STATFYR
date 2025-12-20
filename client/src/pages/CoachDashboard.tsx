@@ -230,7 +230,7 @@ export default function CoachDashboard() {
           backgroundImage: `url(${generatedImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundAttachment: 'fixed',
+          backgroundAttachment: 'scroll',
         }}
       >
         {/* Overlay for readability */}
