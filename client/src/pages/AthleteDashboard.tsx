@@ -71,6 +71,20 @@ export default function AthleteDashboard() {
       color: "from-pink-500/20 to-pink-600/20",
       description: "Messages"
     },
+    { 
+      name: "Highlights", 
+      id: "highlights",
+      icon: Trophy, 
+      color: "from-yellow-500/20 to-yellow-600/20",
+      description: "Match moments"
+    },
+    { 
+      name: "Roster", 
+      id: "roster",
+      icon: Activity, 
+      color: "from-purple-500/20 to-purple-600/20",
+      description: "Team players"
+    },
   ];
 
   const renderContent = () => {
@@ -148,6 +162,58 @@ export default function AthleteDashboard() {
               <p className="text-sm font-bold">Team Group</p>
               <p className="text-xs text-muted-foreground">Practice moved to 5 PM today.</p>
             </div>
+          </div>
+        );
+      case "highlights":
+        return (
+          <div className="space-y-4">
+            <div className="bg-background/50 border border-white/5 rounded-lg aspect-video flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-4xl mb-2">▶</div>
+                <p className="text-sm text-muted-foreground">Latest Match Highlights</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="h-2 w-2 rounded-full bg-accent mt-2" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Winning Goal vs Eagles</p>
+                  <p className="text-xs text-muted-foreground">Oct 18 • 45:32</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="h-2 w-2 rounded-full bg-accent mt-2" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Assist - Team Goal</p>
+                  <p className="text-xs text-muted-foreground">Oct 18 • 67:15</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="h-2 w-2 rounded-full bg-accent mt-2" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Defensive Play</p>
+                  <p className="text-xs text-muted-foreground">Oct 18 • 28:44</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case "roster":
+        return (
+          <div className="space-y-3">
+            {ATHLETES.map((mate) => (
+              <div key={mate.id} className="flex items-center gap-3 p-3 rounded-lg bg-background/40 border border-white/10 hover:border-primary/50 transition-all">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={mate.avatar} alt={mate.name} />
+                  <AvatarFallback>{mate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{mate.name}</p>
+                  <p className="text-xs text-muted-foreground">{mate.position}</p>
+                </div>
+                <div className="text-sm font-bold text-accent">#{mate.number}</div>
+              </div>
+            ))}
           </div>
         );
       default:
@@ -729,68 +795,6 @@ export default function AthleteDashboard() {
             </div>
           </div>
 
-          {/* Highlights & Roster Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Highlights Card */}
-            <Card className="bg-card/80 backdrop-blur-sm border-white/5">
-              <CardHeader>
-                <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Highlights</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-background/50 border border-white/5 rounded-lg aspect-video flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-4xl mb-2">▶</div>
-                    <p className="text-sm text-muted-foreground">Latest Match Highlights</p>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="h-2 w-2 rounded-full bg-accent mt-2" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Winning Goal vs Eagles</p>
-                      <p className="text-xs text-muted-foreground">Oct 18 • 45:32</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="h-2 w-2 rounded-full bg-accent mt-2" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Assist - Team Goal</p>
-                      <p className="text-xs text-muted-foreground">Oct 18 • 67:15</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="h-2 w-2 rounded-full bg-accent mt-2" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Defensive Play</p>
-                      <p className="text-xs text-muted-foreground">Oct 18 • 28:44</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Roster Card */}
-            <Card className="bg-card/80 backdrop-blur-sm border-white/5">
-              <CardHeader>
-                <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Team Roster</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {ATHLETES.map((mate, index) => (
-                  <div key={mate.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={mate.avatar} alt={mate.name} />
-                      <AvatarFallback>{mate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{mate.name}</p>
-                      <p className="text-xs text-muted-foreground">{mate.position}</p>
-                    </div>
-                    <div className="text-sm font-bold text-accent">#{mate.number}</div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </div>
