@@ -361,7 +361,7 @@ export default function AthleteDashboard() {
           {/* HYPE Card Modal */}
           {isModalOpen && (
             <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 pt-24" onClick={() => setIsModalOpen(false)}>
-              <div className="relative w-72" onClick={(e) => e.stopPropagation()}>
+              <div className="relative w-80" onClick={(e) => e.stopPropagation()}>
                 {/* Close Button */}
                 <button
                   onClick={() => setIsModalOpen(false)}
