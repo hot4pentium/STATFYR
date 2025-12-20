@@ -428,7 +428,7 @@ export default function AthleteDashboard() {
 
             {/* Quick Navigation - Icons Only */}
             <div className="w-full h-60">
-              <div className="grid grid-cols-3 gap-2 h-full">
+              <div className="grid grid-cols-2 gap-2 h-full">
                 {quickActions.map((action) => (
                   <button
                     key={action.id}
