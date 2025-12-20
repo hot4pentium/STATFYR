@@ -11,16 +11,19 @@ import generatedImage from '@assets/generated_images/minimal_tech_sports_backgro
 export default function CoachDashboard() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (selectedCard && contentRef.current) {
-      // Use requestAnimationFrame twice to ensure DOM is fully painted
+    // Use requestAnimationFrame twice to ensure DOM is fully painted
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
+        if (selectedCard && contentRef.current) {
+          contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (!selectedCard && gridRef.current) {
+          gridRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       });
-    }
+    });
   }, [selectedCard]);
 
   const quickActions = [
@@ -321,7 +324,7 @@ export default function CoachDashboard() {
 
           {/* Stats Grid */}
           {!selectedCard && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Win Rate</CardTitle>
