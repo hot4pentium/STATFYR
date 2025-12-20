@@ -21,11 +21,13 @@ export default function CoachDashboard() {
           contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
       });
-    } else if (!selectedCard && gridRef.current) {
-      // Scroll to grid when content is closed
+    } else if (!selectedCard) {
+      // Scroll to grid when content is closed - wait longer for grid to render
       setTimeout(() => {
-        gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
+        if (gridRef.current) {
+          gridRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 200);
     }
   }, [selectedCard]);
 
