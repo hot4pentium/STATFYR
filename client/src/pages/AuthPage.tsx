@@ -6,22 +6,26 @@ import { useLocation } from "wouter";
 import { Shield, User, Users, Clipboard, ArrowLeft } from "lucide-react";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
-import { registerUser } from "@/lib/api";
+import { registerUser, loginUser } from "@/lib/api";
 import { useState } from "react";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { setUser } = useUser();
   const [loading, setLoading] = useState(false);
+  const [authMode, setAuthMode] = useState<"select" | "signup" | "login">("select");
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
   });
+  const [loginData, setLoginData] = useState({
+    email: "",
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validateForm = () => {
+  const validateSignupForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.firstName.trim()) {
       newErrors.firstName = "First name is required";
@@ -38,9 +42,18 @@ export default function AuthPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const validateLoginForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!loginData.email.trim()) {
+      newErrors.email = "Email is required";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRole || !validateForm()) return;
+    if (!selectedRole || !validateSignupForm()) return;
 
     setLoading(true);
     try {
@@ -67,9 +80,35 @@ export default function AuthPage() {
     }
   };
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateLoginForm()) return;
+
+    setLoading(true);
+    try {
+      const user = await loginUser(loginData.email.trim(), "demo123");
+      setUser(user);
+      
+      if (user.role === 'coach') setLocation("/dashboard");
+      else if (user.role === 'athlete') setLocation("/athlete");
+      else setLocation("/supporter");
+    } catch (error) {
+      console.error("Login failed:", error);
+      setErrors({ submit: "No account found with that email. Try signing up instead." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleBack = () => {
-    setSelectedRole(null);
+    if (authMode === "signup" && selectedRole) {
+      setSelectedRole(null);
+    } else {
+      setAuthMode("select");
+      setSelectedRole(null);
+    }
     setFormData({ firstName: "", lastName: "", email: "" });
+    setLoginData({ email: "" });
     setErrors({});
   };
 
@@ -84,6 +123,11 @@ export default function AuthPage() {
       default:
         return { icon: User, title: "", description: "" };
     }
+  };
+
+  const selectRoleForSignup = (role: string) => {
+    setSelectedRole(role);
+    setAuthMode("signup");
   };
 
   return (
@@ -125,21 +169,37 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {!selectedRole ? (
+        {authMode === "select" && (
           <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
             <CardHeader>
-              <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">Select Your Role</CardTitle>
-              <CardDescription className="text-center">Enter the locker room</CardDescription>
+              <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">Get Started</CardTitle>
+              <CardDescription className="text-center">New or returning user?</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button 
                 size="lg" 
-                className="w-full h-16 text-lg justify-start px-6 bg-primary hover:bg-primary/90 text-primary-foreground group relative overflow-hidden"
-                onClick={() => setSelectedRole('coach')}
+                className="w-full h-14 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+                onClick={() => setAuthMode("login")}
+                data-testid="button-login-option"
+              >
+                Sign In
+              </Button>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-white/10" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card/50 px-2 text-muted-foreground">or create new account</span>
+                </div>
+              </div>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
+                onClick={() => selectRoleForSignup('coach')}
                 disabled={loading}
                 data-testid="button-coach"
               >
-                <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
                 <Clipboard className="mr-4 h-6 w-6" />
                 <div className="flex flex-col items-start">
                   <span className="font-bold">Coach</span>
@@ -148,10 +208,10 @@ export default function AuthPage() {
               </Button>
 
               <Button 
-                variant="secondary" 
+                variant="outline" 
                 size="lg" 
-                className="w-full h-16 text-lg justify-start px-6 bg-secondary hover:bg-secondary/80 border border-white/5"
-                onClick={() => setSelectedRole('athlete')}
+                className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
+                onClick={() => selectRoleForSignup('athlete')}
                 disabled={loading}
                 data-testid="button-athlete"
               >
@@ -166,7 +226,7 @@ export default function AuthPage() {
                 variant="outline" 
                 size="lg" 
                 className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
-                onClick={() => setSelectedRole('supporter')}
+                onClick={() => selectRoleForSignup('supporter')}
                 disabled={loading}
                 data-testid="button-supporter"
               >
@@ -178,7 +238,71 @@ export default function AuthPage() {
               </Button>
             </CardContent>
           </Card>
-        ) : (
+        )}
+
+        {authMode === "login" && (
+          <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
+            <CardHeader>
+              <div className="flex items-center gap-2 mb-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleBack}
+                  className="h-8 w-8"
+                  data-testid="button-back"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </div>
+              <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">Welcome Back</CardTitle>
+              <CardDescription className="text-center">Sign in with your email</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="login-email">Email Address</Label>
+                  <Input
+                    id="login-email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={loginData.email}
+                    onChange={(e) => setLoginData({ email: e.target.value })}
+                    className={errors.email ? "border-red-500" : ""}
+                    data-testid="input-login-email"
+                  />
+                  {errors.email && (
+                    <p className="text-xs text-red-500">{errors.email}</p>
+                  )}
+                </div>
+                {errors.submit && (
+                  <p className="text-sm text-red-500 text-center">{errors.submit}</p>
+                )}
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full"
+                  disabled={loading}
+                  data-testid="button-login-submit"
+                >
+                  {loading ? "Signing In..." : "Sign In"}
+                </Button>
+                <p className="text-center text-sm text-muted-foreground">
+                  Don't have an account?{" "}
+                  <button 
+                    type="button"
+                    onClick={() => setAuthMode("select")}
+                    className="text-primary hover:underline"
+                    data-testid="link-signup"
+                  >
+                    Sign up
+                  </button>
+                </p>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {authMode === "signup" && selectedRole && (
           <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
@@ -203,7 +327,7 @@ export default function AuthPage() {
               <CardDescription className="text-center">Enter your information to get started</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSignup} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
@@ -261,6 +385,17 @@ export default function AuthPage() {
                 >
                   {loading ? "Creating Account..." : "Continue"}
                 </Button>
+                <p className="text-center text-sm text-muted-foreground">
+                  Already have an account?{" "}
+                  <button 
+                    type="button"
+                    onClick={() => setAuthMode("login")}
+                    className="text-primary hover:underline"
+                    data-testid="link-login"
+                  >
+                    Sign in
+                  </button>
+                </p>
               </form>
             </CardContent>
           </Card>
