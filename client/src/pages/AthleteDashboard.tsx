@@ -264,7 +264,7 @@ export default function AthleteDashboard() {
           {/* HYPE Card & Quick Navigation Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* HYPE Card - Sports Trading Card Style with Flip */}
-            <div className="w-60 space-y-2">
+            <div className="space-y-2 flex flex-col items-center lg:items-start">
             {/* Share Button */}
             <div className="flex justify-end">
               <button
