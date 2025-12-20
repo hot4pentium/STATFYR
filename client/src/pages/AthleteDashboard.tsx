@@ -253,7 +253,7 @@ export default function AthleteDashboard() {
                 <TabsTrigger value="supporters" data-testid="tab-supporters">Supporters ({supporters.length})</TabsTrigger>
               </TabsList>
             </Tabs>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 justify-items-center mx-auto max-w-md md:max-w-none">
               {filteredRosterMembers.length === 0 ? (
                 <div className="col-span-full text-center py-8 text-muted-foreground">
                   <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -262,7 +262,7 @@ export default function AthleteDashboard() {
                 </div>
               ) : (
                 filteredRosterMembers.map((member: TeamMember) => (
-                  <Card key={member.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                  <Card key={member.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all w-full">
                     <CardContent className="p-3">
                       <div className="flex flex-col items-center text-center gap-2">
                         <Avatar className="h-10 w-10 border-2 border-white/20">
