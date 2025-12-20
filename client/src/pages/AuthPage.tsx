@@ -10,8 +10,8 @@ export default function AuthPage() {
   const handleLogin = (role: string) => {
     // In a real app, this would handle auth. For mockup, we just route.
     if (role === 'coach') setLocation("/dashboard");
-    else if (role === 'athlete') setLocation("/profile/me");
-    else setLocation("/supporter/dashboard");
+    else if (role === 'athlete') setLocation("/athlete/onboarding");
+    else setLocation("/supporter/onboarding");
   };
 
   return (

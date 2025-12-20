@@ -11,7 +11,10 @@ import EventsPage from "@/pages/EventsPage";
 import PlaybookPage from "@/pages/PlaybookPage";
 import StatsPage from "@/pages/StatsPage";
 import AthleteProfile from "@/pages/AthleteProfile";
+import AthleteDashboard from "@/pages/AthleteDashboard";
+import AthleteOnboarding from "@/pages/AthleteOnboarding";
 import SupporterDashboard from "@/pages/SupporterDashboard";
+import SupporterOnboarding from "@/pages/SupporterOnboarding";
 import ChatPage from "@/pages/ChatPage";
 import CoachSettings from "@/pages/CoachSettings";
 
@@ -27,6 +30,9 @@ function Router() {
       <Route path="/chat" component={ChatPage} />
       <Route path="/settings" component={CoachSettings} />
       <Route path="/profile/me" component={AthleteProfile} />
+      <Route path="/athlete/onboarding" component={AthleteOnboarding} />
+      <Route path="/athlete/dashboard" component={AthleteDashboard} />
+      <Route path="/supporter/onboarding" component={SupporterOnboarding} />
       <Route path="/supporter/dashboard" component={SupporterDashboard} />
       <Route component={NotFound} />
     </Switch>
