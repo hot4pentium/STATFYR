@@ -427,7 +427,7 @@ export default function AthleteDashboard() {
             </div>
 
             {/* Quick Navigation */}
-            <div className="h-96">
+            <div className="w-96 h-96">
               <div className="grid grid-cols-2 gap-2 h-full">
                 {quickActions.map((action) => (
                   <button
