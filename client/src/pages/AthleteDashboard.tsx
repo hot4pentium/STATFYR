@@ -21,7 +21,12 @@ export default function AthleteDashboard() {
   const [isModalCardFlipped, setIsModalCardFlipped] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/athlete/${athlete.id}` : '';
 
@@ -228,13 +233,15 @@ export default function AthleteDashboard() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-full px-4 md:px-8 py-4 flex items-center justify-end gap-3">
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2 border border-white/20 rounded-lg hover:bg-white/10 transition"
-            data-testid="button-theme-toggle"
-          >
-            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </button>
+          {mounted && (
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 border border-white/20 rounded-lg hover:bg-white/10 transition"
+              data-testid="button-theme-toggle"
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+          )}
           <Link href="/athlete/settings">
             <Button
               variant="outline"
