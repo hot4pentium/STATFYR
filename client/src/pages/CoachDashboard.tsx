@@ -1,15 +1,54 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ATHLETES, EVENTS, PLAYS, RECENT_CHATS } from "@/lib/mockData";
-import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle } from "lucide-react";
+import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Link } from "wouter";
 
 export default function CoachDashboard() {
+  const quickActions = [
+    { 
+      name: "Roster", 
+      href: "/roster", 
+      icon: Users, 
+      color: "from-blue-500/20 to-blue-600/20",
+      description: "Manage squad"
+    },
+    { 
+      name: "Events", 
+      href: "/events", 
+      icon: CalendarClock, 
+      color: "from-purple-500/20 to-purple-600/20",
+      description: "Schedule"
+    },
+    { 
+      name: "Playbook", 
+      href: "/playbook", 
+      icon: ClipboardList, 
+      color: "from-green-500/20 to-green-600/20",
+      description: "Tactics"
+    },
+    { 
+      name: "Stats", 
+      href: "/stats", 
+      icon: BarChart3, 
+      color: "from-orange-500/20 to-orange-600/20",
+      description: "Analytics"
+    },
+    { 
+      name: "Chat", 
+      href: "/chat", 
+      icon: MessageSquare, 
+      color: "from-pink-500/20 to-pink-600/20",
+      description: "Messages"
+    },
+  ];
+
   return (
     <Layout>
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-display font-bold uppercase tracking-tight text-foreground">Dashboard</h1>
             <p className="text-muted-foreground">Welcome back, Coach Carter. Here's what's happening.</p>
@@ -18,6 +57,25 @@ export default function CoachDashboard() {
             <PlayCircle className="mr-2 h-5 w-5" />
             Start Practice Mode
           </Button>
+        </div>
+
+        {/* Quick Navigation */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {quickActions.map((action) => (
+            <Link key={action.name} href={action.href}>
+              <div className={`h-full p-4 rounded-lg border border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5 transition-all duration-200 cursor-pointer group`}>
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                    <action.icon className="h-5 w-5 md:h-6 md:w-6 text-primary group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm md:text-base">{action.name}</div>
+                    <div className="text-[10px] md:text-xs text-muted-foreground">{action.description}</div>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
 
         {/* Stats Grid */}
@@ -80,7 +138,9 @@ export default function CoachDashboard() {
           <Card className="col-span-2 border-white/5 bg-card/50">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-display uppercase tracking-wide">Top Performers</CardTitle>
-              <Button variant="ghost" size="sm" className="text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground">View All</Button>
+              <Link href="/roster">
+                <Button variant="ghost" size="sm" className="text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground">View All</Button>
+              </Link>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
