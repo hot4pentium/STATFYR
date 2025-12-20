@@ -332,7 +332,7 @@ export default function AthleteDashboard() {
                 {!isHypeCardFlipped ? (
                   <div className="relative w-full h-96 overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
                     {/* Full Image Background */}
-                    <img src={athlete.avatar} alt={athlete.name} className="absolute inset-0 w-full h-full object-cover" />
+                    <img src={athlete.avatar} alt={athlete.name} className="absolute inset-0 w-full h-full object-contain" />
                     
                     {/* Gradient Overlays for text readability */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
@@ -498,7 +498,7 @@ export default function AthleteDashboard() {
                       {!isModalCardFlipped ? (
                         <div className="relative w-full h-full overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
                           {/* Full Image Background */}
-                          <img src={athlete.avatar} alt={athlete.name} className="absolute inset-0 w-full h-full object-cover" />
+                          <img src={athlete.avatar} alt={athlete.name} className="absolute inset-0 w-full h-full object-contain" />
                           
                           {/* Gradient Overlays for text readability */}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
