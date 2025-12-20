@@ -219,9 +219,9 @@ export default function AthleteDashboard() {
 
                     {/* Right Center - HYPE Card Text (Vertical) */}
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <div className="flex flex-col items-center gap-1 -rotate-90 whitespace-nowrap origin-center text-[14px]">
+                      <div className="flex flex-row items-center gap-1 -rotate-90 whitespace-nowrap origin-center">
                         <span className="text-[10px] text-white font-bold uppercase tracking-widest drop-shadow-lg">HYPE</span>
-                        <div className="w-2 h-0.5 bg-white/60"></div>
+                        <div className="w-0.5 h-2 bg-white/60"></div>
                         <span className="text-[10px] text-white font-bold uppercase tracking-widest drop-shadow-lg">CARD</span>
                       </div>
                     </div>
