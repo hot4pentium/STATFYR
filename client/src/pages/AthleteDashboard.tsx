@@ -182,8 +182,8 @@ export default function AthleteDashboard() {
         
         <div className="relative z-20 space-y-6 max-w-full px-4 md:px-8 py-8">
           {/* HYPE Card - Sports Trading Card Style with Flip */}
-          <div className="w-60 mx-auto lg:mx-0">
-            <div className="relative group">
+          <div className="w-60 mx-auto lg:mx-0 space-y-2">
+            <div className="relative group cursor-pointer" onClick={() => setIsHypeCardFlipped(!isHypeCardFlipped)}>
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div className={`relative w-full bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl transition-all duration-500 ${isHypeCardFlipped ? 'scale-y-95' : ''}`}>
                 {/* Card Background */}
@@ -218,22 +218,13 @@ export default function AthleteDashboard() {
                     </div>
 
                     {/* Right Center - HYPE Card Text (Vertical) */}
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="absolute right-0.5 top-1/2 -translate-y-1/2">
                       <div className="flex flex-row items-center gap-1 -rotate-90 whitespace-nowrap origin-center">
                         <span className="text-[10px] text-white font-bold uppercase tracking-widest drop-shadow-lg">HYPE</span>
                         <div className="w-0.5 h-2 bg-white/60"></div>
                         <span className="text-[10px] text-white font-bold uppercase tracking-widest drop-shadow-lg">CARD</span>
                       </div>
                     </div>
-
-                    {/* Flip Button */}
-                    <button
-                      onClick={() => setIsHypeCardFlipped(true)}
-                      className="absolute top-4 left-4 p-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg hover:bg-white/30 transition-colors z-10"
-                      data-testid="button-flip-hype-card"
-                    >
-                      <Repeat2 className="h-4 w-4 text-white" />
-                    </button>
                   </div>
                 ) : (
                   /* Back of Card */
@@ -266,17 +257,14 @@ export default function AthleteDashboard() {
                         </span>
                       </p>
                     </div>
-                    {/* Flip Back Button */}
-                    <button
-                      onClick={() => setIsHypeCardFlipped(false)}
-                      className="absolute top-4 right-4 p-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-colors"
-                      data-testid="button-flip-hype-card-back"
-                    >
-                      <Repeat2 className="h-4 w-4" />
-                    </button>
                   </div>)
                 )}
               </div>
+            </div>
+            
+            {/* Tap to Flip Bar */}
+            <div className="bg-white/5 border border-white/10 rounded-lg py-2 text-center backdrop-blur-sm hover:bg-white/10 transition">
+              <p className="text-xs text-white/70 font-medium uppercase tracking-wide">Tap to Flip</p>
             </div>
           </div>
 
