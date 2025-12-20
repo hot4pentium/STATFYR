@@ -155,37 +155,97 @@ export default function AthleteDashboard() {
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background/80 pointer-events-none" />
         
         <div className="relative z-20 space-y-6">
-          {/* Hero Banner */}
-          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
-            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-            <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
-            <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
-            
-            <div className="relative z-10 p-8 md:p-12">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                <div className="flex items-start gap-6 flex-1">
-                  <Avatar className="h-24 w-24 border-4 border-white/20 shadow-xl">
-                    <AvatarImage src={athlete.avatar} />
-                    <AvatarFallback>MR</AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <h1 className="text-4xl md:text-5xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
-                        {athlete.name}
-                      </h1>
-                      <h2 className="text-lg md:text-xl text-white/80 font-bold uppercase tracking-wide">{athlete.position}</h2>
-                    </div>
+          {/* Hero Banner + HYPE Card Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Hero Banner */}
+            <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
+              <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+              <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
+              <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
+              
+              <div className="relative z-10 p-8 md:p-12">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div className="flex items-start gap-6 flex-1">
+                    <Avatar className="h-24 w-24 border-4 border-white/20 shadow-xl">
+                      <AvatarImage src={athlete.avatar} />
+                      <AvatarFallback>MR</AvatarFallback>
+                    </Avatar>
                     
-                    <div className="flex flex-wrap items-center gap-3 pt-2">
-                      <Badge className="bg-white/20 text-white border-0 hover:bg-white/30">#{athlete.number}</Badge>
-                      <Badge className={athlete.status === 'Active' ? 'bg-green-500/30 text-green-200 border-0' : 'bg-orange-500/30 text-orange-200 border-0'}>
-                        {athlete.status}
-                      </Badge>
-                      <div className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                        <span className="text-xs font-bold text-white uppercase tracking-wider">{TEAM_NAME}</span>
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <h1 className="text-4xl md:text-5xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
+                          {athlete.name}
+                        </h1>
+                        <h2 className="text-lg md:text-xl text-white/80 font-bold uppercase tracking-wide">{athlete.position}</h2>
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-3 pt-2">
+                        <Badge className="bg-white/20 text-white border-0 hover:bg-white/30">#{athlete.number}</Badge>
+                        <Badge className={athlete.status === 'Active' ? 'bg-green-500/30 text-green-200 border-0' : 'bg-orange-500/30 text-orange-200 border-0'}>
+                          {athlete.status}
+                        </Badge>
+                        <div className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                          <span className="text-xs font-bold text-white uppercase tracking-wider">{TEAM_NAME}</span>
+                        </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* HYPE Card - Sports Trading Card Style */}
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
+              <div className="relative w-full h-full bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                {/* Card Background */}
+                <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+                
+                {/* Card Content */}
+                <div className="relative p-4 space-y-4 h-full flex flex-col justify-between">
+                  {/* Top - Title */}
+                  <div className="text-center">
+                    <div className="inline-block px-3 py-1 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold uppercase tracking-wider rounded-full mb-2">
+                      HYPE Card
+                    </div>
+                    <h3 className="text-xl font-display font-bold text-white uppercase tracking-tighter">{athlete.name}</h3>
+                    <p className="text-xs text-accent font-bold uppercase tracking-wider">{athlete.position}</p>
+                  </div>
+
+                  {/* Middle - Player Image/Avatar */}
+                  <div className="relative mx-auto">
+                    <div className="w-28 h-28 rounded-lg overflow-hidden border-2 border-accent shadow-lg">
+                      <img src={athlete.avatar} alt={athlete.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="absolute -bottom-2 -right-2 bg-gradient-to-br from-accent to-primary rounded-lg p-2 shadow-lg">
+                      <span className="text-white font-display font-bold text-lg">#{athlete.number}</span>
+                    </div>
+                  </div>
+
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-white/5 border border-white/10 rounded-lg p-2 text-center backdrop-blur-sm hover:bg-white/10 transition">
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Goals</p>
+                      <p className="text-lg font-display font-bold text-primary">{athlete.stats?.goals || 0}</p>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-lg p-2 text-center backdrop-blur-sm hover:bg-white/10 transition">
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Assists</p>
+                      <p className="text-lg font-display font-bold text-accent">{athlete.stats?.assists || 0}</p>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-lg p-2 text-center backdrop-blur-sm hover:bg-white/10 transition">
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Rating</p>
+                      <p className="text-lg font-display font-bold text-green-400">8.5</p>
+                    </div>
+                  </div>
+
+                  {/* Bottom - Status */}
+                  <div className="border-t border-white/10 pt-3 text-center">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Season Status</p>
+                    <p className="text-sm font-bold uppercase tracking-wider">
+                      <span className={athlete.status === 'Active' ? 'text-green-400' : 'text-orange-400'}>
+                        {athlete.status}
+                      </span>
+                    </p>
                   </div>
                 </div>
               </div>
