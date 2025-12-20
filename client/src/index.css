@@ -56,7 +56,57 @@
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 }
 
-/* DARK MODE DEFAULT (Sports apps look better dark) */
+/* LIGHT MODE */
+html:not(.dark) {
+  /* Light Cream Theme */
+  --background: 0 0% 98%;
+  --foreground: 210 10% 12%;
+
+  --card: 210 20% 96%;
+  --card-foreground: 210 10% 12%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 210 10% 12%;
+
+  /* Electric Blue Primary */
+  --primary: 217 91% 50%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 210 20% 96%;
+  --secondary-foreground: 210 10% 12%;
+
+  --muted: 210 20% 85%;
+  --muted-foreground: 210 10% 40%;
+
+  --accent: 84 81% 45%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 210 20% 85%;
+  --input: 0 0% 100%;
+  --ring: 217 91% 50%;
+
+  --radius: 0.5rem;
+
+  --chart-1: 217 91% 50%;
+  --chart-2: 84 81% 45%;
+  --chart-3: 280 65% 50%;
+  --chart-4: 43 96% 56%;
+  --chart-5: 350 89% 55%;
+
+  --sidebar: 210 40% 94%;
+  --sidebar-foreground: 210 10% 40%;
+  --sidebar-primary: 217 91% 50%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 210 20% 85%;
+  --sidebar-accent-foreground: 210 10% 12%;
+  --sidebar-border: 210 20% 85%;
+  --sidebar-ring: 217 91% 50%;
+}
+
+/* DARK MODE DEFAULT */
 :root {
   /* Dark Navy Theme */
   --background: 222 47% 11%;
@@ -78,7 +128,7 @@
   --muted: 217 33% 17%;
   --muted-foreground: 215 20% 65%;
 
-  --accent: 84 81% 69%; /* Neon Lime for accents */
+  --accent: 84 81% 69%;
   --accent-foreground: 222 47% 11%;
 
   --destructive: 0 62% 30%;
@@ -110,10 +160,41 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    color-scheme: light;
+  }
+  
+  html.dark {
+    color-scheme: dark;
+  }
+  
   body {
     @apply font-sans antialiased bg-background text-foreground selection:bg-primary/20 selection:text-primary;
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.03) 2px,
+        rgba(255, 255, 255, 0.03) 4px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.02) 2px,
+        rgba(255, 255, 255, 0.02) 4px
+      );
+    background-attachment: fixed;
   }
+  
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight uppercase;
   }
+}
+
+/* Smooth transitions for theme switching */
+html, body, * {
+  @apply transition-colors duration-300;
 }

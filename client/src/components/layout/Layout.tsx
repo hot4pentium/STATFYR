@@ -1,8 +1,9 @@
 import { Sidebar } from "./Sidebar";
+import { ThemeToggle } from "./ThemeToggle";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,6 +11,17 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "dark";
+    const html = document.documentElement;
+    
+    if (savedTheme === "dark") {
+      html.classList.add("dark");
+    } else {
+      html.classList.remove("dark");
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -21,6 +33,7 @@ export function Layout({ children }: LayoutProps) {
             size="icon"
             className="lg:hidden text-muted-foreground hover:text-foreground"
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            data-testid="button-menu"
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -29,6 +42,7 @@ export function Layout({ children }: LayoutProps) {
             <div className="text-[10px] md:text-xs font-mono text-primary bg-primary/10 px-2 md:px-3 py-1 rounded-full animate-pulse whitespace-nowrap">
               LIVE: Practice in 2h
             </div>
+            <ThemeToggle />
           </div>
         </header>
         <ScrollArea className="flex-1 p-4 md:p-8">
