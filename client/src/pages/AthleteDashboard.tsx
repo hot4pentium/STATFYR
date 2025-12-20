@@ -198,7 +198,7 @@ export default function AthleteDashboard() {
                 
                 {/* Front of Card */}
                 {!isHypeCardFlipped ? (
-                  <div className="relative w-full h-96 overflow-hidden">
+                  <div className="relative w-full h-96 overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
                     {/* Full Image Background */}
                     <img src={athlete.avatar} alt={athlete.name} className="absolute inset-0 w-full h-full object-cover" />
                     
@@ -235,7 +235,7 @@ export default function AthleteDashboard() {
                   </div>
                 ) : (
                   /* Back of Card - Four Quadrants */
-                  <div className="relative w-full h-96 overflow-hidden" style={{ transform: 'scaleX(-1)' }}>
+                  <div className="relative w-full h-96 overflow-hidden" style={{ transform: 'scaleX(-1)', backfaceVisibility: 'hidden' }}>
                     <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black" />
                     <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
                     
