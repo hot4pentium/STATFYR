@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ATHLETES, EVENTS, TEAM_NAME } from "@/lib/mockData";
-import { Calendar, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2, Settings, LogOut } from "lucide-react";
+import { Calendar, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2, Settings, LogOut, Share2 } from "lucide-react";
 import { Link } from "wouter";
+import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import { useState, useRef, useEffect } from "react";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
@@ -15,6 +16,17 @@ export default function AthleteDashboard() {
   const nextEvent = EVENTS[0];
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [isHypeCardFlipped, setIsHypeCardFlipped] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/athlete/${athlete.id}` : '';
+
+  const copyShareLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast.success("Share link copied!");
+  };
   const contentRef = useRef<HTMLDivElement>(null);
   const heroBannerRef = useRef<HTMLDivElement>(null);
 
@@ -183,6 +195,39 @@ export default function AthleteDashboard() {
         <div className="relative z-20 space-y-6 max-w-full px-4 md:px-8 py-8">
           {/* HYPE Card - Sports Trading Card Style with Flip */}
           <div className="w-60 mx-auto lg:mx-0 space-y-2">
+            {/* Share Button */}
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowShareMenu(!showShareMenu)}
+                className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition"
+                data-testid="button-share-card"
+              >
+                <Share2 className="h-5 w-5" />
+              </button>
+              
+              {/* Share Menu */}
+              {showShareMenu && (
+                <div className="absolute mt-10 bg-background/95 border border-white/10 rounded-lg p-3 backdrop-blur-sm space-y-2 z-50">
+                  <div className="text-xs font-semibold text-white mb-2">Share HYPE Card</div>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={shareUrl}
+                      readOnly
+                      className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-xs text-white/70 font-mono"
+                      data-testid="input-share-url"
+                    />
+                    <button
+                      onClick={copyShareLink}
+                      className="bg-primary hover:bg-primary/80 text-white px-3 py-1 rounded text-xs font-semibold transition"
+                      data-testid="button-copy-share"
+                    >
+                      {copied ? '✓' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="relative group cursor-pointer" onClick={() => setIsHypeCardFlipped(!isHypeCardFlipped)} style={{ perspective: '1000px' }}>
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div 
