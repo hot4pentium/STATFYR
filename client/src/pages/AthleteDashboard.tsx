@@ -25,6 +25,7 @@ export default function AthleteDashboard() {
     enabled: !!currentTeam,
   });
 
+  const rosterMembers = teamMembers;
   const athletes = teamMembers.filter((m: TeamMember) => m.role === "athlete");
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [isHypeCardFlipped, setIsHypeCardFlipped] = useState(false);
@@ -231,14 +232,14 @@ export default function AthleteDashboard() {
       case "roster":
         return (
           <div className="space-y-3">
-            {athletes.length === 0 ? (
+            {rosterMembers.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg font-bold">No teammates yet</p>
                 <p className="text-sm">Teammates will appear here once they join the team.</p>
               </div>
             ) : (
-              athletes.map((member: TeamMember) => (
+              rosterMembers.map((member: TeamMember) => (
                 <div key={member.id} className="flex items-center gap-3 p-3 rounded-lg bg-background/40 border border-white/10 hover:border-primary/50 transition-all">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={member.user.avatar || undefined} alt={member.user.name || ""} />
@@ -246,9 +247,15 @@ export default function AthleteDashboard() {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{member.user.name || member.user.username}</p>
-                    <p className="text-xs text-muted-foreground">{member.user.position || "Player"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {member.role === "coach" ? "Head Coach" : (member.user.position || "Player")}
+                    </p>
                   </div>
-                  <div className="text-sm font-bold text-accent">#{member.user.number || "00"}</div>
+                  {member.role === "coach" ? (
+                    <div className="text-xs font-bold text-primary uppercase bg-primary/20 px-2 py-1 rounded">Coach</div>
+                  ) : (
+                    <div className="text-sm font-bold text-accent">#{member.user.number || "00"}</div>
+                  )}
                 </div>
               ))
             )}

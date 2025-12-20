@@ -79,6 +79,7 @@ export default function CoachDashboard() {
     }
   };
 
+  const rosterMembers = teamMembers;
   const athletes = teamMembers.filter((m: TeamMember) => m.role === "athlete");
 
   useEffect(() => {
@@ -135,17 +136,17 @@ export default function CoachDashboard() {
       case "roster":
         return (
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {athletes.length === 0 ? (
+            {rosterMembers.length === 0 ? (
               <div className="col-span-full text-center py-8 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-bold">No athletes yet</p>
+                <p className="text-lg font-bold">No team members yet</p>
                 <p className="text-sm">Share your team code with athletes to have them join!</p>
                 {currentTeam?.code && (
                   <p className="mt-2 font-mono text-primary text-lg">{currentTeam.code}</p>
                 )}
               </div>
             ) : (
-              athletes.map((member: TeamMember) => (
+              rosterMembers.map((member: TeamMember) => (
                 <Card key={member.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
                   <CardContent className="p-4">
                     <div className="flex flex-col items-center text-center gap-3">
@@ -154,9 +155,13 @@ export default function CoachDashboard() {
                         <AvatarFallback>{member.user.name?.[0] || "A"}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-bold text-foreground">#{member.user.number || "00"}</div>
+                        {member.role === "coach" ? (
+                          <div className="font-bold text-foreground uppercase text-xs bg-primary/20 text-primary px-2 py-1 rounded mb-1">Coach</div>
+                        ) : (
+                          <div className="font-bold text-foreground">#{member.user.number || "00"}</div>
+                        )}
                         <div className="text-sm font-bold text-primary">{member.user.name || member.user.username}</div>
-                        <div className="text-xs text-muted-foreground">{member.user.position || "Player"}</div>
+                        <div className="text-xs text-muted-foreground">{member.role === "coach" ? "Head Coach" : (member.user.position || "Player")}</div>
                       </div>
                     </div>
                   </CardContent>
