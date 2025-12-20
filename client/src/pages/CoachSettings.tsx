@@ -89,7 +89,7 @@ export default function CoachSettings() {
 
           {/* Settings Content */}
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 bg-card/50 border border-white/10 backdrop-blur-sm p-1">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 bg-card/50 border border-white/10 backdrop-blur-sm p-1 [&>*]:pl-[18px] [&>*]:pr-[18px]">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="badge">Badge</TabsTrigger>
               <TabsTrigger value="code">Team Code</TabsTrigger>
