@@ -4,6 +4,9 @@ export interface User {
   id: string;
   username: string;
   role: string;
+  firstName: string;
+  lastName: string;
+  email: string;
   name: string;
   avatar?: string | null;
   position?: string | null;
@@ -34,6 +37,9 @@ export async function registerUser(data: {
   username: string;
   password: string;
   role: string;
+  firstName: string;
+  lastName: string;
+  email: string;
   name: string;
 }): Promise<User> {
   const res = await apiRequest("POST", "/api/auth/register", data);
