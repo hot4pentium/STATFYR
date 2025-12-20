@@ -22,14 +22,6 @@ export default function CoachDashboard() {
           contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
       });
-    } else if (!selectedCard) {
-      // Scroll to grid when content is closed - wait for grid to render
-      setTimeout(() => {
-        if (gridRef.current) {
-          const scrollContainer = gridRef.current.closest('[class*="overflow"]')?.parentElement || window;
-          gridRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 300);
     }
   }, [selectedCard]);
 
