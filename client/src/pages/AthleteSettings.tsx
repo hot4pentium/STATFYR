@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Upload, ArrowLeft, LogOut, Settings, Loader2 } from "lucide-react";
+import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ export default function AthleteSettings() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
 
   const appVersion = "1.0.0";
 
@@ -60,6 +61,8 @@ export default function AthleteSettings() {
       const updatedUser = await response.json();
       setUser({ ...contextUser, ...updatedUser });
 
+      setShowSaved(true);
+      setTimeout(() => setShowSaved(false), 2000);
       toast.success("Profile settings saved successfully!");
     } catch (error) {
       console.error("Save failed:", error);
@@ -242,14 +245,19 @@ export default function AthleteSettings() {
 
                 <Button 
                   onClick={handleSaveChanges} 
-                  disabled={isSaving}
+                  disabled={isSaving || showSaved}
                   data-testid="button-save" 
-                  className="w-full md:w-auto shadow-lg shadow-primary/30"
+                  className={`w-full md:w-auto shadow-lg shadow-primary/30 transition-all ${showSaved ? 'bg-green-600 hover:bg-green-600' : ''}`}
                 >
                   {isSaving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Saving...
+                    </>
+                  ) : showSaved ? (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Saved!
                     </>
                   ) : (
                     "Save Changes"
