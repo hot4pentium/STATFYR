@@ -59,13 +59,17 @@ export async function registerRoutes(
 
   app.patch("/api/users/:id", async (req, res) => {
     try {
+      console.log("Updating user:", req.params.id, "with data:", JSON.stringify(req.body).substring(0, 200));
       const user = await storage.updateUser(req.params.id, req.body);
       if (!user) {
+        console.log("User not found:", req.params.id);
         return res.status(404).json({ error: "User not found" });
       }
+      console.log("User updated successfully:", user.id);
       const { password, ...safeUser } = user;
       res.json(safeUser);
     } catch (error) {
+      console.error("Failed to update user:", error);
       res.status(500).json({ error: "Failed to update user" });
     }
   });
