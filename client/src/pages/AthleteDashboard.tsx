@@ -262,7 +262,7 @@ export default function AthleteDashboard() {
         
         <div className="relative z-20 max-w-full px-4 md:px-8 py-8">
           {/* HYPE Card & Quick Navigation Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 mb-6 items-start">
+          <div className="grid grid-cols-[280px_1fr] gap-4 mb-6 items-start">
             {/* HYPE Card - Sports Trading Card Style with Flip */}
             <div className="w-60 space-y-2">
               {/* Share Button */}
@@ -426,27 +426,21 @@ export default function AthleteDashboard() {
             </button>
             </div>
 
-            {/* Quick Navigation */}
-            <div className="w-full md:w-96 h-auto md:h-96">
-              <div className="grid grid-cols-2 gap-2 h-full">
+            {/* Quick Navigation - Icons Only */}
+            <div className="w-full h-60">
+              <div className="grid grid-cols-3 gap-2 h-full">
                 {quickActions.map((action) => (
                   <button
                     key={action.id}
                     onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
-                    className={`h-full p-5.5 rounded-lg border transition-all duration-200 backdrop-blur-sm group text-left ${
+                    className={`h-full rounded-lg border transition-all duration-200 backdrop-blur-sm group flex items-center justify-center ${
                       selectedCard === action.id
                         ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
                         : `border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5`
                     }`}
                   >
-                    <div className="flex flex-col items-center text-center gap-2.5">
-                      <div className="p-2.5 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                        <action.icon className="h-5.5 w-5.5 md:h-6.5 md:w-6.5 text-primary group-hover:scale-110 transition-transform" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-sm md:text-base leading-tight">{action.name}</div>
-                        <div className="text-[11px] md:text-xs text-muted-foreground">{action.description}</div>
-                      </div>
+                    <div className="p-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                      <action.icon className="h-7 w-7 text-primary group-hover:scale-110 transition-transform" />
                     </div>
                   </button>
                 ))}
