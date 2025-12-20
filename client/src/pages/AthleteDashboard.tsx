@@ -207,7 +207,7 @@ export default function AthleteDashboard() {
               
               {/* Share Menu */}
               {showShareMenu && (
-                <div className="absolute mt-10 bg-background/95 border border-white/10 rounded-lg p-3 backdrop-blur-sm space-y-2 z-50">
+                <div className="absolute mt-10 border border-white/10 rounded-lg p-3 backdrop-blur-sm space-y-2 z-50 bg-[#000000f2]">
                   <div className="text-xs font-semibold text-white mb-2">Share HYPE Card</div>
                   <div className="flex gap-2 mb-2">
                     <input
@@ -280,10 +280,9 @@ export default function AthleteDashboard() {
                   </div>
                 ) : (
                   /* Back of Card - Four Quadrants */
-                  <div className="relative w-full h-96 overflow-hidden" style={{ transform: 'scaleX(-1)', backfaceVisibility: 'hidden' }}>
+                  (<div className="relative w-full h-96 overflow-hidden" style={{ transform: 'scaleX(-1)', backfaceVisibility: 'hidden' }}>
                     <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black" />
                     <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-                    
                     <div className="relative w-full h-full p-3 grid grid-cols-2 gap-2">
                       {/* Top Left - Events */}
                       <div className="bg-white/5 border border-white/10 rounded-lg p-3 overflow-hidden flex flex-col">
@@ -342,7 +341,7 @@ export default function AthleteDashboard() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div>)
                 )}
               </div>
             </div>
