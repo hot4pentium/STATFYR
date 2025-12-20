@@ -5,7 +5,7 @@ import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, B
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "wouter";
-import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
+import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 
 export default function CoachDashboard() {
   const quickActions = [
