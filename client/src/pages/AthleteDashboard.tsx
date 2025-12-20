@@ -260,9 +260,11 @@ export default function AthleteDashboard() {
         {/* Overlay for readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background/80 pointer-events-none" />
         
-        <div className="relative z-20 space-y-6 max-w-full px-4 md:px-8 py-8">
-          {/* HYPE Card - Sports Trading Card Style with Flip */}
-          <div className="w-60 mx-auto lg:mx-0 space-y-2">
+        <div className="relative z-20 max-w-full px-4 md:px-8 py-8">
+          {/* HYPE Card & Quick Navigation Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {/* HYPE Card - Sports Trading Card Style with Flip */}
+            <div className="w-60 space-y-2">
             {/* Share Button */}
             <div className="flex justify-end">
               <button
@@ -422,6 +424,34 @@ export default function AthleteDashboard() {
             >
               <p className="text-xs text-white/70 font-medium uppercase tracking-wide">Tap to Flip</p>
             </button>
+            </div>
+
+            {/* Quick Navigation */}
+            <div className="lg:col-span-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {quickActions.map((action) => (
+                  <button
+                    key={action.id}
+                    onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
+                    className={`h-full p-4 rounded-lg border transition-all duration-200 backdrop-blur-sm group text-left ${
+                      selectedCard === action.id
+                        ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
+                        : `border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5`
+                    }`}
+                  >
+                    <div className="flex flex-col items-center text-center gap-2">
+                      <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                        <action.icon className="h-5 w-5 md:h-6 md:w-6 text-primary group-hover:scale-110 transition-transform" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-sm md:text-base">{action.name}</div>
+                        <div className="text-[10px] md:text-xs text-muted-foreground">{action.description}</div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* HYPE Card Modal */}
@@ -572,34 +602,9 @@ export default function AthleteDashboard() {
             </div>
           )}
 
-          {/* Quick Navigation */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {quickActions.map((action) => (
-              <button
-                key={action.id}
-                onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
-                className={`h-full p-4 rounded-lg border transition-all duration-200 backdrop-blur-sm group text-left ${
-                  selectedCard === action.id
-                    ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
-                    : `border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5`
-                }`}
-              >
-                <div className="flex flex-col items-center text-center gap-2">
-                  <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                    <action.icon className="h-5 w-5 md:h-6 md:w-6 text-primary group-hover:scale-110 transition-transform" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm md:text-base">{action.name}</div>
-                    <div className="text-[10px] md:text-xs text-muted-foreground">{action.description}</div>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-
           {/* Expanded Content Container */}
           {selectedCard && (
-            <div ref={contentRef} className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300">
+            <div ref={contentRef} className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300 mb-6">
               <button
                 onClick={() => {
                   setSelectedCard(null);
@@ -623,7 +628,7 @@ export default function AthleteDashboard() {
           )}
 
           {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <Card className="bg-card/80 backdrop-blur-sm border-white/5">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Goals</CardTitle>
