@@ -14,9 +14,12 @@ export default function CoachDashboard() {
 
   useEffect(() => {
     if (selectedCard && contentRef.current) {
-      setTimeout(() => {
-        contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+      // Use requestAnimationFrame twice to ensure DOM is fully painted
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      });
     }
   }, [selectedCard]);
 
