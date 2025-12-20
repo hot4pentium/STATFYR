@@ -263,9 +263,13 @@ export default function AthleteDashboard() {
             </div>
             
             {/* Tap to Flip Bar */}
-            <div className="bg-white/5 border border-white/10 rounded-lg py-2 text-center backdrop-blur-sm hover:bg-white/10 transition">
+            <button
+              onClick={() => setIsHypeCardFlipped(!isHypeCardFlipped)}
+              className="w-full bg-white/5 border border-white/10 rounded-lg py-2 text-center backdrop-blur-sm hover:bg-white/10 transition cursor-pointer"
+              data-testid="button-tap-to-flip"
+            >
               <p className="text-xs text-white/70 font-medium uppercase tracking-wide">Tap to Flip</p>
-            </div>
+            </button>
           </div>
 
           {/* Quick Navigation */}
