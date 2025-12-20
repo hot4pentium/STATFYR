@@ -1,11 +1,12 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EVENTS, PLAYS, RECENT_CHATS } from "@/lib/mockData";
 import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
 import { createTeam, getTeamMembers, getCoachTeams, type TeamMember } from "@/lib/api";
@@ -18,6 +19,7 @@ export default function CoachDashboard() {
   const queryClient = useQueryClient();
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [rosterTab, setRosterTab] = useState<"all" | "athletes" | "coach" | "supporters">("all");
   const contentRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const heroBannerRef = useRef<HTMLDivElement>(null);
@@ -79,8 +81,18 @@ export default function CoachDashboard() {
     }
   };
 
-  const rosterMembers = teamMembers;
-  const athletes = teamMembers.filter((m: TeamMember) => m.role === "athlete");
+  const athletes = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "athlete"), [teamMembers]);
+  const coaches = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "coach"), [teamMembers]);
+  const supporters = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "supporter"), [teamMembers]);
+  
+  const filteredRosterMembers = useMemo(() => {
+    switch (rosterTab) {
+      case "athletes": return athletes;
+      case "coach": return coaches;
+      case "supporters": return supporters;
+      default: return teamMembers;
+    }
+  }, [rosterTab, teamMembers, athletes, coaches, supporters]);
 
   useEffect(() => {
     if (selectedCard && contentRef.current) {
@@ -135,39 +147,51 @@ export default function CoachDashboard() {
     switch(selectedCard) {
       case "roster":
         return (
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {rosterMembers.length === 0 ? (
-              <div className="col-span-full text-center py-8 text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-bold">No team members yet</p>
-                <p className="text-sm">Share your team code with athletes to have them join!</p>
-                {currentTeam?.code && (
-                  <p className="mt-2 font-mono text-primary text-lg">{currentTeam.code}</p>
-                )}
-              </div>
-            ) : (
-              rosterMembers.map((member: TeamMember) => (
-                <Card key={member.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col items-center text-center gap-3">
-                      <Avatar className="h-12 w-12 border-2 border-white/20">
-                        <AvatarImage src={member.user.avatar || undefined} />
-                        <AvatarFallback>{member.user.name?.[0] || "A"}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        {member.role === "coach" ? (
-                          <div className="font-bold text-foreground uppercase text-xs bg-primary/20 text-primary px-2 py-1 rounded mb-1">Coach</div>
-                        ) : (
-                          <div className="font-bold text-foreground">#{member.user.number || "00"}</div>
-                        )}
-                        <div className="text-sm font-bold text-primary">{member.user.name || member.user.username}</div>
-                        <div className="text-xs text-muted-foreground">{member.role === "coach" ? "Head Coach" : (member.user.position || "Player")}</div>
+          <div className="space-y-4">
+            <Tabs value={rosterTab} onValueChange={(v) => setRosterTab(v as typeof rosterTab)} className="w-full">
+              <TabsList className="grid w-full grid-cols-4 bg-background/40">
+                <TabsTrigger value="all" data-testid="tab-all">All ({teamMembers.length})</TabsTrigger>
+                <TabsTrigger value="athletes" data-testid="tab-athletes">Athletes ({athletes.length})</TabsTrigger>
+                <TabsTrigger value="coach" data-testid="tab-coach">Coach ({coaches.length})</TabsTrigger>
+                <TabsTrigger value="supporters" data-testid="tab-supporters">Supporters ({supporters.length})</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+              {filteredRosterMembers.length === 0 ? (
+                <div className="col-span-full text-center py-8 text-muted-foreground">
+                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-bold">No {rosterTab === "all" ? "team members" : rosterTab} yet</p>
+                  <p className="text-sm">Share your team code to invite members!</p>
+                  {currentTeam?.code && (
+                    <p className="mt-2 font-mono text-primary text-lg">{currentTeam.code}</p>
+                  )}
+                </div>
+              ) : (
+                filteredRosterMembers.map((member: TeamMember) => (
+                  <Card key={member.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                    <CardContent className="p-3 md:p-4">
+                      <div className="flex flex-col items-center text-center gap-2 md:gap-3">
+                        <Avatar className="h-10 w-10 md:h-12 md:w-12 border-2 border-white/20">
+                          <AvatarImage src={member.user.avatar || undefined} />
+                          <AvatarFallback>{member.user.name?.[0] || "A"}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          {member.role === "coach" ? (
+                            <div className="font-bold text-foreground uppercase text-[10px] md:text-xs bg-primary/20 text-primary px-2 py-1 rounded mb-1">Coach</div>
+                          ) : member.role === "supporter" ? (
+                            <div className="font-bold text-foreground uppercase text-[10px] md:text-xs bg-accent/20 text-accent px-2 py-1 rounded mb-1">Fan</div>
+                          ) : (
+                            <div className="font-bold text-foreground text-sm md:text-base">#{member.user.number || "00"}</div>
+                          )}
+                          <div className="text-xs md:text-sm font-bold text-primary truncate max-w-[80px] md:max-w-none">{member.user.name || member.user.username}</div>
+                          <div className="text-[10px] md:text-xs text-muted-foreground">{member.role === "coach" ? "Head Coach" : member.role === "supporter" ? "Supporter" : (member.user.position || "Player")}</div>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
           </div>
         );
       case "events":

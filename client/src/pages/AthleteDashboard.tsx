@@ -2,12 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EVENTS } from "@/lib/mockData";
 import { Calendar, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2, Settings, LogOut, Share2, Moon, Sun, Users } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useTheme } from "next-themes";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
@@ -25,8 +26,20 @@ export default function AthleteDashboard() {
     enabled: !!currentTeam,
   });
 
-  const rosterMembers = teamMembers;
-  const athletes = teamMembers.filter((m: TeamMember) => m.role === "athlete");
+  const athletes = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "athlete"), [teamMembers]);
+  const coaches = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "coach"), [teamMembers]);
+  const supporters = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "supporter"), [teamMembers]);
+  
+  const [rosterTab, setRosterTab] = useState<"all" | "athletes" | "coach" | "supporters">("all");
+  const filteredRosterMembers = useMemo(() => {
+    switch (rosterTab) {
+      case "athletes": return athletes;
+      case "coach": return coaches;
+      case "supporters": return supporters;
+      default: return teamMembers;
+    }
+  }, [rosterTab, teamMembers, athletes, coaches, supporters]);
+
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [isHypeCardFlipped, setIsHypeCardFlipped] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -231,34 +244,50 @@ export default function AthleteDashboard() {
         );
       case "roster":
         return (
-          <div className="space-y-3">
-            {rosterMembers.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-bold">No teammates yet</p>
-                <p className="text-sm">Teammates will appear here once they join the team.</p>
-              </div>
-            ) : (
-              rosterMembers.map((member: TeamMember) => (
-                <div key={member.id} className="flex items-center gap-3 p-3 rounded-lg bg-background/40 border border-white/10 hover:border-primary/50 transition-all">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={member.user.avatar || undefined} alt={member.user.name || ""} />
-                    <AvatarFallback>{member.user.name?.split(' ').map(n => n[0]).join('') || "A"}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{member.user.name || member.user.username}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {member.role === "coach" ? "Head Coach" : (member.user.position || "Player")}
-                    </p>
-                  </div>
-                  {member.role === "coach" ? (
-                    <div className="text-xs font-bold text-primary uppercase bg-primary/20 px-2 py-1 rounded">Coach</div>
-                  ) : (
-                    <div className="text-sm font-bold text-accent">#{member.user.number || "00"}</div>
-                  )}
+          <div className="space-y-4">
+            <Tabs value={rosterTab} onValueChange={(v) => setRosterTab(v as typeof rosterTab)} className="w-full">
+              <TabsList className="grid w-full grid-cols-4 bg-background/40">
+                <TabsTrigger value="all" data-testid="tab-all">All ({teamMembers.length})</TabsTrigger>
+                <TabsTrigger value="athletes" data-testid="tab-athletes">Athletes ({athletes.length})</TabsTrigger>
+                <TabsTrigger value="coach" data-testid="tab-coach">Coach ({coaches.length})</TabsTrigger>
+                <TabsTrigger value="supporters" data-testid="tab-supporters">Supporters ({supporters.length})</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {filteredRosterMembers.length === 0 ? (
+                <div className="col-span-full text-center py-8 text-muted-foreground">
+                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-bold">No {rosterTab === "all" ? "teammates" : rosterTab} yet</p>
+                  <p className="text-sm">Members will appear here once they join the team.</p>
                 </div>
-              ))
-            )}
+              ) : (
+                filteredRosterMembers.map((member: TeamMember) => (
+                  <Card key={member.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                    <CardContent className="p-3">
+                      <div className="flex flex-col items-center text-center gap-2">
+                        <Avatar className="h-10 w-10 border-2 border-white/20">
+                          <AvatarImage src={member.user.avatar || undefined} alt={member.user.name || ""} />
+                          <AvatarFallback>{member.user.name?.split(' ').map(n => n[0]).join('') || "A"}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          {member.role === "coach" ? (
+                            <div className="font-bold uppercase text-[10px] bg-primary/20 text-primary px-2 py-1 rounded mb-1">Coach</div>
+                          ) : member.role === "supporter" ? (
+                            <div className="font-bold uppercase text-[10px] bg-accent/20 text-accent px-2 py-1 rounded mb-1">Fan</div>
+                          ) : (
+                            <div className="font-bold text-sm">#{member.user.number || "00"}</div>
+                          )}
+                          <p className="text-xs font-bold text-primary truncate max-w-[70px]">{member.user.name || member.user.username}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {member.role === "coach" ? "Head Coach" : member.role === "supporter" ? "Supporter" : (member.user.position || "Player")}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
           </div>
         );
       default:
