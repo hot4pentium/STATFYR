@@ -16,6 +16,8 @@ export default function AthleteDashboard() {
   const nextEvent = EVENTS[0];
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [isHypeCardFlipped, setIsHypeCardFlipped] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalCardFlipped, setIsModalCardFlipped] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -228,7 +230,7 @@ export default function AthleteDashboard() {
                 </div>
               )}
             </div>
-            <div className="relative group cursor-pointer" onClick={() => setIsHypeCardFlipped(!isHypeCardFlipped)} style={{ perspective: '1000px' }}>
+            <div className="relative group cursor-pointer" onClick={() => setIsModalOpen(true)} style={{ perspective: '1000px' }}>
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div 
                 className="relative w-full bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
@@ -355,6 +357,154 @@ export default function AthleteDashboard() {
               <p className="text-xs text-white/70 font-medium uppercase tracking-wide">Tap to Flip</p>
             </button>
           </div>
+
+          {/* HYPE Card Modal */}
+          {isModalOpen && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
+              <div className="relative max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
+                {/* Close Button */}
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="absolute -top-12 right-0 p-2 text-white hover:text-white/70 transition"
+                  data-testid="button-close-modal"
+                >
+                  <X className="h-8 w-8" />
+                </button>
+
+                {/* Enlarged Card */}
+                <div className="w-full space-y-4">
+                  <div className="relative group" style={{ perspective: '1000px' }}>
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
+                    <div 
+                      className="relative w-full bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+                      style={{
+                        transformStyle: 'preserve-3d',
+                        transform: isModalCardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                        transition: 'transform 0.6s ease-in-out',
+                        aspectRatio: '9/16'
+                      }}
+                    >
+                      {/* Card Background */}
+                      <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+                      
+                      {/* Front of Card */}
+                      {!isModalCardFlipped ? (
+                        <div className="relative w-full h-full overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
+                          {/* Full Image Background */}
+                          <img src={athlete.avatar} alt={athlete.name} className="absolute inset-0 w-full h-full object-cover" />
+                          
+                          {/* Gradient Overlays for text readability */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
+                          
+                          {/* Top Left - Name Overlay */}
+                          <div className="absolute top-0 left-0 p-6 text-left">
+                            <h3 className="text-4xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{athlete.name}</h3>
+                            <p className="text-sm text-white/90 uppercase mt-2 tracking-wider drop-shadow-md font-semibold">{TEAM_NAME}</p>
+                          </div>
+
+                          {/* Bottom Left - Position */}
+                          <div className="absolute bottom-0 left-0 p-6">
+                            <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{athlete.position}</p>
+                          </div>
+
+                          {/* Bottom Right - Number */}
+                          <div className="absolute bottom-0 right-0 p-6">
+                            <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-4 shadow-lg">
+                              <span className="text-white font-display font-bold text-4xl drop-shadow">#{athlete.number}</span>
+                            </div>
+                          </div>
+
+                          {/* Right Center - HYPE Card Text (Vertical) */}
+                          <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                            <div className="flex flex-row items-center gap-2 -rotate-90 whitespace-nowrap origin-center">
+                              <span className="text-sm text-white font-bold uppercase tracking-widest drop-shadow-lg">HYPE</span>
+                              <div className="w-1 h-3 bg-white/60"></div>
+                              <span className="text-sm text-white font-bold uppercase tracking-widest drop-shadow-lg">CARD</span>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Back of Card - Four Quadrants */
+                        <div className="relative w-full h-full overflow-hidden" style={{ transform: 'scaleX(-1)', backfaceVisibility: 'hidden' }}>
+                          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black" />
+                          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+                          
+                          <div className="relative w-full h-full p-6 grid grid-cols-2 gap-3">
+                            {/* Top Left - Events */}
+                            <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
+                              <p className="text-sm text-accent font-bold uppercase tracking-widest mb-3">Events</p>
+                              <div className="space-y-2 text-sm text-white/70 flex-1 overflow-y-auto">
+                                {EVENTS.slice(0, 2).map((event) => (
+                                  <div key={event.id}>
+                                    <span className="font-semibold text-white">{event.type}</span>
+                                    <div className="text-xs">{new Date(event.date).toLocaleDateString()}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Top Right - Stats with Bars */}
+                            <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
+                              <p className="text-sm text-primary font-bold uppercase tracking-widest mb-3">Stats</p>
+                              <div className="space-y-3 flex-1">
+                                <div>
+                                  <div className="flex justify-between items-end gap-2 mb-1">
+                                    <span className="text-xs text-white/70">Goals</span>
+                                    <span className="text-sm font-bold text-primary">{athlete.stats?.goals || 0}</span>
+                                  </div>
+                                  <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                    <div className="h-full bg-primary" style={{width: `${Math.min((athlete.stats?.goals || 0) * 10, 100)}%`}}></div>
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="flex justify-between items-end gap-2 mb-1">
+                                    <span className="text-xs text-white/70">Assists</span>
+                                    <span className="text-sm font-bold text-accent">{athlete.stats?.assists || 0}</span>
+                                  </div>
+                                  <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                    <div className="h-full bg-accent" style={{width: `${Math.min((athlete.stats?.assists || 0) * 10, 100)}%`}}></div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Bottom Left - Highlights */}
+                            <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
+                              <p className="text-sm text-green-400 font-bold uppercase tracking-widest mb-3">Highlights</p>
+                              <div className="space-y-2 text-sm text-white/70 flex-1">
+                                <div>⚡ Crucial goal</div>
+                                <div>✨ MVP award</div>
+                                <div>🎯 Key assist</div>
+                              </div>
+                            </div>
+
+                            {/* Bottom Right - Shoutouts */}
+                            <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
+                              <p className="text-sm text-orange-400 font-bold uppercase tracking-widest mb-3">Shoutouts</p>
+                              <div className="text-sm text-white/70 italic flex-1">
+                                <p className="line-clamp-4">"Excellent form lately!"</p>
+                                <p className="text-xs mt-2 text-white/50">— Coach</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Tap to Flip Bar */}
+                  <button
+                    onClick={() => setIsModalCardFlipped(!isModalCardFlipped)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg py-3 text-center backdrop-blur-sm hover:bg-white/10 transition cursor-pointer"
+                    data-testid="button-modal-tap-to-flip"
+                  >
+                    <p className="text-sm text-white/70 font-medium uppercase tracking-wide">Tap to Flip</p>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Quick Navigation */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
