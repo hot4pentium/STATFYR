@@ -1,38 +1,157 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { 
+  users, teams, teamMembers,
+  type User, type InsertUser,
+  type Team, type InsertTeam,
+  type TeamMember, type InsertTeamMember
+} from "@shared/schema";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 
-// modify the interface with any CRUD methods
-// you might need
+function generateTeamCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, data: Partial<InsertUser>): Promise<User | undefined>;
+  
+  getTeam(id: string): Promise<Team | undefined>;
+  getTeamByCode(code: string): Promise<Team | undefined>;
+  getTeamsByCoach(coachId: string): Promise<Team[]>;
+  createTeam(team: InsertTeam, coachId: string): Promise<Team>;
+  
+  getTeamMembers(teamId: string): Promise<(TeamMember & { user: User })[]>;
+  getTeamMembership(teamId: string, userId: string): Promise<TeamMember | undefined>;
+  getUserTeams(userId: string): Promise<Team[]>;
+  addTeamMember(data: InsertTeamMember): Promise<TeamMember>;
+  removeTeamMember(teamId: string, userId: string): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
+  }
+
+  async updateUser(id: string, data: Partial<InsertUser>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set(data)
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async getTeam(id: string): Promise<Team | undefined> {
+    const [team] = await db.select().from(teams).where(eq(teams.id, id));
+    return team || undefined;
+  }
+
+  async getTeamByCode(code: string): Promise<Team | undefined> {
+    const [team] = await db.select().from(teams).where(eq(teams.code, code.toUpperCase()));
+    return team || undefined;
+  }
+
+  async getTeamsByCoach(coachId: string): Promise<Team[]> {
+    return await db.select().from(teams).where(eq(teams.coachId, coachId));
+  }
+
+  async createTeam(insertTeam: InsertTeam, coachId: string): Promise<Team> {
+    let code = generateTeamCode();
+    let existingTeam = await this.getTeamByCode(code);
+    while (existingTeam) {
+      code = generateTeamCode();
+      existingTeam = await this.getTeamByCode(code);
+    }
+
+    const [team] = await db
+      .insert(teams)
+      .values({ ...insertTeam, code, coachId })
+      .returning();
+    
+    await this.addTeamMember({ teamId: team.id, userId: coachId, role: "coach" });
+    
+    return team;
+  }
+
+  async getTeamMembers(teamId: string): Promise<(TeamMember & { user: User })[]> {
+    const members = await db
+      .select()
+      .from(teamMembers)
+      .where(eq(teamMembers.teamId, teamId));
+    
+    const result: (TeamMember & { user: User })[] = [];
+    for (const member of members) {
+      const user = await this.getUser(member.userId);
+      if (user) {
+        result.push({ ...member, user });
+      }
+    }
+    return result;
+  }
+
+  async getTeamMembership(teamId: string, userId: string): Promise<TeamMember | undefined> {
+    const [member] = await db
+      .select()
+      .from(teamMembers)
+      .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)));
+    return member || undefined;
+  }
+
+  async getUserTeams(userId: string): Promise<Team[]> {
+    const memberships = await db
+      .select()
+      .from(teamMembers)
+      .where(eq(teamMembers.userId, userId));
+    
+    const userTeams: Team[] = [];
+    for (const membership of memberships) {
+      const team = await this.getTeam(membership.teamId);
+      if (team) {
+        userTeams.push(team);
+      }
+    }
+    return userTeams;
+  }
+
+  async addTeamMember(data: InsertTeamMember): Promise<TeamMember> {
+    const existing = await this.getTeamMembership(data.teamId, data.userId);
+    if (existing) {
+      return existing;
+    }
+    
+    const [member] = await db
+      .insert(teamMembers)
+      .values(data)
+      .returning();
+    return member;
+  }
+
+  async removeTeamMember(teamId: string, userId: string): Promise<void> {
+    await db
+      .delete(teamMembers)
+      .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
