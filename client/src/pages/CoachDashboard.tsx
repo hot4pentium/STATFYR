@@ -268,12 +268,7 @@ export default function CoachDashboard() {
                   </div>
                 </div>
 
-                <div className="w-full md:w-auto flex gap-2">
-                  <Button size="lg" className="shadow-lg shadow-primary/30 flex-1 md:flex-none">
-                    <PlayCircle className="mr-2 h-5 w-5" />
-                    Start Practice Mode
-                  </Button>
-                </div>
+                
               </div>
             </div>
           </div>
