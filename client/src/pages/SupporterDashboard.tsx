@@ -1,9 +1,8 @@
-import { Layout } from "@/components/layout/Layout";
 import { ATHLETES, EVENTS, TEAM_NAME } from "@/lib/mockData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, Ticket, MapPin, Trophy, ArrowLeft, Users, BarChart3, MessageSquare, X } from "lucide-react";
+import { Calendar, Ticket, MapPin, Trophy, ArrowLeft, Users, BarChart3, MessageSquare, X, Settings, LogOut } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useRef, useEffect } from "react";
 
@@ -148,16 +147,47 @@ export default function SupporterDashboard() {
   };
 
   return (
-    <Layout>
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        
-        <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="max-w-full px-4 md:px-8 py-4 flex items-center justify-between">
           <Link href="/">
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-white/20 hover:bg-white/10"
+              data-testid="button-back"
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
+          
+          <div className="flex items-center gap-3">
+            <Link href="/supporter/settings">
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-white/20 hover:bg-white/10"
+                data-testid="button-settings"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+            </Link>
+            <Link href="/">
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-white/20 hover:bg-white/10"
+                data-testid="button-logout"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
+      </header>
+
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-full px-4 md:px-8 py-8">
 
         {/* Hero Section */}
         <div className="relative rounded-2xl overflow-hidden bg-primary/10 border border-white/5 p-8 md:p-12 text-center md:text-left">
@@ -315,7 +345,7 @@ export default function SupporterDashboard() {
            </div>
         </div>
       </div>
-    </Layout>
+    </div>
   );
 }
 

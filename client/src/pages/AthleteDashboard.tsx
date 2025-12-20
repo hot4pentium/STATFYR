@@ -1,10 +1,10 @@
-import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ATHLETES, EVENTS, TEAM_NAME } from "@/lib/mockData";
-import { Calendar, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2 } from "lucide-react";
+import { Calendar, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2, Settings, LogOut } from "lucide-react";
+import { Link } from "wouter";
 import { Progress } from "@/components/ui/progress";
 import { useState, useRef, useEffect } from "react";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
@@ -142,7 +142,33 @@ export default function AthleteDashboard() {
   };
 
   return (
-    <Layout>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="max-w-full px-4 md:px-8 py-4 flex items-center justify-end gap-3">
+          <Link href="/athlete/settings">
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-white/20 hover:bg-white/10"
+              data-testid="button-settings"
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
+          </Link>
+          <Link href="/">
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-white/20 hover:bg-white/10"
+              data-testid="button-logout"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
+      </header>
+
       <div 
         className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10"
         style={{
@@ -155,7 +181,7 @@ export default function AthleteDashboard() {
         {/* Overlay for readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background/80 pointer-events-none" />
         
-        <div className="relative z-20 space-y-6">
+        <div className="relative z-20 space-y-6 max-w-full px-4 md:px-8 py-8">
           {/* HYPE Card - Sports Trading Card Style with Flip */}
           <div className="max-w-md mx-auto lg:mx-0">
             <div className="relative group">
@@ -482,6 +508,6 @@ export default function AthleteDashboard() {
           </div>
         </div>
       </div>
-    </Layout>
+    </div>
   );
 }

@@ -1,10 +1,9 @@
-import { Layout } from "@/components/layout/Layout";
 import { ATHLETES, EVENTS } from "@/lib/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, ShieldCheck, HeartPulse, ArrowLeft } from "lucide-react";
+import { Calendar, ShieldCheck, HeartPulse, ArrowLeft, Settings, LogOut } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "wouter";
 
@@ -13,16 +12,47 @@ export default function AthleteProfile() {
   const athlete = ATHLETES[0]; 
 
   return (
-    <Layout>
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard">
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="max-w-full px-4 md:px-8 py-4 flex items-center justify-between">
+          <Link href="/athlete/dashboard">
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-white/20 hover:bg-white/10"
+              data-testid="button-back"
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
+          
+          <div className="flex items-center gap-3">
+            <Link href="/athlete/settings">
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-white/20 hover:bg-white/10"
+                data-testid="button-settings"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+            </Link>
+            <Link href="/">
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-white/20 hover:bg-white/10"
+                data-testid="button-logout"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
+      </header>
+
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-full px-4 md:px-8 py-8">
 
         {/* Profile Header */}
         <div className="relative h-48 rounded-xl bg-gradient-to-r from-primary/20 to-accent/20 border border-white/5 overflow-hidden">
@@ -147,6 +177,6 @@ export default function AthleteProfile() {
           </div>
         </div>
       </div>
-    </Layout>
+    </div>
   );
 }
