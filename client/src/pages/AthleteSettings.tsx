@@ -1,9 +1,8 @@
-import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Upload, ArrowLeft } from "lucide-react";
+import { User, Upload, ArrowLeft, LogOut, Settings } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -40,7 +39,46 @@ export default function AthleteSettings() {
   };
 
   return (
-    <Layout>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="max-w-full px-4 md:px-8 py-4 flex items-center justify-between">
+          <Link href="/athlete/dashboard">
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-white/20 hover:bg-white/10"
+              data-testid="button-back-to-dashboard"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          
+          <div className="flex items-center gap-3">
+            <Link href="/athlete/settings">
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-white/20 hover:bg-white/10"
+                data-testid="button-settings"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+            </Link>
+            <Link href="/">
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-white/20 hover:bg-white/10"
+                data-testid="button-logout"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </header>
+
       <div 
         className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10"
         style={{
@@ -53,34 +91,16 @@ export default function AthleteSettings() {
         {/* Overlay for readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background/80 pointer-events-none" />
         
-        <div className="relative z-20 space-y-6">
-          {/* Header */}
-          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
-            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-            <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
-            <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
-            
-            <div className="relative z-10 p-8 md:p-12">
-              <div className="flex items-start justify-between gap-6 mb-4">
-                <Link href="/athlete/dashboard">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="border-white/20 hover:bg-white/10 text-white"
-                    data-testid="button-back-to-dashboard"
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                  </Button>
-                </Link>
+        <div className="relative z-20 space-y-6 max-w-full px-4 md:px-8 py-8">
+          {/* Page Title */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 bg-primary/20 backdrop-blur-md rounded-lg border border-primary/30 flex items-center justify-center">
+                <User className="h-6 w-6 text-primary" />
               </div>
-              <div className="flex items-start gap-6">
-                <div className="h-16 w-16 md:h-20 md:w-20 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
-                  <User className="h-8 w-8 md:h-10 md:w-10 text-white" />
-                </div>
-                <div className="space-y-2">
-                  <h1 className="text-3xl md:text-5xl font-display font-bold text-white uppercase tracking-tighter">Profile Settings</h1>
-                  <p className="text-white/80 text-sm md:text-base">Manage your profile and preferences</p>
-                </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-display font-bold text-white uppercase tracking-tighter">Profile Settings</h1>
+                <p className="text-white/80 text-sm md:text-base">Manage your profile and preferences</p>
               </div>
             </div>
           </div>
@@ -193,6 +213,6 @@ export default function AthleteSettings() {
           </Card>
         </div>
       </div>
-    </Layout>
+    </div>
   );
 }
