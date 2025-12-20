@@ -168,7 +168,6 @@ export default function AthleteDashboard() {
           </Link>
         </div>
       </header>
-
       <div 
         className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10"
         style={{
@@ -220,7 +219,7 @@ export default function AthleteDashboard() {
 
                     {/* Right Center - HYPE Card Text (Vertical) */}
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <div className="flex flex-col items-center gap-1 -rotate-90 whitespace-nowrap origin-center">
+                      <div className="flex flex-col items-center gap-1 -rotate-90 whitespace-nowrap origin-center text-[14px]">
                         <span className="text-[10px] text-white font-bold uppercase tracking-widest drop-shadow-lg">HYPE</span>
                         <div className="w-2 h-0.5 bg-white/60"></div>
                         <span className="text-[10px] text-white font-bold uppercase tracking-widest drop-shadow-lg">CARD</span>
@@ -238,12 +237,11 @@ export default function AthleteDashboard() {
                   </div>
                 ) : (
                   /* Back of Card */
-                  <div className="relative p-6 space-y-4 flex flex-col justify-between min-h-96">
+                  (<div className="relative p-6 space-y-4 flex flex-col justify-between min-h-96">
                     {/* Back Header */}
                     <div className="text-center">
                       <p className="text-xs text-accent font-bold uppercase tracking-wider">Season Stats</p>
                     </div>
-
                     {/* Stats Grid */}
                     <div className="space-y-3">
                       <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center backdrop-blur-sm hover:bg-white/10 transition">
@@ -259,7 +257,6 @@ export default function AthleteDashboard() {
                         <p className="text-3xl font-display font-bold text-green-400 mt-1">{athlete.stats?.games || 0}</p>
                       </div>
                     </div>
-
                     {/* Status */}
                     <div className="border-t border-white/10 pt-3 text-center">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Status</p>
@@ -269,7 +266,6 @@ export default function AthleteDashboard() {
                         </span>
                       </p>
                     </div>
-
                     {/* Flip Back Button */}
                     <button
                       onClick={() => setIsHypeCardFlipped(false)}
@@ -278,7 +274,7 @@ export default function AthleteDashboard() {
                     >
                       <Repeat2 className="h-4 w-4" />
                     </button>
-                  </div>
+                  </div>)
                 )}
               </div>
             </div>
