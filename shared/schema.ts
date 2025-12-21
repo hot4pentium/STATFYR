@@ -63,12 +63,15 @@ export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
 export const events = pgTable("events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   teamId: varchar("team_id").notNull().references(() => teams.id),
-  title: text("title").notNull(),
+  title: text("title").notNull().default(""),
   type: text("type").notNull().default("Practice"),
   date: timestamp("date").notNull(),
   endDate: timestamp("end_date"),
   location: text("location"),
   details: text("details"),
+  opponent: text("opponent"),
+  drinksAthleteId: varchar("drinks_athlete_id").references(() => users.id),
+  snacksAthleteId: varchar("snacks_athlete_id").references(() => users.id),
   createdBy: varchar("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });

@@ -42,6 +42,9 @@ export interface Event {
   endDate?: string | null;
   location?: string | null;
   details?: string | null;
+  opponent?: string | null;
+  drinksAthleteId?: string | null;
+  snacksAthleteId?: string | null;
   createdBy?: string | null;
   createdAt?: string | null;
 }

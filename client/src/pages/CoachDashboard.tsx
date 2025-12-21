@@ -32,11 +32,13 @@ export default function CoachDashboard() {
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [eventForm, setEventForm] = useState({
-    title: "",
     type: "Practice",
     date: "",
     location: "",
-    details: ""
+    details: "",
+    opponent: "",
+    drinksAthleteId: "",
+    snacksAthleteId: ""
   });
   const [deleteConfirmEvent, setDeleteConfirmEvent] = useState<Event | null>(null);
 
@@ -59,8 +61,8 @@ export default function CoachDashboard() {
   });
 
   const createEventMutation = useMutation({
-    mutationFn: (data: { title: string; type: string; date: string; location?: string; details?: string }) => 
-      createEvent(currentTeam!.id, { ...data, createdBy: user!.id }),
+    mutationFn: (data: { type: string; date: string; location?: string; details?: string; opponent?: string; drinksAthleteId?: string; snacksAthleteId?: string }) => 
+      createEvent(currentTeam!.id, { ...data, title: data.type, createdBy: user!.id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "events"] });
       toast.success("Event created!");
@@ -71,7 +73,7 @@ export default function CoachDashboard() {
   });
 
   const updateEventMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<{ title: string; type: string; date: string; location?: string; details?: string }> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<{ title?: string; type: string; date: string; location?: string; details?: string; opponent?: string; drinksAthleteId?: string; snacksAthleteId?: string }> }) =>
       updateEvent(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "events"] });
@@ -94,7 +96,7 @@ export default function CoachDashboard() {
   });
 
   const resetEventForm = () => {
-    setEventForm({ title: "", type: "Practice", date: "", location: "", details: "" });
+    setEventForm({ type: "Practice", date: "", location: "", details: "", opponent: "", drinksAthleteId: "", snacksAthleteId: "" });
   };
 
   const openAddEvent = () => {
@@ -106,31 +108,35 @@ export default function CoachDashboard() {
   const openEditEvent = (event: Event) => {
     setEditingEvent(event);
     setEventForm({
-      title: event.title,
       type: event.type,
       date: new Date(event.date).toISOString().slice(0, 16),
       location: event.location || "",
-      details: event.details || ""
+      details: event.details || "",
+      opponent: (event as any).opponent || "",
+      drinksAthleteId: (event as any).drinksAthleteId || "",
+      snacksAthleteId: (event as any).snacksAthleteId || ""
     });
     setIsEventModalOpen(true);
   };
 
   const handleEventSubmit = () => {
-    if (!eventForm.title || !eventForm.date) {
-      toast.error("Title and date are required");
+    if (!eventForm.date) {
+      toast.error("Date is required");
       return;
     }
     
     const data = {
-      title: eventForm.title,
       type: eventForm.type,
       date: eventForm.date,
       location: eventForm.location || undefined,
-      details: eventForm.details || undefined
+      details: eventForm.details || undefined,
+      opponent: eventForm.opponent || undefined,
+      drinksAthleteId: eventForm.drinksAthleteId || undefined,
+      snacksAthleteId: eventForm.snacksAthleteId || undefined
     };
 
     if (editingEvent) {
-      updateEventMutation.mutate({ id: editingEvent.id, data });
+      updateEventMutation.mutate({ id: editingEvent.id, data: { ...data, title: data.type } });
     } else {
       createEventMutation.mutate(data);
     }
@@ -714,17 +720,7 @@ export default function CoachDashboard() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="event-title">Title *</Label>
-              <Input
-                id="event-title"
-                value={eventForm.title}
-                onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
-                placeholder="e.g., Team Practice"
-                data-testid="input-event-title"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="event-type">Type</Label>
+              <Label htmlFor="event-type">Type *</Label>
               <Select value={eventForm.type} onValueChange={(value) => setEventForm({ ...eventForm, type: value })}>
                 <SelectTrigger data-testid="select-event-type">
                   <SelectValue />
@@ -749,6 +745,16 @@ export default function CoachDashboard() {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="event-opponent">Opponent</Label>
+              <Input
+                id="event-opponent"
+                value={eventForm.opponent}
+                onChange={(e) => setEventForm({ ...eventForm, opponent: e.target.value })}
+                placeholder="e.g., City Rovers FC"
+                data-testid="input-event-opponent"
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="event-location">Location</Label>
               <Input
                 id="event-location"
@@ -757,6 +763,38 @@ export default function CoachDashboard() {
                 placeholder="e.g., Training Ground A"
                 data-testid="input-event-location"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="event-drinks">Bringing Drinks?</Label>
+              <Select value={eventForm.drinksAthleteId} onValueChange={(value) => setEventForm({ ...eventForm, drinksAthleteId: value })}>
+                <SelectTrigger data-testid="select-event-drinks">
+                  <SelectValue placeholder="Select athlete..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {athletes.map((athlete: TeamMember) => (
+                    <SelectItem key={athlete.id} value={athlete.user.id}>
+                      {athlete.user.name || athlete.user.username}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="event-snacks">Bringing Snacks?</Label>
+              <Select value={eventForm.snacksAthleteId} onValueChange={(value) => setEventForm({ ...eventForm, snacksAthleteId: value })}>
+                <SelectTrigger data-testid="select-event-snacks">
+                  <SelectValue placeholder="Select athlete..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {athletes.map((athlete: TeamMember) => (
+                    <SelectItem key={athlete.id} value={athlete.user.id}>
+                      {athlete.user.name || athlete.user.username}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="event-details">Details</Label>
