@@ -62,6 +62,7 @@ export default function CoachDashboard() {
     queryKey: ["/api/teams", currentTeam?.id, "members"],
     queryFn: () => currentTeam ? getTeamMembers(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
+    refetchInterval: 10000,
   });
 
   const { data: teamEvents = [] } = useQuery({
