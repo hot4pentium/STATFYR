@@ -1,11 +1,11 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, User } from "lucide-react";
+import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-type Tool = "freedraw" | "arrow" | "square" | "xshape" | "triangle" | "circle" | "athlete";
+type Tool = "freedraw" | "arrow" | "square" | "xshape" | "triangle" | "circle" | "athlete" | "delete";
 
 interface Point {
   x: number;
@@ -327,6 +327,14 @@ export function PlaybookCanvas({ athletes = [] }: PlaybookCanvasProps) {
     const point = getCanvasPoint(e);
 
     const clickedElement = findElementAtPoint(point);
+    
+    if (selectedTool === "delete") {
+      if (clickedElement) {
+        setElements((prev) => prev.filter((el) => el.id !== clickedElement.id));
+      }
+      return;
+    }
+
     if (clickedElement) {
       setIsDragging(true);
       setDraggedElementId(clickedElement.id);
@@ -542,6 +550,17 @@ export function PlaybookCanvas({ athletes = [] }: PlaybookCanvasProps) {
             </ScrollArea>
           </PopoverContent>
         </Popover>
+
+        <Button
+          variant={selectedTool === "delete" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setSelectedTool("delete")}
+          className="gap-2 text-orange-500 hover:text-orange-400"
+          data-testid="tool-delete"
+        >
+          <MousePointerClick className="h-5 w-5" />
+          <span className="hidden sm:inline">Delete</span>
+        </Button>
 
         <div className="flex-1" />
 
