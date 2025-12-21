@@ -171,6 +171,9 @@ html:not(.dark) {
   
   body {
     @apply font-sans antialiased bg-background text-foreground selection:bg-primary/20 selection:text-primary;
+  }
+  
+  html.dark body {
     background-image: 
       repeating-linear-gradient(
         0deg,

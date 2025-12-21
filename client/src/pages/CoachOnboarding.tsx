@@ -111,7 +111,7 @@ export default function CoachOnboarding() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
       <div 
-        className={`absolute inset-0 z-0 ${isLightMode ? 'opacity-40' : 'opacity-20'}`}
+        className={`absolute inset-0 z-0 ${isLightMode ? 'opacity-60' : 'opacity-20'}`}
         style={{
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
