@@ -336,6 +336,12 @@ export async function registerRoutes(
         return res.status(403).json({ error: "Only coaches and staff can create plays" });
       }
       
+      // Validate status value
+      const validStatuses = ["Successful", "Not Successful", "Needs Work"];
+      if (playData.status && !validStatuses.includes(playData.status)) {
+        return res.status(400).json({ error: "Invalid status value" });
+      }
+      
       const parsed = insertPlaySchema.parse({
         ...playData,
         teamId: req.params.teamId,
@@ -367,6 +373,12 @@ export async function registerRoutes(
       const membership = await storage.getTeamMembership(play.teamId, userId);
       if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
         return res.status(403).json({ error: "Only coaches and staff can edit plays" });
+      }
+      
+      // Validate status value if provided
+      const validStatuses = ["Successful", "Not Successful", "Needs Work"];
+      if (updateData.status && !validStatuses.includes(updateData.status)) {
+        return res.status(400).json({ error: "Invalid status value" });
       }
       
       const parsed = updatePlaySchema.parse(updateData);
