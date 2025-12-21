@@ -6,6 +6,9 @@ import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
 import path from "path";
+import bcrypt from "bcrypt";
+
+const SALT_ROUNDS = 10;
 
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
 const objectStorageService = new ObjectStorageService();
@@ -18,11 +21,24 @@ export async function registerRoutes(
   app.post("/api/auth/register", async (req, res) => {
     try {
       const parsed = insertUserSchema.parse(req.body);
-      const existing = await storage.getUserByUsername(parsed.username);
-      if (existing) {
+      
+      // Check if username already exists
+      const existingUsername = await storage.getUserByUsername(parsed.username);
+      if (existingUsername) {
         return res.status(400).json({ error: "Username already exists" });
       }
-      const user = await storage.createUser(parsed);
+      
+      // Check if email already exists
+      if (parsed.email) {
+        const existingEmail = await storage.getUserByEmail(parsed.email);
+        if (existingEmail) {
+          return res.status(400).json({ error: "Email already exists" });
+        }
+      }
+      
+      // Hash the password before storing
+      const hashedPassword = await bcrypt.hash(parsed.password, SALT_ROUNDS);
+      const user = await storage.createUser({ ...parsed, password: hashedPassword });
       const { password, ...safeUser } = user;
       res.json(safeUser);
     } catch (error) {
@@ -36,13 +52,23 @@ export async function registerRoutes(
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
+      
+      // Try to find user by email first, then by username
       let user = await storage.getUserByEmail(username);
       if (!user) {
         user = await storage.getUserByUsername(username);
       }
-      if (!user || user.password !== password) {
+      
+      if (!user) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
+      
+      // Verify password with bcrypt
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      if (!passwordMatch) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+      
       const { password: _, ...safeUser } = user;
       res.json(safeUser);
     } catch (error) {

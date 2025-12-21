@@ -19,9 +19,12 @@ export default function AuthPage() {
     firstName: "",
     lastName: "",
     email: "",
+    password: "",
+    confirmPassword: "",
   });
   const [loginData, setLoginData] = useState({
     email: "",
+    password: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -38,6 +41,14 @@ export default function AuthPage() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email";
     }
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords don't match";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -46,6 +57,9 @@ export default function AuthPage() {
     const newErrors: Record<string, string> = {};
     if (!loginData.email.trim()) {
       newErrors.email = "Email is required";
+    }
+    if (!loginData.password) {
+      newErrors.password = "Password is required";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -60,7 +74,7 @@ export default function AuthPage() {
       const username = `${selectedRole}_${Date.now()}`;
       const user = await registerUser({
         username,
-        password: "demo123",
+        password: formData.password,
         role: selectedRole,
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
@@ -72,9 +86,16 @@ export default function AuthPage() {
       if (selectedRole === 'coach') setLocation("/dashboard");
       else if (selectedRole === 'athlete') setLocation("/athlete/onboarding");
       else setLocation("/supporter/onboarding");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration failed:", error);
-      setErrors({ submit: "Registration failed. Please try again." });
+      const message = error?.message || "Registration failed. Please try again.";
+      if (message.includes("Email already exists")) {
+        setErrors({ email: "This email is already registered. Try signing in instead." });
+      } else if (message.includes("Username already exists")) {
+        setErrors({ submit: "Registration failed. Please try again." });
+      } else {
+        setErrors({ submit: message });
+      }
     } finally {
       setLoading(false);
     }
@@ -86,7 +107,7 @@ export default function AuthPage() {
 
     setLoading(true);
     try {
-      const user = await loginUser(loginData.email.trim(), "demo123");
+      const user = await loginUser(loginData.email.trim(), loginData.password);
       setUser(user);
       
       if (user.role === 'coach') setLocation("/dashboard");
@@ -94,7 +115,7 @@ export default function AuthPage() {
       else setLocation("/supporter/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
-      setErrors({ submit: "No account found with that email. Try signing up instead." });
+      setErrors({ submit: "Invalid email or password. Please try again." });
     } finally {
       setLoading(false);
     }
@@ -107,8 +128,8 @@ export default function AuthPage() {
       setAuthMode("select");
       setSelectedRole(null);
     }
-    setFormData({ firstName: "", lastName: "", email: "" });
-    setLoginData({ email: "" });
+    setFormData({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "" });
+    setLoginData({ email: "", password: "" });
     setErrors({});
   };
 
@@ -266,12 +287,27 @@ export default function AuthPage() {
                     type="email"
                     placeholder="john@example.com"
                     value={loginData.email}
-                    onChange={(e) => setLoginData({ email: e.target.value })}
+                    onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
                     className={errors.email ? "border-red-500" : ""}
                     data-testid="input-login-email"
                   />
                   {errors.email && (
                     <p className="text-xs text-red-500">{errors.email}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="login-password">Password</Label>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={loginData.password}
+                    onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
+                    className={errors.password ? "border-red-500" : ""}
+                    data-testid="input-login-password"
+                  />
+                  {errors.password && (
+                    <p className="text-xs text-red-500">{errors.password}</p>
                   )}
                 </div>
                 {errors.submit && (
@@ -373,6 +409,36 @@ export default function AuthPage() {
                     <p className="text-xs text-red-500">{errors.email}</p>
                   )}
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Create a password (min 6 characters)"
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    className={errors.password ? "border-red-500" : ""}
+                    data-testid="input-password"
+                  />
+                  {errors.password && (
+                    <p className="text-xs text-red-500">{errors.password}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Confirm your password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    className={errors.confirmPassword ? "border-red-500" : ""}
+                    data-testid="input-confirm-password"
+                  />
+                  {errors.confirmPassword && (
+                    <p className="text-xs text-red-500">{errors.confirmPassword}</p>
+                  )}
+                </div>
                 {errors.submit && (
                   <p className="text-sm text-red-500 text-center">{errors.submit}</p>
                 )}
@@ -383,7 +449,7 @@ export default function AuthPage() {
                   disabled={loading}
                   data-testid="button-submit"
                 >
-                  {loading ? "Creating Account..." : "Continue"}
+                  {loading ? "Creating Account..." : "Create Account"}
                 </Button>
                 <p className="text-center text-sm text-muted-foreground">
                   Already have an account?{" "}
