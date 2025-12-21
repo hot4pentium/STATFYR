@@ -373,7 +373,7 @@ export default function CoachDashboard() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-[430px_1fr] gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
               <Card className="bg-background/40 border-white/10 h-fit overflow-hidden" data-testid="calendar-month">
                 <CardContent className="p-4">
                   <Calendar
