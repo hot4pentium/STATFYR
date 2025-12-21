@@ -341,23 +341,12 @@ export default function AuthPage() {
         {authMode === "signup" && selectedRole && (
           <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
             <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleBack}
-                  className="h-8 w-8"
-                  data-testid="button-back"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div className="flex items-center gap-2">
-                  {(() => {
-                    const info = getRoleInfo(selectedRole);
-                    return <info.icon className="h-5 w-5 text-primary" />;
-                  })()}
-                  <span className="font-bold text-primary">{getRoleInfo(selectedRole).title}</span>
-                </div>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                {(() => {
+                  const info = getRoleInfo(selectedRole);
+                  return <info.icon className="h-5 w-5 text-primary" />;
+                })()}
+                <span className="font-bold text-primary">{getRoleInfo(selectedRole).title}</span>
               </div>
               <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">Create Account</CardTitle>
               <CardDescription className="text-center">Enter your information to get started</CardDescription>
