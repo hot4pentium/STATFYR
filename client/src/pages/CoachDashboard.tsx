@@ -482,13 +482,12 @@ export default function CoachDashboard() {
                       <h1 className="text-4xl md:text-6xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
                         {currentTeam?.name || "Thunderbolts FC"}
                       </h1>
-                      <h2 className="text-lg md:text-2xl text-white/80 font-bold uppercase tracking-wide">{currentTeam?.sport || "Football"}</h2>
+                      <h2 className="text-lg md:text-2xl text-white/80 font-bold uppercase tracking-wide">
+                        {currentTeam?.sport || "Football"} <span className="text-white/60">•</span> {currentTeam?.season || "Season 2024-2025"}
+                      </h2>
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-3 pt-2">
-                      <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                        <span className="text-sm font-bold text-white uppercase tracking-wider">{currentTeam?.season || "Season 2024-2025"}</span>
-                      </div>
                       {currentTeam?.code && (
                         <button
                           onClick={copyTeamCode}
