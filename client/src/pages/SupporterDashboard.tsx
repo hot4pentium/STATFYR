@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera } from "lucide-react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
@@ -32,8 +34,11 @@ export default function SupporterDashboard() {
   const [playbookTab, setPlaybookTab] = useState<"Offense" | "Defense" | "Special">("Offense");
   const [viewingAsAthlete, setViewingAsAthlete] = useState<ManagedAthlete | null>(null);
   const [isManagedAthleteCardFlipped, setIsManagedAthleteCardFlipped] = useState(false);
+  const [isUploadingAthleteAvatar, setIsUploadingAthleteAvatar] = useState(false);
+  const queryClient = useQueryClient();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: managedAthletes = [] } = useQuery({
+  const { data: managedAthletes = [], refetch: refetchManagedAthletes } = useQuery({
     queryKey: ["/api/users", user?.id, "managed-athletes"],
     queryFn: () => user ? getManagedAthletes(user.id) : Promise.resolve([]),
     enabled: !!user,
@@ -100,6 +105,51 @@ export default function SupporterDashboard() {
   const handleLogout = () => {
     logout();
     setLocation("/");
+  };
+
+  const handleAthleteAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !viewingAsAthlete) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    setIsUploadingAthleteAvatar(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const avatarData = event.target?.result as string;
+        
+        const response = await fetch(`/api/users/${viewingAsAthlete.athlete.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ avatar: avatarData }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to update avatar");
+        }
+
+        setViewingAsAthlete({
+          ...viewingAsAthlete,
+          athlete: { ...viewingAsAthlete.athlete, avatar: avatarData }
+        });
+        refetchManagedAthletes();
+        toast.success("Athlete photo updated!");
+        setIsUploadingAthleteAvatar(false);
+      };
+      reader.onerror = () => {
+        setIsUploadingAthleteAvatar(false);
+        toast.error("Failed to load image");
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Avatar upload failed:", error);
+      toast.error("Failed to update athlete photo");
+      setIsUploadingAthleteAvatar(false);
+    }
   };
 
   const quickActions = [
@@ -716,73 +766,58 @@ export default function SupporterDashboard() {
           </div>
         )}
         
-        <div ref={heroBannerRef} className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
-          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-          <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
-          <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
-          
-          <div className="relative z-10 p-8 md:p-12">
-            <div className="flex flex-row items-center justify-between gap-4 md:gap-6">
-              <div className="flex items-start gap-4 md:gap-6 flex-1 min-w-0">
-                <div className="h-12 w-12 md:h-28 md:w-28 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
-                  <Shield className="h-6 w-6 md:h-16 md:w-16 text-white" />
-                </div>
-                
-                <div className="space-y-1 md:space-y-3 flex-1 min-w-0">
-                  <div className="space-y-0 md:space-y-1">
-                    <h1 className="text-xl md:text-6xl font-display font-bold text-white uppercase tracking-tighter leading-tight truncate">
-                      {currentTeam?.name || "Team"}
-                    </h1>
-                    <h2 className="text-xs md:text-2xl text-white/80 font-bold uppercase tracking-wide">
-                      {currentTeam?.sport || "Sport"} <span className="text-white/60">•</span> {currentTeam?.season || "Season 2024-2025"}
-                    </h2>
+        {viewingAsAthlete ? (
+          <div ref={heroBannerRef} className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-6" data-testid="managed-athlete-hype-section">
+            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
+              <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+              <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
+              <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
+              
+              <div className="relative z-10 p-8 md:p-12">
+                <div className="flex items-start gap-4 md:gap-6">
+                  <div className="h-12 w-12 md:h-28 md:w-28 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
+                    <Shield className="h-6 w-6 md:h-16 md:w-16 text-white" />
                   </div>
                   
-                  <div className="flex flex-wrap items-center gap-2 md:gap-3 pt-1 md:pt-2">
-                    <span className={`px-2 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border text-[10px] md:text-sm font-bold uppercase tracking-wider ${
-                      viewingAsAthlete 
-                        ? "bg-green-500/20 border-green-500/30 text-green-400" 
-                        : "bg-accent/20 border-accent/30 text-accent"
-                    }`}>
-                      {viewingAsAthlete ? "Athlete" : "Supporter"}
-                    </span>
+                  <div className="space-y-1 md:space-y-3 flex-1 min-w-0">
+                    <div className="space-y-0 md:space-y-1">
+                      <h1 className="text-xl md:text-5xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
+                        {viewingAsAthlete.athlete.name}
+                      </h1>
+                      <h2 className="text-xs md:text-xl text-white/80 font-bold uppercase tracking-wide">
+                        {currentTeam?.name || "Team"} <span className="text-white/60">•</span> {currentTeam?.sport || "Sport"}
+                      </h2>
+                    </div>
+                    
+                    <div className="flex flex-wrap items-center gap-2 md:gap-3 pt-1 md:pt-2">
+                      <span className="px-2 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-green-500/20 border-green-500/30 text-green-400 text-[10px] md:text-sm font-bold uppercase tracking-wider">
+                        Athlete
+                      </span>
+                      {viewingAsAthlete.athlete.position && (
+                        <span className="px-2 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-white/10 border-white/20 text-white text-[10px] md:text-sm font-bold uppercase tracking-wider">
+                          {viewingAsAthlete.athlete.position}
+                        </span>
+                      )}
+                      {viewingAsAthlete.athlete.number && (
+                        <span className="px-2 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-accent/20 border-accent/30 text-accent text-[10px] md:text-sm font-bold uppercase tracking-wider">
+                          #{viewingAsAthlete.athlete.number}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-              
-              <div className="flex flex-col items-center gap-2 md:gap-3 flex-shrink-0">
-                <div className={`h-16 w-16 md:h-32 md:w-32 bg-white/10 backdrop-blur-md rounded-full border-2 md:border-4 flex items-center justify-center shadow-xl overflow-hidden ${
-                  viewingAsAthlete ? "border-green-500/50" : "border-accent/50"
-                }`}>
-                  {viewingAsAthlete ? (
-                    viewingAsAthlete.athlete.avatar ? (
-                      <img src={viewingAsAthlete.athlete.avatar} alt={viewingAsAthlete.athlete.name || "Athlete"} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xl md:text-4xl font-display font-bold text-white/60">
-                        {viewingAsAthlete.athlete.name?.split(' ').map(n => n[0]).join('') || "?"}
-                      </span>
-                    )
-                  ) : (
-                    user?.avatar ? (
-                      <img src={user.avatar} alt={user.name || "Supporter"} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xl md:text-4xl font-display font-bold text-white/60">
-                        {user?.name?.split(' ').map(n => n[0]).join('') || "?"}
-                      </span>
-                    )
-                  )}
-                </div>
-                <p className="text-[10px] md:text-sm text-white/80 font-bold uppercase tracking-wider text-center max-w-[80px] md:max-w-none truncate">
-                  {viewingAsAthlete ? viewingAsAthlete.athlete.name : user?.name || "Supporter"}
-                </p>
-              </div>
             </div>
-          </div>
-        </div>
 
-        {viewingAsAthlete && (
-          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start" data-testid="managed-athlete-hype-section">
-            <div className="w-64 space-y-2">
+            <div className="w-full md:w-64 space-y-2">
+              <input
+                type="file"
+                ref={avatarInputRef}
+                accept="image/*"
+                onChange={handleAthleteAvatarChange}
+                className="hidden"
+                data-testid="input-athlete-avatar"
+              />
               <div className="relative group cursor-pointer" style={{ perspective: '1000px' }}>
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
                 <div 
@@ -796,7 +831,7 @@ export default function SupporterDashboard() {
                   <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
                   
                   {!isManagedAthleteCardFlipped ? (
-                    <div className="relative w-full h-96 overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
+                    <div className="relative w-full h-80 overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
                       {viewingAsAthlete.athlete.avatar ? (
                         <img src={viewingAsAthlete.athlete.avatar} alt={viewingAsAthlete.athlete.name || ""} className="absolute inset-0 w-full h-full object-contain" />
                       ) : (
@@ -805,12 +840,24 @@ export default function SupporterDashboard() {
                         </div>
                       )}
                       
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          avatarInputRef.current?.click();
+                        }}
+                        disabled={isUploadingAthleteAvatar}
+                        className="absolute top-3 right-3 p-2 bg-black/50 hover:bg-black/70 rounded-full border border-white/20 transition z-10"
+                        data-testid="button-upload-athlete-avatar"
+                      >
+                        <Camera className={`h-4 w-4 text-white ${isUploadingAthleteAvatar ? 'animate-pulse' : ''}`} />
+                      </button>
+                      
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
                       <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
                       
-                      <div className="absolute top-0 left-0 p-4 text-left">
-                        <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{viewingAsAthlete.athlete.name}</h3>
-                        <p className="text-[10px] text-white/90 uppercase mt-1 tracking-wider drop-shadow-md font-semibold">{currentTeam?.name || "Team"}</p>
+                      <div className="absolute top-0 left-0 p-3 text-left">
+                        <h3 className="text-lg font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{viewingAsAthlete.athlete.name}</h3>
+                        <p className="text-[9px] text-white/90 uppercase mt-0.5 tracking-wider drop-shadow-md font-semibold">{currentTeam?.name || "Team"}</p>
                       </div>
 
                       <div className="absolute bottom-0 left-0 p-4">
@@ -903,22 +950,51 @@ export default function SupporterDashboard() {
                 <p className="text-xs text-white/70 font-medium uppercase tracking-wide">Tap to Flip</p>
               </button>
             </div>
-
-            <div className="flex-1 space-y-4">
-              <h3 className="text-lg font-display font-bold uppercase tracking-wide">{viewingAsAthlete.athlete.name}'s Profile</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-card/50 border border-white/10 rounded-lg p-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Position</p>
-                  <p className="font-bold">{viewingAsAthlete.athlete.position || "Not set"}</p>
+          </div>
+        ) : (
+          <div ref={heroBannerRef} className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
+            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+            <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
+            <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
+            
+            <div className="relative z-10 p-8 md:p-12">
+              <div className="flex flex-row items-center justify-between gap-4 md:gap-6">
+                <div className="flex items-start gap-4 md:gap-6 flex-1 min-w-0">
+                  <div className="h-12 w-12 md:h-28 md:w-28 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
+                    <Shield className="h-6 w-6 md:h-16 md:w-16 text-white" />
+                  </div>
+                  
+                  <div className="space-y-1 md:space-y-3 flex-1 min-w-0">
+                    <div className="space-y-0 md:space-y-1">
+                      <h1 className="text-xl md:text-6xl font-display font-bold text-white uppercase tracking-tighter leading-tight truncate">
+                        {currentTeam?.name || "Team"}
+                      </h1>
+                      <h2 className="text-xs md:text-2xl text-white/80 font-bold uppercase tracking-wide">
+                        {currentTeam?.sport || "Sport"} <span className="text-white/60">•</span> {currentTeam?.season || "Season 2024-2025"}
+                      </h2>
+                    </div>
+                    
+                    <div className="flex flex-wrap items-center gap-2 md:gap-3 pt-1 md:pt-2">
+                      <span className="px-2 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-accent/20 border-accent/30 text-accent text-[10px] md:text-sm font-bold uppercase tracking-wider">
+                        Supporter
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-card/50 border border-white/10 rounded-lg p-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Number</p>
-                  <p className="font-bold">#{viewingAsAthlete.athlete.number || "00"}</p>
+                
+                <div className="flex flex-col items-center gap-2 md:gap-3 flex-shrink-0">
+                  <div className="h-16 w-16 md:h-32 md:w-32 bg-white/10 backdrop-blur-md rounded-full border-2 md:border-4 border-accent/50 flex items-center justify-center shadow-xl overflow-hidden">
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt={user.name || "Supporter"} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xl md:text-4xl font-display font-bold text-white/60">
+                        {user?.name?.split(' ').map(n => n[0]).join('') || "?"}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[10px] md:text-sm text-white/80 font-bold uppercase tracking-wider text-center max-w-[80px] md:max-w-none truncate">{user?.name || "Supporter"}</p>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground">
-                View team events, roster, and more using the navigation below.
-              </p>
             </div>
           </div>
         )}
