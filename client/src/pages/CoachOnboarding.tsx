@@ -7,7 +7,9 @@ import { useLocation } from "wouter";
 import { Shield, CheckCircle, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
+import { useTheme } from "next-themes";
+import darkBgImage from '@assets/generated_images/abstract_sports_tactical_background.png';
+import lightBgImage from '@assets/white-honeycomb_1766286409745.png';
 import { useUser } from "@/lib/userContext";
 import { createTeam, deleteUser } from "@/lib/api";
 
@@ -22,9 +24,12 @@ const SPORTS = [
 export default function CoachOnboarding() {
   const [, setLocation] = useLocation();
   const { user, setUser, setCurrentTeam } = useUser();
+  const { resolvedTheme } = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  
+  const bgImage = resolvedTheme === 'light' ? lightBgImage : darkBgImage;
   const [formData, setFormData] = useState({
     sport: "",
     teamName: "",
@@ -107,7 +112,7 @@ export default function CoachOnboarding() {
       <div 
         className="absolute inset-0 z-0 opacity-20"
         style={{
-          backgroundImage: `url(${generatedImage})`,
+          backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
