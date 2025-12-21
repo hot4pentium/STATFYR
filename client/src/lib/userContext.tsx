@@ -23,16 +23,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
   });
 
   const setUser = (newUser: User | null) => {
-    // Clear currentTeam if the user is changing to a different user
-    const previousUser = user;
-    if (previousUser && newUser && previousUser.id !== newUser.id) {
-      setCurrentTeam(null);
+    // Always clear currentTeam when setting a new user (they need to select their team)
+    // This prevents stale team data from previous sessions
+    const storedUser = localStorage.getItem("user");
+    const previousUserId = storedUser ? JSON.parse(storedUser).id : null;
+    
+    if (newUser && previousUserId && previousUserId !== newUser.id) {
+      setCurrentTeamState(null);
+      localStorage.removeItem("currentTeam");
     }
+    
     setUserState(newUser);
     if (newUser) {
       localStorage.setItem("user", JSON.stringify(newUser));
     } else {
       localStorage.removeItem("user");
+      localStorage.removeItem("currentTeam");
+      setCurrentTeamState(null);
     }
   };
 
