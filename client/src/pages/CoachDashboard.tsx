@@ -766,12 +766,12 @@ export default function CoachDashboard() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="event-drinks">Bringing Drinks?</Label>
-              <Select value={eventForm.drinksAthleteId} onValueChange={(value) => setEventForm({ ...eventForm, drinksAthleteId: value })}>
+              <Select value={eventForm.drinksAthleteId || "none"} onValueChange={(value) => setEventForm({ ...eventForm, drinksAthleteId: value === "none" ? "" : value })}>
                 <SelectTrigger data-testid="select-event-drinks">
                   <SelectValue placeholder="Select athlete..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {athletes.map((athlete: TeamMember) => (
                     <SelectItem key={athlete.id} value={athlete.user.id}>
                       {athlete.user.name || athlete.user.username}
@@ -782,12 +782,12 @@ export default function CoachDashboard() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="event-snacks">Bringing Snacks?</Label>
-              <Select value={eventForm.snacksAthleteId} onValueChange={(value) => setEventForm({ ...eventForm, snacksAthleteId: value })}>
+              <Select value={eventForm.snacksAthleteId || "none"} onValueChange={(value) => setEventForm({ ...eventForm, snacksAthleteId: value === "none" ? "" : value })}>
                 <SelectTrigger data-testid="select-event-snacks">
                   <SelectValue placeholder="Select athlete..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {athletes.map((athlete: TeamMember) => (
                     <SelectItem key={athlete.id} value={athlete.user.id}>
                       {athlete.user.name || athlete.user.username}
