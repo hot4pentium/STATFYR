@@ -185,42 +185,58 @@ export default function AthleteDashboard() {
               )}
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
-              <Card className="bg-background/40 border-white/10 h-fit overflow-hidden" data-testid="calendar-month">
-                <CardContent className="p-4">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    month={calendarMonth}
-                    onMonthChange={setCalendarMonth}
-                    modifiers={{
-                      hasEvent: eventDates
-                    }}
-                    modifiersStyles={{
-                      hasEvent: {
-                        fontWeight: 'bold',
-                        textDecoration: 'underline',
-                        textDecorationColor: 'hsl(var(--primary))',
-                        textUnderlineOffset: '4px'
-                      }
-                    }}
-                    className=""
-                  />
-                  <div className="mt-4 pt-4 border-t border-white/10 text-xs text-muted-foreground text-center">
-                    <span className="underline decoration-primary underline-offset-4 font-bold">Underlined</span> dates have events
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Next Game Card */}
+            {(() => {
+              const upcomingEvents = eventsWithDates.filter((e: Event) => new Date(e.date) >= new Date()).sort((a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime());
+              const nextGame = upcomingEvents[0];
+              return nextGame ? (
+                <Card className="bg-gradient-to-br from-primary/20 to-primary/5 border-primary/30 mb-6" data-testid="next-game-card">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-primary font-bold mb-1">Next Game</p>
+                        <h3 className="text-2xl font-bold mb-2">{nextGame.title}</h3>
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <CalendarIcon className="h-4 w-4 text-primary" />
+                            <span>{format(new Date(nextGame.date), "EEEE, MMM d")}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-primary" />
+                            <span>{format(new Date(nextGame.date), "h:mm a")}</span>
+                          </div>
+                          {nextGame.location && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-primary" />
+                              <span>{nextGame.location}</span>
+                            </div>
+                          )}
+                        </div>
+                        {nextGame.opponent && (
+                          <div className="mt-3">
+                            <span className="px-3 py-1 rounded-full text-sm font-bold bg-accent/20 text-accent border border-accent/30">
+                              vs {nextGame.opponent}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="hidden md:flex items-center justify-center w-20 h-20 rounded-full bg-primary/20 border-2 border-primary/30">
+                        <Trophy className="h-10 w-10 text-primary" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : null;
+            })()}
 
-              <div className="space-y-4">
-                {filteredEvents.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-bold">{selectedDate ? "No events on this date" : "No events scheduled"}</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-4">
+              {filteredEvents.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-bold">{selectedDate ? "No events on this date" : "No events scheduled"}</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
                     {filteredEvents.map((event: Event) => (
                       <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all" data-testid={`event-card-${event.id}`}>
                         <CardContent className="p-4">
@@ -284,7 +300,6 @@ export default function AthleteDashboard() {
                   </div>
                 )}
               </div>
-            </div>
           </div>
         );
       case "stats":
