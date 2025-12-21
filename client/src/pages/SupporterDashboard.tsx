@@ -409,7 +409,7 @@ export default function SupporterDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {teamHighlights.map((video: HighlightVideo) => (
                   <Card key={video.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all overflow-hidden">
-                    <div className="relative aspect-[4/3] bg-black/50">
+                    <div className="relative aspect-square bg-black/50">
                       {video.thumbnailKey ? (
                         <img src={video.publicUrl || undefined} alt={video.title || "Video"} className="w-full h-full object-cover" />
                       ) : (

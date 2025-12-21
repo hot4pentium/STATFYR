@@ -396,7 +396,7 @@ export default function AthleteDashboard() {
                 {teamHighlights.map((video: HighlightVideo) => (
                   <div key={video.id} className="bg-background/50 border border-white/5 rounded-lg overflow-hidden" data-testid={`highlight-video-${video.id}`}>
                     {/* Video player or processing state */}
-                    <div className="aspect-[4/3] bg-black relative">
+                    <div className="aspect-square bg-black relative">
                       {video.status === "ready" && video.publicUrl ? (
                         <video
                           src={video.publicUrl}
