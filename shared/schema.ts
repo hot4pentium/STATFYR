@@ -120,7 +120,8 @@ export const plays = pgTable("plays", {
   name: text("name").notNull(),
   description: text("description"),
   canvasData: text("canvas_data").notNull(),
-  status: text("status").notNull().default("Needs Work"),
+  category: text("category").notNull().default("Offense"),
+  status: text("status"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

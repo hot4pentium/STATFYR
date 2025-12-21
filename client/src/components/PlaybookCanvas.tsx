@@ -38,7 +38,7 @@ interface SavePlayData {
   name: string;
   description: string;
   canvasData: string;
-  status: string;
+  category: string;
 }
 
 interface PlaybookCanvasProps {
@@ -69,7 +69,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [playName, setPlayName] = useState("");
   const [playDescription, setPlayDescription] = useState("");
-  const [playStatus, setPlayStatus] = useState("Needs Work");
+  const [playCategory, setPlayCategory] = useState("Offense");
 
   useEffect(() => {
     const img = new Image();
@@ -854,13 +854,13 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       name: playName.trim(),
       description: playDescription.trim(),
       canvasData,
-      status: playStatus,
+      category: playCategory,
     });
     
     setIsSaveDialogOpen(false);
     setPlayName("");
     setPlayDescription("");
-    setPlayStatus("Needs Work");
+    setPlayCategory("Offense");
     setElements([]);
   };
 
@@ -978,15 +978,15 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="play-status">Status</Label>
-                  <Select value={playStatus} onValueChange={setPlayStatus}>
-                    <SelectTrigger data-testid="select-play-status">
-                      <SelectValue placeholder="Select status" />
+                  <Label htmlFor="play-category">Category</Label>
+                  <Select value={playCategory} onValueChange={setPlayCategory}>
+                    <SelectTrigger data-testid="select-play-category">
+                      <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Successful">Successful</SelectItem>
-                      <SelectItem value="Not Successful">Not Successful</SelectItem>
-                      <SelectItem value="Needs Work">Needs Work</SelectItem>
+                      <SelectItem value="Offense">Offense</SelectItem>
+                      <SelectItem value="Defense">Defense</SelectItem>
+                      <SelectItem value="Special">Special</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

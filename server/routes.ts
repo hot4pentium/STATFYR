@@ -336,10 +336,10 @@ export async function registerRoutes(
         return res.status(403).json({ error: "Only coaches and staff can create plays" });
       }
       
-      // Validate status value
-      const validStatuses = ["Successful", "Not Successful", "Needs Work"];
-      if (playData.status && !validStatuses.includes(playData.status)) {
-        return res.status(400).json({ error: "Invalid status value" });
+      // Validate category value
+      const validCategories = ["Offense", "Defense", "Special"];
+      if (playData.category && !validCategories.includes(playData.category)) {
+        return res.status(400).json({ error: "Invalid category value" });
       }
       
       const parsed = insertPlaySchema.parse({

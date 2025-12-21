@@ -86,7 +86,7 @@ export default function CoachDashboard() {
   });
 
   const createPlayMutation = useMutation({
-    mutationFn: (data: { name: string; description?: string; canvasData: string; status: string }) =>
+    mutationFn: (data: { name: string; description?: string; canvasData: string; category: string }) =>
       createPlay(currentTeam!.id, user!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "plays"] });
@@ -602,10 +602,10 @@ export default function CoachDashboard() {
                           </p>
                         </div>
                         <Badge 
-                          variant={play.status === "Successful" ? "default" : play.status === "Not Successful" ? "destructive" : "secondary"}
-                          className={play.status === "Successful" ? "bg-green-600" : ""}
+                          variant={play.category === "Offense" ? "default" : play.category === "Defense" ? "secondary" : "outline"}
+                          className={play.category === "Offense" ? "bg-blue-600" : play.category === "Defense" ? "bg-orange-600" : "bg-purple-600"}
                         >
-                          {play.status}
+                          {play.category}
                         </Badge>
                       </div>
                     </CardHeader>
@@ -615,11 +615,11 @@ export default function CoachDashboard() {
                       )}
                       <div className="flex items-center gap-2 mt-2">
                         <Select
-                          value={play.status}
+                          value={play.status || ""}
                           onValueChange={(value) => updatePlayMutation.mutate({ playId: play.id, data: { status: value } })}
                         >
                           <SelectTrigger className="h-8 text-xs flex-1" data-testid={`play-status-${play.id}`}>
-                            <SelectValue />
+                            <SelectValue placeholder="Set status..." />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Successful">Successful</SelectItem>
@@ -627,6 +627,14 @@ export default function CoachDashboard() {
                             <SelectItem value="Needs Work">Needs Work</SelectItem>
                           </SelectContent>
                         </Select>
+                        {play.status && (
+                          <Badge 
+                            variant={play.status === "Successful" ? "default" : play.status === "Not Successful" ? "destructive" : "secondary"}
+                            className={play.status === "Successful" ? "bg-green-600" : ""}
+                          >
+                            {play.status}
+                          </Badge>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"

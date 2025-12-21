@@ -234,7 +234,8 @@ export interface Play {
   name: string;
   description?: string | null;
   canvasData: string;
-  status: string;
+  category: string;
+  status?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
   createdBy: User;
@@ -250,7 +251,7 @@ export async function createPlay(teamId: string, userId: string, data: {
   name: string;
   description?: string;
   canvasData: string;
-  status: string;
+  category: string;
 }): Promise<Play> {
   const res = await apiRequest("POST", `/api/teams/${teamId}/plays`, { ...data, userId });
   return res.json();
