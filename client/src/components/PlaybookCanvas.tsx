@@ -38,6 +38,7 @@ interface SavePlayData {
   name: string;
   description: string;
   canvasData: string;
+  thumbnailData: string;
   category: string;
 }
 
@@ -850,10 +851,16 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     if (!onSave || !playName.trim()) return;
     
     const canvasData = JSON.stringify(elements);
+    
+    // Capture canvas as thumbnail
+    const canvas = canvasRef.current;
+    const thumbnailData = canvas ? canvas.toDataURL("image/png", 0.5) : "";
+    
     await onSave({
       name: playName.trim(),
       description: playDescription.trim(),
       canvasData,
+      thumbnailData,
       category: playCategory,
     });
     

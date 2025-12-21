@@ -52,6 +52,7 @@ export default function CoachDashboard() {
   const [isAthleteCardFlipped, setIsAthleteCardFlipped] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(new Date()));
+  const [expandedPlay, setExpandedPlay] = useState<Play | null>(null);
 
   const { data: coachTeams } = useQuery({
     queryKey: ["/api/coach", user?.id, "teams"],
@@ -86,13 +87,13 @@ export default function CoachDashboard() {
   });
 
   const createPlayMutation = useMutation({
-    mutationFn: (data: { name: string; description?: string; canvasData: string; category: string }) => {
+    mutationFn: (data: { name: string; description?: string; canvasData: string; thumbnailData?: string; category: string }) => {
       if (!currentTeam || !user) throw new Error("No team selected");
       return createPlay(currentTeam.id, user.id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "plays"] });
-      toast.success("Play saved!");
+      toast.success("Play saved! View it in your Playbook.");
     },
     onError: (error) => toast.error(error.message === "No team selected" ? "Please select a team first" : "Failed to save play"),
   });
@@ -228,10 +229,15 @@ export default function CoachDashboard() {
   }, [user, setLocation]);
 
   useEffect(() => {
-    if (user && !currentTeam && coachTeams && coachTeams.length > 0) {
-      setCurrentTeam(coachTeams[0]);
+    if (user && !currentTeam && coachTeams) {
+      if (coachTeams.length > 0) {
+        setCurrentTeam(coachTeams[0]);
+      } else {
+        // Coach has no teams, redirect to onboarding to create one
+        setLocation("/coach/onboarding");
+      }
     }
-  }, [user, currentTeam, coachTeams, setCurrentTeam]);
+  }, [user, currentTeam, coachTeams, setCurrentTeam, setLocation]);
 
   const handleLogout = () => {
     logout();
@@ -596,7 +602,16 @@ export default function CoachDashboard() {
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {teamPlays.map((play) => (
-                  <Card key={play.id} className="group" data-testid={`play-card-${play.id}`}>
+                  <Card key={play.id} className="group cursor-pointer hover:shadow-lg transition-shadow" data-testid={`play-card-${play.id}`} onClick={() => setExpandedPlay(play)}>
+                    {play.thumbnailData && (
+                      <div className="w-full h-32 overflow-hidden rounded-t-lg border-b">
+                        <img 
+                          src={play.thumbnailData} 
+                          alt={play.name} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <div>
@@ -617,7 +632,7 @@ export default function CoachDashboard() {
                       {play.description && (
                         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{play.description}</p>
                       )}
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
                         <Select
                           value={play.status || ""}
                           onValueChange={(value) => updatePlayMutation.mutate({ playId: play.id, data: { status: value } })}
@@ -643,7 +658,8 @@ export default function CoachDashboard() {
                           variant="outline"
                           size="sm"
                           className="h-8 px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             if (confirm("Are you sure you want to delete this play?")) {
                               deletePlayMutation.mutate(play.id);
                             }
@@ -658,6 +674,47 @@ export default function CoachDashboard() {
                 ))}
               </div>
             )}
+            
+            <Dialog open={!!expandedPlay} onOpenChange={(open) => !open && setExpandedPlay(null)}>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    {expandedPlay?.name}
+                    {expandedPlay?.category && (
+                      <Badge 
+                        variant={expandedPlay.category === "Offense" ? "default" : expandedPlay.category === "Defense" ? "secondary" : "outline"}
+                        className={expandedPlay.category === "Offense" ? "bg-blue-600" : expandedPlay.category === "Defense" ? "bg-orange-600" : "bg-purple-600"}
+                      >
+                        {expandedPlay.category}
+                      </Badge>
+                    )}
+                    {expandedPlay?.status && (
+                      <Badge 
+                        variant={expandedPlay.status === "Successful" ? "default" : expandedPlay.status === "Not Successful" ? "destructive" : "secondary"}
+                        className={expandedPlay.status === "Successful" ? "bg-green-600" : ""}
+                      >
+                        {expandedPlay.status}
+                      </Badge>
+                    )}
+                  </DialogTitle>
+                </DialogHeader>
+                {expandedPlay?.description && (
+                  <p className="text-sm text-muted-foreground">{expandedPlay.description}</p>
+                )}
+                {expandedPlay?.thumbnailData && (
+                  <div className="w-full rounded-lg overflow-hidden border">
+                    <img 
+                      src={expandedPlay.thumbnailData} 
+                      alt={expandedPlay.name} 
+                      className="w-full h-auto"
+                    />
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Created by {expandedPlay?.createdBy.firstName} {expandedPlay?.createdBy.lastName}
+                </p>
+              </DialogContent>
+            </Dialog>
           </div>
         );
       case "stattracker":
