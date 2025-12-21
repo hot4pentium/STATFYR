@@ -91,3 +91,11 @@ The database schema centers around four main entities:
 - **Team Assignment**: Managed athletes are automatically added to the team roster on creation
 - **Profile Switcher**: Supporter dashboard includes a dropdown to switch between viewing as self or as a managed athlete
 - **Visual Indicator**: "Viewing as" banner appears when viewing as a managed athlete, with hero banner updating to show athlete info
+
+### PWA Update Notifications
+- **Service Worker**: `client/public/service-worker.js` caches app assets with network-first strategy
+- **Version Tracking**: Cache version `teampulse-v1.0.1` - increment to trigger update notifications
+- **PWA Context**: `client/src/lib/pwaContext.tsx` provides `updateAvailable` state and `applyUpdate` function
+- **Update Button**: Amber pulsing AlertCircle icon appears in headers when update is available
+- **Update Flow**: Service worker detects new version → PWAContext tracks state → Click button to refresh
+- **Check Interval**: Every 60 seconds the service worker checks for updates

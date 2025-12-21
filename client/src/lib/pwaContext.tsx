@@ -25,6 +25,12 @@ export function PWAProvider({ children }: PWAProviderProps) {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
 
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const handleControllerChange = () => {
+      window.location.reload();
+    };
+
     const registerSW = async () => {
       try {
         const registration = await navigator.serviceWorker.register('/service-worker.js');
@@ -46,8 +52,8 @@ export function PWAProvider({ children }: PWAProviderProps) {
           }
         });
 
-        setInterval(() => {
-          registration.update();
+        intervalId = setInterval(() => {
+          registration.update().catch(() => {});
         }, 60000);
 
       } catch (error) {
@@ -57,9 +63,14 @@ export function PWAProvider({ children }: PWAProviderProps) {
 
     registerSW();
 
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload();
-    });
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+    };
   }, []);
 
   const applyUpdate = () => {
