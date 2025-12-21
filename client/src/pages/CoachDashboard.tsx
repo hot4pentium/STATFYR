@@ -1,15 +1,14 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PLAYS, RECENT_CHATS } from "@/lib/mockData";
-import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2 } from "lucide-react";
+import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
-import { createTeam, getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
+import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
 import { VideoUploader } from "@/components/VideoUploader";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -181,20 +180,6 @@ export default function CoachDashboard() {
     }
   };
 
-  const createTeamMutation = useMutation({
-    mutationFn: () => createTeam({
-      name: "Thunderbolts FC",
-      sport: "Football",
-      division: "Premier Division",
-      season: "2024-2025",
-      coachId: user!.id
-    }),
-    onSuccess: (team) => {
-      setCurrentTeam(team);
-      toast.success(`Team created! Share code: ${team.code}`);
-      queryClient.invalidateQueries({ queryKey: ["/api/coach"] });
-    },
-  });
 
   useEffect(() => {
     if (!user) {
@@ -203,14 +188,10 @@ export default function CoachDashboard() {
   }, [user, setLocation]);
 
   useEffect(() => {
-    if (user && !currentTeam && coachTeams) {
-      if (coachTeams.length > 0) {
-        setCurrentTeam(coachTeams[0]);
-      } else {
-        createTeamMutation.mutate();
-      }
+    if (user && !currentTeam && coachTeams && coachTeams.length > 0) {
+      setCurrentTeam(coachTeams[0]);
     }
-  }, [user, currentTeam, coachTeams]);
+  }, [user, currentTeam, coachTeams, setCurrentTeam]);
 
   const handleLogout = () => {
     logout();
@@ -507,54 +488,18 @@ export default function CoachDashboard() {
         );
       case "playbook":
         return (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {PLAYS.map((play) => (
-              <Card key={play.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
-                <div className="h-24 bg-[#1a3c28]/50 relative overflow-hidden border-b border-white/5">
-                  <svg className="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1">
-                    <circle cx="50" cy="50" r="8" strokeDasharray="3 3" />
-                    <line x1="20" y1="20" x2="35" y2="35" />
-                    <path d="M 50 50 Q 65 35 80 50" strokeDasharray="2 2" />
-                  </svg>
-                </div>
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <h3 className="font-bold text-foreground">{play.name}</h3>
-                    <div className="text-xs text-muted-foreground mb-2">{play.type}</div>
-                    <div className="flex flex-wrap gap-1">
-                      {play.tags.map(tag => (
-                        <span key={tag} className="text-[9px] uppercase font-bold bg-white/10 px-2 py-1 rounded text-muted-foreground">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="text-center py-12 text-muted-foreground">
+            <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-bold">No plays yet</p>
+            <p className="text-sm">Your playbook is empty. Plays will appear here as you add them.</p>
           </div>
         );
       case "stats":
         return (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: "Avg Possession", value: "52%", subtext: "Season" },
-              { label: "Goals / Game", value: "1.8", subtext: "Average" },
-              { label: "Pass Accuracy", value: "84%", subtext: "Season" },
-              { label: "xG Differential", value: "+3.2", subtext: "Advantage" },
-              { label: "Clean Sheets", value: "6", subtext: "Games" },
-              { label: "Yellow Cards", value: "18", subtext: "Total" },
-              { label: "Red Cards", value: "1", subtext: "Total" },
-              { label: "Win Rate", value: "78%", subtext: "Conversion" },
-            ].map((stat, i) => (
-              <Card key={i} className="bg-background/40 border-white/10">
-                <CardContent className="p-4 text-center">
-                  <div className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">{stat.label}</div>
-                  <div className="text-3xl font-display font-bold text-primary mb-1">{stat.value}</div>
-                  <div className="text-xs text-muted-foreground">{stat.subtext}</div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="text-center py-12 text-muted-foreground">
+            <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-bold">No stats yet</p>
+            <p className="text-sm">Statistics will appear here as you track team performance.</p>
           </div>
         );
       case "highlights":
@@ -818,50 +763,49 @@ export default function CoachDashboard() {
             <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Win Rate</CardTitle>
-                  <Activity className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-display font-bold">78%</div>
-                  <p className="text-xs text-muted-foreground flex items-center mt-1">
-                    <TrendingUp className="h-3 w-3 text-green-500 mr-1" /> 
-                    <span className="text-green-500 font-medium">+12%</span> from last season
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Active Roster</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Team Members</CardTitle>
                   <Users className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-display font-bold">{athletes.length} / {teamMembers.length}</div>
+                  <div className="text-3xl font-display font-bold">{teamMembers.length}</div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    <span className="text-primary font-medium">{teamMembers.length} total members</span>
+                    {athletes.length} athletes, {coaches.length} coaches
                   </p>
                 </CardContent>
               </Card>
               <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Next Event</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Events</CardTitle>
                   <CalendarClock className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-xl font-display font-bold truncate">Match vs. Eagles</div>
+                  <div className="text-3xl font-display font-bold">{teamEvents.length}</div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Tomorrow at 2:00 PM
+                    {teamEvents.length === 0 ? "No events scheduled" : "Scheduled events"}
                   </p>
                 </CardContent>
               </Card>
               <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Plays Ready</CardTitle>
-                  <Clipboard className="h-4 w-4 text-primary" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Highlights</CardTitle>
+                  <Video className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-display font-bold">{PLAYS.length}</div>
+                  <div className="text-3xl font-display font-bold">{teamHighlights.length}</div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    2 new added this week
+                    {teamHighlights.length === 0 ? "No videos uploaded" : "Team videos"}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Supporters</CardTitle>
+                  <Trophy className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-display font-bold">{supporters.length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {supporters.length === 0 ? "No supporters yet" : "Following the team"}
                   </p>
                 </CardContent>
               </Card>
@@ -921,20 +865,10 @@ export default function CoachDashboard() {
                 </CardHeader>
                 <CardContent>
                    <div className="space-y-6">
-                     {RECENT_CHATS.map(chat => (
-                       <div key={chat.id} className="flex gap-3">
-                         <div className="h-2 w-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                         <div>
-                           <div className="flex items-center gap-2 mb-1">
-                             <span className="text-sm font-bold text-foreground">{chat.user}</span>
-                             <span className="text-xs text-muted-foreground">{chat.time}</span>
-                           </div>
-                           <p className="text-sm text-muted-foreground bg-background/50 p-3 rounded-br-lg rounded-bl-lg rounded-tr-lg border border-white/5">
-                             {chat.message}
-                           </p>
-                         </div>
-                       </div>
-                     ))}
+                     <div className="text-center py-4 text-muted-foreground">
+                       <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                       <p className="text-sm">No recent activity</p>
+                     </div>
                      
                      <div className="pt-4 border-t border-white/5">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Upcoming Events</h4>
