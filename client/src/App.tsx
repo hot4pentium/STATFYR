@@ -21,6 +21,7 @@ import SupporterOnboarding from "@/pages/SupporterOnboarding";
 import ChatPage from "@/pages/ChatPage";
 import CoachSettings from "@/pages/CoachSettings";
 import AthleteSettings from "@/pages/AthleteSettings";
+import SupporterSettings from "@/pages/SupporterSettings";
 import ShareableHypeCard from "@/pages/ShareableHypeCard";
 
 function Router() {
@@ -42,6 +43,7 @@ function Router() {
       <Route path="/coach/onboarding" component={CoachOnboarding} />
       <Route path="/supporter/onboarding" component={SupporterOnboarding} />
       <Route path="/supporter/dashboard" component={SupporterDashboard} />
+      <Route path="/supporter/settings" component={SupporterSettings} />
       <Route path="/share/athlete/:id" component={ShareableHypeCard} />
       <Route component={NotFound} />
     </Switch>
