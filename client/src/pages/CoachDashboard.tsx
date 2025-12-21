@@ -17,6 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { format, isSameDay, startOfMonth } from "date-fns";
+import { MapPin, Clock, Utensils, Coffee } from "lucide-react";
 
 export default function CoachDashboard() {
   const [, setLocation] = useLocation();
@@ -43,6 +46,8 @@ export default function CoachDashboard() {
   const [deleteConfirmEvent, setDeleteConfirmEvent] = useState<Event | null>(null);
   const [selectedAthlete, setSelectedAthlete] = useState<TeamMember | null>(null);
   const [isAthleteCardFlipped, setIsAthleteCardFlipped] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(new Date()));
 
   const { data: coachTeams } = useQuery({
     queryKey: ["/api/coach", user?.id, "teams"],
@@ -313,52 +318,151 @@ export default function CoachDashboard() {
           </div>
         );
       case "events":
+        const eventDates = teamEvents.map((e: Event) => new Date(e.date));
+        const filteredEvents = selectedDate 
+          ? teamEvents.filter((e: Event) => isSameDay(new Date(e.date), selectedDate))
+          : [...teamEvents].sort((a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        
+        const getAthleteName = (athleteId: string | null | undefined) => {
+          if (!athleteId) return null;
+          const member = teamMembers.find((m: TeamMember) => String(m.userId) === athleteId);
+          return member?.user.name || member?.user.username || null;
+        };
+
         return (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <Button onClick={openAddEvent} className="gap-2" data-testid="button-add-event">
-                <Plus className="h-4 w-4" />
-                Add Event
-              </Button>
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-muted-foreground">
+                {selectedDate ? (
+                  <span>Showing events for {format(selectedDate, "MMMM d, yyyy")}</span>
+                ) : (
+                  <span>{teamEvents.length} total events</span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {selectedDate && (
+                  <Button variant="outline" size="sm" onClick={() => setSelectedDate(undefined)} data-testid="button-clear-date">
+                    Clear Filter
+                  </Button>
+                )}
+                <Button onClick={openAddEvent} className="gap-2" data-testid="button-add-event">
+                  <Plus className="h-4 w-4" />
+                  Add Event
+                </Button>
+              </div>
             </div>
-            {teamEvents.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <CalendarClock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-bold">No events scheduled</p>
-                <p className="text-sm">Click "Add Event" to create your first event!</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-x-auto pb-2">
-                {teamEvents.map((event: Event) => (
-                  <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all min-w-[300px]" data-testid={`event-card-${event.id}`}>
-                    <CardContent className="p-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-white/10 border border-white/20">{event.type}</span>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditEvent(event)} data-testid={`button-edit-event-${event.id}`}>
-                              <Pencil className="h-3 w-3" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteConfirmEvent(event)} data-testid={`button-delete-event-${event.id}`}>
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
+              <Card className="bg-background/40 border-white/10 h-fit" data-testid="calendar-month">
+                <CardContent className="p-4">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    month={calendarMonth}
+                    onMonthChange={setCalendarMonth}
+                    modifiers={{
+                      hasEvent: eventDates
+                    }}
+                    modifiersStyles={{
+                      hasEvent: {
+                        fontWeight: 'bold',
+                        textDecoration: 'underline',
+                        textDecorationColor: 'hsl(var(--primary))',
+                        textUnderlineOffset: '4px'
+                      }
+                    }}
+                    className="mx-auto"
+                  />
+                  <div className="mt-4 pt-4 border-t border-white/10 text-xs text-muted-foreground text-center">
+                    <span className="underline decoration-primary underline-offset-4 font-bold">Underlined</span> dates have events
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-4">
+                {filteredEvents.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <CalendarClock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-bold">{selectedDate ? "No events on this date" : "No events scheduled"}</p>
+                    <p className="text-sm">Click "Add Event" to create your first event!</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4">
+                    {filteredEvents.map((event: Event) => (
+                      <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all" data-testid={`event-card-${event.id}`}>
+                        <CardContent className="p-4">
+                          <div className="flex flex-col md:flex-row md:items-start gap-4">
+                            <div className="flex-1 space-y-3">
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-primary/20 text-primary border border-primary/30">{event.type}</span>
+                                  {event.opponent && (
+                                    <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-accent/20 text-accent border border-accent/30" data-testid={`event-opponent-${event.id}`}>
+                                      vs {event.opponent}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex gap-1">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditEvent(event)} data-testid={`button-edit-event-${event.id}`}>
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteConfirmEvent(event)} data-testid={`button-delete-event-${event.id}`}>
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                              
+                              <h3 className="font-bold text-lg">{event.title}</h3>
+                              
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <CalendarClock className="h-4 w-4 text-primary" />
+                                  <span>{format(new Date(event.date), "EEEE, MMM d, yyyy")}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <Clock className="h-4 w-4 text-primary" />
+                                  <span>{format(new Date(event.date), "h:mm a")}</span>
+                                </div>
+                                {event.location && (
+                                  <div className="flex items-center gap-2 text-muted-foreground sm:col-span-2">
+                                    <MapPin className="h-4 w-4 text-primary" />
+                                    <span data-testid={`event-location-${event.id}`}>{event.location}</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {event.details && (
+                                <p className="text-sm text-muted-foreground/80 bg-white/5 rounded-lg p-3" data-testid={`event-details-${event.id}`}>
+                                  {event.details}
+                                </p>
+                              )}
+
+                              <div className="flex flex-wrap gap-3 pt-2 border-t border-white/10">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Utensils className="h-4 w-4 text-green-400" />
+                                  <span className="text-muted-foreground">Drinks:</span>
+                                  <span className={getAthleteName(event.drinksAthleteId) ? "text-foreground font-medium" : "text-muted-foreground/50 italic"} data-testid={`event-drinks-${event.id}`}>
+                                    {getAthleteName(event.drinksAthleteId) || "Unassigned"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Coffee className="h-4 w-4 text-orange-400" />
+                                  <span className="text-muted-foreground">Snacks:</span>
+                                  <span className={getAthleteName(event.snacksAthleteId) ? "text-foreground font-medium" : "text-muted-foreground/50 italic"} data-testid={`event-snacks-${event.id}`}>
+                                    {getAthleteName(event.snacksAthleteId) || "Unassigned"}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <h3 className="font-bold text-lg">{event.title}</h3>
-                        <div className="text-sm text-muted-foreground space-y-1">
-                          <div className="flex items-center gap-2">
-                            <CalendarClock className="h-4 w-4" />
-                            {new Date(event.date).toLocaleDateString()} at {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                          {event.location && <div className="text-xs">{event.location}</div>}
-                          {event.details && <div className="text-xs text-muted-foreground/70 mt-2">{event.details}</div>}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         );
       case "playbook":
