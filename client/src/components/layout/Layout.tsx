@@ -2,10 +2,11 @@ import { ThemeToggle } from "./ThemeToggle";
 import { DashboardBackground } from "./DashboardBackground";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut } from "lucide-react";
+import { Settings, LogOut, AlertCircle } from "lucide-react";
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useUser } from "@/lib/userContext";
+import { usePWA } from "@/lib/pwaContext";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const [, setLocation] = useLocation();
   const { currentTeam, logout } = useUser();
+  const { updateAvailable, applyUpdate } = usePWA();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "dark";
@@ -40,6 +42,18 @@ export function Layout({ children }: LayoutProps) {
             {currentTeam?.name || "TeamPulse"} - {currentTeam?.season || "Season 2024-2025"}
           </h2>
           <div className="flex items-center gap-3">
+            {updateAvailable && (
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-amber-500 dark:border-amber-400 text-amber-500 dark:text-amber-400 hover:bg-amber-500/10 animate-pulse"
+                onClick={applyUpdate}
+                data-testid="button-pwa-update"
+                title="Update available - click to refresh"
+              >
+                <AlertCircle className="h-5 w-5" />
+              </Button>
+            )}
             <ThemeToggle />
             <Link href="/settings">
               <Button 

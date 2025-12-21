@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2 } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
@@ -17,6 +17,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { usePWA } from "@/lib/pwaContext";
 
 function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
   return <span className={`px-2 py-1 rounded text-xs font-bold ${className}`}>{children}</span>;
@@ -25,6 +26,7 @@ function Badge({ children, className }: { children: React.ReactNode; className?:
 export default function SupporterDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, logout } = useUser();
+  const { updateAvailable, applyUpdate } = usePWA();
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const heroBannerRef = useRef<HTMLDivElement>(null);
@@ -721,6 +723,18 @@ export default function SupporterDashboard() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
+          {updateAvailable && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-amber-500 dark:border-amber-400 text-amber-500 dark:text-amber-400 hover:bg-amber-500/10 animate-pulse"
+              onClick={applyUpdate}
+              data-testid="button-pwa-update"
+              title="Update available - click to refresh"
+            >
+              <AlertCircle className="h-5 w-5" />
+            </Button>
           )}
           <ThemeToggle />
           <Link href="/supporter/settings">

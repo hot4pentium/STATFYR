@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2, Settings, LogOut, Share2, Moon, Sun, Users, Utensils, Coffee, Video, Loader2, Trash2, BookOpen } from "lucide-react";
+import { Calendar as CalendarIcon, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2, Settings, LogOut, Share2, Moon, Sun, Users, Utensils, Coffee, Video, Loader2, Trash2, BookOpen, AlertCircle } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
@@ -18,10 +18,12 @@ import { format, isSameDay, startOfMonth } from "date-fns";
 import { VideoUploader } from "@/components/VideoUploader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePWA } from "@/lib/pwaContext";
 
 export default function AthleteDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, logout } = useUser();
+  const { updateAvailable, applyUpdate } = usePWA();
   
   const { data: teamMembers = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "members"],
@@ -697,6 +699,18 @@ export default function AthleteDashboard() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 relative">
         <div className="max-w-full px-4 md:px-8 py-4 flex items-center justify-end gap-3">
+          {updateAvailable && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-amber-500 dark:border-amber-400 text-amber-500 dark:text-amber-400 hover:bg-amber-500/10 animate-pulse"
+              onClick={applyUpdate}
+              data-testid="button-pwa-update"
+              title="Update available - click to refresh"
+            >
+              <AlertCircle className="h-5 w-5" />
+            </Button>
+          )}
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

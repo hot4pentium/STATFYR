@@ -3,11 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, ShieldCheck, HeartPulse, ArrowLeft, Settings, LogOut } from "lucide-react";
+import { Calendar, ShieldCheck, HeartPulse, ArrowLeft, Settings, LogOut, AlertCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "wouter";
+import { usePWA } from "@/lib/pwaContext";
 
 export default function AthleteProfile() {
+  const { updateAvailable, applyUpdate } = usePWA();
   // Mock logged in athlete
   const athlete = ATHLETES[0]; 
 
@@ -28,6 +30,18 @@ export default function AthleteProfile() {
           </Link>
           
           <div className="flex items-center gap-3">
+            {updateAvailable && (
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-amber-500 dark:border-amber-400 text-amber-500 dark:text-amber-400 hover:bg-amber-500/10 animate-pulse"
+                onClick={applyUpdate}
+                data-testid="button-pwa-update"
+                title="Update available - click to refresh"
+              >
+                <AlertCircle className="h-5 w-5" />
+              </Button>
+            )}
             <Link href="/athlete/settings">
               <Button
                 variant="outline"
