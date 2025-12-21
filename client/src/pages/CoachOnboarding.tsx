@@ -7,7 +7,6 @@ import { useLocation } from "wouter";
 import { Shield, CheckCircle, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useTheme } from "next-themes";
 import darkBgImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import lightBgImage from '@assets/white-honeycomb_1766286409745.png';
 import { useUser } from "@/lib/userContext";
@@ -24,13 +23,9 @@ const SPORTS = [
 export default function CoachOnboarding() {
   const [, setLocation] = useLocation();
   const { user, setUser, setCurrentTeam } = useUser();
-  const { resolvedTheme } = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
-  
-  const isLightMode = resolvedTheme === 'light';
-  const bgImage = isLightMode ? lightBgImage : darkBgImage;
   const [formData, setFormData] = useState({
     sport: "",
     teamName: "",
@@ -111,16 +106,22 @@ export default function CoachOnboarding() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
       <div 
-        className={`absolute inset-0 z-0 ${isLightMode ? 'opacity-60' : 'opacity-20'}`}
+        className="absolute inset-0 z-0 opacity-60 dark:opacity-0"
         style={{
-          backgroundImage: `url(${bgImage})`,
+          backgroundImage: `url(${lightBgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       />
-      {!isLightMode && (
-        <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-      )}
+      <div 
+        className="absolute inset-0 z-0 opacity-0 dark:opacity-20"
+        style={{
+          backgroundImage: `url(${darkBgImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
+      <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 dark:opacity-100" />
 
       <div className="relative z-10 w-full max-w-md px-4">
         <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
