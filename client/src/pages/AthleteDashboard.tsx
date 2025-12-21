@@ -905,7 +905,7 @@ export default function AthleteDashboard() {
                   <button
                     key={action.id}
                     onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
-                    className={`h-full rounded-lg border transition-all duration-200 backdrop-blur-sm group flex items-center justify-center bg-slate-300 dark:bg-transparent border-slate-400 dark:border-white/5 ${
+                    className={`h-full rounded-lg border transition-all duration-200 backdrop-blur-sm group flex items-center justify-center bg-slate-300/90 dark:bg-transparent border-slate-400 dark:border-white/5 ${
                       selectedCard === action.id
                         ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
                         : `dark:bg-gradient-to-br ${action.color} hover:border-slate-500 dark:hover:border-white/20 hover:bg-slate-400/50 dark:hover:bg-white/5`
