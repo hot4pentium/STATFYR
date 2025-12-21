@@ -1,17 +1,22 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EVENTS, PLAYS, RECENT_CHATS } from "@/lib/mockData";
-import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check } from "lucide-react";
+import { PLAYS, RECENT_CHATS } from "@/lib/mockData";
+import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
-import { createTeam, getTeamMembers, getCoachTeams, type TeamMember } from "@/lib/api";
+import { createTeam, getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, type TeamMember, type Event } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function CoachDashboard() {
   const [, setLocation] = useLocation();
@@ -23,6 +28,17 @@ export default function CoachDashboard() {
   const contentRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const heroBannerRef = useRef<HTMLDivElement>(null);
+  
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [eventForm, setEventForm] = useState({
+    title: "",
+    type: "Practice",
+    date: "",
+    location: "",
+    details: ""
+  });
+  const [deleteConfirmEvent, setDeleteConfirmEvent] = useState<Event | null>(null);
 
   const { data: coachTeams } = useQuery({
     queryKey: ["/api/coach", user?.id, "teams"],
@@ -35,6 +51,90 @@ export default function CoachDashboard() {
     queryFn: () => currentTeam ? getTeamMembers(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
   });
+
+  const { data: teamEvents = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "events"],
+    queryFn: () => currentTeam ? getTeamEvents(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+  });
+
+  const createEventMutation = useMutation({
+    mutationFn: (data: { title: string; type: string; date: string; location?: string; details?: string }) => 
+      createEvent(currentTeam!.id, { ...data, createdBy: user!.id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "events"] });
+      toast.success("Event created!");
+      setIsEventModalOpen(false);
+      resetEventForm();
+    },
+    onError: () => toast.error("Failed to create event"),
+  });
+
+  const updateEventMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<{ title: string; type: string; date: string; location?: string; details?: string }> }) =>
+      updateEvent(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "events"] });
+      toast.success("Event updated!");
+      setIsEventModalOpen(false);
+      setEditingEvent(null);
+      resetEventForm();
+    },
+    onError: () => toast.error("Failed to update event"),
+  });
+
+  const deleteEventMutation = useMutation({
+    mutationFn: (id: string) => deleteEvent(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "events"] });
+      toast.success("Event deleted!");
+      setDeleteConfirmEvent(null);
+    },
+    onError: () => toast.error("Failed to delete event"),
+  });
+
+  const resetEventForm = () => {
+    setEventForm({ title: "", type: "Practice", date: "", location: "", details: "" });
+  };
+
+  const openAddEvent = () => {
+    setEditingEvent(null);
+    resetEventForm();
+    setIsEventModalOpen(true);
+  };
+
+  const openEditEvent = (event: Event) => {
+    setEditingEvent(event);
+    setEventForm({
+      title: event.title,
+      type: event.type,
+      date: new Date(event.date).toISOString().slice(0, 16),
+      location: event.location || "",
+      details: event.details || ""
+    });
+    setIsEventModalOpen(true);
+  };
+
+  const handleEventSubmit = () => {
+    if (!eventForm.title || !eventForm.date) {
+      toast.error("Title and date are required");
+      return;
+    }
+    
+    const data = {
+      title: eventForm.title,
+      type: eventForm.type,
+      date: eventForm.date,
+      location: eventForm.location || undefined,
+      details: eventForm.details || undefined
+    };
+
+    if (editingEvent) {
+      updateEventMutation.mutate({ id: editingEvent.id, data });
+    } else {
+      createEventMutation.mutate(data);
+    }
+  };
 
   const createTeamMutation = useMutation({
     mutationFn: () => createTeam({
@@ -196,26 +296,51 @@ export default function CoachDashboard() {
         );
       case "events":
         return (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-x-auto pb-2">
-            {EVENTS.map((event) => (
-              <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all min-w-[300px]">
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-white/10 border border-white/20">{event.type}</span>
-                    </div>
-                    <h3 className="font-bold text-lg">{event.title}</h3>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <div className="flex items-center gap-2">
-                        <CalendarClock className="h-4 w-4" />
-                        {new Date(event.date).toLocaleDateString()}
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <Button onClick={openAddEvent} className="gap-2" data-testid="button-add-event">
+                <Plus className="h-4 w-4" />
+                Add Event
+              </Button>
+            </div>
+            {teamEvents.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <CalendarClock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-bold">No events scheduled</p>
+                <p className="text-sm">Click "Add Event" to create your first event!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-x-auto pb-2">
+                {teamEvents.map((event: Event) => (
+                  <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all min-w-[300px]" data-testid={`event-card-${event.id}`}>
+                    <CardContent className="p-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-white/10 border border-white/20">{event.type}</span>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditEvent(event)} data-testid={`button-edit-event-${event.id}`}>
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteConfirmEvent(event)} data-testid={`button-delete-event-${event.id}`}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <h3 className="font-bold text-lg">{event.title}</h3>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <div className="flex items-center gap-2">
+                            <CalendarClock className="h-4 w-4" />
+                            {new Date(event.date).toLocaleDateString()} at {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          {event.location && <div className="text-xs">{event.location}</div>}
+                          {event.details && <div className="text-xs text-muted-foreground/70 mt-2">{event.details}</div>}
+                        </div>
                       </div>
-                      <div className="text-xs">{event.location}</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         );
       case "playbook":
@@ -556,18 +681,22 @@ export default function CoachDashboard() {
                      
                      <div className="pt-4 border-t border-white/5">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Upcoming Events</h4>
-                        {EVENTS.slice(0, 2).map(event => (
-                          <div key={event.id} className="mb-3 p-3 rounded bg-accent/5 border border-accent/10 flex gap-3">
-                            <div className="flex flex-col items-center justify-center px-2 border-r border-accent/10">
-                               <span className="text-xs font-bold text-accent uppercase">{new Date(event.date).toLocaleString('default', {month: 'short'})}</span>
-                               <span className="text-lg font-display font-bold text-foreground">{new Date(event.date).getDate()}</span>
+                        {teamEvents.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">No events scheduled</p>
+                        ) : (
+                          teamEvents.slice(0, 2).map((event: Event) => (
+                            <div key={event.id} className="mb-3 p-3 rounded bg-accent/5 border border-accent/10 flex gap-3">
+                              <div className="flex flex-col items-center justify-center px-2 border-r border-accent/10">
+                                 <span className="text-xs font-bold text-accent uppercase">{new Date(event.date).toLocaleString('default', {month: 'short'})}</span>
+                                 <span className="text-lg font-display font-bold text-foreground">{new Date(event.date).getDate()}</span>
+                              </div>
+                              <div>
+                                 <div className="font-bold text-sm text-foreground">{event.title}</div>
+                                 <div className="text-xs text-muted-foreground">{event.location || "TBD"}</div>
+                              </div>
                             </div>
-                            <div>
-                               <div className="font-bold text-sm text-foreground">{event.title}</div>
-                               <div className="text-xs text-muted-foreground">{event.location}</div>
-                            </div>
-                          </div>
-                        ))}
+                          ))
+                        )}
                      </div>
                    </div>
                 </CardContent>
@@ -576,6 +705,110 @@ export default function CoachDashboard() {
           )}
         </div>
       </div>
+
+      {/* Event Add/Edit Modal */}
+      <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingEvent ? "Edit Event" : "Add New Event"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="event-title">Title *</Label>
+              <Input
+                id="event-title"
+                value={eventForm.title}
+                onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+                placeholder="e.g., Team Practice"
+                data-testid="input-event-title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="event-type">Type</Label>
+              <Select value={eventForm.type} onValueChange={(value) => setEventForm({ ...eventForm, type: value })}>
+                <SelectTrigger data-testid="select-event-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Practice">Practice</SelectItem>
+                  <SelectItem value="Match">Match</SelectItem>
+                  <SelectItem value="Meeting">Meeting</SelectItem>
+                  <SelectItem value="Tournament">Tournament</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="event-date">Date & Time *</Label>
+              <Input
+                id="event-date"
+                type="datetime-local"
+                value={eventForm.date}
+                onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
+                data-testid="input-event-date"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="event-location">Location</Label>
+              <Input
+                id="event-location"
+                value={eventForm.location}
+                onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
+                placeholder="e.g., Training Ground A"
+                data-testid="input-event-location"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="event-details">Details</Label>
+              <Textarea
+                id="event-details"
+                value={eventForm.details}
+                onChange={(e) => setEventForm({ ...eventForm, details: e.target.value })}
+                placeholder="Additional details..."
+                rows={3}
+                data-testid="input-event-details"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsEventModalOpen(false)} data-testid="button-cancel-event">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleEventSubmit} 
+              disabled={createEventMutation.isPending || updateEventMutation.isPending}
+              data-testid="button-save-event"
+            >
+              {createEventMutation.isPending || updateEventMutation.isPending ? "Saving..." : (editingEvent ? "Update" : "Create")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteConfirmEvent} onOpenChange={() => setDeleteConfirmEvent(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Event</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete "{deleteConfirmEvent?.title}"? This action cannot be undone.
+          </p>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeleteConfirmEvent(null)} data-testid="button-cancel-delete">
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => deleteConfirmEvent && deleteEventMutation.mutate(deleteConfirmEvent.id)}
+              disabled={deleteEventMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              {deleteEventMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
