@@ -47,6 +47,8 @@ export default function AthleteDashboard() {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [selectedAthlete, setSelectedAthlete] = useState<TeamMember | null>(null);
+  const [isAthleteModalOpen, setIsAthleteModalOpen] = useState(false);
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -262,7 +264,17 @@ export default function AthleteDashboard() {
                 </div>
               ) : (
                 filteredRosterMembers.map((member: TeamMember) => (
-                  <Card key={member.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all w-full">
+                  <Card 
+                    key={member.id} 
+                    className={`bg-background/40 border-white/10 hover:border-primary/50 transition-all w-full ${member.role === 'athlete' ? 'cursor-pointer' : ''}`}
+                    onClick={() => {
+                      if (member.role === 'athlete') {
+                        setSelectedAthlete(member);
+                        setIsAthleteModalOpen(true);
+                      }
+                    }}
+                    data-testid={`roster-card-${member.id}`}
+                  >
                     <CardContent className="p-3">
                       <div className="flex flex-col items-center text-center gap-2">
                         <Avatar className="h-10 w-10 border-2 border-white/20">
@@ -674,6 +686,71 @@ export default function AthleteDashboard() {
                   >
                     <p className="text-sm text-white/70 font-medium uppercase tracking-wide">Tap to Flip</p>
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Selected Athlete HYPE Card Modal */}
+          {isAthleteModalOpen && selectedAthlete && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 pt-24" onClick={() => setIsAthleteModalOpen(false)}>
+              <div className="relative w-80" onClick={(e) => e.stopPropagation()}>
+                <button
+                  onClick={() => setIsAthleteModalOpen(false)}
+                  className="absolute -top-12 right-0 p-2 text-white hover:text-white/70 transition"
+                  data-testid="button-close-athlete-modal"
+                >
+                  <X className="h-8 w-8" />
+                </button>
+
+                <div className="w-full space-y-4">
+                  <div className="relative group" style={{ perspective: '1000px' }}>
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
+                    <div 
+                      className="relative w-full bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+                      style={{ aspectRatio: '9/16' }}
+                    >
+                      <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+                      
+                      <div className="relative w-full h-full overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
+                        {selectedAthlete.user.avatar ? (
+                          <img src={selectedAthlete.user.avatar} alt={selectedAthlete.user.name || ""} className="absolute inset-0 w-full h-full object-contain" />
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
+                            <span className="text-8xl font-display font-bold text-white/30">
+                              {selectedAthlete.user.name?.split(' ').map(n => n[0]).join('') || "?"}
+                            </span>
+                          </div>
+                        )}
+                        
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
+                        
+                        <div className="absolute top-0 left-0 p-6 text-left">
+                          <h3 className="text-4xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{selectedAthlete.user.name || selectedAthlete.user.username}</h3>
+                          <p className="text-sm text-white/90 uppercase mt-2 tracking-wider drop-shadow-md font-semibold">{currentTeam?.name || "Team"}</p>
+                        </div>
+
+                        <div className="absolute bottom-0 left-0 p-6">
+                          <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{selectedAthlete.user.position || "Player"}</p>
+                        </div>
+
+                        <div className="absolute bottom-0 right-0 p-6">
+                          <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-4 shadow-lg">
+                            <span className="text-white font-display font-bold text-4xl drop-shadow">#{selectedAthlete.user.number || "00"}</span>
+                          </div>
+                        </div>
+
+                        <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                          <div className="flex flex-row items-center gap-2 -rotate-90 whitespace-nowrap origin-center">
+                            <span className="text-sm text-white font-bold uppercase tracking-widest drop-shadow-lg">HYPE</span>
+                            <div className="w-1 h-3 bg-white/60"></div>
+                            <span className="text-sm text-white font-bold uppercase tracking-widest drop-shadow-lg">CARD</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
