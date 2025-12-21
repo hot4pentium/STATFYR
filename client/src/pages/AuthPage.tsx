@@ -6,12 +6,12 @@ import { useLocation } from "wouter";
 import { Shield, User, Users, Clipboard, ArrowLeft } from "lucide-react";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
-import { registerUser, loginUser } from "@/lib/api";
+import { registerUser, loginUser, getUserTeams } from "@/lib/api";
 import { useState } from "react";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
-  const { setUser } = useUser();
+  const { setUser, setCurrentTeam } = useUser();
   const [loading, setLoading] = useState(false);
   const [authMode, setAuthMode] = useState<"select" | "signup" | "login">("select");
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
@@ -109,6 +109,16 @@ export default function AuthPage() {
     try {
       const user = await loginUser(loginData.email.trim(), loginData.password);
       setUser(user);
+      
+      // Fetch user's teams and set the first one as current
+      try {
+        const teams = await getUserTeams(user.id);
+        if (teams.length > 0) {
+          setCurrentTeam(teams[0]);
+        }
+      } catch (teamError) {
+        console.log("No teams found for user");
+      }
       
       if (user.role === 'coach') setLocation("/dashboard");
       else if (user.role === 'athlete') setLocation("/athlete/dashboard");
