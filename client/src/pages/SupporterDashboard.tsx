@@ -1,17 +1,17 @@
-import { EVENTS } from "@/lib/mockData";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, Ticket, MapPin, ArrowLeft, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, type TeamMember, type Event } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
   return <span className={`px-2 py-1 rounded text-xs font-bold ${className}`}>{children}</span>;
@@ -20,7 +20,6 @@ function Badge({ children, className }: { children: React.ReactNode; className?:
 export default function SupporterDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, logout } = useUser();
-  const nextMatch = EVENTS.find(e => e.type === 'Match') || EVENTS[0];
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const heroBannerRef = useRef<HTMLDivElement>(null);
@@ -35,6 +34,13 @@ export default function SupporterDashboard() {
     queryKey: ["/api/teams", currentTeam?.id, "events"],
     queryFn: () => currentTeam ? getTeamEvents(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
+  });
+
+  const { data: teamHighlights = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "highlights", "all"],
+    queryFn: () => currentTeam ? getAllTeamHighlights(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+    refetchInterval: 10000,
   });
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -89,6 +95,20 @@ export default function SupporterDashboard() {
       icon: Users, 
       color: "from-purple-500/20 to-purple-600/20",
       description: "Team squad"
+    },
+    { 
+      name: "Playbook", 
+      id: "playbook",
+      icon: ClipboardList, 
+      color: "from-green-500/20 to-green-600/20",
+      description: "Formations"
+    },
+    { 
+      name: "Highlights", 
+      id: "highlights",
+      icon: Video, 
+      color: "from-red-500/20 to-red-600/20",
+      description: "Team videos"
     },
     { 
       name: "Stats", 
@@ -315,6 +335,79 @@ export default function SupporterDashboard() {
             </Card>
           </div>
         );
+      case "playbook":
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                <CardContent className="p-6 text-center">
+                  <div className="h-32 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg mb-4 flex items-center justify-center">
+                    <ClipboardList className="h-12 w-12 text-green-400" />
+                  </div>
+                  <h4 className="font-bold">4-3-3 Formation</h4>
+                  <p className="text-xs text-muted-foreground">Primary attack setup</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                <CardContent className="p-6 text-center">
+                  <div className="h-32 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg mb-4 flex items-center justify-center">
+                    <ClipboardList className="h-12 w-12 text-blue-400" />
+                  </div>
+                  <h4 className="font-bold">4-4-2 Formation</h4>
+                  <p className="text-xs text-muted-foreground">Balanced approach</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                <CardContent className="p-6 text-center">
+                  <div className="h-32 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg mb-4 flex items-center justify-center">
+                    <ClipboardList className="h-12 w-12 text-purple-400" />
+                  </div>
+                  <h4 className="font-bold">5-3-2 Formation</h4>
+                  <p className="text-xs text-muted-foreground">Defensive setup</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        );
+      case "highlights":
+        return (
+          <div className="space-y-4">
+            {teamHighlights.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Video className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-bold">No highlights yet</p>
+                <p className="text-sm">Team videos will appear here once uploaded.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {teamHighlights.map((video: HighlightVideo) => (
+                  <Card key={video.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all overflow-hidden">
+                    <div className="relative aspect-video bg-black/50">
+                      {video.thumbnailKey ? (
+                        <img src={video.publicUrl || undefined} alt={video.title || "Video"} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Video className="h-12 w-12 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">
+                        <Button size="icon" variant="secondary" className="h-12 w-12 rounded-full">
+                          <Play className="h-6 w-6" />
+                        </Button>
+                      </div>
+                    </div>
+                    <CardContent className="p-4">
+                      <h4 className="font-bold truncate">{video.title || "Untitled"}</h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {video.uploader?.name || video.uploader?.username || "Unknown"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        );
       case "chat":
         return (
           <div className="space-y-3">
@@ -340,72 +433,69 @@ export default function SupporterDashboard() {
   return (
     <div className="min-h-screen bg-background relative">
       <DashboardBackground />
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 relative">
-        <div className="max-w-full px-4 md:px-8 py-4 flex items-center justify-between">
-          <Link href="/">
-            <Button
-              variant="outline"
+      <header className="h-16 border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-10 px-4 md:px-8 flex items-center justify-between gap-4">
+        <h2 className="text-sm md:text-lg font-medium text-muted-foreground">
+          {currentTeam?.name || "TeamPulse"} - {currentTeam?.season || "Season 2024-2025"}
+        </h2>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Link href="/supporter/settings">
+            <Button 
+              variant="outline" 
               size="icon"
-              className="border-white/20 hover:bg-white/10"
-              data-testid="button-back"
+              className="border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10"
+              data-testid="button-settings"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <Settings className="h-5 w-5" />
             </Button>
           </Link>
-          
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-muted-foreground px-3 py-1 bg-white/5 border border-white/10 rounded-lg">
-              {currentTeam.name}
-            </span>
-            <Link href="/supporter/settings">
-              <Button
-                variant="outline"
-                size="icon"
-                className="border-white/20 hover:bg-white/10"
-                data-testid="button-settings"
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
-            </Link>
-            <Button
-              variant="outline"
-              size="icon"
-              className="border-white/20 hover:bg-white/10"
-              data-testid="button-logout"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
+          <Button 
+            variant="outline" 
+            size="icon"
+            className="border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10"
+            onClick={handleLogout}
+            data-testid="button-logout"
+          >
+            <LogOut className="h-5 w-5" />
+          </Button>
         </div>
       </header>
 
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-full px-4 md:px-8 py-8">
-        <div className="relative rounded-2xl overflow-hidden bg-primary/10 border border-white/5 p-8 md:p-12 text-center md:text-left">
-           <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-primary/20" />
-           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-              <div>
-                 <Badge className="mb-4 bg-accent text-accent-foreground border-none">Next Match</Badge>
-                 <h1 className="text-4xl md:text-6xl font-display font-bold uppercase tracking-tighter text-foreground mb-2">
-                    {currentTeam.name} <span className="text-muted-foreground">vs</span> Eagles
-                 </h1>
-                 <div className="flex items-center justify-center md:justify-start gap-4 text-muted-foreground">
-                    <div className="flex items-center gap-2"><CalendarIcon className="h-4 w-4" /> Tomorrow, 2:00 PM</div>
-                    <div className="flex items-center gap-2"><MapPin className="h-4 w-4" /> City Stadium</div>
-                 </div>
+        <div ref={heroBannerRef} className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
+          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+          <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
+          <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
+          
+          <div className="relative z-10 p-8 md:p-12">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="flex items-start gap-6 flex-1">
+                <div className="h-20 w-20 md:h-28 md:w-28 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
+                  <Shield className="h-10 w-10 md:h-16 md:w-16 text-white" />
+                </div>
+                
+                <div className="space-y-3 flex-1">
+                  <div className="space-y-1">
+                    <h1 className="text-4xl md:text-6xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
+                      {currentTeam?.name || "Team"}
+                    </h1>
+                    <h2 className="text-lg md:text-2xl text-white/80 font-bold uppercase tracking-wide">
+                      {currentTeam?.sport || "Sport"} <span className="text-white/60">•</span> {currentTeam?.season || "Season 2024-2025"}
+                    </h2>
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                    <span className="px-3 py-1 bg-accent/20 backdrop-blur-sm rounded-lg border border-accent/30 text-sm font-bold text-accent uppercase tracking-wider">
+                      Supporter
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col gap-3 min-w-[200px]">
-                 <Button size="lg" className="w-full font-bold text-lg h-14 shadow-lg shadow-primary/25">
-                    <Ticket className="mr-2 h-5 w-5" /> Get Tickets
-                 </Button>
-                 <Button variant="outline" size="lg" className="w-full">
-                    Match Preview
-                 </Button>
-              </div>
-           </div>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {quickActions.map((action) => (
             <button
               key={action.id}
