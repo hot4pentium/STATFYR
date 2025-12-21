@@ -22,10 +22,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return stored ? JSON.parse(stored) : null;
   });
 
-  const setUser = (user: User | null) => {
-    setUserState(user);
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
+  const setUser = (newUser: User | null) => {
+    // Clear currentTeam if the user is changing to a different user
+    const previousUser = user;
+    if (previousUser && newUser && previousUser.id !== newUser.id) {
+      setCurrentTeam(null);
+    }
+    setUserState(newUser);
+    if (newUser) {
+      localStorage.setItem("user", JSON.stringify(newUser));
     } else {
       localStorage.removeItem("user");
     }
