@@ -78,6 +78,10 @@ export async function updateUser(id: string, data: Partial<User>): Promise<User>
   return res.json();
 }
 
+export async function deleteUser(id: string): Promise<void> {
+  await apiRequest("DELETE", `/api/users/${id}`, {});
+}
+
 export async function createTeam(data: {
   name: string;
   sport: string;

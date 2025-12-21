@@ -106,6 +106,21 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/users/:id", async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const coachTeams = await storage.getTeamsByCoach(userId);
+      if (coachTeams.length > 0) {
+        return res.status(400).json({ error: "Cannot delete user with existing teams" });
+      }
+      await storage.deleteUser(userId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      res.status(500).json({ error: "Failed to delete user" });
+    }
+  });
+
   app.post("/api/teams", async (req, res) => {
     try {
       const { coachId, ...teamData } = req.body;

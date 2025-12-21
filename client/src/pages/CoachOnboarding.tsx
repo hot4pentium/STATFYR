@@ -4,39 +4,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocation } from "wouter";
-import { Shield, CheckCircle } from "lucide-react";
+import { Shield, CheckCircle, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
-import { createTeam, updateUser } from "@/lib/api";
+import { createTeam, deleteUser } from "@/lib/api";
 
 const SPORTS = [
-  "Football",
-  "Soccer", 
-  "Basketball",
   "Baseball",
-  "Volleyball",
-  "Hockey",
-  "Tennis",
-  "Swimming",
-  "Track & Field",
-  "Lacrosse",
-  "Rugby",
-  "Softball",
-  "Wrestling",
-  "Golf",
-  "Other"
+  "Basketball",
+  "Football",
+  "Soccer",
+  "Volleyball"
 ];
 
 export default function CoachOnboarding() {
   const [, setLocation] = useLocation();
   const { user, setUser, setCurrentTeam } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
     sport: "",
     teamName: "",
     season: ""
@@ -45,12 +34,6 @@ export default function CoachOnboarding() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
-    }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
-    }
     if (!formData.sport) {
       newErrors.sport = "Please select a sport";
     }
@@ -62,6 +45,27 @@ export default function CoachOnboarding() {
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleBackToLogin = async () => {
+    if (!user) {
+      setLocation("/");
+      return;
+    }
+
+    setIsExiting(true);
+    try {
+      await deleteUser(user.id);
+      setUser(null);
+      setCurrentTeam(null);
+      toast.success("Account cancelled. You can sign up again anytime.");
+      setLocation("/");
+    } catch (error) {
+      console.error("Failed to cancel account:", error);
+      toast.error("Failed to cancel. Please try again.");
+    } finally {
+      setIsExiting(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,13 +80,6 @@ export default function CoachOnboarding() {
 
     setIsSubmitting(true);
     try {
-      const updatedUser = await updateUser(user.id, {
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        name: `${formData.firstName.trim()} ${formData.lastName.trim()}`
-      });
-      setUser(updatedUser);
-
       const team = await createTeam({
         name: formData.teamName.trim(),
         sport: formData.sport,
@@ -127,44 +124,13 @@ export default function CoachOnboarding() {
             </div>
             <CardTitle className="font-display text-2xl uppercase tracking-wide">Set Up Your Team</CardTitle>
             <CardDescription>
-              Tell us about yourself and your team to get started
+              Create your team to get started
             </CardDescription>
           </CardHeader>
 
           <CardContent>
             {!isComplete ? (
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      placeholder="John"
-                      value={formData.firstName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                      className={errors.firstName ? "border-red-500" : ""}
-                      data-testid="input-coach-first-name"
-                    />
-                    {errors.firstName && (
-                      <p className="text-xs text-red-500">{errors.firstName}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      placeholder="Smith"
-                      value={formData.lastName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                      className={errors.lastName ? "border-red-500" : ""}
-                      data-testid="input-coach-last-name"
-                    />
-                    {errors.lastName && (
-                      <p className="text-xs text-red-500">{errors.lastName}</p>
-                    )}
-                  </div>
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="sport">Sport</Label>
                   <Select value={formData.sport} onValueChange={(value) => setFormData(prev => ({ ...prev, sport: value }))}>
@@ -216,10 +182,23 @@ export default function CoachOnboarding() {
                   type="submit"
                   size="lg"
                   className="w-full h-12 text-base shadow-lg shadow-primary/30"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isExiting}
                   data-testid="button-complete-setup"
                 >
                   {isSubmitting ? "Creating Team..." : "Complete Setup"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-muted-foreground hover:text-foreground"
+                  onClick={handleBackToLogin}
+                  disabled={isSubmitting || isExiting}
+                  data-testid="button-back-to-login"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  {isExiting ? "Cancelling..." : "Back to Login"}
                 </Button>
               </form>
             ) : (
