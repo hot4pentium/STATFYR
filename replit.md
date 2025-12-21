@@ -83,3 +83,11 @@ The database schema centers around four main entities:
 ### Coach Onboarding Flow
 - Coaches without teams are automatically redirected to /coach/onboarding to create their first team
 - Session management clears stale team data on login to prevent authorization errors
+
+### Managed Athletes System
+- **Purpose**: Allows supporters (parents/guardians) to create and manage athlete profiles for young athletes who cannot manage their own accounts
+- **Creation**: Supporters add managed athletes via Settings page using team code, first name, and last name
+- **No Login**: Managed athletes are created without passwords and cannot log in independently
+- **Team Assignment**: Managed athletes are automatically added to the team roster on creation
+- **Profile Switcher**: Supporter dashboard includes a dropdown to switch between viewing as self or as a managed athlete
+- **Visual Indicator**: "Viewing as" banner appears when viewing as a managed athlete, with hero banner updating to show athlete info
