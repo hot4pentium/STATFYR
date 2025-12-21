@@ -27,6 +27,7 @@ function Router() {
     <Switch>
       <Route path="/" component={AuthPage} />
       <Route path="/dashboard" component={CoachDashboard} />
+      <Route path="/coach" component={CoachDashboard} />
       <Route path="/roster" component={RosterPage} />
       <Route path="/events" component={EventsPage} />
       <Route path="/playbook" component={PlaybookPage} />
