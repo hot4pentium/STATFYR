@@ -767,39 +767,39 @@ export default function SupporterDashboard() {
         )}
         
         {viewingAsAthlete ? (
-          <div ref={heroBannerRef} className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-6" data-testid="managed-athlete-hype-section">
+          <div ref={heroBannerRef} className="flex flex-col-reverse md:grid md:grid-cols-[1fr_280px] gap-4 md:gap-6" data-testid="managed-athlete-hype-section">
             <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
               <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
               <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
               <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
               
-              <div className="relative z-10 p-8 md:p-12">
-                <div className="flex items-start gap-4 md:gap-6">
-                  <div className="h-12 w-12 md:h-28 md:w-28 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
-                    <Shield className="h-6 w-6 md:h-16 md:w-16 text-white" />
+              <div className="relative z-10 p-4 md:p-12">
+                <div className="flex items-start gap-3 md:gap-6">
+                  <div className="h-10 w-10 md:h-28 md:w-28 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
+                    <Shield className="h-5 w-5 md:h-16 md:w-16 text-white" />
                   </div>
                   
                   <div className="space-y-1 md:space-y-3 flex-1 min-w-0">
                     <div className="space-y-0 md:space-y-1">
-                      <h1 className="text-xl md:text-5xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
+                      <h1 className="text-lg md:text-5xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
                         {viewingAsAthlete.athlete.name}
                       </h1>
-                      <h2 className="text-xs md:text-xl text-white/80 font-bold uppercase tracking-wide">
+                      <h2 className="text-[10px] md:text-xl text-white/80 font-bold uppercase tracking-wide">
                         {currentTeam?.name || "Team"} <span className="text-white/60">•</span> {currentTeam?.sport || "Sport"}
                       </h2>
                     </div>
                     
-                    <div className="flex flex-wrap items-center gap-2 md:gap-3 pt-1 md:pt-2">
-                      <span className="px-2 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-green-500/20 border-green-500/30 text-green-400 text-[10px] md:text-sm font-bold uppercase tracking-wider">
+                    <div className="flex flex-wrap items-center gap-1.5 md:gap-3 pt-1 md:pt-2">
+                      <span className="px-1.5 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-green-500/20 border-green-500/30 text-green-400 text-[9px] md:text-sm font-bold uppercase tracking-wider">
                         Athlete
                       </span>
                       {viewingAsAthlete.athlete.position && (
-                        <span className="px-2 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-white/10 border-white/20 text-white text-[10px] md:text-sm font-bold uppercase tracking-wider">
+                        <span className="px-1.5 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-white/10 border-white/20 text-white text-[9px] md:text-sm font-bold uppercase tracking-wider">
                           {viewingAsAthlete.athlete.position}
                         </span>
                       )}
                       {viewingAsAthlete.athlete.number && (
-                        <span className="px-2 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-accent/20 border-accent/30 text-accent text-[10px] md:text-sm font-bold uppercase tracking-wider">
+                        <span className="px-1.5 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-accent/20 border-accent/30 text-accent text-[9px] md:text-sm font-bold uppercase tracking-wider">
                           #{viewingAsAthlete.athlete.number}
                         </span>
                       )}
@@ -809,7 +809,7 @@ export default function SupporterDashboard() {
               </div>
             </div>
 
-            <div className="w-full md:w-64 space-y-2">
+            <div className="w-full max-w-[280px] mx-auto md:mx-0 md:w-64 space-y-2">
               <input
                 type="file"
                 ref={avatarInputRef}
