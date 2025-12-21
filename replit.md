@@ -71,3 +71,15 @@ The database schema centers around four main entities:
 - **Cleanup**: Original files deleted after transcoding; all files deleted on video removal
 - **Authorization**: Video deletion restricted to owner, coaches, or staff members
 - **Known Limitation**: Current auth uses client-side localStorage; production should use session-based auth to prevent userId spoofing
+
+### Playbook System
+- **PlayMaker**: Canvas-based play designer for coaches/staff with drawing tools, player icons, and arrows
+- **Categories**: Plays categorized as "Offense", "Defense", or "Special" (required at creation)
+- **Status Tags**: "Successful", "Not Successful", "Needs Work" (only available when editing saved plays)
+- **Thumbnails**: Canvas captures stored as base64 PNG at 50% quality for preview display
+- **Playbook View**: Displays saved plays with thumbnail previews, category badges, status dropdowns, and expandable modal for full view
+- **Authorization**: Only coaches and staff can create, edit, or delete plays
+
+### Coach Onboarding Flow
+- Coaches without teams are automatically redirected to /coach/onboarding to create their first team
+- Session management clears stale team data on login to prevent authorization errors
