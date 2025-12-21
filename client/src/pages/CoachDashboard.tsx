@@ -9,6 +9,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
 import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
 import { VideoUploader } from "@/components/VideoUploader";
+import { PlaybookCanvas } from "@/components/PlaybookCanvas";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -503,10 +504,14 @@ export default function CoachDashboard() {
         );
       case "playbook":
         return (
-          <div className="text-center py-12 text-muted-foreground">
-            <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-bold">No plays yet</p>
-            <p className="text-sm">Your playbook is empty. Plays will appear here as you add them.</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold">Play Designer</h3>
+                <p className="text-sm text-muted-foreground">Draw and design your team's plays</p>
+              </div>
+            </div>
+            <PlaybookCanvas />
           </div>
         );
       case "stats":
