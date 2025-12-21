@@ -511,7 +511,10 @@ export default function CoachDashboard() {
                 <p className="text-sm text-muted-foreground">Draw and design your team's plays</p>
               </div>
             </div>
-            <PlaybookCanvas athletes={athletes.map(a => ({ id: a.user.id, firstName: a.user.firstName || "", lastName: a.user.lastName || "" }))} />
+            <PlaybookCanvas 
+              athletes={athletes.map(a => ({ id: a.user.id, firstName: a.user.firstName || "", lastName: a.user.lastName || "" }))} 
+              sport={currentTeam?.sport}
+            />
           </div>
         );
       case "stats":
