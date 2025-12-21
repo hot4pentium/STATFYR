@@ -62,7 +62,7 @@ html:not(.dark) {
   --background: 0 0% 98%;
   --foreground: 210 10% 12%;
 
-  --card: 210 20% 96%;
+  --card: 210 25% 88%;
   --card-foreground: 210 10% 12%;
 
   --popover: 0 0% 100%;
@@ -72,11 +72,11 @@ html:not(.dark) {
   --primary: 217 91% 50%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 210 20% 96%;
+  --secondary: 210 25% 88%;
   --secondary-foreground: 210 10% 12%;
 
-  --muted: 210 20% 85%;
-  --muted-foreground: 210 10% 40%;
+  --muted: 210 25% 80%;
+  --muted-foreground: 210 10% 35%;
 
   --accent: 84 81% 45%;
   --accent-foreground: 0 0% 100%;
