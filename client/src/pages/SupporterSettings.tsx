@@ -10,7 +10,7 @@ import generatedImage from '@assets/generated_images/minimal_tech_sports_backgro
 import { useUser } from "@/lib/userContext";
 
 export default function SupporterSettings() {
-  const { user: contextUser, setUser } = useUser();
+  const { user: contextUser, updateUser } = useUser();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -59,7 +59,7 @@ export default function SupporterSettings() {
       }
 
       const updatedUser = await response.json();
-      setUser({ ...contextUser, ...updatedUser });
+      updateUser({ ...contextUser, ...updatedUser });
 
       setShowSaved(true);
       setTimeout(() => setShowSaved(false), 2000);

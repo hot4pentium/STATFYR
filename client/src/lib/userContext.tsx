@@ -5,6 +5,7 @@ interface UserContextType {
   user: User | null;
   currentTeam: Team | null;
   setUser: (user: User | null) => void;
+  updateUser: (user: User) => void;
   setCurrentTeam: (team: Team | null) => void;
   logout: () => void;
 }
@@ -35,6 +36,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Update user without clearing team (for profile updates)
+  const updateUser = (updatedUser: User) => {
+    setUserState(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  };
+
   const setCurrentTeam = (team: Team | null) => {
     setCurrentTeamState(team);
     if (team) {
@@ -52,7 +59,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <UserContext.Provider value={{ user, currentTeam, setUser, setCurrentTeam, logout }}>
+    <UserContext.Provider value={{ user, currentTeam, setUser, updateUser, setCurrentTeam, logout }}>
       {children}
     </UserContext.Provider>
   );
