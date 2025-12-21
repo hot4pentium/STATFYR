@@ -33,6 +33,19 @@ export interface TeamMember {
   user: User;
 }
 
+export interface Event {
+  id: string;
+  teamId: string;
+  title: string;
+  type: string;
+  date: string;
+  endDate?: string | null;
+  location?: string | null;
+  details?: string | null;
+  createdBy?: string | null;
+  createdAt?: string | null;
+}
+
 export async function registerUser(data: {
   username: string;
   password: string;
@@ -115,4 +128,39 @@ export async function getCoachTeams(coachId: string): Promise<Team[]> {
 
 export async function removeTeamMember(teamId: string, userId: string): Promise<void> {
   await apiRequest("DELETE", `/api/teams/${teamId}/members/${userId}`, {});
+}
+
+export async function getTeamEvents(teamId: string): Promise<Event[]> {
+  const res = await fetch(`/api/teams/${teamId}/events`);
+  if (!res.ok) throw new Error("Failed to get team events");
+  return res.json();
+}
+
+export async function createEvent(teamId: string, data: {
+  title: string;
+  type: string;
+  date: string;
+  endDate?: string | null;
+  location?: string | null;
+  details?: string | null;
+  createdBy?: string | null;
+}): Promise<Event> {
+  const res = await apiRequest("POST", `/api/teams/${teamId}/events`, data);
+  return res.json();
+}
+
+export async function updateEvent(eventId: string, data: Partial<{
+  title: string;
+  type: string;
+  date: string;
+  endDate?: string | null;
+  location?: string | null;
+  details?: string | null;
+}>): Promise<Event> {
+  const res = await apiRequest("PATCH", `/api/events/${eventId}`, data);
+  return res.json();
+}
+
+export async function deleteEvent(eventId: string): Promise<void> {
+  await apiRequest("DELETE", `/api/events/${eventId}`, {});
 }
