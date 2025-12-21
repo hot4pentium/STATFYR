@@ -392,7 +392,7 @@ export default function AthleteDashboard() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 {teamHighlights.map((video: HighlightVideo) => (
                   <div key={video.id} className="bg-background/50 border border-white/5 rounded-lg overflow-hidden" data-testid={`highlight-video-${video.id}`}>
                     <div className="aspect-video bg-black relative">
@@ -400,6 +400,7 @@ export default function AthleteDashboard() {
                         <video
                           src={video.publicUrl}
                           controls
+                          preload="metadata"
                           className="absolute inset-0 w-full h-full object-contain"
                           poster={video.thumbnailKey || undefined}
                           data-testid={`video-player-${video.id}`}
