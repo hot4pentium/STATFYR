@@ -76,6 +76,7 @@ export default function AthleteDashboard() {
   const [isAthleteModalOpen, setIsAthleteModalOpen] = useState(false);
   const [isAthleteCardFlipped, setIsAthleteCardFlipped] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedStat, setSelectedStat] = useState<string | null>(null);
   const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(new Date()));
   const [expandedPlay, setExpandedPlay] = useState<Play | null>(null);
   const [playbookTab, setPlaybookTab] = useState<"Offense" | "Defense" | "Special">("Offense");
@@ -1240,51 +1241,91 @@ export default function AthleteDashboard() {
             </div>
           )}
 
-          {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="bg-card/80 backdrop-blur-sm border-white/5">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Goals</CardTitle>
-                <Trophy className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-display font-bold">0</div>
-                <p className="text-xs text-muted-foreground mt-1">This season</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/80 backdrop-blur-sm border-white/5">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Assists</CardTitle>
-                <TrendingUp className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-display font-bold">0</div>
-                <p className="text-xs text-muted-foreground mt-1">Team contribution</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/80 backdrop-blur-sm border-white/5">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Appearances</CardTitle>
-                <Activity className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-display font-bold">0</div>
-                <p className="text-xs text-muted-foreground mt-1">Games played</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/80 backdrop-blur-sm border-white/5">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Rating</CardTitle>
-                <Trophy className="h-4 w-4 text-accent" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-display font-bold text-accent">8.5</div>
-                <p className="text-xs text-muted-foreground mt-1">Average</p>
-              </CardContent>
-            </Card>
+          {/* Stats Overview Dropdown */}
+          <div className="mb-6 space-y-4">
+            <Select value={selectedStat || ""} onValueChange={(value) => setSelectedStat(value || null)}>
+              <SelectTrigger className="w-full max-w-md" data-testid="stats-overview-dropdown">
+                <SelectValue placeholder="View your stats..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="goals">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="h-4 w-4" />
+                    <span>Goals</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="assists">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    <span>Assists</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="appearances">
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-4 w-4" />
+                    <span>Appearances</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="rating">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="h-4 w-4" />
+                    <span>Rating</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {selectedStat === "goals" && (
+              <Card className="bg-card/80 backdrop-blur-sm border-white/5">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Goals</CardTitle>
+                  <Trophy className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-display font-bold">0</div>
+                  <p className="text-xs text-muted-foreground mt-1">This season</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {selectedStat === "assists" && (
+              <Card className="bg-card/80 backdrop-blur-sm border-white/5">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Assists</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-display font-bold">0</div>
+                  <p className="text-xs text-muted-foreground mt-1">Team contribution</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {selectedStat === "appearances" && (
+              <Card className="bg-card/80 backdrop-blur-sm border-white/5">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Appearances</CardTitle>
+                  <Activity className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-display font-bold">0</div>
+                  <p className="text-xs text-muted-foreground mt-1">Games played</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {selectedStat === "rating" && (
+              <Card className="bg-card/80 backdrop-blur-sm border-white/5">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Rating</CardTitle>
+                  <Trophy className="h-4 w-4 text-accent" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-display font-bold text-accent">8.5</div>
+                  <p className="text-xs text-muted-foreground mt-1">Average</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Main Content Grid */}
