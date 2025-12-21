@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
-import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
 import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
 import { VideoUploader } from "@/components/VideoUploader";
@@ -651,19 +650,8 @@ export default function CoachDashboard() {
 
   return (
     <Layout>
-      <div 
-        className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10"
-        style={{
-          backgroundImage: `url(${generatedImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'scroll',
-        }}
-      >
-        {/* Overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background/80 pointer-events-none" />
-        
-        <div className="relative z-20 space-y-6">
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
+        <div className="space-y-6">
           {/* Hero Banner */}
           <div ref={heroBannerRef} className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />

@@ -1,4 +1,5 @@
 import { EVENTS } from "@/lib/mockData";
+import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -337,8 +338,9 @@ export default function SupporterDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="min-h-screen bg-background relative">
+      <DashboardBackground />
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 relative">
         <div className="max-w-full px-4 md:px-8 py-4 flex items-center justify-between">
           <Link href="/">
             <Button

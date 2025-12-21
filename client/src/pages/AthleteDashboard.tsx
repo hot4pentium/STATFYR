@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useTheme } from "next-themes";
-import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
+import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { useUser } from "@/lib/userContext";
 import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -527,9 +527,10 @@ export default function AthleteDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <DashboardBackground />
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 relative">
         <div className="max-w-full px-4 md:px-8 py-4 flex items-center justify-end gap-3">
           {mounted && (
             <button
@@ -562,19 +563,8 @@ export default function AthleteDashboard() {
           </Link>
         </div>
       </header>
-      <div 
-        className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10"
-        style={{
-          backgroundImage: `url(${generatedImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'scroll',
-        }}
-      >
-        {/* Overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background/80 pointer-events-none" />
-        
-        <div className="relative z-20 max-w-full px-4 md:px-8 py-8">
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
+        <div className="max-w-full px-4 md:px-8 py-8">
           {/* HYPE Card & Quick Navigation Grid */}
           <div ref={hypeCardRef} className="grid grid-cols-[280px_1fr] gap-4 mb-6 items-center">
             {/* HYPE Card - Sports Trading Card Style with Flip */}
