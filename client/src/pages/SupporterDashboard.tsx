@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Ticket, MapPin, ArrowLeft, Users, BarChart3, MessageSquare, X, Settings, LogOut } from "lucide-react";
+import { Calendar as CalendarIcon, Ticket, MapPin, ArrowLeft, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, type TeamMember } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, type TeamMember, type Event } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+import { Calendar } from "@/components/ui/calendar";
+import { format, isSameDay, startOfMonth } from "date-fns";
 
 function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
   return <span className={`px-2 py-1 rounded text-xs font-bold ${className}`}>{children}</span>;
@@ -27,6 +29,15 @@ export default function SupporterDashboard() {
     queryFn: () => currentTeam ? getTeamMembers(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
   });
+
+  const { data: teamEvents = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "events"],
+    queryFn: () => currentTeam ? getTeamEvents(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+  });
+
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(new Date()));
 
   const athletes = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "athlete"), [teamMembers]);
   const coaches = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "coach"), [teamMembers]);
@@ -67,7 +78,7 @@ export default function SupporterDashboard() {
     { 
       name: "Schedule", 
       id: "schedule",
-      icon: Calendar, 
+      icon: CalendarIcon, 
       color: "from-blue-500/20 to-blue-600/20",
       description: "Match dates"
     },
@@ -97,25 +108,135 @@ export default function SupporterDashboard() {
   const renderContent = () => {
     switch(selectedCard) {
       case "schedule":
+        const eventsWithDates = teamEvents.filter((e: Event) => e.date);
+        const eventDates = eventsWithDates.map((e: Event) => new Date(e.date));
+        const filteredEvents = selectedDate 
+          ? eventsWithDates.filter((e: Event) => isSameDay(new Date(e.date), selectedDate))
+          : [...eventsWithDates].sort((a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        
+        const getAthleteName = (athleteId: string | null | undefined) => {
+          if (!athleteId) return null;
+          const member = teamMembers.find((m: TeamMember) => String(m.userId) === athleteId);
+          return member?.user.name || member?.user.username || null;
+        };
+
         return (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {EVENTS.map((event) => (
-              <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-muted-foreground">
+                {selectedDate ? (
+                  <span>Showing events for {format(selectedDate, "MMMM d, yyyy")}</span>
+                ) : (
+                  <span>{teamEvents.length} total events</span>
+                )}
+              </div>
+              {selectedDate && (
+                <Button variant="outline" size="sm" onClick={() => setSelectedDate(undefined)} data-testid="button-clear-date">
+                  Clear Filter
+                </Button>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
+              <Card className="bg-background/40 border-white/10 h-fit" data-testid="calendar-month">
                 <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-white/10 border border-white/20">{event.type}</span>
-                    <h3 className="font-bold text-lg">{event.title}</h3>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {new Date(event.date).toLocaleDateString()}
-                      </div>
-                      <div className="text-xs">{event.location}</div>
-                    </div>
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    month={calendarMonth}
+                    onMonthChange={setCalendarMonth}
+                    modifiers={{
+                      hasEvent: eventDates
+                    }}
+                    modifiersStyles={{
+                      hasEvent: {
+                        fontWeight: 'bold',
+                        textDecoration: 'underline',
+                        textDecorationColor: 'hsl(var(--primary))',
+                        textUnderlineOffset: '4px'
+                      }
+                    }}
+                    className="mx-auto"
+                  />
+                  <div className="mt-4 pt-4 border-t border-white/10 text-xs text-muted-foreground text-center">
+                    <span className="underline decoration-primary underline-offset-4 font-bold">Underlined</span> dates have events
                   </div>
                 </CardContent>
               </Card>
-            ))}
+
+              <div className="space-y-4">
+                {filteredEvents.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-bold">{selectedDate ? "No events on this date" : "No events scheduled"}</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4">
+                    {filteredEvents.map((event: Event) => (
+                      <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all" data-testid={`event-card-${event.id}`}>
+                        <CardContent className="p-4">
+                          <div className="flex flex-col md:flex-row md:items-start gap-4">
+                            <div className="flex-1 space-y-3">
+                              <div className="flex items-center gap-2">
+                                <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-primary/20 text-primary border border-primary/30">{event.type}</span>
+                                {event.opponent && (
+                                  <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-accent/20 text-accent border border-accent/30">
+                                    vs {event.opponent}
+                                  </span>
+                                )}
+                              </div>
+                              
+                              <h3 className="font-bold text-lg">{event.title}</h3>
+                              
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <CalendarIcon className="h-4 w-4 text-primary" />
+                                  <span>{format(new Date(event.date), "EEEE, MMM d, yyyy")}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <Clock className="h-4 w-4 text-primary" />
+                                  <span>{format(new Date(event.date), "h:mm a")}</span>
+                                </div>
+                                {event.location && (
+                                  <div className="flex items-center gap-2 text-muted-foreground sm:col-span-2">
+                                    <MapPin className="h-4 w-4 text-primary" />
+                                    <span>{event.location}</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {event.details && (
+                                <p className="text-sm text-muted-foreground/80 bg-white/5 rounded-lg p-3">
+                                  {event.details}
+                                </p>
+                              )}
+
+                              <div className="flex flex-wrap gap-3 pt-2 border-t border-white/10">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Utensils className="h-4 w-4 text-green-400" />
+                                  <span className="text-muted-foreground">Drinks:</span>
+                                  <span className={getAthleteName(event.drinksAthleteId) ? "text-foreground font-medium" : "text-muted-foreground/50 italic"}>
+                                    {getAthleteName(event.drinksAthleteId) || "Unassigned"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Coffee className="h-4 w-4 text-orange-400" />
+                                  <span className="text-muted-foreground">Snacks:</span>
+                                  <span className={getAthleteName(event.snacksAthleteId) ? "text-foreground font-medium" : "text-muted-foreground/50 italic"}>
+                                    {getAthleteName(event.snacksAthleteId) || "Unassigned"}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         );
       case "roster":
@@ -267,7 +388,7 @@ export default function SupporterDashboard() {
                     {currentTeam.name} <span className="text-muted-foreground">vs</span> Eagles
                  </h1>
                  <div className="flex items-center justify-center md:justify-start gap-4 text-muted-foreground">
-                    <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /> Tomorrow, 2:00 PM</div>
+                    <div className="flex items-center gap-2"><CalendarIcon className="h-4 w-4" /> Tomorrow, 2:00 PM</div>
                     <div className="flex items-center gap-2"><MapPin className="h-4 w-4" /> City Stadium</div>
                  </div>
               </div>

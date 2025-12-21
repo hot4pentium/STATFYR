@@ -318,10 +318,11 @@ export default function CoachDashboard() {
           </div>
         );
       case "events":
-        const eventDates = teamEvents.map((e: Event) => new Date(e.date));
+        const eventsWithDates = teamEvents.filter((e: Event) => e.date);
+        const eventDates = eventsWithDates.map((e: Event) => new Date(e.date));
         const filteredEvents = selectedDate 
-          ? teamEvents.filter((e: Event) => isSameDay(new Date(e.date), selectedDate))
-          : [...teamEvents].sort((a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          ? eventsWithDates.filter((e: Event) => isSameDay(new Date(e.date), selectedDate))
+          : [...eventsWithDates].sort((a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime());
         
         const getAthleteName = (athleteId: string | null | undefined) => {
           if (!athleteId) return null;
