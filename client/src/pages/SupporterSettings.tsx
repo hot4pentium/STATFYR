@@ -2,8 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, UserPlus, Trash2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, UserPlus, Trash2, Camera } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
@@ -26,6 +26,9 @@ export default function SupporterSettings() {
   const [athleteFirstName, setAthleteFirstName] = useState("");
   const [athleteLastName, setAthleteLastName] = useState("");
   const [isAddingAthlete, setIsAddingAthlete] = useState(false);
+  const [uploadingAthleteId, setUploadingAthleteId] = useState<number | null>(null);
+  const athleteAvatarInputRef = useRef<HTMLInputElement>(null);
+  const [selectedAthleteForUpload, setSelectedAthleteForUpload] = useState<ManagedAthlete | null>(null);
 
   const appVersion = "1.0.0";
 
@@ -150,6 +153,57 @@ export default function SupporterSettings() {
       console.error("Failed to remove athlete:", error);
       toast.error("Failed to remove athlete.");
     }
+  };
+
+  const handleAthleteAvatarClick = (managed: ManagedAthlete) => {
+    setSelectedAthleteForUpload(managed);
+    athleteAvatarInputRef.current?.click();
+  };
+
+  const handleAthleteAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedAthleteForUpload) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    setUploadingAthleteId(selectedAthleteForUpload.athlete.id);
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64Avatar = event.target?.result as string;
+      try {
+        const response = await fetch(`/api/users/${selectedAthleteForUpload.athlete.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ avatar: base64Avatar }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to update avatar");
+        }
+
+        toast.success(`${selectedAthleteForUpload.athlete.name}'s photo updated!`);
+        refetchManagedAthletes();
+      } catch (error) {
+        console.error("Failed to update athlete avatar:", error);
+        toast.error("Failed to update photo. Please try again.");
+      } finally {
+        setUploadingAthleteId(null);
+        setSelectedAthleteForUpload(null);
+        if (athleteAvatarInputRef.current) {
+          athleteAvatarInputRef.current.value = "";
+        }
+      }
+    };
+    reader.onerror = () => {
+      setUploadingAthleteId(null);
+      setSelectedAthleteForUpload(null);
+      toast.error("Failed to load image");
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -396,6 +450,14 @@ export default function SupporterSettings() {
                 {managedAthletes.length > 0 && (
                   <div className="space-y-3">
                     <h4 className="text-sm font-medium uppercase tracking-wider">Your Managed Athletes</h4>
+                    <input
+                      type="file"
+                      ref={athleteAvatarInputRef}
+                      accept="image/*"
+                      onChange={handleAthleteAvatarChange}
+                      className="hidden"
+                      data-testid="input-athlete-avatar-upload"
+                    />
                     {managedAthletes.map((managed) => (
                       <div 
                         key={managed.id} 
@@ -403,12 +465,33 @@ export default function SupporterSettings() {
                         data-testid={`managed-athlete-${managed.id}`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                            <User className="h-5 w-5 text-primary" />
+                          <div 
+                            className="relative w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden cursor-pointer group"
+                            onClick={() => handleAthleteAvatarClick(managed)}
+                          >
+                            {managed.athlete.avatar ? (
+                              <img 
+                                src={managed.athlete.avatar} 
+                                alt={managed.athlete.name || ""} 
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <User className="h-6 w-6 text-primary" />
+                            )}
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                              {uploadingAthleteId === managed.athlete.id ? (
+                                <Loader2 className="h-4 w-4 text-white animate-spin" />
+                              ) : (
+                                <Camera className="h-4 w-4 text-white" />
+                              )}
+                            </div>
                           </div>
                           <div>
                             <p className="font-medium">{managed.athlete.name}</p>
-                            <p className="text-xs text-muted-foreground">Athlete</p>
+                            <p className="text-xs text-muted-foreground">
+                              {managed.athlete.position || "Athlete"}
+                              {managed.athlete.number && ` • #${managed.athlete.number}`}
+                            </p>
                           </div>
                         </div>
                         <Button
