@@ -730,7 +730,7 @@ export default function AthleteDashboard() {
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
         <div className="max-w-full px-4 md:px-8 py-8">
           {/* HYPE Card & Quick Navigation Grid */}
-          <div ref={hypeCardRef} className="grid grid-cols-[280px_1fr] gap-4 mb-6 items-center">
+          <div ref={hypeCardRef} className="grid grid-cols-[280px_1fr] gap-2 mb-6 items-center">
             {/* HYPE Card - Sports Trading Card Style with Flip */}
             <div className="w-60 space-y-2">
               {/* Share Button */}
