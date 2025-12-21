@@ -272,3 +272,30 @@ export async function updatePlay(playId: string, userId: string, data: {
 export async function deletePlay(playId: string, userId: string): Promise<void> {
   await apiRequest("DELETE", `/api/plays/${playId}`, { userId });
 }
+
+export interface ManagedAthlete {
+  id: string;
+  supporterId: string;
+  athleteId: string;
+  createdAt?: string | null;
+  athlete: User;
+}
+
+export async function getManagedAthletes(supporterId: string): Promise<ManagedAthlete[]> {
+  const res = await fetch(`/api/users/${supporterId}/managed-athletes`);
+  if (!res.ok) throw new Error("Failed to get managed athletes");
+  return res.json();
+}
+
+export async function createManagedAthlete(supporterId: string, data: {
+  teamCode: string;
+  firstName: string;
+  lastName: string;
+}): Promise<ManagedAthlete & { team: Team }> {
+  const res = await apiRequest("POST", `/api/users/${supporterId}/managed-athletes`, data);
+  return res.json();
+}
+
+export async function deleteManagedAthlete(id: string): Promise<void> {
+  await apiRequest("DELETE", `/api/managed-athletes/${id}`, {});
+}

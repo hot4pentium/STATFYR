@@ -2,15 +2,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check } from "lucide-react";
+import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, UserPlus, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getManagedAthletes, createManagedAthlete, deleteManagedAthlete, type ManagedAthlete } from "@/lib/api";
 
 export default function SupporterSettings() {
   const { user: contextUser, updateUser } = useUser();
+  const queryClient = useQueryClient();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -19,7 +22,18 @@ export default function SupporterSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
 
+  const [athleteTeamCode, setAthleteTeamCode] = useState("");
+  const [athleteFirstName, setAthleteFirstName] = useState("");
+  const [athleteLastName, setAthleteLastName] = useState("");
+  const [isAddingAthlete, setIsAddingAthlete] = useState(false);
+
   const appVersion = "1.0.0";
+
+  const { data: managedAthletes = [], refetch: refetchManagedAthletes } = useQuery({
+    queryKey: ["/api/users", contextUser?.id, "managed-athletes"],
+    queryFn: () => contextUser ? getManagedAthletes(contextUser.id) : Promise.resolve([]),
+    enabled: !!contextUser,
+  });
 
   useEffect(() => {
     if (contextUser) {
@@ -92,6 +106,49 @@ export default function SupporterSettings() {
         toast.error("Failed to load image");
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddAthlete = async () => {
+    if (!contextUser) {
+      toast.error("User not found. Please log in again.");
+      return;
+    }
+
+    if (!athleteTeamCode.trim() || !athleteFirstName.trim() || !athleteLastName.trim()) {
+      toast.error("Please fill in all fields: team code, first name, and last name.");
+      return;
+    }
+
+    setIsAddingAthlete(true);
+    try {
+      const result = await createManagedAthlete(contextUser.id, {
+        teamCode: athleteTeamCode.trim().toUpperCase(),
+        firstName: athleteFirstName.trim(),
+        lastName: athleteLastName.trim(),
+      });
+      
+      toast.success(`${result.athlete.name} has been added to ${result.team.name}!`);
+      setAthleteTeamCode("");
+      setAthleteFirstName("");
+      setAthleteLastName("");
+      refetchManagedAthletes();
+    } catch (error: any) {
+      console.error("Failed to add athlete:", error);
+      toast.error(error.message || "Failed to add athlete. Please check the team code and try again.");
+    } finally {
+      setIsAddingAthlete(false);
+    }
+  };
+
+  const handleDeleteManagedAthlete = async (managed: ManagedAthlete) => {
+    try {
+      await deleteManagedAthlete(managed.id);
+      toast.success(`${managed.athlete.name} has been removed.`);
+      refetchManagedAthletes();
+    } catch (error) {
+      console.error("Failed to remove athlete:", error);
+      toast.error("Failed to remove athlete.");
     }
   };
 
@@ -263,6 +320,110 @@ export default function SupporterSettings() {
                     "Save Changes"
                   )}
                 </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/80 backdrop-blur-sm border-white/5">
+              <CardHeader>
+                <CardTitle className="text-lg font-display font-bold uppercase tracking-wide flex items-center gap-2">
+                  <UserPlus className="h-5 w-5" />
+                  Manage Athletes
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Add and track athletes who can't manage their own profile</p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4 p-4 bg-background/30 rounded-lg border border-white/10">
+                  <h4 className="text-sm font-medium uppercase tracking-wider">Add New Athlete</h4>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="athlete-team-code" className="text-sm font-medium">Team Code</Label>
+                    <Input
+                      id="athlete-team-code"
+                      data-testid="input-athlete-team-code"
+                      value={athleteTeamCode}
+                      onChange={(e) => setAthleteTeamCode(e.target.value.toUpperCase())}
+                      placeholder="Enter 6-character team code"
+                      maxLength={6}
+                      className="bg-background/50 border-white/10 focus:border-primary/50 h-11 uppercase"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="athlete-first-name" className="text-sm font-medium">First Name</Label>
+                      <Input
+                        id="athlete-first-name"
+                        data-testid="input-athlete-first-name"
+                        value={athleteFirstName}
+                        onChange={(e) => setAthleteFirstName(e.target.value)}
+                        placeholder="First name"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="athlete-last-name" className="text-sm font-medium">Last Name</Label>
+                      <Input
+                        id="athlete-last-name"
+                        data-testid="input-athlete-last-name"
+                        value={athleteLastName}
+                        onChange={(e) => setAthleteLastName(e.target.value)}
+                        placeholder="Last name"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                      />
+                    </div>
+                  </div>
+
+                  <Button 
+                    onClick={handleAddAthlete}
+                    disabled={isAddingAthlete || !athleteTeamCode || !athleteFirstName || !athleteLastName}
+                    data-testid="button-add-athlete"
+                    className="w-full"
+                  >
+                    {isAddingAthlete ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Adding...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add Athlete to Team
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {managedAthletes.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium uppercase tracking-wider">Your Managed Athletes</h4>
+                    {managedAthletes.map((managed) => (
+                      <div 
+                        key={managed.id} 
+                        className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-white/10"
+                        data-testid={`managed-athlete-${managed.id}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                            <User className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{managed.athlete.name}</p>
+                            <p className="text-xs text-muted-foreground">Athlete</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteManagedAthlete(managed)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          data-testid={`button-remove-athlete-${managed.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
