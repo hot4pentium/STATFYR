@@ -201,3 +201,11 @@ html:not(.dark) {
 html, body, * {
   @apply transition-colors duration-300;
 }
+
+/* Light mode card shadows */
+html:not(.dark) [data-slot="card"],
+html:not(.dark) .bg-card,
+html:not(.dark) [class*="bg-card"],
+html:not(.dark) [class*="bg-background/40"] {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
