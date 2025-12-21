@@ -13,6 +13,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
   return <span className={`px-2 py-1 rounded text-xs font-bold ${className}`}>{children}</span>;
@@ -654,28 +655,24 @@ export default function SupporterDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {quickActions.map((action) => (
-            <button
-              key={action.id}
-              onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
-              className={`h-full p-4 rounded-lg border transition-all duration-200 backdrop-blur-sm group text-left ${
-                selectedCard === action.id
-                  ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
-                  : `border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5`
-              }`}
-            >
-              <div className="flex flex-col items-center text-center gap-2">
-                <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                  <action.icon className="h-5 w-5 md:h-6 md:w-6 text-primary group-hover:scale-110 transition-transform" />
-                </div>
-                <div>
-                  <div className="font-bold text-sm md:text-base">{action.name}</div>
-                  <div className="text-[10px] md:text-xs text-muted-foreground">{action.description}</div>
-                </div>
-              </div>
-            </button>
-          ))}
+        {/* Quick Navigation Dropdown */}
+        <div className="flex justify-center">
+          <Select value={selectedCard || ""} onValueChange={(value) => setSelectedCard(value || null)}>
+            <SelectTrigger className="w-full max-w-md" data-testid="quick-nav-dropdown">
+              <SelectValue placeholder="Select a section..." />
+            </SelectTrigger>
+            <SelectContent>
+              {quickActions.map((action) => (
+                <SelectItem key={action.id} value={action.id}>
+                  <div className="flex items-center gap-2">
+                    <action.icon className="h-4 w-4" />
+                    <span>{action.name}</span>
+                    <span className="text-xs text-muted-foreground">- {action.description}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {selectedCard && (
