@@ -900,7 +900,7 @@ export default function AthleteDashboard() {
 
             {/* Quick Navigation - Icons Only */}
             <div className="w-full h-60">
-              <div className="grid grid-cols-2 gap-2 h-full">
+              <div className="grid grid-cols-2 gap-2 h-full pl-[5px] pr-[5px]">
                 {quickActions.map((action) => (
                   <button
                     key={action.id}
@@ -988,10 +988,9 @@ export default function AthleteDashboard() {
                         </div>
                       ) : (
                         /* Back of Card - Four Quadrants */
-                        <div className="relative w-full h-full overflow-hidden" style={{ transform: 'scaleX(-1)', backfaceVisibility: 'hidden' }}>
+                        (<div className="relative w-full h-full overflow-hidden" style={{ transform: 'scaleX(-1)', backfaceVisibility: 'hidden' }}>
                           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black" />
                           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-                          
                           <div className="relative w-full h-full p-6 grid grid-cols-2 gap-3">
                             {/* Top Left - Events */}
                             <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
@@ -1054,7 +1053,7 @@ export default function AthleteDashboard() {
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </div>)
                       )}
                     </div>
                   </div>
