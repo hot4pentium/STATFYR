@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2, Settings, LogOut, Share2, Moon, Sun, Users, Utensils, Coffee } from "lucide-react";
+import { Calendar as CalendarIcon, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2, Settings, LogOut, Share2, Moon, Sun, Users, Utensils, Coffee, Video, Loader2, Trash2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
@@ -11,10 +11,11 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useTheme } from "next-themes";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, type TeamMember, type Event } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { getTeamMembers, getTeamEvents, getTeamHighlights, deleteHighlightVideo, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
+import { VideoUploader } from "@/components/VideoUploader";
 
 export default function AthleteDashboard() {
   const [, setLocation] = useLocation();
@@ -32,6 +33,14 @@ export default function AthleteDashboard() {
     enabled: !!currentTeam,
   });
 
+  const { data: teamHighlights = [], refetch: refetchHighlights } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "highlights"],
+    queryFn: () => currentTeam ? getTeamHighlights(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+    refetchInterval: 5000, // Refetch every 5 seconds to check for transcoding completion
+  });
+
+  const queryClient = useQueryClient();
   const nextEvent = teamEvents[0] || null;
 
   const athletes = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "athlete"), [teamMembers]);
@@ -131,9 +140,9 @@ export default function AthleteDashboard() {
     { 
       name: "Highlights", 
       id: "highlights",
-      icon: Trophy, 
+      icon: Video, 
       color: "from-yellow-500/20 to-yellow-600/20",
-      description: "Match moments"
+      description: "Team videos"
     },
     { 
       name: "Roster", 
@@ -332,37 +341,91 @@ export default function AthleteDashboard() {
           </div>
         );
       case "highlights":
+        const handleDeleteVideo = async (videoId: string) => {
+          if (!user) return;
+          try {
+            await deleteHighlightVideo(videoId, user.id);
+            toast.success("Video deleted");
+            refetchHighlights();
+          } catch (error) {
+            toast.error("Failed to delete video");
+          }
+        };
+
         return (
           <div className="space-y-4">
-            <div className="bg-background/50 border border-white/5 rounded-lg aspect-video flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-4xl mb-2">▶</div>
-                <p className="text-sm text-muted-foreground">Latest Match Highlights</p>
-              </div>
+            {/* Upload section */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold">Team Highlights</h3>
+              {currentTeam && user && (
+                <VideoUploader 
+                  teamId={currentTeam.id} 
+                  userId={user.id} 
+                  onUploadComplete={() => refetchHighlights()}
+                  compact
+                />
+              )}
             </div>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="h-2 w-2 rounded-full bg-accent mt-2" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Winning Goal vs Eagles</p>
-                  <p className="text-xs text-muted-foreground">Oct 18 • 45:32</p>
+
+            {/* Video list */}
+            {teamHighlights.length === 0 ? (
+              <div className="bg-background/50 border border-white/5 rounded-lg aspect-video flex items-center justify-center">
+                <div className="text-center">
+                  <Video className="h-12 w-12 mx-auto mb-2 text-muted-foreground/50" />
+                  <p className="text-sm text-muted-foreground">No highlights yet</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Upload a video to get started</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="h-2 w-2 rounded-full bg-accent mt-2" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Assist - Team Goal</p>
-                  <p className="text-xs text-muted-foreground">Oct 18 • 67:15</p>
-                </div>
+            ) : (
+              <div className="space-y-4">
+                {teamHighlights.map((video: HighlightVideo) => (
+                  <div key={video.id} className="bg-background/50 border border-white/5 rounded-lg overflow-hidden" data-testid={`highlight-video-${video.id}`}>
+                    {/* Video player */}
+                    <div className="aspect-video bg-black relative">
+                      {video.publicUrl ? (
+                        <video
+                          src={video.publicUrl}
+                          controls
+                          className="w-full h-full object-contain"
+                          poster={video.thumbnailKey || undefined}
+                          data-testid={`video-player-${video.id}`}
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center">
+                            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
+                            <p className="text-xs text-muted-foreground">Processing video...</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Video info */}
+                    <div className="p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{video.title || "Untitled"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Uploaded by {video.uploader?.name || video.uploader?.username}
+                          {video.createdAt && ` • ${format(new Date(video.createdAt), "MMM d, yyyy")}`}
+                        </p>
+                      </div>
+                      {/* Delete button - only for owner */}
+                      {user && video.uploaderId === user.id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteVideo(video.id)}
+                          className="text-destructive hover:text-destructive"
+                          data-testid={`button-delete-video-${video.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-start gap-3">
-                <div className="h-2 w-2 rounded-full bg-accent mt-2" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Defensive Play</p>
-                  <p className="text-xs text-muted-foreground">Oct 18 • 28:44</p>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         );
       case "roster":

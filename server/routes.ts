@@ -1,8 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema } from "@shared/schema";
 import { z } from "zod";
+import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
+import { spawn } from "child_process";
+import path from "path";
+
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
+const objectStorageService = new ObjectStorageService();
 
 export async function registerRoutes(
   httpServer: Server,
@@ -254,5 +260,259 @@ export async function registerRoutes(
     }
   });
 
+  // Register object storage routes
+  registerObjectStorageRoutes(app);
+
+  // Video upload request - validates size and creates database record
+  app.post("/api/teams/:teamId/highlights/request-upload", async (req, res) => {
+    try {
+      const { userId, fileName, fileSize, contentType } = req.body;
+      const teamId = req.params.teamId;
+
+      if (!userId || !fileName || !fileSize) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Validate file size (100MB max)
+      if (fileSize > MAX_VIDEO_SIZE) {
+        return res.status(400).json({ error: "File too large. Maximum size is 100MB" });
+      }
+
+      // Validate user is team member
+      const membership = await storage.getTeamMembership(teamId, userId);
+      if (!membership) {
+        return res.status(403).json({ error: "Not a team member" });
+      }
+
+      // Get upload URL from object storage
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+
+      // Create highlight video record with queued status
+      const video = await storage.createHighlightVideo({
+        teamId,
+        uploaderId: userId,
+        title: fileName,
+        originalKey: objectPath,
+        status: "queued",
+        fileSizeBytes: fileSize,
+      });
+
+      res.json({
+        uploadURL,
+        objectPath,
+        videoId: video.id,
+      });
+    } catch (error) {
+      console.error("Error requesting video upload:", error);
+      res.status(500).json({ error: "Failed to request upload" });
+    }
+  });
+
+  // Mark video upload complete and start transcoding
+  app.post("/api/highlights/:videoId/complete-upload", async (req, res) => {
+    try {
+      const video = await storage.getHighlightVideo(req.params.videoId);
+      if (!video) {
+        return res.status(404).json({ error: "Video not found" });
+      }
+
+      // Update status to processing
+      await storage.updateHighlightVideo(video.id, { status: "processing" });
+
+      // Start async transcoding
+      transcodeVideo(video.id, video.originalKey!);
+
+      res.json({ success: true, status: "processing" });
+    } catch (error) {
+      console.error("Error completing upload:", error);
+      res.status(500).json({ error: "Failed to complete upload" });
+    }
+  });
+
+  // Get team highlight videos (only ready ones for non-coaches)
+  app.get("/api/teams/:teamId/highlights", async (req, res) => {
+    try {
+      const videos = await storage.getTeamHighlightVideos(req.params.teamId);
+      // Filter to only ready videos for public display
+      const readyVideos = videos.filter(v => v.status === "ready");
+      res.json(readyVideos);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get highlights" });
+    }
+  });
+
+  // Get all team highlight videos (including pending/processing for coaches)
+  app.get("/api/teams/:teamId/highlights/all", async (req, res) => {
+    try {
+      const videos = await storage.getTeamHighlightVideos(req.params.teamId);
+      res.json(videos);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get highlights" });
+    }
+  });
+
+  // Delete highlight video (owner, coach, or staff only)
+  // NOTE: This relies on client-provided userId. In production, use session-based auth
+  // to prevent userId spoofing. Current implementation is suitable for trusted environments only.
+  app.delete("/api/highlights/:videoId", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: "User ID required" });
+      }
+
+      // Verify the user exists in the database
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: "Invalid user" });
+      }
+
+      const video = await storage.getHighlightVideo(req.params.videoId);
+      if (!video) {
+        return res.status(404).json({ error: "Video not found" });
+      }
+
+      // Check authorization: owner, coach, or staff
+      const membership = await storage.getTeamMembership(video.teamId, userId);
+      const isOwner = video.uploaderId === userId;
+      const isCoachOrStaff = membership && (membership.role === "coach" || membership.role === "staff");
+
+      if (!isOwner && !isCoachOrStaff) {
+        return res.status(403).json({ error: "Not authorized to delete this video" });
+      }
+
+      // Delete from storage first
+      try {
+        if (video.processedKey) {
+          const processedFile = await objectStorageService.getObjectEntityFile(video.processedKey);
+          await processedFile.delete();
+        }
+        if (video.thumbnailKey) {
+          const thumbnailFile = await objectStorageService.getObjectEntityFile(video.thumbnailKey);
+          await thumbnailFile.delete();
+        }
+        if (video.originalKey) {
+          const originalFile = await objectStorageService.getObjectEntityFile(video.originalKey);
+          await originalFile.delete();
+        }
+      } catch (storageError) {
+        console.error("Error deleting files from storage:", storageError);
+        // Continue with database deletion even if storage deletion fails
+      }
+
+      // Delete from database
+      await storage.deleteHighlightVideo(video.id);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting video:", error);
+      res.status(500).json({ error: "Failed to delete video" });
+    }
+  });
+
   return httpServer;
+}
+
+// Async transcoding function using FFmpeg
+async function transcodeVideo(videoId: string, originalKey: string) {
+  try {
+    console.log(`Starting transcoding for video ${videoId}`);
+    
+    // Get the original file
+    const originalFile = await objectStorageService.getObjectEntityFile(originalKey);
+    
+    // Create temp paths
+    const tempInputPath = `/tmp/input_${videoId}.mp4`;
+    const tempOutputPath = `/tmp/output_${videoId}.mp4`;
+    const tempThumbnailPath = `/tmp/thumb_${videoId}.jpg`;
+    
+    // Download original to temp
+    const [buffer] = await originalFile.download();
+    const fs = await import("fs/promises");
+    await fs.writeFile(tempInputPath, buffer);
+    
+    // Run FFmpeg to transcode to web-optimized MP4
+    await new Promise<void>((resolve, reject) => {
+      const ffmpeg = spawn("ffmpeg", [
+        "-i", tempInputPath,
+        "-c:v", "libx264",
+        "-preset", "fast",
+        "-crf", "23",
+        "-c:a", "aac",
+        "-b:a", "128k",
+        "-movflags", "+faststart",
+        "-y",
+        tempOutputPath
+      ]);
+      
+      ffmpeg.on("close", (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`FFmpeg exited with code ${code}`));
+      });
+      
+      ffmpeg.on("error", reject);
+    });
+    
+    // Generate thumbnail
+    await new Promise<void>((resolve, reject) => {
+      const ffmpeg = spawn("ffmpeg", [
+        "-i", tempInputPath,
+        "-ss", "00:00:01",
+        "-vframes", "1",
+        "-y",
+        tempThumbnailPath
+      ]);
+      
+      ffmpeg.on("close", (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`FFmpeg thumbnail exited with code ${code}`));
+      });
+      
+      ffmpeg.on("error", reject);
+    });
+    
+    // Upload processed video to public storage
+    const processedUploadURL = await objectStorageService.getObjectEntityUploadURL();
+    const processedPath = objectStorageService.normalizeObjectEntityPath(processedUploadURL);
+    
+    const processedBuffer = await fs.readFile(tempOutputPath);
+    await fetch(processedUploadURL, {
+      method: "PUT",
+      body: processedBuffer,
+      headers: { "Content-Type": "video/mp4" },
+    });
+    
+    // Upload thumbnail
+    const thumbnailUploadURL = await objectStorageService.getObjectEntityUploadURL();
+    const thumbnailPath = objectStorageService.normalizeObjectEntityPath(thumbnailUploadURL);
+    
+    const thumbnailBuffer = await fs.readFile(tempThumbnailPath);
+    await fetch(thumbnailUploadURL, {
+      method: "PUT",
+      body: thumbnailBuffer,
+      headers: { "Content-Type": "image/jpeg" },
+    });
+    
+    // Update database with processed paths
+    await storage.updateHighlightVideo(videoId, {
+      processedKey: processedPath,
+      thumbnailKey: thumbnailPath,
+      publicUrl: processedPath,
+      status: "ready",
+    });
+    
+    // Delete original file to save space
+    await originalFile.delete();
+    
+    // Clean up temp files
+    await fs.unlink(tempInputPath).catch(() => {});
+    await fs.unlink(tempOutputPath).catch(() => {});
+    await fs.unlink(tempThumbnailPath).catch(() => {});
+    
+    console.log(`Transcoding complete for video ${videoId}`);
+  } catch (error) {
+    console.error(`Transcoding failed for video ${videoId}:`, error);
+    await storage.updateHighlightVideo(videoId, { status: "failed" });
+  }
 }

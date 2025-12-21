@@ -87,6 +87,32 @@ export const eventsRelations = relations(events, ({ one }) => ({
   }),
 }));
 
+export const highlightVideos = pgTable("highlight_videos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  uploaderId: varchar("uploader_id").notNull().references(() => users.id),
+  title: text("title"),
+  originalKey: text("original_key"),
+  processedKey: text("processed_key"),
+  thumbnailKey: text("thumbnail_key"),
+  publicUrl: text("public_url"),
+  status: text("status").notNull().default("queued"),
+  durationSeconds: integer("duration_seconds"),
+  fileSizeBytes: integer("file_size_bytes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const highlightVideosRelations = relations(highlightVideos, ({ one }) => ({
+  team: one(teams, {
+    fields: [highlightVideos.teamId],
+    references: [teams.id],
+  }),
+  uploader: one(users, {
+    fields: [highlightVideos.uploaderId],
+    references: [users.id],
+  }),
+}));
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -124,6 +150,18 @@ export const updateEventSchema = createInsertSchema(events).omit({
   teamId: true,
 }).partial();
 
+export const insertHighlightVideoSchema = createInsertSchema(highlightVideos).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateHighlightVideoSchema = createInsertSchema(highlightVideos).omit({
+  id: true,
+  createdAt: true,
+  teamId: true,
+  uploaderId: true,
+}).partial();
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertTeam = z.infer<typeof insertTeamSchema>;
@@ -133,3 +171,6 @@ export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type UpdateEvent = z.infer<typeof updateEventSchema>;
 export type Event = typeof events.$inferSelect;
+export type InsertHighlightVideo = z.infer<typeof insertHighlightVideoSchema>;
+export type UpdateHighlightVideo = z.infer<typeof updateHighlightVideoSchema>;
+export type HighlightVideo = typeof highlightVideos.$inferSelect;

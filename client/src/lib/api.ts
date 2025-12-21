@@ -167,3 +167,53 @@ export async function updateEvent(eventId: string, data: Partial<{
 export async function deleteEvent(eventId: string): Promise<void> {
   await apiRequest("DELETE", `/api/events/${eventId}`, {});
 }
+
+export interface HighlightVideo {
+  id: string;
+  teamId: string;
+  uploaderId: string;
+  title?: string | null;
+  originalKey?: string | null;
+  processedKey?: string | null;
+  thumbnailKey?: string | null;
+  publicUrl?: string | null;
+  status: string;
+  durationSeconds?: number | null;
+  fileSizeBytes?: number | null;
+  createdAt?: string | null;
+  uploader: User;
+}
+
+export async function getTeamHighlights(teamId: string): Promise<HighlightVideo[]> {
+  const res = await fetch(`/api/teams/${teamId}/highlights`);
+  if (!res.ok) throw new Error("Failed to get highlights");
+  return res.json();
+}
+
+export async function getAllTeamHighlights(teamId: string): Promise<HighlightVideo[]> {
+  const res = await fetch(`/api/teams/${teamId}/highlights/all`);
+  if (!res.ok) throw new Error("Failed to get highlights");
+  return res.json();
+}
+
+export async function requestVideoUpload(teamId: string, userId: string, fileName: string, fileSize: number, contentType: string): Promise<{
+  uploadURL: string;
+  objectPath: string;
+  videoId: string;
+}> {
+  const res = await apiRequest("POST", `/api/teams/${teamId}/highlights/request-upload`, {
+    userId,
+    fileName,
+    fileSize,
+    contentType,
+  });
+  return res.json();
+}
+
+export async function completeVideoUpload(videoId: string): Promise<void> {
+  await apiRequest("POST", `/api/highlights/${videoId}/complete-upload`, {});
+}
+
+export async function deleteHighlightVideo(videoId: string, userId: string): Promise<void> {
+  await apiRequest("DELETE", `/api/highlights/${videoId}`, { userId });
+}

@@ -26,10 +26,11 @@ Preferred communication style: Simple, everyday language.
 - **Session Management**: Stateless (user stored in localStorage on client)
 
 ### Data Model
-The database schema centers around three main entities:
+The database schema centers around four main entities:
 - **Users**: Store credentials, role (coach/athlete/supporter), and profile info
 - **Teams**: Created by coaches with unique 6-character join codes
 - **TeamMembers**: Junction table linking users to teams with role assignment
+- **HighlightVideos**: Team video highlights with upload/transcoding pipeline
 
 ### Role-Based Navigation
 - **Coaches**: Full dashboard with roster, events, playbook, stats, and chat management
@@ -62,3 +63,11 @@ The database schema centers around three main entities:
 ### Fonts
 - **Inter**: Primary sans-serif font
 - **Oswald**: Display font for headings (loaded via Google Fonts)
+
+### Video Highlights System
+- **Upload**: Team members can upload videos up to 100MB via presigned URLs
+- **Transcoding**: FFmpeg converts uploads to H.264/AAC MP4 format with thumbnail generation
+- **Storage**: Replit App Storage (GCS-backed) for video file hosting
+- **Cleanup**: Original files deleted after transcoding; all files deleted on video removal
+- **Authorization**: Video deletion restricted to owner, coaches, or staff members
+- **Known Limitation**: Current auth uses client-side localStorage; production should use session-based auth to prevent userId spoofing

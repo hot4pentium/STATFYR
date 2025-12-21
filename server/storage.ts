@@ -1,9 +1,10 @@
 import { 
-  users, teams, teamMembers, events,
+  users, teams, teamMembers, events, highlightVideos,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember,
-  type Event, type InsertEvent, type UpdateEvent
+  type Event, type InsertEvent, type UpdateEvent,
+  type HighlightVideo, type InsertHighlightVideo, type UpdateHighlightVideo
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -40,6 +41,12 @@ export interface IStorage {
   createEvent(data: InsertEvent): Promise<Event>;
   updateEvent(id: string, data: UpdateEvent): Promise<Event | undefined>;
   deleteEvent(id: string): Promise<void>;
+  
+  getTeamHighlightVideos(teamId: string): Promise<(HighlightVideo & { uploader: User })[]>;
+  getHighlightVideo(id: string): Promise<HighlightVideo | undefined>;
+  createHighlightVideo(data: InsertHighlightVideo): Promise<HighlightVideo>;
+  updateHighlightVideo(id: string, data: UpdateHighlightVideo): Promise<HighlightVideo | undefined>;
+  deleteHighlightVideo(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -195,6 +202,46 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEvent(id: string): Promise<void> {
     await db.delete(events).where(eq(events.id, id));
+  }
+
+  async getTeamHighlightVideos(teamId: string): Promise<(HighlightVideo & { uploader: User })[]> {
+    const videos = await db
+      .select()
+      .from(highlightVideos)
+      .where(eq(highlightVideos.teamId, teamId))
+      .orderBy(desc(highlightVideos.createdAt));
+    
+    const result: (HighlightVideo & { uploader: User })[] = [];
+    for (const video of videos) {
+      const uploader = await this.getUser(video.uploaderId);
+      if (uploader) {
+        result.push({ ...video, uploader });
+      }
+    }
+    return result;
+  }
+
+  async getHighlightVideo(id: string): Promise<HighlightVideo | undefined> {
+    const [video] = await db.select().from(highlightVideos).where(eq(highlightVideos.id, id));
+    return video || undefined;
+  }
+
+  async createHighlightVideo(data: InsertHighlightVideo): Promise<HighlightVideo> {
+    const [video] = await db.insert(highlightVideos).values(data).returning();
+    return video;
+  }
+
+  async updateHighlightVideo(id: string, data: UpdateHighlightVideo): Promise<HighlightVideo | undefined> {
+    const [video] = await db
+      .update(highlightVideos)
+      .set(data)
+      .where(eq(highlightVideos.id, id))
+      .returning();
+    return video || undefined;
+  }
+
+  async deleteHighlightVideo(id: string): Promise<void> {
+    await db.delete(highlightVideos).where(eq(highlightVideos.id, id));
   }
 }
 
