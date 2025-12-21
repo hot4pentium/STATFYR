@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 type Tool = "freedraw" | "arrow" | "square" | "xshape" | "triangle" | "circle";
 
@@ -18,7 +19,7 @@ interface DrawnElement {
   lineWidth: number;
 }
 
-const SHAPE_SIZE = 40;
+const SHAPE_SIZE = 24;
 
 export function PlaybookCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -69,7 +70,7 @@ export function PlaybookCanvas() {
       const container = canvasRef.current?.parentElement;
       if (container) {
         const width = container.clientWidth;
-        const height = Math.max(500, window.innerHeight - 300);
+        const height = Math.max(550, (window.innerHeight - 300) * 1.1);
         setCanvasSize({ width, height });
       }
     };
@@ -446,10 +447,26 @@ export function PlaybookCanvas() {
           <Undo2 className="h-5 w-5" />
           <span className="hidden sm:inline">Undo</span>
         </Button>
-        <Button variant="outline" size="sm" onClick={handleClear} disabled={elements.length === 0} className="gap-2 text-red-500 hover:text-red-400" data-testid="tool-clear">
-          <Trash2 className="h-5 w-5" />
-          <span className="hidden sm:inline">Clear</span>
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" size="sm" disabled={elements.length === 0} className="gap-2 text-red-500 hover:text-red-400" data-testid="tool-clear">
+              <Trash2 className="h-5 w-5" />
+              <span className="hidden sm:inline">Clear</span>
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Clear Canvas</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to clear the canvas? This will remove all your drawings and cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleClear} className="bg-red-500 hover:bg-red-600">Clear</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <div className="relative w-full overflow-hidden rounded-lg border border-white/10" style={{ height: canvasSize.height || 500 }}>
