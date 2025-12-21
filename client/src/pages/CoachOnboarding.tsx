@@ -29,7 +29,8 @@ export default function CoachOnboarding() {
   const [isExiting, setIsExiting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   
-  const bgImage = resolvedTheme === 'light' ? lightBgImage : darkBgImage;
+  const isLightMode = resolvedTheme === 'light';
+  const bgImage = isLightMode ? lightBgImage : darkBgImage;
   const [formData, setFormData] = useState({
     sport: "",
     teamName: "",
@@ -110,14 +111,14 @@ export default function CoachOnboarding() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
       <div 
-        className="absolute inset-0 z-0 opacity-20"
+        className={`absolute inset-0 z-0 ${isLightMode ? 'opacity-40' : 'opacity-20'}`}
         style={{
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       />
-      <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
 
       <div className="relative z-10 w-full max-w-md px-4">
         <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
