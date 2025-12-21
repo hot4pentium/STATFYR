@@ -1,11 +1,12 @@
 import { 
-  users, teams, teamMembers,
+  users, teams, teamMembers, events,
   type User, type InsertUser,
   type Team, type InsertTeam,
-  type TeamMember, type InsertTeamMember
+  type TeamMember, type InsertTeamMember,
+  type Event, type InsertEvent, type UpdateEvent
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 function generateTeamCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -33,6 +34,12 @@ export interface IStorage {
   getUserTeams(userId: string): Promise<Team[]>;
   addTeamMember(data: InsertTeamMember): Promise<TeamMember>;
   removeTeamMember(teamId: string, userId: string): Promise<void>;
+  
+  getTeamEvents(teamId: string): Promise<Event[]>;
+  getEvent(id: string): Promise<Event | undefined>;
+  createEvent(data: InsertEvent): Promise<Event>;
+  updateEvent(id: string, data: UpdateEvent): Promise<Event | undefined>;
+  deleteEvent(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -157,6 +164,37 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(teamMembers)
       .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)));
+  }
+
+  async getTeamEvents(teamId: string): Promise<Event[]> {
+    return await db
+      .select()
+      .from(events)
+      .where(eq(events.teamId, teamId))
+      .orderBy(desc(events.date));
+  }
+
+  async getEvent(id: string): Promise<Event | undefined> {
+    const [event] = await db.select().from(events).where(eq(events.id, id));
+    return event || undefined;
+  }
+
+  async createEvent(data: InsertEvent): Promise<Event> {
+    const [event] = await db.insert(events).values(data).returning();
+    return event;
+  }
+
+  async updateEvent(id: string, data: UpdateEvent): Promise<Event | undefined> {
+    const [event] = await db
+      .update(events)
+      .set(data)
+      .where(eq(events.id, id))
+      .returning();
+    return event || undefined;
+  }
+
+  async deleteEvent(id: string): Promise<void> {
+    await db.delete(events).where(eq(events.id, id));
   }
 }
 

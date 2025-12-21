@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertTeamSchema } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(
@@ -195,6 +195,62 @@ export async function registerRoutes(
       res.json(teams);
     } catch (error) {
       res.status(500).json({ error: "Failed to get coach teams" });
+    }
+  });
+
+  app.get("/api/teams/:teamId/events", async (req, res) => {
+    try {
+      const events = await storage.getTeamEvents(req.params.teamId);
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get team events" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/events", async (req, res) => {
+    try {
+      const parsed = insertEventSchema.parse({
+        ...req.body,
+        teamId: req.params.teamId,
+        date: new Date(req.body.date),
+        endDate: req.body.endDate ? new Date(req.body.endDate) : null
+      });
+      const event = await storage.createEvent(parsed);
+      res.json(event);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create event" });
+    }
+  });
+
+  app.patch("/api/events/:eventId", async (req, res) => {
+    try {
+      const data: Record<string, unknown> = { ...req.body };
+      if (data.date) data.date = new Date(data.date as string);
+      if (data.endDate) data.endDate = new Date(data.endDate as string);
+      
+      const parsed = updateEventSchema.parse(data);
+      const event = await storage.updateEvent(req.params.eventId, parsed);
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      res.json(event);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update event" });
+    }
+  });
+
+  app.delete("/api/events/:eventId", async (req, res) => {
+    try {
+      await storage.deleteEvent(req.params.eventId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete event" });
     }
   });
 

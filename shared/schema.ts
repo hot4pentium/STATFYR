@@ -60,6 +60,30 @@ export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
   }),
 }));
 
+export const events = pgTable("events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  title: text("title").notNull(),
+  type: text("type").notNull().default("Practice"),
+  date: timestamp("date").notNull(),
+  endDate: timestamp("end_date"),
+  location: text("location"),
+  details: text("details"),
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const eventsRelations = relations(events, ({ one }) => ({
+  team: one(teams, {
+    fields: [events.teamId],
+    references: [teams.id],
+  }),
+  creator: one(users, {
+    fields: [events.createdBy],
+    references: [users.id],
+  }),
+}));
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -86,9 +110,23 @@ export const insertTeamMemberSchema = createInsertSchema(teamMembers).pick({
   role: true,
 });
 
+export const insertEventSchema = createInsertSchema(events).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateEventSchema = createInsertSchema(events).omit({
+  id: true,
+  createdAt: true,
+  teamId: true,
+}).partial();
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertTeam = z.infer<typeof insertTeamSchema>;
 export type Team = typeof teams.$inferSelect;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 export type TeamMember = typeof teamMembers.$inferSelect;
+export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type UpdateEvent = z.infer<typeof updateEventSchema>;
+export type Event = typeof events.$inferSelect;
