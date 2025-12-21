@@ -226,3 +226,46 @@ export async function completeVideoUpload(videoId: string): Promise<void> {
 export async function deleteHighlightVideo(videoId: string, userId: string): Promise<void> {
   await apiRequest("DELETE", `/api/highlights/${videoId}`, { userId });
 }
+
+export interface Play {
+  id: string;
+  teamId: string;
+  createdById: string;
+  name: string;
+  description?: string | null;
+  canvasData: string;
+  status: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  createdBy: User;
+}
+
+export async function getTeamPlays(teamId: string): Promise<Play[]> {
+  const res = await fetch(`/api/teams/${teamId}/plays`);
+  if (!res.ok) throw new Error("Failed to get plays");
+  return res.json();
+}
+
+export async function createPlay(teamId: string, userId: string, data: {
+  name: string;
+  description?: string;
+  canvasData: string;
+  status: string;
+}): Promise<Play> {
+  const res = await apiRequest("POST", `/api/teams/${teamId}/plays`, { ...data, userId });
+  return res.json();
+}
+
+export async function updatePlay(playId: string, userId: string, data: {
+  name?: string;
+  description?: string;
+  canvasData?: string;
+  status?: string;
+}): Promise<Play> {
+  const res = await apiRequest("PATCH", `/api/plays/${playId}`, { ...data, userId });
+  return res.json();
+}
+
+export async function deletePlay(playId: string, userId: string): Promise<void> {
+  await apiRequest("DELETE", `/api/plays/${playId}`, { userId });
+}

@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
+import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, type TeamMember, type Event, type HighlightVideo, type Play } from "@/lib/api";
 import { VideoUploader } from "@/components/VideoUploader";
 import { PlaybookCanvas } from "@/components/PlaybookCanvas";
 import { Badge } from "@/components/ui/badge";
@@ -77,6 +77,41 @@ export default function CoachDashboard() {
     queryFn: () => currentTeam ? getAllTeamHighlights(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
     refetchInterval: 5000,
+  });
+
+  const { data: teamPlays = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "plays"],
+    queryFn: () => currentTeam ? getTeamPlays(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+  });
+
+  const createPlayMutation = useMutation({
+    mutationFn: (data: { name: string; description?: string; canvasData: string; status: string }) =>
+      createPlay(currentTeam!.id, user!.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "plays"] });
+      toast.success("Play saved!");
+    },
+    onError: () => toast.error("Failed to save play"),
+  });
+
+  const updatePlayMutation = useMutation({
+    mutationFn: ({ playId, data }: { playId: string; data: { name?: string; description?: string; canvasData?: string; status?: string } }) =>
+      updatePlay(playId, user!.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "plays"] });
+      toast.success("Play updated!");
+    },
+    onError: () => toast.error("Failed to update play"),
+  });
+
+  const deletePlayMutation = useMutation({
+    mutationFn: (playId: string) => deletePlay(playId, user!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "plays"] });
+      toast.success("Play deleted!");
+    },
+    onError: () => toast.error("Failed to delete play"),
   });
 
   const createEventMutation = useMutation({
@@ -528,6 +563,10 @@ export default function CoachDashboard() {
             <PlaybookCanvas 
               athletes={athletes.map(a => ({ id: a.user.id, firstName: a.user.firstName || "", lastName: a.user.lastName || "" }))} 
               sport={currentTeam?.sport}
+              onSave={async (data) => {
+                await createPlayMutation.mutateAsync(data);
+              }}
+              isSaving={createPlayMutation.isPending}
             />
           </div>
         );
@@ -537,18 +576,76 @@ export default function CoachDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold">Playbook</h3>
-                <p className="text-sm text-muted-foreground">View and manage your saved plays</p>
+                <p className="text-sm text-muted-foreground">View and manage your saved plays ({teamPlays.length} plays)</p>
               </div>
-              <Button size="sm" className="gap-2">
+              <Button size="sm" className="gap-2" onClick={() => setSelectedCard("playmaker")}>
                 <Plus className="h-4 w-4" />
-                Save Play
+                New Play
               </Button>
             </div>
-            <div className="text-center py-12 text-muted-foreground">
-              <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-bold">No saved plays yet</p>
-              <p className="text-sm">Create plays in PlayMaker and save them here.</p>
-            </div>
+            {teamPlays.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-bold">No saved plays yet</p>
+                <p className="text-sm">Create plays in PlayMaker and save them here.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {teamPlays.map((play) => (
+                  <Card key={play.id} className="group" data-testid={`play-card-${play.id}`}>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-base">{play.name}</CardTitle>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            by {play.createdBy.firstName} {play.createdBy.lastName}
+                          </p>
+                        </div>
+                        <Badge 
+                          variant={play.status === "Successful" ? "default" : play.status === "Not Successful" ? "destructive" : "secondary"}
+                          className={play.status === "Successful" ? "bg-green-600" : ""}
+                        >
+                          {play.status}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {play.description && (
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{play.description}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
+                        <Select
+                          value={play.status}
+                          onValueChange={(value) => updatePlayMutation.mutate({ playId: play.id, data: { status: value } })}
+                        >
+                          <SelectTrigger className="h-8 text-xs flex-1" data-testid={`play-status-${play.id}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Successful">Successful</SelectItem>
+                            <SelectItem value="Not Successful">Not Successful</SelectItem>
+                            <SelectItem value="Needs Work">Needs Work</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+                          onClick={() => {
+                            if (confirm("Are you sure you want to delete this play?")) {
+                              deletePlayMutation.mutate(play.id);
+                            }
+                          }}
+                          data-testid={`delete-play-${play.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         );
       case "stattracker":

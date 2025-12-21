@@ -1,10 +1,15 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick } from "lucide-react";
+import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save } from "lucide-react";
 import basketballCourtImg from "@assets/bball_court_1766345509497.png";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Tool = "freedraw" | "arrow" | "square" | "xshape" | "triangle" | "circle" | "athlete" | "delete";
 
@@ -29,14 +34,23 @@ interface DrawnElement {
   label?: string;
 }
 
+interface SavePlayData {
+  name: string;
+  description: string;
+  canvasData: string;
+  status: string;
+}
+
 interface PlaybookCanvasProps {
   athletes?: Athlete[];
   sport?: string;
+  onSave?: (data: SavePlayData) => Promise<void>;
+  isSaving?: boolean;
 }
 
 const SHAPE_SIZE = 24;
 
-export function PlaybookCanvas({ athletes = [], sport = "Football" }: PlaybookCanvasProps) {
+export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSaving = false }: PlaybookCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const basketballImageRef = useRef<HTMLImageElement | null>(null);
   const [selectedTool, setSelectedTool] = useState<Tool>("freedraw");
@@ -52,6 +66,10 @@ export function PlaybookCanvas({ athletes = [], sport = "Football" }: PlaybookCa
   const [elements, setElements] = useState<DrawnElement[]>([]);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [basketballImageLoaded, setBasketballImageLoaded] = useState(false);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [playName, setPlayName] = useState("");
+  const [playDescription, setPlayDescription] = useState("");
+  const [playStatus, setPlayStatus] = useState("Needs Work");
 
   useEffect(() => {
     const img = new Image();
@@ -828,6 +846,24 @@ export function PlaybookCanvas({ athletes = [], sport = "Football" }: PlaybookCa
     setIsAthletePopoverOpen(false);
   };
 
+  const handleSavePlay = async () => {
+    if (!onSave || !playName.trim()) return;
+    
+    const canvasData = JSON.stringify(elements);
+    await onSave({
+      name: playName.trim(),
+      description: playDescription.trim(),
+      canvasData,
+      status: playStatus,
+    });
+    
+    setIsSaveDialogOpen(false);
+    setPlayName("");
+    setPlayDescription("");
+    setPlayStatus("Needs Work");
+    setElements([]);
+  };
+
   return (
     <div className="flex flex-col gap-4" data-testid="playbook-canvas-container">
       <div className="flex flex-wrap gap-2 p-3 bg-background/50 dark:bg-card/50 rounded-lg border border-white/10" data-testid="playbook-toolbar">
@@ -897,6 +933,77 @@ export function PlaybookCanvas({ athletes = [], sport = "Football" }: PlaybookCa
         </Button>
 
         <div className="flex-1" />
+
+        {onSave && (
+          <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="default" 
+                size="sm" 
+                disabled={elements.length === 0} 
+                className="gap-2 bg-green-600 hover:bg-green-700" 
+                data-testid="tool-save"
+              >
+                <Save className="h-5 w-5" />
+                <span className="hidden sm:inline">Save Play</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Save Play</DialogTitle>
+                <DialogDescription>
+                  Give your play a name and description so you can find it later.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="play-name">Play Name</Label>
+                  <Input
+                    id="play-name"
+                    placeholder="e.g., Zone Defense Setup"
+                    value={playName}
+                    onChange={(e) => setPlayName(e.target.value)}
+                    data-testid="input-play-name"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="play-description">Description (optional)</Label>
+                  <Textarea
+                    id="play-description"
+                    placeholder="Describe when and how to use this play..."
+                    value={playDescription}
+                    onChange={(e) => setPlayDescription(e.target.value)}
+                    rows={3}
+                    data-testid="input-play-description"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="play-status">Status</Label>
+                  <Select value={playStatus} onValueChange={setPlayStatus}>
+                    <SelectTrigger data-testid="select-play-status">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Successful">Successful</SelectItem>
+                      <SelectItem value="Not Successful">Not Successful</SelectItem>
+                      <SelectItem value="Needs Work">Needs Work</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button 
+                  onClick={handleSavePlay} 
+                  disabled={!playName.trim() || isSaving}
+                  className="bg-green-600 hover:bg-green-700"
+                  data-testid="button-save-play"
+                >
+                  {isSaving ? "Saving..." : "Save Play"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
 
         <Button variant="outline" size="sm" onClick={handleUndo} disabled={elements.length === 0} className="gap-2" data-testid="tool-undo">
           <Undo2 className="h-5 w-5" />
