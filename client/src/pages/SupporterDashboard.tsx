@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
@@ -34,6 +34,7 @@ export default function SupporterDashboard() {
   const [playbookTab, setPlaybookTab] = useState<"Offense" | "Defense" | "Special">("Offense");
   const [viewingAsAthlete, setViewingAsAthlete] = useState<ManagedAthlete | null>(null);
   const [isManagedAthleteCardFlipped, setIsManagedAthleteCardFlipped] = useState(false);
+  const [isHypeCardEnlarged, setIsHypeCardEnlarged] = useState(false);
   const [isUploadingAthleteAvatar, setIsUploadingAthleteAvatar] = useState(false);
   const queryClient = useQueryClient();
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -840,17 +841,29 @@ export default function SupporterDashboard() {
                         </div>
                       )}
                       
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          avatarInputRef.current?.click();
-                        }}
-                        disabled={isUploadingAthleteAvatar}
-                        className="absolute top-1.5 md:top-3 right-1.5 md:right-3 p-1 md:p-2 bg-black/50 hover:bg-black/70 rounded-full border border-white/20 transition z-10"
-                        data-testid="button-upload-athlete-avatar"
-                      >
-                        <Camera className={`h-3 w-3 md:h-4 md:w-4 text-white ${isUploadingAthleteAvatar ? 'animate-pulse' : ''}`} />
-                      </button>
+                      <div className="absolute top-1.5 md:top-3 right-1.5 md:right-3 flex gap-1 z-10">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsHypeCardEnlarged(true);
+                          }}
+                          className="p-1 md:p-2 bg-black/50 hover:bg-black/70 rounded-full border border-white/20 transition"
+                          data-testid="button-enlarge-hype-card"
+                        >
+                          <Maximize2 className="h-3 w-3 md:h-4 md:w-4 text-white" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            avatarInputRef.current?.click();
+                          }}
+                          disabled={isUploadingAthleteAvatar}
+                          className="p-1 md:p-2 bg-black/50 hover:bg-black/70 rounded-full border border-white/20 transition"
+                          data-testid="button-upload-athlete-avatar"
+                        >
+                          <Camera className={`h-3 w-3 md:h-4 md:w-4 text-white ${isUploadingAthleteAvatar ? 'animate-pulse' : ''}`} />
+                        </button>
+                      </div>
                       
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
                       <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
@@ -1179,6 +1192,147 @@ export default function SupporterDashboard() {
                 <p className="text-sm text-white/70 font-medium uppercase tracking-wide">Tap to Flip</p>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enlarged HYPE Card Modal */}
+      {isHypeCardEnlarged && viewingAsAthlete && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setIsHypeCardEnlarged(false)}
+          data-testid="modal-enlarged-hype-card"
+        >
+          <div 
+            className="relative w-full max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setIsHypeCardEnlarged(false)}
+              className="absolute -top-10 right-0 p-2 text-white/70 hover:text-white transition"
+              data-testid="button-close-enlarged-hype"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            
+            <div 
+              className="relative rounded-xl overflow-hidden border-2 border-accent/50 shadow-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-black cursor-pointer"
+              style={{ 
+                perspective: '1000px',
+                transformStyle: 'preserve-3d'
+              }}
+              onClick={() => setIsManagedAthleteCardFlipped(!isManagedAthleteCardFlipped)}
+            >
+              <div 
+                className="transition-transform duration-500 ease-in-out"
+                style={{ 
+                  transform: isManagedAthleteCardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                  transformStyle: 'preserve-3d'
+                }}
+              >
+                <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+                
+                {!isManagedAthleteCardFlipped ? (
+                  <div className="relative w-full aspect-[3/4] overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
+                    {viewingAsAthlete.athlete.avatar ? (
+                      <img src={viewingAsAthlete.athlete.avatar} alt={viewingAsAthlete.athlete.name || ""} className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
+                        <User className="h-32 w-32 text-white/40" />
+                      </div>
+                    )}
+                    
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
+                    
+                    <div className="absolute top-0 left-0 p-4 text-left">
+                      <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{viewingAsAthlete.athlete.name}</h3>
+                      <p className="text-sm text-white/90 uppercase mt-1 tracking-wider drop-shadow-md font-semibold">{currentTeam?.name || "Team"}</p>
+                    </div>
+
+                    <div className="absolute bottom-0 left-0 p-5">
+                      <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{viewingAsAthlete.athlete.position || "Player"}</p>
+                    </div>
+
+                    <div className="absolute bottom-0 right-0 p-5">
+                      <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-4 shadow-lg">
+                        <span className="text-white font-display font-bold text-3xl drop-shadow">#{viewingAsAthlete.athlete.number || "00"}</span>
+                      </div>
+                    </div>
+
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                      <div className="flex flex-row items-center gap-1 -rotate-90 whitespace-nowrap origin-center">
+                        <span className="text-xs text-white font-bold uppercase tracking-widest drop-shadow-lg">HYPE</span>
+                        <div className="w-0.5 h-3 bg-white/60"></div>
+                        <span className="text-xs text-white font-bold uppercase tracking-widest drop-shadow-lg">CARD</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative w-full aspect-[3/4] overflow-hidden" style={{ transform: 'scaleX(-1)', backfaceVisibility: 'hidden' }}>
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black" />
+                    <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+                    <div className="relative w-full h-full p-4 grid grid-cols-2 gap-3">
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
+                        <p className="text-sm text-accent font-bold uppercase tracking-widest mb-3">Events</p>
+                        <div className="space-y-2 text-sm text-white/70 flex-1 overflow-y-auto">
+                          {teamEvents.length === 0 ? (
+                            <div className="text-xs">No events</div>
+                          ) : (
+                            teamEvents.slice(0, 3).map((event: Event) => (
+                              <div key={event.id} className="line-clamp-2">
+                                <span className="font-semibold text-white">{event.type}</span>
+                                <div className="text-xs">{new Date(event.date).toLocaleDateString()}</div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
+                        <p className="text-sm text-primary font-bold uppercase tracking-widest mb-3">Stats</p>
+                        <div className="space-y-3 flex-1">
+                          <div>
+                            <div className="flex justify-between items-end gap-2 mb-1">
+                              <span className="text-xs text-white/70">Goals</span>
+                              <span className="text-sm font-bold text-primary">0</span>
+                            </div>
+                            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-primary" style={{width: "0%"}}></div>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between items-end gap-2 mb-1">
+                              <span className="text-xs text-white/70">Assists</span>
+                              <span className="text-sm font-bold text-accent">0</span>
+                            </div>
+                            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-accent" style={{width: "0%"}}></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
+                        <p className="text-sm text-green-400 font-bold uppercase tracking-widest mb-3">Highlights</p>
+                        <div className="space-y-2 text-sm text-white/70 flex-1">
+                          <div>No highlights yet</div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
+                        <p className="text-sm text-orange-400 font-bold uppercase tracking-widest mb-3">Shoutouts</p>
+                        <div className="text-sm text-white/70 italic flex-1">
+                          <p className="line-clamp-4">No shoutouts yet</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <p className="text-center text-white/50 text-sm mt-4">Tap card to flip</p>
           </div>
         </div>
       )}
