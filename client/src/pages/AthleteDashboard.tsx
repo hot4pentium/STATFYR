@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EVENTS } from "@/lib/mockData";
 import { Calendar, TrendingUp, Trophy, Activity, Clock, MapPin, MessageSquare, BarChart3, ClipboardList, X, Repeat2, Settings, LogOut, Share2, Moon, Sun, Users } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -12,19 +11,26 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useTheme } from "next-themes";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, type TeamMember } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, type TeamMember, type Event } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 export default function AthleteDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, logout } = useUser();
-  const nextEvent = EVENTS[0];
   
   const { data: teamMembers = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "members"],
     queryFn: () => currentTeam ? getTeamMembers(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
   });
+
+  const { data: teamEvents = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "events"],
+    queryFn: () => currentTeam ? getTeamEvents(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+  });
+
+  const nextEvent = teamEvents[0] || null;
 
   const athletes = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "athlete"), [teamMembers]);
   const coaches = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "coach"), [teamMembers]);
@@ -139,23 +145,30 @@ export default function AthleteDashboard() {
       case "schedule":
         return (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {EVENTS.map((event) => (
-              <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-white/10 border border-white/20">{event.type}</span>
-                    <h3 className="font-bold text-lg">{event.title}</h3>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {new Date(event.date).toLocaleDateString()}
+            {teamEvents.length === 0 ? (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-bold">No events scheduled</p>
+              </div>
+            ) : (
+              teamEvents.map((event: Event) => (
+                <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-white/10 border border-white/20">{event.type}</span>
+                      <h3 className="font-bold text-lg">{event.title}</h3>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          {new Date(event.date).toLocaleDateString()}
+                        </div>
+                        <div className="text-xs">{event.location || "TBD"}</div>
                       </div>
-                      <div className="text-xs">{event.location}</div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         );
       case "stats":
@@ -455,12 +468,16 @@ export default function AthleteDashboard() {
                       <div className="bg-white/5 border border-white/10 rounded-lg p-3 overflow-hidden flex flex-col">
                         <p className="text-[8px] text-accent font-bold uppercase tracking-widest mb-2">Events</p>
                         <div className="space-y-1 text-[9px] text-white/70 flex-1 overflow-y-auto">
-                          {EVENTS.slice(0, 2).map((event) => (
-                            <div key={event.id} className="line-clamp-2">
-                              <span className="font-semibold text-white">{event.type}</span>
-                              <div className="text-[8px]">{new Date(event.date).toLocaleDateString()}</div>
-                            </div>
-                          ))}
+                          {teamEvents.length === 0 ? (
+                              <div className="text-[8px]">No events</div>
+                            ) : (
+                              teamEvents.slice(0, 2).map((event: Event) => (
+                                <div key={event.id} className="line-clamp-2">
+                                  <span className="font-semibold text-white">{event.type}</span>
+                                  <div className="text-[8px]">{new Date(event.date).toLocaleDateString()}</div>
+                                </div>
+                              ))
+                            )}
                         </div>
                       </div>
 
@@ -622,12 +639,16 @@ export default function AthleteDashboard() {
                             <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
                               <p className="text-sm text-accent font-bold uppercase tracking-widest mb-3">Events</p>
                               <div className="space-y-2 text-sm text-white/70 flex-1 overflow-y-auto">
-                                {EVENTS.slice(0, 2).map((event) => (
-                                  <div key={event.id}>
-                                    <span className="font-semibold text-white">{event.type}</span>
-                                    <div className="text-xs">{new Date(event.date).toLocaleDateString()}</div>
-                                  </div>
-                                ))}
+                                {teamEvents.length === 0 ? (
+                                    <div className="text-sm">No events</div>
+                                  ) : (
+                                    teamEvents.slice(0, 2).map((event: Event) => (
+                                      <div key={event.id}>
+                                        <span className="font-semibold text-white">{event.type}</span>
+                                        <div className="text-xs">{new Date(event.date).toLocaleDateString()}</div>
+                                      </div>
+                                    ))
+                                  )}
                               </div>
                             </div>
 
@@ -766,12 +787,16 @@ export default function AthleteDashboard() {
                             <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
                               <p className="text-sm text-accent font-bold uppercase tracking-widest mb-3">Events</p>
                               <div className="space-y-2 text-sm text-white/70 flex-1 overflow-y-auto">
-                                {EVENTS.slice(0, 2).map((event) => (
-                                  <div key={event.id}>
-                                    <span className="font-semibold text-white">{event.type}</span>
-                                    <div className="text-xs">{new Date(event.date).toLocaleDateString()}</div>
-                                  </div>
-                                ))}
+                                {teamEvents.length === 0 ? (
+                                    <div className="text-sm">No events</div>
+                                  ) : (
+                                    teamEvents.slice(0, 2).map((event: Event) => (
+                                      <div key={event.id}>
+                                        <span className="font-semibold text-white">{event.type}</span>
+                                        <div className="text-xs">{new Date(event.date).toLocaleDateString()}</div>
+                                      </div>
+                                    ))
+                                  )}
                               </div>
                             </div>
 
