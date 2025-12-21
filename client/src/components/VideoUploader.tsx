@@ -16,6 +16,7 @@ const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 export function VideoUploader({ teamId, userId, onUploadComplete, compact = false }: VideoUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +36,8 @@ export function VideoUploader({ teamId, userId, onUploadComplete, compact = fals
     }
 
     setIsUploading(true);
-    setUploadProgress(10);
+    setUploadProgress(5);
+    setUploadStatus("Preparing upload...");
 
     try {
       // Request upload URL from backend
@@ -47,33 +49,57 @@ export function VideoUploader({ teamId, userId, onUploadComplete, compact = fals
         file.type
       );
 
-      setUploadProgress(30);
+      setUploadProgress(10);
+      setUploadStatus("Uploading video...");
 
-      // Upload directly to storage
-      const uploadRes = await fetch(uploadURL, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type },
+      // Upload directly to storage with progress tracking
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", uploadURL);
+        xhr.setRequestHeader("Content-Type", file.type);
+        
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percentComplete = Math.round((e.loaded / e.total) * 70) + 10;
+            setUploadProgress(Math.min(percentComplete, 80));
+          }
+        };
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error("Upload failed"));
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error("Upload failed"));
+        xhr.send(file);
       });
 
-      if (!uploadRes.ok) {
-        throw new Error("Upload failed");
-      }
-
-      setUploadProgress(80);
+      setUploadProgress(85);
+      setUploadStatus("Starting video processing...");
 
       // Notify backend that upload is complete to start transcoding
       await completeVideoUpload(videoId);
 
       setUploadProgress(100);
-      toast.success("Video uploaded! Transcoding in progress...");
+      setUploadStatus("Complete!");
+      
+      toast.success("Video uploaded successfully!", {
+        description: "Your video is now being converted. This takes about a minute.",
+        duration: 5000,
+      });
       onUploadComplete?.();
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Failed to upload video");
+      toast.error("Failed to upload video", {
+        description: "Please check your connection and try again.",
+      });
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+      setUploadStatus("");
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -103,7 +129,7 @@ export function VideoUploader({ teamId, userId, onUploadComplete, compact = fals
           {isUploading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              {uploadProgress}%
+              <span className="max-w-[100px] truncate">{uploadStatus || `${uploadProgress}%`}</span>
             </>
           ) : (
             <>
@@ -129,15 +155,16 @@ export function VideoUploader({ teamId, userId, onUploadComplete, compact = fals
       />
       
       {isUploading ? (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <Loader2 className="h-8 w-8 mx-auto animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Uploading... {uploadProgress}%</p>
+          <p className="text-sm font-medium">{uploadStatus}</p>
           <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-primary transition-all" 
+              className="h-full bg-primary transition-all duration-300" 
               style={{ width: `${uploadProgress}%` }}
             />
           </div>
+          <p className="text-xs text-muted-foreground">{uploadProgress}% complete</p>
         </div>
       ) : (
         <div 

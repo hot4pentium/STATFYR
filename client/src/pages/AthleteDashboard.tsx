@@ -11,7 +11,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useTheme } from "next-themes";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getTeamHighlights, deleteHighlightVideo, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
@@ -34,8 +34,8 @@ export default function AthleteDashboard() {
   });
 
   const { data: teamHighlights = [], refetch: refetchHighlights } = useQuery({
-    queryKey: ["/api/teams", currentTeam?.id, "highlights"],
-    queryFn: () => currentTeam ? getTeamHighlights(currentTeam.id) : Promise.resolve([]),
+    queryKey: ["/api/teams", currentTeam?.id, "highlights", "all"],
+    queryFn: () => currentTeam ? getAllTeamHighlights(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
     refetchInterval: 5000, // Refetch every 5 seconds to check for transcoding completion
   });
@@ -380,9 +380,9 @@ export default function AthleteDashboard() {
               <div className="space-y-4">
                 {teamHighlights.map((video: HighlightVideo) => (
                   <div key={video.id} className="bg-background/50 border border-white/5 rounded-lg overflow-hidden" data-testid={`highlight-video-${video.id}`}>
-                    {/* Video player */}
+                    {/* Video player or processing state */}
                     <div className="aspect-video bg-black relative">
-                      {video.publicUrl ? (
+                      {video.status === "ready" && video.publicUrl ? (
                         <video
                           src={video.publicUrl}
                           controls
@@ -390,11 +390,31 @@ export default function AthleteDashboard() {
                           poster={video.thumbnailKey || undefined}
                           data-testid={`video-player-${video.id}`}
                         />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
+                      ) : video.status === "failed" ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-destructive/10">
                           <div className="text-center">
-                            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
-                            <p className="text-xs text-muted-foreground">Processing video...</p>
+                            <X className="h-8 w-8 mx-auto mb-2 text-destructive" />
+                            <p className="text-sm font-medium text-destructive">Processing failed</p>
+                            <p className="text-xs text-muted-foreground mt-1">Please try uploading again</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-primary/5 to-primary/10">
+                          <div className="text-center">
+                            <div className="relative">
+                              <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+                            </div>
+                            <p className="text-sm font-medium mt-3">
+                              {video.status === "queued" ? "Queued for processing..." : "Converting video..."}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              This usually takes about a minute
+                            </p>
+                            <div className="mt-3 flex items-center justify-center gap-1">
+                              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.2s" }} />
+                              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.4s" }} />
+                            </div>
                           </div>
                         </div>
                       )}
@@ -402,12 +422,26 @@ export default function AthleteDashboard() {
                     
                     {/* Video info */}
                     <div className="p-3 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">{video.title || "Untitled"}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Uploaded by {video.uploader?.name || video.uploader?.username}
-                          {video.createdAt && ` • ${format(new Date(video.createdAt), "MMM d, yyyy")}`}
-                        </p>
+                      <div className="flex items-center gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium">{video.title || "Untitled"}</p>
+                            {video.status !== "ready" && (
+                              <Badge 
+                                variant={video.status === "failed" ? "destructive" : "secondary"}
+                                className="text-xs"
+                              >
+                                {video.status === "queued" && "Queued"}
+                                {video.status === "processing" && "Processing"}
+                                {video.status === "failed" && "Failed"}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Uploaded by {video.uploader?.name || video.uploader?.username}
+                            {video.createdAt && ` • ${format(new Date(video.createdAt), "MMM d, yyyy")}`}
+                          </p>
+                        </div>
                       </div>
                       {/* Delete button - only for owner */}
                       {user && video.uploaderId === user.id && (
