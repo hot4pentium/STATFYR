@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
@@ -310,6 +310,98 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete event" });
+    }
+  });
+
+  // Plays CRUD routes
+  app.get("/api/teams/:teamId/plays", async (req, res) => {
+    try {
+      const plays = await storage.getTeamPlays(req.params.teamId);
+      res.json(plays);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get plays" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/plays", async (req, res) => {
+    try {
+      const { userId, ...playData } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+      
+      // Validate user is team member with coach or staff role
+      const membership = await storage.getTeamMembership(req.params.teamId, userId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can create plays" });
+      }
+      
+      const parsed = insertPlaySchema.parse({
+        ...playData,
+        teamId: req.params.teamId,
+        createdById: userId,
+      });
+      const play = await storage.createPlay(parsed);
+      res.json(play);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create play" });
+    }
+  });
+
+  app.patch("/api/plays/:playId", async (req, res) => {
+    try {
+      const { userId, ...updateData } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+      
+      const play = await storage.getPlay(req.params.playId);
+      if (!play) {
+        return res.status(404).json({ error: "Play not found" });
+      }
+      
+      // Validate user is team member with coach or staff role
+      const membership = await storage.getTeamMembership(play.teamId, userId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can edit plays" });
+      }
+      
+      const parsed = updatePlaySchema.parse(updateData);
+      const updatedPlay = await storage.updatePlay(req.params.playId, parsed);
+      res.json(updatedPlay);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update play" });
+    }
+  });
+
+  app.delete("/api/plays/:playId", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+      
+      const play = await storage.getPlay(req.params.playId);
+      if (!play) {
+        return res.status(404).json({ error: "Play not found" });
+      }
+      
+      // Validate user is team member with coach or staff role
+      const membership = await storage.getTeamMembership(play.teamId, userId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can delete plays" });
+      }
+      
+      await storage.deletePlay(req.params.playId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete play" });
     }
   });
 

@@ -1,10 +1,11 @@
 import { 
-  users, teams, teamMembers, events, highlightVideos,
+  users, teams, teamMembers, events, highlightVideos, plays,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember,
   type Event, type InsertEvent, type UpdateEvent,
-  type HighlightVideo, type InsertHighlightVideo, type UpdateHighlightVideo
+  type HighlightVideo, type InsertHighlightVideo, type UpdateHighlightVideo,
+  type Play, type InsertPlay, type UpdatePlay
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -49,6 +50,12 @@ export interface IStorage {
   createHighlightVideo(data: InsertHighlightVideo): Promise<HighlightVideo>;
   updateHighlightVideo(id: string, data: UpdateHighlightVideo): Promise<HighlightVideo | undefined>;
   deleteHighlightVideo(id: string): Promise<void>;
+  
+  getTeamPlays(teamId: string): Promise<(Play & { createdBy: User })[]>;
+  getPlay(id: string): Promise<Play | undefined>;
+  createPlay(data: InsertPlay): Promise<Play>;
+  updatePlay(id: string, data: UpdatePlay): Promise<Play | undefined>;
+  deletePlay(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -258,6 +265,46 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHighlightVideo(id: string): Promise<void> {
     await db.delete(highlightVideos).where(eq(highlightVideos.id, id));
+  }
+
+  async getTeamPlays(teamId: string): Promise<(Play & { createdBy: User })[]> {
+    const teamPlays = await db
+      .select()
+      .from(plays)
+      .where(eq(plays.teamId, teamId))
+      .orderBy(desc(plays.createdAt));
+    
+    const result: (Play & { createdBy: User })[] = [];
+    for (const play of teamPlays) {
+      const creator = await this.getUser(play.createdById);
+      if (creator) {
+        result.push({ ...play, createdBy: creator });
+      }
+    }
+    return result;
+  }
+
+  async getPlay(id: string): Promise<Play | undefined> {
+    const [play] = await db.select().from(plays).where(eq(plays.id, id));
+    return play || undefined;
+  }
+
+  async createPlay(data: InsertPlay): Promise<Play> {
+    const [play] = await db.insert(plays).values(data).returning();
+    return play;
+  }
+
+  async updatePlay(id: string, data: UpdatePlay): Promise<Play | undefined> {
+    const [play] = await db
+      .update(plays)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(plays.id, id))
+      .returning();
+    return play || undefined;
+  }
+
+  async deletePlay(id: string): Promise<void> {
+    await db.delete(plays).where(eq(plays.id, id));
   }
 }
 
