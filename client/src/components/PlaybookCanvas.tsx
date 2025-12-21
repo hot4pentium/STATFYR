@@ -16,11 +16,14 @@ interface DrawnElement {
   lineWidth: number;
 }
 
+const SHAPE_SIZE = 40;
+
 export function PlaybookCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedTool, setSelectedTool] = useState<Tool>("freedraw");
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState<Point | null>(null);
+  const [lastPoint, setLastPoint] = useState<Point | null>(null);
   const [currentPath, setCurrentPath] = useState<Point[]>([]);
   const [elements, setElements] = useState<DrawnElement[]>([]);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -33,6 +36,8 @@ export function PlaybookCanvas() {
     { id: "triangle", icon: <Triangle className="h-5 w-5" />, label: "Triangle" },
     { id: "circle", icon: <Circle className="h-5 w-5 text-red-500" />, label: "O Circle", color: "red" },
   ];
+
+  const isShapeTool = (tool: Tool) => ["square", "xshape", "triangle", "circle"].includes(tool);
 
   const getToolColor = (tool: Tool) => {
     return tool === "circle" ? "#ef4444" : "#ffffff";
@@ -107,7 +112,7 @@ export function PlaybookCanvas() {
       case "arrow":
         if (element.points.length < 2) return;
         const start = element.points[0];
-        const end = element.points[element.points.length - 1];
+        const end = element.points[1];
         const angle = Math.atan2(end.y - start.y, end.x - start.x);
         const headLen = 15;
 
@@ -120,60 +125,50 @@ export function PlaybookCanvas() {
         ctx.moveTo(end.x, end.y);
         ctx.lineTo(end.x - headLen * Math.cos(angle - Math.PI / 6), end.y - headLen * Math.sin(angle - Math.PI / 6));
         ctx.moveTo(end.x, end.y);
-        ctx.lineTo(end.x - headLen * Math.cos(angle + Math.PI / 6), end.y - headLen * Math.sin(angle + Math.PI / 6));
+        ctx.lineTo(end.x - headLen * Math.cos(angle + Math.PI / 6), end.y + headLen * Math.sin(angle + Math.PI / 6));
         ctx.stroke();
         break;
 
       case "square":
-        if (element.points.length < 2) return;
-        const sqStart = element.points[0];
-        const sqEnd = element.points[element.points.length - 1];
-        ctx.strokeRect(sqStart.x, sqStart.y, sqEnd.x - sqStart.x, sqEnd.y - sqStart.y);
+        const sqCenter = element.points[0];
+        const half = SHAPE_SIZE / 2;
+        ctx.strokeRect(sqCenter.x - half, sqCenter.y - half, SHAPE_SIZE, SHAPE_SIZE);
         break;
 
       case "xshape":
-        if (element.points.length < 2) return;
-        const xStart = element.points[0];
-        const xEnd = element.points[element.points.length - 1];
+        const xCenter = element.points[0];
+        const xHalf = SHAPE_SIZE / 2;
         ctx.beginPath();
-        ctx.moveTo(xStart.x, xStart.y);
-        ctx.lineTo(xEnd.x, xEnd.y);
-        ctx.moveTo(xEnd.x, xStart.y);
-        ctx.lineTo(xStart.x, xEnd.y);
+        ctx.moveTo(xCenter.x - xHalf, xCenter.y - xHalf);
+        ctx.lineTo(xCenter.x + xHalf, xCenter.y + xHalf);
+        ctx.moveTo(xCenter.x + xHalf, xCenter.y - xHalf);
+        ctx.lineTo(xCenter.x - xHalf, xCenter.y + xHalf);
         ctx.stroke();
         break;
 
       case "triangle":
-        if (element.points.length < 2) return;
-        const triStart = element.points[0];
-        const triEnd = element.points[element.points.length - 1];
-        const triMidX = (triStart.x + triEnd.x) / 2;
+        const triCenter = element.points[0];
+        const triHalf = SHAPE_SIZE / 2;
         ctx.beginPath();
-        ctx.moveTo(triMidX, triStart.y);
-        ctx.lineTo(triEnd.x, triEnd.y);
-        ctx.lineTo(triStart.x, triEnd.y);
+        ctx.moveTo(triCenter.x, triCenter.y - triHalf);
+        ctx.lineTo(triCenter.x + triHalf, triCenter.y + triHalf);
+        ctx.lineTo(triCenter.x - triHalf, triCenter.y + triHalf);
         ctx.closePath();
         ctx.stroke();
         break;
 
       case "circle":
-        if (element.points.length < 2) return;
-        const circStart = element.points[0];
-        const circEnd = element.points[element.points.length - 1];
-        const radiusX = Math.abs(circEnd.x - circStart.x) / 2;
-        const radiusY = Math.abs(circEnd.y - circStart.y) / 2;
-        const centerX = (circStart.x + circEnd.x) / 2;
-        const centerY = (circStart.y + circEnd.y) / 2;
-        const radius = Math.max(radiusX, radiusY);
+        const circCenter = element.points[0];
+        const radius = SHAPE_SIZE / 2;
 
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.arc(circCenter.x, circCenter.y, radius, 0, Math.PI * 2);
         ctx.stroke();
 
-        ctx.font = "bold 16px sans-serif";
+        ctx.font = "bold 18px sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("O", centerX, centerY);
+        ctx.fillText("O", circCenter.x, circCenter.y);
         break;
     }
   };
@@ -203,16 +198,32 @@ export function PlaybookCanvas() {
   const handleStart = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const point = getCanvasPoint(e);
+
+    if (isShapeTool(selectedTool)) {
+      const newElement: DrawnElement = {
+        tool: selectedTool,
+        points: [point],
+        color: getToolColor(selectedTool),
+        lineWidth: 3,
+      };
+      setElements((prev) => [...prev, newElement]);
+      return;
+    }
+
     setIsDrawing(true);
     setStartPoint(point);
+    setLastPoint(point);
     setCurrentPath([point]);
   };
 
   const handleMove = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if (!isDrawing || !startPoint) return;
+    if (isShapeTool(selectedTool)) return;
     e.preventDefault();
 
     const point = getCanvasPoint(e);
+    setLastPoint(point);
+
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
@@ -234,8 +245,19 @@ export function PlaybookCanvas() {
 
   const handleEnd = () => {
     if (!isDrawing || !startPoint) return;
+    if (isShapeTool(selectedTool)) {
+      setIsDrawing(false);
+      return;
+    }
 
-    const finalPoints = selectedTool === "freedraw" ? currentPath : [startPoint, currentPath[currentPath.length - 1] || startPoint];
+    let finalPoints: Point[];
+    if (selectedTool === "freedraw") {
+      finalPoints = currentPath;
+    } else if (selectedTool === "arrow" && lastPoint) {
+      finalPoints = [startPoint, lastPoint];
+    } else {
+      finalPoints = currentPath.length >= 2 ? currentPath : [];
+    }
 
     if (finalPoints.length >= 2) {
       const newElement: DrawnElement = {
@@ -249,6 +271,7 @@ export function PlaybookCanvas() {
 
     setIsDrawing(false);
     setStartPoint(null);
+    setLastPoint(null);
     setCurrentPath([]);
   };
 
