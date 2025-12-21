@@ -400,7 +400,7 @@ export default function AthleteDashboard() {
                         <video
                           src={video.publicUrl}
                           controls
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                           poster={video.thumbnailKey || undefined}
                           data-testid={`video-player-${video.id}`}
                         />
