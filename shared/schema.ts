@@ -113,6 +113,29 @@ export const highlightVideosRelations = relations(highlightVideos, ({ one }) => 
   }),
 }));
 
+export const plays = pgTable("plays", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  createdById: varchar("created_by_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  canvasData: text("canvas_data").notNull(),
+  status: text("status").notNull().default("Needs Work"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const playsRelations = relations(plays, ({ one }) => ({
+  team: one(teams, {
+    fields: [plays.teamId],
+    references: [teams.id],
+  }),
+  createdBy: one(users, {
+    fields: [plays.createdById],
+    references: [users.id],
+  }),
+}));
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -162,6 +185,20 @@ export const updateHighlightVideoSchema = createInsertSchema(highlightVideos).om
   uploaderId: true,
 }).partial();
 
+export const insertPlaySchema = createInsertSchema(plays).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updatePlaySchema = createInsertSchema(plays).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  teamId: true,
+  createdById: true,
+}).partial();
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertTeam = z.infer<typeof insertTeamSchema>;
@@ -174,3 +211,6 @@ export type Event = typeof events.$inferSelect;
 export type InsertHighlightVideo = z.infer<typeof insertHighlightVideoSchema>;
 export type UpdateHighlightVideo = z.infer<typeof updateHighlightVideoSchema>;
 export type HighlightVideo = typeof highlightVideos.$inferSelect;
+export type InsertPlay = z.infer<typeof insertPlaySchema>;
+export type UpdatePlay = z.infer<typeof updatePlaySchema>;
+export type Play = typeof plays.$inferSelect;
