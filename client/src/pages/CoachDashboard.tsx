@@ -373,7 +373,7 @@ export default function CoachDashboard() {
                         textUnderlineOffset: '4px'
                       }
                     }}
-                    className="w-full"
+                    className=""
                   />
                   <div className="mt-4 pt-4 border-t border-white/10 text-xs text-muted-foreground text-center">
                     <span className="underline decoration-primary underline-offset-4 font-bold">Underlined</span> dates have events
