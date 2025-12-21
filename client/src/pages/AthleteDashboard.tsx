@@ -937,24 +937,33 @@ export default function AthleteDashboard() {
               {/* Next Match */}
               <Card className="bg-card/80 backdrop-blur-sm border-white/5">
                 <CardHeader>
-                  <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Next Match</CardTitle>
+                  <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Next Event</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="p-4 bg-primary/20 border border-primary/30 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Team Practice</p>
-                    <p className="text-lg font-bold text-foreground">{nextEvent.title}</p>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <span>Oct 25 • 5:00 PM</span>
+                  {nextEvent ? (
+                    <>
+                      <div className="p-4 bg-primary/20 border border-primary/30 rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">{nextEvent.type}</p>
+                        <p className="text-lg font-bold text-foreground">{nextEvent.title}</p>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          <span>{new Date(nextEvent.date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          <span>{nextEvent.location || "TBD"}</span>
+                        </div>
+                      </div>
+                      <Button className="w-full" size="sm">Add to Calendar</Button>
+                    </>
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No upcoming events</p>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      <span>{nextEvent.location}</span>
-                    </div>
-                  </div>
-                  <Button className="w-full" size="sm">Add to Calendar</Button>
+                  )}
                 </CardContent>
               </Card>
 
