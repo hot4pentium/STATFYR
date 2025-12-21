@@ -386,18 +386,19 @@ export default function SupporterDashboard() {
                 {teamHighlights.map((video: HighlightVideo) => (
                   <Card key={video.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all overflow-hidden">
                     <div className="relative aspect-video bg-black">
-                      {video.thumbnailKey ? (
-                        <img src={video.publicUrl || undefined} alt={video.title || "Video"} className="w-full h-full object-cover" />
+                      {video.status === "ready" && video.publicUrl ? (
+                        <video
+                          src={video.publicUrl}
+                          controls
+                          preload="metadata"
+                          className="w-full h-full object-contain"
+                          poster={video.thumbnailKey || undefined}
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Video className="h-12 w-12 text-muted-foreground" />
                         </div>
                       )}
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">
-                        <Button size="icon" variant="secondary" className="h-12 w-12 rounded-full">
-                          <PlayIcon className="h-6 w-6" />
-                        </Button>
-                      </div>
                     </div>
                     <CardContent className="p-4">
                       <h4 className="font-bold truncate">{video.title || "Untitled"}</h4>
