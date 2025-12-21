@@ -53,6 +53,7 @@ export default function CoachDashboard() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(new Date()));
   const [expandedPlay, setExpandedPlay] = useState<Play | null>(null);
+  const [playbookTab, setPlaybookTab] = useState<"Offense" | "Defense" | "Special">("Offense");
 
   const { data: coachTeams } = useQuery({
     queryKey: ["/api/coach", user?.id, "teams"],
@@ -663,51 +664,68 @@ export default function CoachDashboard() {
                 New Play
               </Button>
             </div>
-            {teamPlays.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-bold">No saved plays yet</p>
-                <p className="text-sm">Create plays in PlayMaker and save them here.</p>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {offensePlays.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Badge className="bg-blue-600 text-white">Offense</Badge>
-                      <span className="text-sm text-muted-foreground">({offensePlays.length} plays)</span>
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {offensePlays.map(renderPlayCard)}
-                    </div>
-                  </div>
-                )}
-                
-                {defensePlays.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Badge className="bg-orange-600 text-white">Defense</Badge>
-                      <span className="text-sm text-muted-foreground">({defensePlays.length} plays)</span>
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {defensePlays.map(renderPlayCard)}
-                    </div>
-                  </div>
-                )}
-                
-                {specialPlays.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Badge className="bg-purple-600 text-white">Special</Badge>
-                      <span className="text-sm text-muted-foreground">({specialPlays.length} plays)</span>
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {specialPlays.map(renderPlayCard)}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            <Tabs value={playbookTab} onValueChange={(v) => setPlaybookTab(v as "Offense" | "Defense" | "Special")} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="Offense" className="gap-2" data-testid="playbook-tab-offense">
+                  <span>Offense</span>
+                  <Badge variant="secondary" className="bg-blue-600 text-white text-xs">{offensePlays.length}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="Defense" className="gap-2" data-testid="playbook-tab-defense">
+                  <span>Defense</span>
+                  <Badge variant="secondary" className="bg-orange-600 text-white text-xs">{defensePlays.length}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="Special" className="gap-2" data-testid="playbook-tab-special">
+                  <span>Special</span>
+                  <Badge variant="secondary" className="bg-purple-600 text-white text-xs">{specialPlays.length}</Badge>
+                </TabsTrigger>
+              </TabsList>
+              
+              {teamPlays.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-bold">No saved plays yet</p>
+                  <p className="text-sm">Create plays in PlayMaker and save them here.</p>
+                </div>
+              ) : (
+                <>
+                  {playbookTab === "Offense" && (
+                    offensePlays.length > 0 ? (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {offensePlays.map(renderPlayCard)}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <p className="text-sm">No offense plays yet.</p>
+                      </div>
+                    )
+                  )}
+                  
+                  {playbookTab === "Defense" && (
+                    defensePlays.length > 0 ? (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {defensePlays.map(renderPlayCard)}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <p className="text-sm">No defense plays yet.</p>
+                      </div>
+                    )
+                  )}
+                  
+                  {playbookTab === "Special" && (
+                    specialPlays.length > 0 ? (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {specialPlays.map(renderPlayCard)}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <p className="text-sm">No special plays yet.</p>
+                      </div>
+                    )
+                  )}
+                </>
+              )}
+            </Tabs>
             
             <Dialog open={!!expandedPlay} onOpenChange={(open) => !open && setExpandedPlay(null)}>
               <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
