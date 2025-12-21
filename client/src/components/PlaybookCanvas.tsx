@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick } from "lucide-react";
+import basketballCourtImg from "@assets/bball_court_1766345509497.png";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -37,6 +38,7 @@ const SHAPE_SIZE = 24;
 
 export function PlaybookCanvas({ athletes = [], sport = "Football" }: PlaybookCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const basketballImageRef = useRef<HTMLImageElement | null>(null);
   const [selectedTool, setSelectedTool] = useState<Tool>("freedraw");
   const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
   const [isAthletePopoverOpen, setIsAthletePopoverOpen] = useState(false);
@@ -49,6 +51,16 @@ export function PlaybookCanvas({ athletes = [], sport = "Football" }: PlaybookCa
   const [currentPath, setCurrentPath] = useState<Point[]>([]);
   const [elements, setElements] = useState<DrawnElement[]>([]);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [basketballImageLoaded, setBasketballImageLoaded] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = basketballCourtImg;
+    img.onload = () => {
+      basketballImageRef.current = img;
+      setBasketballImageLoaded(true);
+    };
+  }, []);
 
   const sortedAthletes = [...athletes].sort((a, b) => 
     a.firstName.localeCompare(b.firstName)
@@ -115,7 +127,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football" }: PlaybookCa
     elements.forEach((element) => {
       drawElement(ctx, element);
     });
-  }, [elements, sport]);
+  }, [elements, sport, basketballImageLoaded]);
 
   useEffect(() => {
     redrawCanvas();
@@ -229,109 +241,12 @@ export function PlaybookCanvas({ athletes = [], sport = "Football" }: PlaybookCa
   };
 
   const drawBasketballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    ctx.fillStyle = "#CD853F";
-    ctx.fillRect(0, 0, width, height);
-    
-    const padding = 30;
-    const courtWidth = width - padding * 2;
-    const courtHeight = height - padding * 2;
-    
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-    ctx.lineWidth = 3;
-    ctx.strokeRect(padding, padding, courtWidth, courtHeight);
-    
-    const centerY = height / 2;
-    ctx.beginPath();
-    ctx.moveTo(padding, centerY);
-    ctx.lineTo(width - padding, centerY);
-    ctx.stroke();
-    
-    const centerCircleRadius = Math.min(courtWidth, courtHeight) * 0.08;
-    ctx.beginPath();
-    ctx.arc(width / 2, centerY, centerCircleRadius, 0, Math.PI * 2);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, centerY, 4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    const keyWidth = courtWidth * 0.32;
-    const keyHeight = courtHeight * 0.19;
-    const rimOffset = courtHeight * 0.055;
-    const rimRadius = 8;
-    const backboardWidth = courtWidth * 0.15;
-    const restrictedRadius = courtWidth * 0.08;
-    const threePointRadius = courtWidth * 0.42;
-    const threePointSideInset = courtWidth * 0.07;
-    
-    ctx.strokeRect(width / 2 - keyWidth / 2, padding, keyWidth, keyHeight);
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, padding + keyHeight, keyWidth * 0.38, 0, Math.PI);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, padding + rimOffset, rimRadius, 0, Math.PI * 2);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(width / 2 - backboardWidth / 2, padding + 15);
-    ctx.lineTo(width / 2 + backboardWidth / 2, padding + 15);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, padding + rimOffset, restrictedRadius, 0, Math.PI);
-    ctx.stroke();
-    
-    const threePointStartY = padding + keyHeight * 0.7;
-    ctx.beginPath();
-    ctx.moveTo(padding + threePointSideInset, padding);
-    ctx.lineTo(padding + threePointSideInset, threePointStartY);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(width - padding - threePointSideInset, padding);
-    ctx.lineTo(width - padding - threePointSideInset, threePointStartY);
-    ctx.stroke();
-    
-    const arcCenterY = padding + rimOffset;
-    const arcStartAngle = Math.acos((courtWidth / 2 - threePointSideInset) / threePointRadius);
-    ctx.beginPath();
-    ctx.arc(width / 2, arcCenterY, threePointRadius, arcStartAngle, Math.PI - arcStartAngle);
-    ctx.stroke();
-    
-    ctx.strokeRect(width / 2 - keyWidth / 2, height - padding - keyHeight, keyWidth, keyHeight);
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, height - padding - keyHeight, keyWidth * 0.38, Math.PI, Math.PI * 2);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, height - padding - rimOffset, rimRadius, 0, Math.PI * 2);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(width / 2 - backboardWidth / 2, height - padding - 15);
-    ctx.lineTo(width / 2 + backboardWidth / 2, height - padding - 15);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, height - padding - rimOffset, restrictedRadius, Math.PI, Math.PI * 2);
-    ctx.stroke();
-    
-    const bottomThreePointStartY = height - padding - keyHeight * 0.7;
-    ctx.beginPath();
-    ctx.moveTo(padding + threePointSideInset, height - padding);
-    ctx.lineTo(padding + threePointSideInset, bottomThreePointStartY);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(width - padding - threePointSideInset, height - padding);
-    ctx.lineTo(width - padding - threePointSideInset, bottomThreePointStartY);
-    ctx.stroke();
-    
-    const bottomArcCenterY = height - padding - rimOffset;
-    ctx.beginPath();
-    ctx.arc(width / 2, bottomArcCenterY, threePointRadius, Math.PI + arcStartAngle, -arcStartAngle);
-    ctx.stroke();
+    if (basketballImageRef.current) {
+      ctx.drawImage(basketballImageRef.current, 0, 0, width, height);
+    } else {
+      ctx.fillStyle = "#CD853F";
+      ctx.fillRect(0, 0, width, height);
+    }
   };
 
   const drawFootballField = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
