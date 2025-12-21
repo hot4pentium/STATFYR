@@ -39,6 +39,9 @@ export default function CoachDashboard() {
   const [eventForm, setEventForm] = useState({
     type: "Practice",
     date: "",
+    hour: "09",
+    minute: "00",
+    ampm: "AM",
     location: "",
     details: "",
     opponent: "",
@@ -112,7 +115,7 @@ export default function CoachDashboard() {
   });
 
   const resetEventForm = () => {
-    setEventForm({ type: "Practice", date: "", location: "", details: "", opponent: "", drinksAthleteId: "", snacksAthleteId: "" });
+    setEventForm({ type: "Practice", date: "", hour: "09", minute: "00", ampm: "AM", location: "", details: "", opponent: "", drinksAthleteId: "", snacksAthleteId: "" });
   };
 
   const openAddEvent = () => {
@@ -123,9 +126,19 @@ export default function CoachDashboard() {
 
   const openEditEvent = (event: Event) => {
     setEditingEvent(event);
+    const eventDate = new Date(event.date);
+    let hours = eventDate.getHours();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    const formattedHour = hours.toString().padStart(2, "0");
+    const formattedMinute = eventDate.getMinutes().toString().padStart(2, "0");
+    
     setEventForm({
       type: event.type,
-      date: new Date(event.date).toISOString().slice(0, 16),
+      date: eventDate.toISOString().slice(0, 10),
+      hour: formattedHour,
+      minute: formattedMinute,
+      ampm: ampm,
       location: event.location || "",
       details: event.details || "",
       opponent: (event as any).opponent || "",
@@ -141,9 +154,19 @@ export default function CoachDashboard() {
       return;
     }
     
+    // Convert 12-hour time to 24-hour format and create full datetime
+    let hour24 = parseInt(eventForm.hour, 10);
+    if (eventForm.ampm === "PM" && hour24 !== 12) {
+      hour24 += 12;
+    } else if (eventForm.ampm === "AM" && hour24 === 12) {
+      hour24 = 0;
+    }
+    const timeString = `${hour24.toString().padStart(2, "0")}:${eventForm.minute}`;
+    const fullDateTime = `${eventForm.date}T${timeString}`;
+    
     const data = {
       type: eventForm.type,
-      date: eventForm.date,
+      date: fullDateTime,
       location: eventForm.location || undefined,
       details: eventForm.details || undefined,
       opponent: eventForm.opponent || undefined,
@@ -963,14 +986,48 @@ export default function CoachDashboard() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="event-date">Date & Time *</Label>
+              <Label htmlFor="event-date">Date *</Label>
               <Input
                 id="event-date"
-                type="datetime-local"
+                type="date"
                 value={eventForm.date}
                 onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
                 data-testid="input-event-date"
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Time *</Label>
+              <div className="flex gap-2">
+                <Select value={eventForm.hour} onValueChange={(value) => setEventForm({ ...eventForm, hour: value })}>
+                  <SelectTrigger className="w-[80px]" data-testid="select-event-hour">
+                    <SelectValue placeholder="Hour" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map((h) => (
+                      <SelectItem key={h} value={h}>{h}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={eventForm.minute} onValueChange={(value) => setEventForm({ ...eventForm, minute: value })}>
+                  <SelectTrigger className="w-[80px]" data-testid="select-event-minute">
+                    <SelectValue placeholder="Min" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["00", "15", "30", "45"].map((m) => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={eventForm.ampm} onValueChange={(value) => setEventForm({ ...eventForm, ampm: value })}>
+                  <SelectTrigger className="w-[80px]" data-testid="select-event-ampm">
+                    <SelectValue placeholder="AM/PM" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AM">AM</SelectItem>
+                    <SelectItem value="PM">PM</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="event-opponent">Opponent</Label>
