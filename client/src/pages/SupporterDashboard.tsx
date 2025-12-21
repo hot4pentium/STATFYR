@@ -768,7 +768,7 @@ export default function SupporterDashboard() {
         )}
         
         {viewingAsAthlete ? (
-          <div ref={heroBannerRef} className="grid grid-cols-[1fr_auto] gap-3 md:gap-6" data-testid="managed-athlete-hype-section">
+          <div ref={heroBannerRef} className="grid grid-cols-[1fr_auto] gap-4 md:gap-8" data-testid="managed-athlete-hype-section">
             <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
               <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
               <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
@@ -810,7 +810,7 @@ export default function SupporterDashboard() {
               </div>
             </div>
 
-            <div className="w-32 md:w-64 space-y-1 md:space-y-2 flex-shrink-0">
+            <div className="w-36 md:w-72 space-y-1 md:space-y-2 flex-shrink-0">
               <input
                 type="file"
                 ref={avatarInputRef}
@@ -832,7 +832,7 @@ export default function SupporterDashboard() {
                   <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
                   
                   {!isManagedAthleteCardFlipped ? (
-                    <div className="relative w-full h-40 md:h-80 overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
+                    <div className="relative w-full h-44 md:h-96 overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
                       {viewingAsAthlete.athlete.avatar ? (
                         <img src={viewingAsAthlete.athlete.avatar} alt={viewingAsAthlete.athlete.name || ""} className="absolute inset-0 w-full h-full object-cover" />
                       ) : (
@@ -892,7 +892,7 @@ export default function SupporterDashboard() {
                       </div>
                     </div>
                   ) : (
-                    <div className="relative w-full h-40 md:h-80 overflow-hidden" style={{ transform: 'scaleX(-1)', backfaceVisibility: 'hidden' }}>
+                    <div className="relative w-full h-44 md:h-96 overflow-hidden" style={{ transform: 'scaleX(-1)', backfaceVisibility: 'hidden' }}>
                       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black" />
                       <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
                       <div className="relative w-full h-full p-1.5 md:p-3 grid grid-cols-2 gap-1 md:gap-2">
