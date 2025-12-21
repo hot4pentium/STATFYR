@@ -767,7 +767,7 @@ export default function SupporterDashboard() {
         )}
         
         {viewingAsAthlete ? (
-          <div ref={heroBannerRef} className="flex flex-col-reverse md:grid md:grid-cols-[1fr_280px] gap-4 md:gap-6" data-testid="managed-athlete-hype-section">
+          <div ref={heroBannerRef} className="grid grid-cols-[1fr_auto] gap-3 md:gap-6" data-testid="managed-athlete-hype-section">
             <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
               <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
               <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
@@ -809,7 +809,7 @@ export default function SupporterDashboard() {
               </div>
             </div>
 
-            <div className="w-full max-w-[280px] mx-auto md:mx-0 md:w-64 space-y-2">
+            <div className="w-32 md:w-64 space-y-1 md:space-y-2 flex-shrink-0">
               <input
                 type="file"
                 ref={avatarInputRef}
@@ -831,12 +831,12 @@ export default function SupporterDashboard() {
                   <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
                   
                   {!isManagedAthleteCardFlipped ? (
-                    <div className="relative w-full h-80 overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
+                    <div className="relative w-full h-40 md:h-80 overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
                       {viewingAsAthlete.athlete.avatar ? (
-                        <img src={viewingAsAthlete.athlete.avatar} alt={viewingAsAthlete.athlete.name || ""} className="absolute inset-0 w-full h-full object-contain" />
+                        <img src={viewingAsAthlete.athlete.avatar} alt={viewingAsAthlete.athlete.name || ""} className="absolute inset-0 w-full h-full object-cover" />
                       ) : (
                         <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
-                          <User className="h-24 w-24 text-white/40" />
+                          <User className="h-12 md:h-24 w-12 md:w-24 text-white/40" />
                         </div>
                       )}
                       
@@ -846,31 +846,31 @@ export default function SupporterDashboard() {
                           avatarInputRef.current?.click();
                         }}
                         disabled={isUploadingAthleteAvatar}
-                        className="absolute top-3 right-3 p-2 bg-black/50 hover:bg-black/70 rounded-full border border-white/20 transition z-10"
+                        className="absolute top-1.5 md:top-3 right-1.5 md:right-3 p-1 md:p-2 bg-black/50 hover:bg-black/70 rounded-full border border-white/20 transition z-10"
                         data-testid="button-upload-athlete-avatar"
                       >
-                        <Camera className={`h-4 w-4 text-white ${isUploadingAthleteAvatar ? 'animate-pulse' : ''}`} />
+                        <Camera className={`h-3 w-3 md:h-4 md:w-4 text-white ${isUploadingAthleteAvatar ? 'animate-pulse' : ''}`} />
                       </button>
                       
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
                       <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
                       
-                      <div className="absolute top-0 left-0 p-3 text-left">
-                        <h3 className="text-lg font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{viewingAsAthlete.athlete.name}</h3>
-                        <p className="text-[9px] text-white/90 uppercase mt-0.5 tracking-wider drop-shadow-md font-semibold">{currentTeam?.name || "Team"}</p>
+                      <div className="absolute top-0 left-0 p-1.5 md:p-3 text-left">
+                        <h3 className="text-[10px] md:text-lg font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{viewingAsAthlete.athlete.name}</h3>
+                        <p className="text-[7px] md:text-[9px] text-white/90 uppercase mt-0.5 tracking-wider drop-shadow-md font-semibold hidden md:block">{currentTeam?.name || "Team"}</p>
                       </div>
 
-                      <div className="absolute bottom-0 left-0 p-4">
-                        <p className="text-sm font-bold text-accent uppercase tracking-wider drop-shadow-lg">{viewingAsAthlete.athlete.position || "Player"}</p>
+                      <div className="absolute bottom-0 left-0 p-1.5 md:p-4">
+                        <p className="text-[8px] md:text-sm font-bold text-accent uppercase tracking-wider drop-shadow-lg">{viewingAsAthlete.athlete.position || "Player"}</p>
                       </div>
 
-                      <div className="absolute bottom-0 right-0 p-4">
-                        <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-3 shadow-lg">
-                          <span className="text-white font-display font-bold text-2xl drop-shadow">#{viewingAsAthlete.athlete.number || "00"}</span>
+                      <div className="absolute bottom-0 right-0 p-1.5 md:p-4">
+                        <div className="bg-gradient-to-r from-accent to-primary rounded md:rounded-lg p-1 md:p-3 shadow-lg">
+                          <span className="text-white font-display font-bold text-xs md:text-2xl drop-shadow">#{viewingAsAthlete.athlete.number || "00"}</span>
                         </div>
                       </div>
 
-                      <div className="absolute right-0.5 top-1/2 -translate-y-1/2">
+                      <div className="absolute right-0.5 top-1/2 -translate-y-1/2 hidden md:block">
                         <div className="flex flex-row items-center gap-1 -rotate-90 whitespace-nowrap origin-center">
                           <span className="text-[10px] text-white font-bold uppercase tracking-widest drop-shadow-lg">HYPE</span>
                           <div className="w-0.5 h-2 bg-white/60"></div>
@@ -879,61 +879,54 @@ export default function SupporterDashboard() {
                       </div>
                     </div>
                   ) : (
-                    <div className="relative w-full h-96 overflow-hidden" style={{ transform: 'scaleX(-1)', backfaceVisibility: 'hidden' }}>
+                    <div className="relative w-full h-40 md:h-80 overflow-hidden" style={{ transform: 'scaleX(-1)', backfaceVisibility: 'hidden' }}>
                       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black" />
                       <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-                      <div className="relative w-full h-full p-3 grid grid-cols-2 gap-2">
-                        <div className="bg-white/5 border border-white/10 rounded-lg p-3 overflow-hidden flex flex-col">
-                          <p className="text-[8px] text-accent font-bold uppercase tracking-widest mb-2">Events</p>
-                          <div className="space-y-1 text-[9px] text-white/70 flex-1 overflow-y-auto">
+                      <div className="relative w-full h-full p-1.5 md:p-3 grid grid-cols-2 gap-1 md:gap-2">
+                        <div className="bg-white/5 border border-white/10 rounded p-1.5 md:p-3 overflow-hidden flex flex-col">
+                          <p className="text-[6px] md:text-[8px] text-accent font-bold uppercase tracking-widest mb-0.5 md:mb-2">Events</p>
+                          <div className="space-y-0.5 text-[7px] md:text-[9px] text-white/70 flex-1 overflow-y-auto">
                             {teamEvents.length === 0 ? (
-                              <div className="text-[8px]">No events</div>
+                              <div className="text-[6px] md:text-[8px]">No events</div>
                             ) : (
                               teamEvents.slice(0, 2).map((event: Event) => (
-                                <div key={event.id} className="line-clamp-2">
+                                <div key={event.id} className="line-clamp-1 md:line-clamp-2">
                                   <span className="font-semibold text-white">{event.type}</span>
-                                  <div className="text-[8px]">{new Date(event.date).toLocaleDateString()}</div>
                                 </div>
                               ))
                             )}
                           </div>
                         </div>
 
-                        <div className="bg-white/5 border border-white/10 rounded-lg p-3 overflow-hidden flex flex-col">
-                          <p className="text-[8px] text-primary font-bold uppercase tracking-widest mb-2">Stats</p>
-                          <div className="space-y-2 flex-1">
+                        <div className="bg-white/5 border border-white/10 rounded p-1.5 md:p-3 overflow-hidden flex flex-col">
+                          <p className="text-[6px] md:text-[8px] text-primary font-bold uppercase tracking-widest mb-0.5 md:mb-2">Stats</p>
+                          <div className="space-y-1 flex-1">
                             <div>
-                              <div className="flex justify-between items-end gap-1 mb-1">
-                                <span className="text-[8px] text-white/70">Goals</span>
-                                <span className="text-[9px] font-bold text-primary">0</span>
-                              </div>
-                              <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                                <div className="h-full bg-primary" style={{width: "0%"}}></div>
+                              <div className="flex justify-between items-end gap-1">
+                                <span className="text-[6px] md:text-[8px] text-white/70">Goals</span>
+                                <span className="text-[7px] md:text-[9px] font-bold text-primary">0</span>
                               </div>
                             </div>
                             <div>
-                              <div className="flex justify-between items-end gap-1 mb-1">
-                                <span className="text-[8px] text-white/70">Assists</span>
-                                <span className="text-[9px] font-bold text-accent">0</span>
-                              </div>
-                              <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                                <div className="h-full bg-accent" style={{width: "0%"}}></div>
+                              <div className="flex justify-between items-end gap-1">
+                                <span className="text-[6px] md:text-[8px] text-white/70">Assists</span>
+                                <span className="text-[7px] md:text-[9px] font-bold text-accent">0</span>
                               </div>
                             </div>
                           </div>
                         </div>
 
-                        <div className="bg-white/5 border border-white/10 rounded-lg p-3 overflow-hidden flex flex-col">
-                          <p className="text-[8px] text-green-400 font-bold uppercase tracking-widest mb-2">Highlights</p>
-                          <div className="space-y-1 text-[9px] text-white/70 flex-1">
-                            <div>No highlights yet</div>
+                        <div className="bg-white/5 border border-white/10 rounded p-1.5 md:p-3 overflow-hidden flex flex-col">
+                          <p className="text-[6px] md:text-[8px] text-green-400 font-bold uppercase tracking-widest mb-0.5 md:mb-2">Highlights</p>
+                          <div className="text-[6px] md:text-[9px] text-white/70 flex-1">
+                            <div>No highlights</div>
                           </div>
                         </div>
 
-                        <div className="bg-white/5 border border-white/10 rounded-lg p-3 overflow-hidden flex flex-col">
-                          <p className="text-[8px] text-orange-400 font-bold uppercase tracking-widest mb-2">Shoutouts</p>
-                          <div className="text-[8px] text-white/70 italic flex-1">
-                            <p className="line-clamp-3">No shoutouts yet</p>
+                        <div className="bg-white/5 border border-white/10 rounded p-1.5 md:p-3 overflow-hidden flex flex-col">
+                          <p className="text-[6px] md:text-[8px] text-orange-400 font-bold uppercase tracking-widest mb-0.5 md:mb-2">Shoutouts</p>
+                          <div className="text-[6px] md:text-[8px] text-white/70 italic flex-1">
+                            <p className="line-clamp-2">No shoutouts</p>
                           </div>
                         </div>
                       </div>
@@ -944,10 +937,10 @@ export default function SupporterDashboard() {
               
               <button
                 onClick={() => setIsManagedAthleteCardFlipped(!isManagedAthleteCardFlipped)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg py-2 text-center backdrop-blur-sm hover:bg-white/10 transition cursor-pointer"
+                className="w-full bg-white/5 border border-white/10 rounded py-1 md:py-2 text-center backdrop-blur-sm hover:bg-white/10 transition cursor-pointer"
                 data-testid="button-flip-managed-athlete-card"
               >
-                <p className="text-xs text-white/70 font-medium uppercase tracking-wide">Tap to Flip</p>
+                <p className="text-[8px] md:text-xs text-white/70 font-medium uppercase tracking-wide">Tap to Flip</p>
               </button>
             </div>
           </div>
