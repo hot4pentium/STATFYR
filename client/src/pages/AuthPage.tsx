@@ -83,7 +83,7 @@ export default function AuthPage() {
       });
       setUser(user);
       
-      if (selectedRole === 'coach') setLocation("/dashboard");
+      if (selectedRole === 'coach') setLocation("/coach/onboarding");
       else if (selectedRole === 'athlete') setLocation("/athlete/onboarding");
       else setLocation("/supporter/onboarding");
     } catch (error: any) {

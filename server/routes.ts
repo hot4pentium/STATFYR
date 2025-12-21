@@ -147,6 +147,18 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/teams/:id", async (req, res) => {
+    try {
+      const team = await storage.updateTeam(req.params.id, req.body);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      res.json(team);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update team" });
+    }
+  });
+
   app.get("/api/teams/:id/members", async (req, res) => {
     try {
       const members = await storage.getTeamMembers(req.params.id);

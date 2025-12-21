@@ -4,23 +4,108 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Shield, Copy, Check, ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
+import { useUser } from "@/lib/userContext";
+import { updateUser, updateTeam } from "@/lib/api";
+
+const SPORTS = [
+  "Football",
+  "Soccer", 
+  "Basketball",
+  "Baseball",
+  "Volleyball",
+  "Hockey",
+  "Tennis",
+  "Swimming",
+  "Track & Field",
+  "Lacrosse",
+  "Rugby",
+  "Softball",
+  "Wrestling",
+  "Golf",
+  "Other"
+];
 
 export default function CoachSettings() {
-  const [teamName, setTeamName] = useState("Thunderbolts FC");
-  const [seasonLabel, setSeasonLabel] = useState("2024-2025");
+  const { user, setUser, currentTeam, setCurrentTeam } = useUser();
   const [selectedBadge, setSelectedBadge] = useState("shield");
   const [copied, setCopied] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const teamCode = "TC-7B4K2M9X";
+  const [profileForm, setProfileForm] = useState({
+    firstName: "",
+    lastName: ""
+  });
+
+  const [teamForm, setTeamForm] = useState({
+    name: "",
+    sport: "",
+    season: ""
+  });
+
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        firstName: user.firstName || "",
+        lastName: user.lastName || ""
+      });
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (currentTeam) {
+      setTeamForm({
+        name: currentTeam.name || "",
+        sport: currentTeam.sport || "Football",
+        season: currentTeam.season || ""
+      });
+    }
+  }, [currentTeam]);
+
+  const teamCode = currentTeam?.code || "";
   const appVersion = "1.0.0";
 
-  const handleSaveChanges = () => {
-    toast.success("Team settings saved successfully!");
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
+    try {
+      const updatedUser = await updateUser(user.id, {
+        firstName: profileForm.firstName.trim(),
+        lastName: profileForm.lastName.trim(),
+        name: `${profileForm.firstName.trim()} ${profileForm.lastName.trim()}`
+      });
+      setUser(updatedUser);
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update profile");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveTeam = async () => {
+    if (!currentTeam) return;
+    
+    setIsSaving(true);
+    try {
+      const updatedTeam = await updateTeam(currentTeam.id, {
+        name: teamForm.name.trim(),
+        sport: teamForm.sport,
+        season: teamForm.season.trim()
+      });
+      setCurrentTeam(updatedTeam);
+      toast.success("Team settings saved successfully!");
+    } catch (error) {
+      toast.error("Failed to update team settings");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSaveBadge = () => {
@@ -38,6 +123,7 @@ export default function CoachSettings() {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(teamCode);
     setCopied(true);
+    toast.success("Team code copied!");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -52,11 +138,9 @@ export default function CoachSettings() {
           backgroundAttachment: 'scroll',
         }}
       >
-        {/* Overlay for readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background/80 pointer-events-none" />
         
         <div className="relative z-20 space-y-6">
-          {/* Header */}
           <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
             <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
@@ -80,56 +164,118 @@ export default function CoachSettings() {
                   <Shield className="h-8 w-8 md:h-10 md:w-10 text-white" />
                 </div>
                 <div className="space-y-2">
-                  <h1 className="text-3xl md:text-5xl font-display font-bold text-white uppercase tracking-tighter">Team Settings</h1>
-                  <p className="text-white/80 text-sm md:text-base">Manage your team information and preferences</p>
+                  <h1 className="text-3xl md:text-5xl font-display font-bold text-white uppercase tracking-tighter">Settings</h1>
+                  <p className="text-white/80 text-sm md:text-base">Manage your profile and team settings</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Settings Content */}
-          <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 bg-card/50 border border-white/10 backdrop-blur-sm p-1 [&>*]:pl-[18px] [&>*]:pr-[18px]">
-              <TabsTrigger value="general">General</TabsTrigger>
+          <Tabs defaultValue="profile" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 bg-card/50 border border-white/10 backdrop-blur-sm p-1">
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="badge">Badge</TabsTrigger>
             </TabsList>
 
-            {/* General Tab */}
-            <TabsContent value="general" className="space-y-6">
+            <TabsContent value="profile" className="space-y-6">
+              <Card className="bg-card/80 backdrop-blur-sm border-white/5">
+                <CardHeader>
+                  <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Your Profile</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="first-name" className="text-sm font-medium uppercase tracking-wider">First Name</Label>
+                      <Input
+                        id="first-name"
+                        data-testid="input-first-name"
+                        value={profileForm.firstName}
+                        onChange={(e) => setProfileForm(prev => ({ ...prev, firstName: e.target.value }))}
+                        placeholder="Enter first name"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="last-name" className="text-sm font-medium uppercase tracking-wider">Last Name</Label>
+                      <Input
+                        id="last-name"
+                        data-testid="input-last-name"
+                        value={profileForm.lastName}
+                        onChange={(e) => setProfileForm(prev => ({ ...prev, lastName: e.target.value }))}
+                        placeholder="Enter last name"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium uppercase tracking-wider">Email</Label>
+                    <Input
+                      value={user?.email || ""}
+                      readOnly
+                      disabled
+                      className="bg-background/50 border-white/10 h-11 opacity-60"
+                    />
+                    <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+                  </div>
+
+                  <Button 
+                    onClick={handleSaveProfile} 
+                    disabled={isSaving}
+                    data-testid="button-save-profile" 
+                    className="w-full md:w-auto shadow-lg shadow-primary/30"
+                  >
+                    {isSaving ? "Saving..." : "Save Profile"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="team" className="space-y-6">
               <Card className="bg-card/80 backdrop-blur-sm border-white/5">
                 <CardHeader>
                   <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Team Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Team Name */}
                   <div className="space-y-2">
                     <Label htmlFor="team-name" className="text-sm font-medium uppercase tracking-wider">Team Name</Label>
                     <Input
                       id="team-name"
                       data-testid="input-team-name"
-                      value={teamName}
-                      onChange={(e) => setTeamName(e.target.value)}
+                      value={teamForm.name}
+                      onChange={(e) => setTeamForm(prev => ({ ...prev, name: e.target.value }))}
                       placeholder="Enter team name"
                       className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
                     />
-                    <p className="text-xs text-muted-foreground">The name of your team displayed across the app</p>
                   </div>
 
-                  {/* Season Label */}
                   <div className="space-y-2">
-                    <Label htmlFor="season-label" className="text-sm font-medium uppercase tracking-wider">Season Label</Label>
+                    <Label htmlFor="sport" className="text-sm font-medium uppercase tracking-wider">Sport</Label>
+                    <Select value={teamForm.sport} onValueChange={(value) => setTeamForm(prev => ({ ...prev, sport: value }))}>
+                      <SelectTrigger data-testid="select-sport" className="bg-background/50 border-white/10 h-11">
+                        <SelectValue placeholder="Select a sport" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SPORTS.map((sport) => (
+                          <SelectItem key={sport} value={sport}>{sport}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="season-label" className="text-sm font-medium uppercase tracking-wider">Season</Label>
                     <Input
                       id="season-label"
                       data-testid="input-season-label"
-                      value={seasonLabel}
-                      onChange={(e) => setSeasonLabel(e.target.value)}
+                      value={teamForm.season}
+                      onChange={(e) => setTeamForm(prev => ({ ...prev, season: e.target.value }))}
                       placeholder="e.g., 2024-2025"
                       className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
                     />
-                    <p className="text-xs text-muted-foreground">Current season year or label</p>
                   </div>
 
-                  {/* Team Code */}
                   <div className="space-y-2 border-t border-white/10 pt-6">
                     <Label className="text-sm font-medium uppercase tracking-wider">Team Code</Label>
                     <p className="text-xs text-muted-foreground">Share this code with athletes and supporters to join your team</p>
@@ -157,14 +303,18 @@ export default function CoachSettings() {
                     </div>
                   </div>
 
-                  <Button onClick={handleSaveChanges} data-testid="button-save" className="w-full md:w-auto shadow-lg shadow-primary/30">
-                    Save Changes
+                  <Button 
+                    onClick={handleSaveTeam} 
+                    disabled={isSaving}
+                    data-testid="button-save-team" 
+                    className="w-full md:w-auto shadow-lg shadow-primary/30"
+                  >
+                    {isSaving ? "Saving..." : "Save Team Settings"}
                   </Button>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            {/* Badge Tab */}
             <TabsContent value="badge" className="space-y-6">
               <Card className="bg-card/80 backdrop-blur-sm border-white/5">
                 <CardHeader>
@@ -200,7 +350,6 @@ export default function CoachSettings() {
 
           </Tabs>
 
-          {/* App Info */}
           <Card className="bg-card/80 backdrop-blur-sm border-white/5">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">App Information</CardTitle>

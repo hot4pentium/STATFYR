@@ -89,6 +89,11 @@ export async function createTeam(data: {
   return res.json();
 }
 
+export async function updateTeam(id: string, data: Partial<{ name: string; sport: string; season: string }>): Promise<Team> {
+  const res = await apiRequest("PATCH", `/api/teams/${id}`, data);
+  return res.json();
+}
+
 export async function getTeamByCode(code: string): Promise<Team> {
   const res = await fetch(`/api/teams/code/${code}`);
   if (!res.ok) throw new Error("Team not found");
