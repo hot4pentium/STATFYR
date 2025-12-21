@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2 } from "lucide-react";
+import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
@@ -249,10 +249,24 @@ export default function CoachDashboard() {
     },
     { 
       name: "PlayMaker", 
-      id: "playbook",
+      id: "playmaker",
       icon: ClipboardList, 
       color: "from-green-500/20 to-green-600/20",
-      description: "Tactics"
+      description: "Design plays"
+    },
+    { 
+      name: "Playbook", 
+      id: "playbook",
+      icon: BookOpen, 
+      color: "from-teal-500/20 to-teal-600/20",
+      description: "Saved plays"
+    },
+    { 
+      name: "StatTracker", 
+      id: "stattracker",
+      icon: Activity, 
+      color: "from-cyan-500/20 to-cyan-600/20",
+      description: "Track stats"
     },
     { 
       name: "Stats", 
@@ -502,7 +516,7 @@ export default function CoachDashboard() {
               </div>
           </div>
         );
-      case "playbook":
+      case "playmaker":
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -515,6 +529,46 @@ export default function CoachDashboard() {
               athletes={athletes.map(a => ({ id: a.user.id, firstName: a.user.firstName || "", lastName: a.user.lastName || "" }))} 
               sport={currentTeam?.sport}
             />
+          </div>
+        );
+      case "playbook":
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold">Playbook</h3>
+                <p className="text-sm text-muted-foreground">View and manage your saved plays</p>
+              </div>
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Save Play
+              </Button>
+            </div>
+            <div className="text-center py-12 text-muted-foreground">
+              <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-bold">No saved plays yet</p>
+              <p className="text-sm">Create plays in PlayMaker and save them here.</p>
+            </div>
+          </div>
+        );
+      case "stattracker":
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold">StatTracker</h3>
+                <p className="text-sm text-muted-foreground">Track player and team statistics during games</p>
+              </div>
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                New Game
+              </Button>
+            </div>
+            <div className="text-center py-12 text-muted-foreground">
+              <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-bold">No game stats yet</p>
+              <p className="text-sm">Start tracking stats during your next game.</p>
+            </div>
           </div>
         );
       case "stats":
