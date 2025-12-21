@@ -2,14 +2,16 @@ import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PLAYS, RECENT_CHATS } from "@/lib/mockData";
-import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2 } from "lucide-react";
+import { Activity, TrendingUp, Users, CalendarClock, ChevronRight, PlayCircle, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
-import { createTeam, getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, type TeamMember, type Event } from "@/lib/api";
+import { createTeam, getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
+import { VideoUploader } from "@/components/VideoUploader";
+import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -65,6 +67,13 @@ export default function CoachDashboard() {
     queryKey: ["/api/teams", currentTeam?.id, "events"],
     queryFn: () => currentTeam ? getTeamEvents(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
+  });
+
+  const { data: teamHighlights = [], refetch: refetchHighlights } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "highlights", "all"],
+    queryFn: () => currentTeam ? getAllTeamHighlights(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+    refetchInterval: 5000,
   });
 
   const createEventMutation = useMutation({
@@ -246,6 +255,13 @@ export default function CoachDashboard() {
       icon: BarChart3, 
       color: "from-orange-500/20 to-orange-600/20",
       description: "Analytics"
+    },
+    { 
+      name: "Highlights", 
+      id: "highlights",
+      icon: Video, 
+      color: "from-yellow-500/20 to-yellow-600/20",
+      description: "Team videos"
     },
     { 
       name: "Chat", 
@@ -518,6 +534,105 @@ export default function CoachDashboard() {
             ))}
           </div>
         );
+      case "highlights":
+        const handleDeleteVideo = async (videoId: string) => {
+          if (!user) return;
+          try {
+            await deleteHighlightVideo(videoId, user.id);
+            toast.success("Video deleted");
+            refetchHighlights();
+          } catch (error) {
+            toast.error("Failed to delete video");
+          }
+        };
+
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Upload and manage team highlight videos</p>
+              {currentTeam && user && (
+                <VideoUploader 
+                  teamId={currentTeam.id} 
+                  userId={user.id} 
+                  onUploadComplete={() => refetchHighlights()}
+                  compact
+                />
+              )}
+            </div>
+
+            {teamHighlights.length === 0 ? (
+              <div className="bg-background/50 border border-white/5 rounded-lg aspect-video flex items-center justify-center max-w-md mx-auto">
+                <div className="text-center">
+                  <Video className="h-12 w-12 mx-auto mb-2 text-muted-foreground/50" />
+                  <p className="text-sm text-muted-foreground">No highlights yet</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Upload a video to get started</p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {teamHighlights.map((video: HighlightVideo) => (
+                  <div key={video.id} className="bg-background/50 border border-white/5 rounded-lg overflow-hidden" data-testid={`highlight-video-${video.id}`}>
+                    <div className="aspect-video bg-black relative">
+                      {video.status === "ready" && video.publicUrl ? (
+                        <video
+                          src={video.publicUrl}
+                          controls
+                          className="w-full h-full object-contain"
+                          poster={video.thumbnailKey || undefined}
+                          data-testid={`video-player-${video.id}`}
+                        />
+                      ) : video.status === "failed" ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-destructive/10">
+                          <div className="text-center">
+                            <X className="h-8 w-8 mx-auto mb-2 text-destructive" />
+                            <p className="text-sm font-medium text-destructive">Processing failed</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-primary/5 to-primary/10">
+                          <div className="text-center">
+                            <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />
+                            <p className="text-sm font-medium mt-2">
+                              {video.status === "queued" ? "Queued..." : "Converting..."}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="p-3 flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">{video.title || "Untitled"}</p>
+                          {video.status !== "ready" && (
+                            <Badge variant={video.status === "failed" ? "destructive" : "secondary"} className="text-xs">
+                              {video.status === "queued" && "Queued"}
+                              {video.status === "processing" && "Processing"}
+                              {video.status === "failed" && "Failed"}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {video.uploader?.name || video.uploader?.username}
+                          {video.createdAt && ` • ${format(new Date(video.createdAt), "MMM d, yyyy")}`}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteVideo(video.id)}
+                        className="text-destructive hover:text-destructive"
+                        data-testid={`button-delete-video-${video.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
       case "chat":
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -625,7 +740,7 @@ export default function CoachDashboard() {
           </div>
 
           {/* Quick Navigation */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 bg-[#7d5e5e00]">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3 bg-[#7d5e5e00]">
             {quickActions.map((action) => (
               <button
                 key={action.id}
