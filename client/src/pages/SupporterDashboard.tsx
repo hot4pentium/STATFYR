@@ -99,13 +99,6 @@ export default function SupporterDashboard() {
       description: "Team squad"
     },
     { 
-      name: "PlayMaker", 
-      id: "playbook",
-      icon: ClipboardList, 
-      color: "from-green-500/20 to-green-600/20",
-      description: "Formations"
-    },
-    { 
       name: "Highlights", 
       id: "highlights",
       icon: Video, 
@@ -360,40 +353,6 @@ export default function SupporterDashboard() {
                 <p className="text-3xl font-display font-bold text-accent">1st</p>
               </CardContent>
             </Card>
-          </div>
-        );
-      case "playbook":
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
-                <CardContent className="p-6 text-center">
-                  <div className="h-32 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg mb-4 flex items-center justify-center">
-                    <ClipboardList className="h-12 w-12 text-green-400" />
-                  </div>
-                  <h4 className="font-bold">4-3-3 Formation</h4>
-                  <p className="text-xs text-muted-foreground">Primary attack setup</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
-                <CardContent className="p-6 text-center">
-                  <div className="h-32 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg mb-4 flex items-center justify-center">
-                    <ClipboardList className="h-12 w-12 text-blue-400" />
-                  </div>
-                  <h4 className="font-bold">4-4-2 Formation</h4>
-                  <p className="text-xs text-muted-foreground">Balanced approach</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-background/40 border-white/10 hover:border-primary/50 transition-all">
-                <CardContent className="p-6 text-center">
-                  <div className="h-32 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg mb-4 flex items-center justify-center">
-                    <ClipboardList className="h-12 w-12 text-purple-400" />
-                  </div>
-                  <h4 className="font-bold">5-3-2 Formation</h4>
-                  <p className="text-xs text-muted-foreground">Defensive setup</p>
-                </CardContent>
-              </Card>
-            </div>
           </div>
         );
       case "highlights":

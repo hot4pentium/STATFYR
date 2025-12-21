@@ -124,13 +124,6 @@ export default function AthleteDashboard() {
       description: "Performance"
     },
     { 
-      name: "PlayMaker", 
-      id: "playbook",
-      icon: ClipboardList, 
-      color: "from-green-500/20 to-green-600/20",
-      description: "Tactics"
-    },
-    { 
       name: "Chat", 
       id: "chat",
       icon: MessageSquare, 
@@ -329,17 +322,6 @@ export default function AthleteDashboard() {
                 <p className="text-3xl font-display font-bold text-accent">-</p>
               </CardContent>
             </Card>
-          </div>
-        );
-      case "playbook":
-        return (
-          <div className="p-4 bg-background/40 border border-white/10 rounded-lg">
-            <h4 className="font-bold mb-3">Team Tactics</h4>
-            <div className="space-y-2 text-sm">
-              <p>📋 High Press Alpha - Aggressive full-field defense strategy</p>
-              <p>⚡ Counter Attack Z - Fast-break offensive plays</p>
-              <p>🎯 Corner Setup 1 - Near-post set piece tactics</p>
-            </div>
           </div>
         );
       case "chat":
