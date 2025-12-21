@@ -749,7 +749,7 @@ export default function CoachDashboard() {
           {/* Stats Grid */}
           {!selectedCard && (
             <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
+              <Card className="bg-slate-200 dark:bg-card/80 backdrop-blur-sm border-slate-300 dark:border-white/5 hover:border-primary/50 transition-colors shadow-lg shadow-black/10 dark:shadow-none">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Team Members</CardTitle>
                   <Users className="h-4 w-4 text-primary" />
@@ -761,7 +761,7 @@ export default function CoachDashboard() {
                   </p>
                 </CardContent>
               </Card>
-              <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
+              <Card className="bg-slate-200 dark:bg-card/80 backdrop-blur-sm border-slate-300 dark:border-white/5 hover:border-primary/50 transition-colors shadow-lg shadow-black/10 dark:shadow-none">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Events</CardTitle>
                   <CalendarClock className="h-4 w-4 text-primary" />
@@ -773,7 +773,7 @@ export default function CoachDashboard() {
                   </p>
                 </CardContent>
               </Card>
-              <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
+              <Card className="bg-slate-200 dark:bg-card/80 backdrop-blur-sm border-slate-300 dark:border-white/5 hover:border-primary/50 transition-colors shadow-lg shadow-black/10 dark:shadow-none">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Highlights</CardTitle>
                   <Video className="h-4 w-4 text-primary" />
@@ -785,7 +785,7 @@ export default function CoachDashboard() {
                   </p>
                 </CardContent>
               </Card>
-              <Card className="bg-card/80 backdrop-blur-sm border-white/5 hover:border-primary/50 transition-colors">
+              <Card className="bg-slate-200 dark:bg-card/80 backdrop-blur-sm border-slate-300 dark:border-white/5 hover:border-primary/50 transition-colors shadow-lg shadow-black/10 dark:shadow-none">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Supporters</CardTitle>
                   <Trophy className="h-4 w-4 text-primary" />
@@ -804,7 +804,7 @@ export default function CoachDashboard() {
           {!selectedCard && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Roster Preview */}
-              <Card className="col-span-2 border-white/5 bg-card/80 backdrop-blur-sm">
+              <Card className="col-span-2 border-slate-300 dark:border-white/5 bg-slate-200 dark:bg-card/80 backdrop-blur-sm shadow-lg shadow-black/10 dark:shadow-none">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="font-display uppercase tracking-wide">Top Performers</CardTitle>
                   <Link href="/roster">
@@ -847,7 +847,7 @@ export default function CoachDashboard() {
               </Card>
 
               {/* Activity / Chat */}
-              <Card className="border-white/5 bg-card/80 backdrop-blur-sm">
+              <Card className="border-slate-300 dark:border-white/5 bg-slate-200 dark:bg-card/80 backdrop-blur-sm shadow-lg shadow-black/10 dark:shadow-none">
                 <CardHeader>
                   <CardTitle className="font-display uppercase tracking-wide">Recent Activity</CardTitle>
                 </CardHeader>
