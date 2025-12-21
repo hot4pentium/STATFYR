@@ -42,6 +42,7 @@ export async function registerRoutes(
       const { password, ...safeUser } = user;
       res.json(safeUser);
     } catch (error) {
+      console.error("Registration error:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors });
       }
