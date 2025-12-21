@@ -248,7 +248,7 @@ export default function CoachDashboard() {
       description: "Schedule"
     },
     { 
-      name: "Playbook", 
+      name: "PlayMaker", 
       id: "playbook",
       icon: ClipboardList, 
       color: "from-green-500/20 to-green-600/20",

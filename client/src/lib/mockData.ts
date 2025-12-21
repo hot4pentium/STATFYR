@@ -98,7 +98,7 @@ export const NAVIGATION = [
   { name: "Dashboard", href: "/dashboard", icon: Activity },
   { name: "Roster", href: "/roster", icon: Users },
   { name: "Events", href: "/events", icon: Calendar },
-  { name: "Playbook", href: "/playbook", icon: ClipboardList },
+  { name: "PlayMaker", href: "/playbook", icon: ClipboardList },
   { name: "Stats", href: "/stats", icon: Trophy },
   { name: "Chat", href: "/chat", icon: MessageSquare },
   { name: "Settings", href: "/settings", icon: Settings },

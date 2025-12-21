@@ -17,7 +17,7 @@ export default function PlaybookPage() {
             </Button>
           </Link>
           <div className="flex-1">
-            <h1 className="text-3xl font-display font-bold uppercase tracking-tight text-foreground">Playbook</h1>
+            <h1 className="text-3xl font-display font-bold uppercase tracking-tight text-foreground">PlayMaker</h1>
             <p className="text-muted-foreground">Design and distribute tactical plays.</p>
           </div>
           <Button size="lg" className="shadow-lg shadow-primary/20">
