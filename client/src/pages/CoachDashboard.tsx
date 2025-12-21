@@ -552,15 +552,15 @@ export default function CoachDashboard() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {teamHighlights.map((video: HighlightVideo) => (
-                  <div key={video.id} className="bg-background/50 border border-white/5 rounded-lg overflow-hidden max-w-[250px]" data-testid={`highlight-video-${video.id}`}>
-                    <div className="aspect-square bg-black relative overflow-hidden">
+                  <div key={video.id} className="bg-background/50 border border-white/5 rounded-lg overflow-hidden" data-testid={`highlight-video-${video.id}`}>
+                    <div className="aspect-video bg-black relative">
                       {video.status === "ready" && video.publicUrl ? (
                         <video
                           src={video.publicUrl}
                           controls
-                          className="w-full h-full object-contain"
+                          className="absolute inset-0 w-full h-full object-contain"
                           poster={video.thumbnailKey || undefined}
                           data-testid={`video-player-${video.id}`}
                         />
