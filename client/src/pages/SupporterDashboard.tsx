@@ -774,33 +774,33 @@ export default function SupporterDashboard() {
               <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
               <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
               
-              <div className="relative z-10 p-4 md:p-12">
-                <div className="flex items-start gap-3 md:gap-6">
-                  <div className="h-10 w-10 md:h-28 md:w-28 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
-                    <Shield className="h-5 w-5 md:h-16 md:w-16 text-white" />
+              <div className="relative z-10 p-6 md:p-12">
+                <div className="flex items-start gap-4 md:gap-8">
+                  <div className="h-14 w-14 md:h-32 md:w-32 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
+                    <Shield className="h-7 w-7 md:h-20 md:w-20 text-white" />
                   </div>
                   
-                  <div className="space-y-1 md:space-y-3 flex-1 min-w-0">
-                    <div className="space-y-0 md:space-y-1">
-                      <h1 className="text-lg md:text-5xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
+                  <div className="space-y-2 md:space-y-4 flex-1 min-w-0">
+                    <div className="space-y-1 md:space-y-2">
+                      <h1 className="text-2xl md:text-6xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
                         {viewingAsAthlete.athlete.name}
                       </h1>
-                      <h2 className="text-[10px] md:text-xl text-white/80 font-bold uppercase tracking-wide">
+                      <h2 className="text-sm md:text-2xl text-white/80 font-bold uppercase tracking-wide">
                         {currentTeam?.name || "Team"} <span className="text-white/60">•</span> {currentTeam?.sport || "Sport"}
                       </h2>
                     </div>
                     
-                    <div className="flex flex-wrap items-center gap-1.5 md:gap-3 pt-1 md:pt-2">
-                      <span className="px-1.5 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-green-500/20 border-green-500/30 text-green-400 text-[9px] md:text-sm font-bold uppercase tracking-wider">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4 pt-2 md:pt-3">
+                      <span className="px-3 md:px-5 py-1 md:py-2 backdrop-blur-sm rounded-lg border bg-green-500/20 border-green-500/30 text-green-400 text-xs md:text-base font-bold uppercase tracking-wider">
                         Athlete
                       </span>
                       {viewingAsAthlete.athlete.position && (
-                        <span className="px-1.5 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-white/10 border-white/20 text-white text-[9px] md:text-sm font-bold uppercase tracking-wider">
+                        <span className="px-3 md:px-5 py-1 md:py-2 backdrop-blur-sm rounded-lg border bg-white/10 border-white/20 text-white text-xs md:text-base font-bold uppercase tracking-wider">
                           {viewingAsAthlete.athlete.position}
                         </span>
                       )}
                       {viewingAsAthlete.athlete.number && (
-                        <span className="px-1.5 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-accent/20 border-accent/30 text-accent text-[9px] md:text-sm font-bold uppercase tracking-wider">
+                        <span className="px-3 md:px-5 py-1 md:py-2 backdrop-blur-sm rounded-lg border bg-accent/20 border-accent/30 text-accent text-xs md:text-base font-bold uppercase tracking-wider">
                           #{viewingAsAthlete.athlete.number}
                         </span>
                       )}
