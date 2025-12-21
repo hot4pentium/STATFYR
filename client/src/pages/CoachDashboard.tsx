@@ -581,8 +581,78 @@ export default function CoachDashboard() {
           </div>
         );
       case "playbook":
+        const offensePlays = teamPlays.filter(p => p.category === "Offense");
+        const defensePlays = teamPlays.filter(p => p.category === "Defense");
+        const specialPlays = teamPlays.filter(p => p.category === "Special");
+        
+        const renderPlayCard = (play: Play) => (
+          <Card key={play.id} className="group cursor-pointer hover:shadow-lg transition-shadow" data-testid={`play-card-${play.id}`} onClick={() => setExpandedPlay(play)}>
+            {play.thumbnailData && (
+              <div className="w-full h-32 overflow-hidden rounded-t-lg border-b">
+                <img 
+                  src={play.thumbnailData} 
+                  alt={play.name} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            <CardHeader className="pb-2">
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-base">{play.name}</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    by {play.createdBy.firstName} {play.createdBy.lastName}
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {play.description && (
+                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{play.description}</p>
+              )}
+              <div className="flex items-center gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
+                <Select
+                  value={play.status || ""}
+                  onValueChange={(value) => updatePlayMutation.mutate({ playId: play.id, data: { status: value } })}
+                >
+                  <SelectTrigger className="h-8 text-xs flex-1" data-testid={`play-status-${play.id}`}>
+                    <SelectValue placeholder="Set status..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Successful">Successful</SelectItem>
+                    <SelectItem value="Not Successful">Not Successful</SelectItem>
+                    <SelectItem value="Needs Work">Needs Work</SelectItem>
+                  </SelectContent>
+                </Select>
+                {play.status && (
+                  <Badge 
+                    variant={play.status === "Successful" ? "default" : play.status === "Not Successful" ? "destructive" : "secondary"}
+                    className={play.status === "Successful" ? "bg-green-600" : ""}
+                  >
+                    {play.status}
+                  </Badge>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm("Are you sure you want to delete this play?")) {
+                      deletePlayMutation.mutate(play.id);
+                    }
+                  }}
+                  data-testid={`delete-play-${play.id}`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+        
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold">Playbook</h3>
@@ -600,78 +670,42 @@ export default function CoachDashboard() {
                 <p className="text-sm">Create plays in PlayMaker and save them here.</p>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {teamPlays.map((play) => (
-                  <Card key={play.id} className="group cursor-pointer hover:shadow-lg transition-shadow" data-testid={`play-card-${play.id}`} onClick={() => setExpandedPlay(play)}>
-                    {play.thumbnailData && (
-                      <div className="w-full h-32 overflow-hidden rounded-t-lg border-b">
-                        <img 
-                          src={play.thumbnailData} 
-                          alt={play.name} 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-base">{play.name}</CardTitle>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            by {play.createdBy.firstName} {play.createdBy.lastName}
-                          </p>
-                        </div>
-                        <Badge 
-                          variant={play.category === "Offense" ? "default" : play.category === "Defense" ? "secondary" : "outline"}
-                          className={play.category === "Offense" ? "bg-blue-600" : play.category === "Defense" ? "bg-orange-600" : "bg-purple-600"}
-                        >
-                          {play.category}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {play.description && (
-                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{play.description}</p>
-                      )}
-                      <div className="flex items-center gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
-                        <Select
-                          value={play.status || ""}
-                          onValueChange={(value) => updatePlayMutation.mutate({ playId: play.id, data: { status: value } })}
-                        >
-                          <SelectTrigger className="h-8 text-xs flex-1" data-testid={`play-status-${play.id}`}>
-                            <SelectValue placeholder="Set status..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Successful">Successful</SelectItem>
-                            <SelectItem value="Not Successful">Not Successful</SelectItem>
-                            <SelectItem value="Needs Work">Needs Work</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {play.status && (
-                          <Badge 
-                            variant={play.status === "Successful" ? "default" : play.status === "Not Successful" ? "destructive" : "secondary"}
-                            className={play.status === "Successful" ? "bg-green-600" : ""}
-                          >
-                            {play.status}
-                          </Badge>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (confirm("Are you sure you want to delete this play?")) {
-                              deletePlayMutation.mutate(play.id);
-                            }
-                          }}
-                          data-testid={`delete-play-${play.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className="space-y-8">
+                {offensePlays.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Badge className="bg-blue-600 text-white">Offense</Badge>
+                      <span className="text-sm text-muted-foreground">({offensePlays.length} plays)</span>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {offensePlays.map(renderPlayCard)}
+                    </div>
+                  </div>
+                )}
+                
+                {defensePlays.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Badge className="bg-orange-600 text-white">Defense</Badge>
+                      <span className="text-sm text-muted-foreground">({defensePlays.length} plays)</span>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {defensePlays.map(renderPlayCard)}
+                    </div>
+                  </div>
+                )}
+                
+                {specialPlays.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Badge className="bg-purple-600 text-white">Special</Badge>
+                      <span className="text-sm text-muted-foreground">({specialPlays.length} plays)</span>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {specialPlays.map(renderPlayCard)}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             
