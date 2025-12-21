@@ -568,6 +568,81 @@ export async function registerRoutes(
     }
   });
 
+  // Get managed athletes for a supporter
+  app.get("/api/users/:supporterId/managed-athletes", async (req, res) => {
+    try {
+      const managedAthletes = await storage.getManagedAthletes(req.params.supporterId);
+      res.json(managedAthletes);
+    } catch (error) {
+      console.error("Error getting managed athletes:", error);
+      res.status(500).json({ error: "Failed to get managed athletes" });
+    }
+  });
+
+  // Create a managed athlete (supporter creates athlete account and adds to team)
+  app.post("/api/users/:supporterId/managed-athletes", async (req, res) => {
+    try {
+      const { teamCode, firstName, lastName } = req.body;
+      
+      if (!teamCode || !firstName || !lastName) {
+        return res.status(400).json({ error: "Team code, first name, and last name are required" });
+      }
+
+      // Verify supporter exists
+      const supporter = await storage.getUser(req.params.supporterId);
+      if (!supporter || supporter.role !== "supporter") {
+        return res.status(403).json({ error: "Only supporters can manage athletes" });
+      }
+
+      // Find team by code
+      const team = await storage.getTeamByCode(teamCode);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found with that code" });
+      }
+
+      // Create athlete user account (no login credentials - managed by supporter)
+      const username = `managed_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const athlete = await storage.createUser({
+        username,
+        password: "", // No password - can't log in directly
+        role: "athlete",
+        firstName,
+        lastName,
+        name: `${firstName} ${lastName}`,
+        email: "",
+      });
+
+      // Add athlete to team roster
+      await storage.addTeamMember({
+        teamId: team.id,
+        userId: athlete.id,
+        role: "athlete",
+      });
+
+      // Create managed athlete relationship
+      const managed = await storage.createManagedAthlete({
+        supporterId: req.params.supporterId,
+        athleteId: athlete.id,
+      });
+
+      res.json({ ...managed, athlete, team });
+    } catch (error) {
+      console.error("Error creating managed athlete:", error);
+      res.status(500).json({ error: "Failed to create managed athlete" });
+    }
+  });
+
+  // Delete a managed athlete
+  app.delete("/api/managed-athletes/:id", async (req, res) => {
+    try {
+      await storage.deleteManagedAthlete(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting managed athlete:", error);
+      res.status(500).json({ error: "Failed to delete managed athlete" });
+    }
+  });
+
   return httpServer;
 }
 
