@@ -138,6 +138,24 @@ export const playsRelations = relations(plays, ({ one }) => ({
   }),
 }));
 
+export const managedAthletes = pgTable("managed_athletes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  supporterId: varchar("supporter_id").notNull().references(() => users.id),
+  athleteId: varchar("athlete_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const managedAthletesRelations = relations(managedAthletes, ({ one }) => ({
+  supporter: one(users, {
+    fields: [managedAthletes.supporterId],
+    references: [users.id],
+  }),
+  athlete: one(users, {
+    fields: [managedAthletes.athleteId],
+    references: [users.id],
+  }),
+}));
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -216,3 +234,11 @@ export type HighlightVideo = typeof highlightVideos.$inferSelect;
 export type InsertPlay = z.infer<typeof insertPlaySchema>;
 export type UpdatePlay = z.infer<typeof updatePlaySchema>;
 export type Play = typeof plays.$inferSelect;
+
+export const insertManagedAthleteSchema = createInsertSchema(managedAthletes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertManagedAthlete = z.infer<typeof insertManagedAthleteSchema>;
+export type ManagedAthlete = typeof managedAthletes.$inferSelect;
