@@ -232,10 +232,9 @@ export function PlaybookCanvas({ athletes = [], sport = "Football" }: PlaybookCa
     ctx.fillStyle = "#CD853F";
     ctx.fillRect(0, 0, width, height);
     
-    const padding = 20;
+    const padding = 30;
     const courtWidth = width - padding * 2;
     const courtHeight = height - padding * 2;
-    const scale = Math.min(courtWidth / 500, courtHeight / 940);
     
     ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
     ctx.lineWidth = 3;
@@ -247,27 +246,28 @@ export function PlaybookCanvas({ athletes = [], sport = "Football" }: PlaybookCa
     ctx.lineTo(width - padding, centerY);
     ctx.stroke();
     
+    const centerCircleRadius = Math.min(courtWidth, courtHeight) * 0.08;
     ctx.beginPath();
-    ctx.arc(width / 2, centerY, 60 * scale, 0, Math.PI * 2);
+    ctx.arc(width / 2, centerY, centerCircleRadius, 0, Math.PI * 2);
     ctx.stroke();
     
     ctx.beginPath();
-    ctx.arc(width / 2, centerY, 6 * scale, 0, Math.PI * 2);
+    ctx.arc(width / 2, centerY, 4, 0, Math.PI * 2);
     ctx.fill();
     
-    const keyWidth = 160 * scale;
-    const keyHeight = 190 * scale;
-    const threePointRadius = 238 * scale;
-    const threePointSideHeight = 140 * scale;
-    const rimOffset = 63 * scale;
-    const rimRadius = 9 * scale;
-    const backboardWidth = 72 * scale;
-    const restrictedRadius = 40 * scale;
+    const keyWidth = courtWidth * 0.32;
+    const keyHeight = courtHeight * 0.19;
+    const rimOffset = courtHeight * 0.055;
+    const rimRadius = 8;
+    const backboardWidth = courtWidth * 0.15;
+    const restrictedRadius = courtWidth * 0.08;
+    const threePointRadius = courtWidth * 0.42;
+    const threePointSideInset = courtWidth * 0.07;
     
     ctx.strokeRect(width / 2 - keyWidth / 2, padding, keyWidth, keyHeight);
     
     ctx.beginPath();
-    ctx.arc(width / 2, padding + keyHeight, 60 * scale, 0, Math.PI);
+    ctx.arc(width / 2, padding + keyHeight, keyWidth * 0.38, 0, Math.PI);
     ctx.stroke();
     
     ctx.beginPath();
@@ -275,31 +275,34 @@ export function PlaybookCanvas({ athletes = [], sport = "Football" }: PlaybookCa
     ctx.stroke();
     
     ctx.beginPath();
-    ctx.moveTo(width / 2 - backboardWidth / 2, padding + 40 * scale);
-    ctx.lineTo(width / 2 + backboardWidth / 2, padding + 40 * scale);
+    ctx.moveTo(width / 2 - backboardWidth / 2, padding + 15);
+    ctx.lineTo(width / 2 + backboardWidth / 2, padding + 15);
     ctx.stroke();
     
     ctx.beginPath();
     ctx.arc(width / 2, padding + rimOffset, restrictedRadius, 0, Math.PI);
     ctx.stroke();
     
+    const threePointStartY = padding + keyHeight * 0.7;
     ctx.beginPath();
-    ctx.moveTo(padding, padding + threePointSideHeight);
-    ctx.lineTo(padding, padding);
+    ctx.moveTo(padding + threePointSideInset, padding);
+    ctx.lineTo(padding + threePointSideInset, threePointStartY);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(width - padding, padding + threePointSideHeight);
-    ctx.lineTo(width - padding, padding);
+    ctx.moveTo(width - padding - threePointSideInset, padding);
+    ctx.lineTo(width - padding - threePointSideInset, threePointStartY);
     ctx.stroke();
     
+    const arcCenterY = padding + rimOffset;
+    const arcStartAngle = Math.acos((courtWidth / 2 - threePointSideInset) / threePointRadius);
     ctx.beginPath();
-    ctx.arc(width / 2, padding + rimOffset, threePointRadius, Math.PI + 0.3, -0.3);
+    ctx.arc(width / 2, arcCenterY, threePointRadius, arcStartAngle, Math.PI - arcStartAngle);
     ctx.stroke();
     
     ctx.strokeRect(width / 2 - keyWidth / 2, height - padding - keyHeight, keyWidth, keyHeight);
     
     ctx.beginPath();
-    ctx.arc(width / 2, height - padding - keyHeight, 60 * scale, Math.PI, Math.PI * 2);
+    ctx.arc(width / 2, height - padding - keyHeight, keyWidth * 0.38, Math.PI, Math.PI * 2);
     ctx.stroke();
     
     ctx.beginPath();
@@ -307,25 +310,27 @@ export function PlaybookCanvas({ athletes = [], sport = "Football" }: PlaybookCa
     ctx.stroke();
     
     ctx.beginPath();
-    ctx.moveTo(width / 2 - backboardWidth / 2, height - padding - 40 * scale);
-    ctx.lineTo(width / 2 + backboardWidth / 2, height - padding - 40 * scale);
+    ctx.moveTo(width / 2 - backboardWidth / 2, height - padding - 15);
+    ctx.lineTo(width / 2 + backboardWidth / 2, height - padding - 15);
     ctx.stroke();
     
     ctx.beginPath();
     ctx.arc(width / 2, height - padding - rimOffset, restrictedRadius, Math.PI, Math.PI * 2);
     ctx.stroke();
     
+    const bottomThreePointStartY = height - padding - keyHeight * 0.7;
     ctx.beginPath();
-    ctx.moveTo(padding, height - padding - threePointSideHeight);
-    ctx.lineTo(padding, height - padding);
+    ctx.moveTo(padding + threePointSideInset, height - padding);
+    ctx.lineTo(padding + threePointSideInset, bottomThreePointStartY);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(width - padding, height - padding - threePointSideHeight);
-    ctx.lineTo(width - padding, height - padding);
+    ctx.moveTo(width - padding - threePointSideInset, height - padding);
+    ctx.lineTo(width - padding - threePointSideInset, bottomThreePointStartY);
     ctx.stroke();
     
+    const bottomArcCenterY = height - padding - rimOffset;
     ctx.beginPath();
-    ctx.arc(width / 2, height - padding - rimOffset, threePointRadius, 0.3, Math.PI - 0.3);
+    ctx.arc(width / 2, bottomArcCenterY, threePointRadius, Math.PI + arcStartAngle, -arcStartAngle);
     ctx.stroke();
   };
 
