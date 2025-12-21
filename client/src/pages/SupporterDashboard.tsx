@@ -382,7 +382,7 @@ export default function SupporterDashboard() {
                 <p className="text-sm">Team videos will appear here once uploaded.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 {teamHighlights.map((video: HighlightVideo) => (
                   <Card key={video.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all overflow-hidden">
                     <div className="relative aspect-video bg-black">

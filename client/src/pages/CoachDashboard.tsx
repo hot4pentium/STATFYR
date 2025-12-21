@@ -840,6 +840,7 @@ export default function CoachDashboard() {
                         <video
                           src={video.publicUrl}
                           controls
+                          preload="metadata"
                           className="absolute inset-0 w-full h-full object-contain"
                           poster={video.thumbnailKey || undefined}
                           data-testid={`video-player-${video.id}`}
