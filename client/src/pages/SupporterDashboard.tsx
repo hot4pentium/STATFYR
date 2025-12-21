@@ -503,6 +503,19 @@ export default function SupporterDashboard() {
                   </div>
                 </div>
               </div>
+              
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-24 w-24 md:h-32 md:w-32 bg-white/10 backdrop-blur-md rounded-full border-4 border-accent/50 flex items-center justify-center flex-shrink-0 shadow-xl overflow-hidden">
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt={user.name || "Supporter"} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-3xl md:text-4xl font-display font-bold text-white/60">
+                      {user?.name?.split(' ').map(n => n[0]).join('') || "?"}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-white/80 font-bold uppercase tracking-wider">{user?.name || "Supporter"}</p>
+              </div>
             </div>
           </div>
         </div>
