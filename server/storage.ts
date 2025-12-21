@@ -1,11 +1,12 @@
 import { 
-  users, teams, teamMembers, events, highlightVideos, plays,
+  users, teams, teamMembers, events, highlightVideos, plays, managedAthletes,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember,
   type Event, type InsertEvent, type UpdateEvent,
   type HighlightVideo, type InsertHighlightVideo, type UpdateHighlightVideo,
-  type Play, type InsertPlay, type UpdatePlay
+  type Play, type InsertPlay, type UpdatePlay,
+  type ManagedAthlete, type InsertManagedAthlete
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -56,6 +57,10 @@ export interface IStorage {
   createPlay(data: InsertPlay): Promise<Play>;
   updatePlay(id: string, data: UpdatePlay): Promise<Play | undefined>;
   deletePlay(id: string): Promise<void>;
+  
+  getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete: User })[]>;
+  createManagedAthlete(data: InsertManagedAthlete): Promise<ManagedAthlete>;
+  deleteManagedAthlete(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -305,6 +310,31 @@ export class DatabaseStorage implements IStorage {
 
   async deletePlay(id: string): Promise<void> {
     await db.delete(plays).where(eq(plays.id, id));
+  }
+
+  async getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete: User })[]> {
+    const managed = await db
+      .select()
+      .from(managedAthletes)
+      .where(eq(managedAthletes.supporterId, supporterId));
+    
+    const result: (ManagedAthlete & { athlete: User })[] = [];
+    for (const m of managed) {
+      const athlete = await this.getUser(m.athleteId);
+      if (athlete) {
+        result.push({ ...m, athlete });
+      }
+    }
+    return result;
+  }
+
+  async createManagedAthlete(data: InsertManagedAthlete): Promise<ManagedAthlete> {
+    const [managed] = await db.insert(managedAthletes).values(data).returning();
+    return managed;
+  }
+
+  async deleteManagedAthlete(id: string): Promise<void> {
+    await db.delete(managedAthletes).where(eq(managedAthletes.id, id));
   }
 }
 
