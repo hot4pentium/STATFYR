@@ -897,24 +897,25 @@ export default function AthleteDashboard() {
             </button>
             </div>
 
-            {/* Quick Navigation Dropdown */}
-            <div className="w-full">
-              <Select value={selectedCard || ""} onValueChange={(value) => setSelectedCard(value || null)}>
-                <SelectTrigger className="w-full" data-testid="quick-nav-dropdown">
-                  <SelectValue placeholder="Select a section..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {quickActions.map((action) => (
-                    <SelectItem key={action.id} value={action.id}>
-                      <div className="flex items-center gap-2">
-                        <action.icon className="h-4 w-4" />
-                        <span>{action.name}</span>
-                        <span className="text-xs text-muted-foreground">- {action.description}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Quick Navigation - Icons Only */}
+            <div className="w-full h-60">
+              <div className="grid grid-cols-2 gap-2 h-full">
+                {quickActions.map((action) => (
+                  <button
+                    key={action.id}
+                    onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
+                    className={`h-full rounded-lg border transition-all duration-200 backdrop-blur-sm group flex items-center justify-center ${
+                      selectedCard === action.id
+                        ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
+                        : `border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5`
+                    }`}
+                  >
+                    <div className="p-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                      <action.icon className="h-7 w-7 text-primary group-hover:scale-110 transition-transform" />
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
