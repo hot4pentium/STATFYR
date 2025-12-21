@@ -41,12 +41,13 @@ export async function registerRoutes(
       const user = await storage.createUser({ ...parsed, password: hashedPassword });
       const { password, ...safeUser } = user;
       res.json(safeUser);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors });
       }
-      res.status(500).json({ error: "Failed to register user" });
+      const errorMessage = error?.message || "Failed to register user";
+      res.status(500).json({ error: `Failed to register user: ${errorMessage}` });
     }
   });
 
