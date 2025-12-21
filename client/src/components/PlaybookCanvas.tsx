@@ -1,13 +1,21 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2 } from "lucide-react";
+import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, User } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-type Tool = "freedraw" | "arrow" | "square" | "xshape" | "triangle" | "circle";
+type Tool = "freedraw" | "arrow" | "square" | "xshape" | "triangle" | "circle" | "athlete";
 
 interface Point {
   x: number;
   y: number;
+}
+
+interface Athlete {
+  id: string;
+  firstName: string;
+  lastName: string;
 }
 
 interface DrawnElement {
@@ -17,13 +25,20 @@ interface DrawnElement {
   color: string;
   fillColor?: string;
   lineWidth: number;
+  label?: string;
+}
+
+interface PlaybookCanvasProps {
+  athletes?: Athlete[];
 }
 
 const SHAPE_SIZE = 24;
 
-export function PlaybookCanvas() {
+export function PlaybookCanvas({ athletes = [] }: PlaybookCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedTool, setSelectedTool] = useState<Tool>("freedraw");
+  const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
+  const [isAthletePopoverOpen, setIsAthletePopoverOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [draggedElementId, setDraggedElementId] = useState<string | null>(null);
@@ -34,6 +49,10 @@ export function PlaybookCanvas() {
   const [elements, setElements] = useState<DrawnElement[]>([]);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
+  const sortedAthletes = [...athletes].sort((a, b) => 
+    a.firstName.localeCompare(b.firstName)
+  );
+
   const tools: { id: Tool; icon: React.ReactNode; label: string; color?: string }[] = [
     { id: "freedraw", icon: <Pencil className="h-5 w-5" />, label: "Free Draw" },
     { id: "arrow", icon: <ArrowRight className="h-5 w-5" />, label: "Arrow" },
@@ -43,8 +62,8 @@ export function PlaybookCanvas() {
     { id: "circle", icon: <Circle className="h-5 w-5 text-red-500" />, label: "O Circle", color: "red" },
   ];
 
-  const isShapeTool = (tool: Tool) => ["square", "xshape", "triangle", "circle"].includes(tool);
-  const isDraggableTool = (tool: Tool) => ["square", "xshape", "triangle", "circle", "arrow"].includes(tool);
+  const isShapeTool = (tool: Tool) => ["square", "xshape", "triangle", "circle", "athlete"].includes(tool);
+  const isDraggableTool = (tool: Tool) => ["square", "xshape", "triangle", "circle", "arrow", "athlete"].includes(tool);
 
   const getToolColor = (tool: Tool) => {
     switch (tool) {
@@ -52,6 +71,7 @@ export function PlaybookCanvas() {
       case "square": return "#22c55e";
       case "xshape": return "#000000";
       case "triangle": return "#eab308";
+      case "athlete": return "#3b82f6";
       default: return "#ffffff";
     }
   };
@@ -63,6 +83,10 @@ export function PlaybookCanvas() {
       case "triangle": return "#eab308";
       default: return undefined;
     }
+  };
+
+  const getInitials = (athlete: Athlete) => {
+    return `${athlete.firstName.charAt(0)}${athlete.lastName.charAt(0)}`.toUpperCase();
   };
 
   useEffect(() => {
@@ -199,10 +223,28 @@ export function PlaybookCanvas() {
         ctx.stroke();
 
         ctx.fillStyle = "#ef4444";
-        ctx.font = "bold 18px sans-serif";
+        ctx.font = "bold 14px sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("O", circCenter.x, circCenter.y);
+        break;
+
+      case "athlete":
+        const athCenter = element.points[0];
+        const athRadius = SHAPE_SIZE / 2;
+
+        ctx.fillStyle = "#3b82f6";
+        ctx.beginPath();
+        ctx.arc(athCenter.x, athCenter.y, athRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#2563eb";
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(element.label || "", athCenter.x, athCenter.y);
         break;
     }
   };
@@ -298,6 +340,20 @@ export function PlaybookCanvas() {
           y: point.y - clickedElement.points[0].y,
         });
       }
+      return;
+    }
+
+    if (selectedTool === "athlete") {
+      if (!selectedAthlete) return;
+      const newElement: DrawnElement = {
+        id: crypto.randomUUID(),
+        tool: selectedTool,
+        points: [point],
+        color: getToolColor(selectedTool),
+        lineWidth: 3,
+        label: getInitials(selectedAthlete),
+      };
+      setElements((prev) => [...prev, newElement]);
       return;
     }
 
@@ -424,6 +480,12 @@ export function PlaybookCanvas() {
     setElements([]);
   };
 
+  const handleSelectAthlete = (athlete: Athlete) => {
+    setSelectedAthlete(athlete);
+    setSelectedTool("athlete");
+    setIsAthletePopoverOpen(false);
+  };
+
   return (
     <div className="flex flex-col gap-4" data-testid="playbook-canvas-container">
       <div className="flex flex-wrap gap-2 p-3 bg-background/50 dark:bg-card/50 rounded-lg border border-white/10" data-testid="playbook-toolbar">
@@ -440,6 +502,46 @@ export function PlaybookCanvas() {
             <span className="hidden sm:inline">{tool.label}</span>
           </Button>
         ))}
+
+        <Popover open={isAthletePopoverOpen} onOpenChange={setIsAthletePopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant={selectedTool === "athlete" ? "default" : "outline"}
+              size="sm"
+              className="gap-2 text-blue-500 hover:text-blue-400"
+              data-testid="tool-athlete"
+            >
+              <Circle className="h-5 w-5 fill-blue-500" />
+              <span className="hidden sm:inline">{selectedAthlete ? getInitials(selectedAthlete) : "Athlete"}</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-0" align="start">
+            <ScrollArea className="h-[200px]">
+              <div className="p-2">
+                <p className="text-xs text-muted-foreground mb-2 px-2">Select an athlete</p>
+                {sortedAthletes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground px-2 py-4 text-center">No athletes on team</p>
+                ) : (
+                  sortedAthletes.map((athlete) => (
+                    <Button
+                      key={athlete.id}
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start gap-2"
+                      onClick={() => handleSelectAthlete(athlete)}
+                      data-testid={`athlete-option-${athlete.id}`}
+                    >
+                      <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                        {getInitials(athlete)}
+                      </div>
+                      {athlete.firstName} {athlete.lastName}
+                    </Button>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
 
         <div className="flex-1" />
 
