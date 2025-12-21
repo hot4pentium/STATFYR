@@ -3,15 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play, Trophy } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, type TeamMember, type Event, type HighlightVideo, type Play } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
   return <span className={`px-2 py-1 rounded text-xs font-bold ${className}`}>{children}</span>;
@@ -25,6 +26,8 @@ export default function SupporterDashboard() {
   const heroBannerRef = useRef<HTMLDivElement>(null);
   const [selectedAthlete, setSelectedAthlete] = useState<TeamMember | null>(null);
   const [isAthleteCardFlipped, setIsAthleteCardFlipped] = useState(false);
+  const [expandedPlay, setExpandedPlay] = useState<Play | null>(null);
+  const [playbookTab, setPlaybookTab] = useState<"Offense" | "Defense" | "Special">("Offense");
 
   const { data: teamMembers = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "members"],
@@ -43,6 +46,12 @@ export default function SupporterDashboard() {
     queryFn: () => currentTeam ? getAllTeamHighlights(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
     refetchInterval: 10000,
+  });
+
+  const { data: teamPlays = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "plays"],
+    queryFn: () => currentTeam ? getTeamPlays(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
   });
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -118,6 +127,13 @@ export default function SupporterDashboard() {
       icon: MessageSquare, 
       color: "from-pink-500/20 to-pink-600/20",
       description: "Updates"
+    },
+    { 
+      name: "Playbook", 
+      id: "playbook",
+      icon: BookOpen, 
+      color: "from-green-500/20 to-green-600/20",
+      description: "Team plays"
     },
   ];
 
@@ -378,7 +394,7 @@ export default function SupporterDashboard() {
                       )}
                       <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">
                         <Button size="icon" variant="secondary" className="h-12 w-12 rounded-full">
-                          <Play className="h-6 w-6" />
+                          <PlayIcon className="h-6 w-6" />
                         </Button>
                       </div>
                     </div>
@@ -405,6 +421,150 @@ export default function SupporterDashboard() {
               <p className="text-sm font-bold">Coach Update</p>
               <p className="text-xs text-muted-foreground">Squad is in excellent form heading into the weekend.</p>
             </div>
+          </div>
+        );
+      case "playbook":
+        const offensePlays = teamPlays.filter(p => p.category === "Offense");
+        const defensePlays = teamPlays.filter(p => p.category === "Defense");
+        const specialPlays = teamPlays.filter(p => p.category === "Special");
+        
+        const renderPlayCard = (play: Play) => (
+          <Card key={play.id} className="group cursor-pointer hover:shadow-lg transition-shadow" data-testid={`play-card-${play.id}`} onClick={() => setExpandedPlay(play)}>
+            {play.thumbnailData && (
+              <div className="w-full h-32 overflow-hidden rounded-t-lg border-b">
+                <img 
+                  src={play.thumbnailData} 
+                  alt={play.name} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            <CardHeader className="pb-2">
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-base">{play.name}</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    by {play.createdBy.firstName} {play.createdBy.lastName}
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {play.description && (
+                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{play.description}</p>
+              )}
+              {play.status && (
+                <Badge className={play.status === "Successful" ? "bg-green-600 text-white" : play.status === "Not Successful" ? "bg-red-600 text-white" : "bg-yellow-600 text-white"}>
+                  {play.status}
+                </Badge>
+              )}
+            </CardContent>
+          </Card>
+        );
+        
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-bold">Playbook</h3>
+              <p className="text-sm text-muted-foreground">View team plays ({teamPlays.length} plays)</p>
+            </div>
+            <Tabs value={playbookTab} onValueChange={(v) => setPlaybookTab(v as "Offense" | "Defense" | "Special")} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="Offense" className="gap-2" data-testid="playbook-tab-offense">
+                  <span>Offense</span>
+                  <Badge className="bg-blue-600 text-white text-xs">{offensePlays.length}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="Defense" className="gap-2" data-testid="playbook-tab-defense">
+                  <span>Defense</span>
+                  <Badge className="bg-orange-600 text-white text-xs">{defensePlays.length}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="Special" className="gap-2" data-testid="playbook-tab-special">
+                  <span>Special</span>
+                  <Badge className="bg-purple-600 text-white text-xs">{specialPlays.length}</Badge>
+                </TabsTrigger>
+              </TabsList>
+              
+              {teamPlays.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-bold">No plays yet</p>
+                  <p className="text-sm">The coach will add plays here.</p>
+                </div>
+              ) : (
+                <>
+                  {playbookTab === "Offense" && (
+                    offensePlays.length > 0 ? (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {offensePlays.map(renderPlayCard)}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <p className="text-sm">No offense plays yet.</p>
+                      </div>
+                    )
+                  )}
+                  
+                  {playbookTab === "Defense" && (
+                    defensePlays.length > 0 ? (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {defensePlays.map(renderPlayCard)}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <p className="text-sm">No defense plays yet.</p>
+                      </div>
+                    )
+                  )}
+                  
+                  {playbookTab === "Special" && (
+                    specialPlays.length > 0 ? (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {specialPlays.map(renderPlayCard)}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <p className="text-sm">No special plays yet.</p>
+                      </div>
+                    )
+                  )}
+                </>
+              )}
+            </Tabs>
+            
+            <Dialog open={!!expandedPlay} onOpenChange={(open) => !open && setExpandedPlay(null)}>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    {expandedPlay?.name}
+                    {expandedPlay?.category && (
+                      <Badge className={expandedPlay.category === "Offense" ? "bg-blue-600 text-white" : expandedPlay.category === "Defense" ? "bg-orange-600 text-white" : "bg-purple-600 text-white"}>
+                        {expandedPlay.category}
+                      </Badge>
+                    )}
+                    {expandedPlay?.status && (
+                      <Badge className={expandedPlay.status === "Successful" ? "bg-green-600 text-white" : expandedPlay.status === "Not Successful" ? "bg-red-600 text-white" : "bg-yellow-600 text-white"}>
+                        {expandedPlay.status}
+                      </Badge>
+                    )}
+                  </DialogTitle>
+                </DialogHeader>
+                {expandedPlay?.description && (
+                  <p className="text-sm text-muted-foreground">{expandedPlay.description}</p>
+                )}
+                {expandedPlay?.thumbnailData && (
+                  <div className="w-full rounded-lg overflow-hidden border">
+                    <img 
+                      src={expandedPlay.thumbnailData} 
+                      alt={expandedPlay.name} 
+                      className="w-full h-auto"
+                    />
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Created by {expandedPlay?.createdBy.firstName} {expandedPlay?.createdBy.lastName}
+                </p>
+              </DialogContent>
+            </Dialog>
           </div>
         );
       default:
