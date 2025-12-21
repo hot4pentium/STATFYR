@@ -489,9 +489,6 @@ export default function CoachDashboard() {
                       <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
                         <span className="text-sm font-bold text-white uppercase tracking-wider">{currentTeam?.season || "Season 2024-2025"}</span>
                       </div>
-                      <div className="px-4 py-2 bg-accent/20 backdrop-blur-sm rounded-lg border border-accent/30">
-                        <span className="text-sm font-bold text-accent-foreground uppercase tracking-wider">{currentTeam?.division || "Premier Division"}</span>
-                      </div>
                       {currentTeam?.code && (
                         <button
                           onClick={copyTeamCode}
