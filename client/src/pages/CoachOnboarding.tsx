@@ -118,7 +118,9 @@ export default function CoachOnboarding() {
           backgroundPosition: 'center',
         }}
       />
-      <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+      {!isLightMode && (
+        <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+      )}
 
       <div className="relative z-10 w-full max-w-md px-4">
         <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
