@@ -86,13 +86,15 @@ export default function CoachDashboard() {
   });
 
   const createPlayMutation = useMutation({
-    mutationFn: (data: { name: string; description?: string; canvasData: string; category: string }) =>
-      createPlay(currentTeam!.id, user!.id, data),
+    mutationFn: (data: { name: string; description?: string; canvasData: string; category: string }) => {
+      if (!currentTeam || !user) throw new Error("No team selected");
+      return createPlay(currentTeam.id, user.id, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "plays"] });
       toast.success("Play saved!");
     },
-    onError: () => toast.error("Failed to save play"),
+    onError: (error) => toast.error(error.message === "No team selected" ? "Please select a team first" : "Failed to save play"),
   });
 
   const updatePlayMutation = useMutation({
@@ -115,15 +117,17 @@ export default function CoachDashboard() {
   });
 
   const createEventMutation = useMutation({
-    mutationFn: (data: { type: string; date: string; location?: string; details?: string; opponent?: string; drinksAthleteId?: string; snacksAthleteId?: string }) => 
-      createEvent(currentTeam!.id, { ...data, title: data.type, createdBy: user!.id }),
+    mutationFn: (data: { type: string; date: string; location?: string; details?: string; opponent?: string; drinksAthleteId?: string; snacksAthleteId?: string }) => {
+      if (!currentTeam || !user) throw new Error("No team selected");
+      return createEvent(currentTeam.id, { ...data, title: data.type, createdBy: user.id });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "events"] });
       toast.success("Event created!");
       setIsEventModalOpen(false);
       resetEventForm();
     },
-    onError: () => toast.error("Failed to create event"),
+    onError: (error) => toast.error(error.message === "No team selected" ? "Please select a team first" : "Failed to create event"),
   });
 
   const updateEventMutation = useMutation({
