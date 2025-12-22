@@ -55,6 +55,7 @@ export default function StatTrackerPage() {
   const [athletePosition, setAthletePosition] = useState("");
   const [settingsTab, setSettingsTab] = useState<"stats" | "athletes">("stats");
   const [selectedStat, setSelectedStat] = useState<StatConfig | null>(null);
+  const [isInitializingStats, setIsInitializingStats] = useState(false);
 
   const { data: events = [] } = useQuery({
     queryKey: ["team-events", selectedTeam?.id],
@@ -201,25 +202,30 @@ export default function StatTrackerPage() {
   });
 
   const initStatConfigs = async () => {
-    if (!selectedTeam || !user || statConfigs.length > 0) return;
-    const sport = selectedTeam.sport || "Basketball";
-    const sportStats = SPORT_STATS[sport] || SPORT_STATS.Basketball;
-    
-    let order = 0;
-    for (const category of sportStats) {
-      for (const stat of category.stats) {
-        await createStatConfig(selectedTeam.id, user.id, {
-          name: stat.name,
-          shortName: stat.shortName,
-          value: stat.value,
-          positions: stat.positions,
-          category: category.category,
-          displayOrder: order++
-        });
+    if (!selectedTeam || !user || statConfigs.length > 0 || isInitializingStats) return;
+    setIsInitializingStats(true);
+    try {
+      const sport = selectedTeam.sport || "Basketball";
+      const sportStats = SPORT_STATS[sport] || SPORT_STATS.Basketball;
+      
+      let order = 0;
+      for (const category of sportStats) {
+        for (const stat of category.stats) {
+          await createStatConfig(selectedTeam.id, user.id, {
+            name: stat.name,
+            shortName: stat.shortName,
+            value: stat.value,
+            positions: stat.positions,
+            category: category.category,
+            displayOrder: order++
+          });
+        }
       }
+      queryClient.invalidateQueries({ queryKey: ["stat-configs", selectedTeam?.id] });
+      toast({ title: "Stats configured", description: `${sport} stats have been set up` });
+    } finally {
+      setIsInitializingStats(false);
     }
-    queryClient.invalidateQueries({ queryKey: ["stat-configs", selectedTeam?.id] });
-    toast({ title: "Stats configured", description: `${sport} stats have been set up` });
   };
 
   const startGame = () => {
@@ -463,8 +469,8 @@ export default function StatTrackerPage() {
                     <p className="text-sm text-amber-400 mb-2">
                       No stat configurations found. Click below to set up default stats for {selectedTeam.sport || "Basketball"}.
                     </p>
-                    <Button variant="outline" size="sm" onClick={initStatConfigs} data-testid="button-init-stats">
-                      Initialize {selectedTeam.sport || "Basketball"} Stats
+                    <Button variant="outline" size="sm" onClick={initStatConfigs} disabled={isInitializingStats} data-testid="button-init-stats">
+                      {isInitializingStats ? "Initializing..." : `Initialize ${selectedTeam.sport || "Basketball"} Stats`}
                     </Button>
                   </div>
                 )}
