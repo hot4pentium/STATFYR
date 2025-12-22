@@ -11,7 +11,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, type TeamMember, type Event, type HighlightVideo, type Play } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, type TeamMember, type Event, type HighlightVideo, type Play, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
@@ -48,6 +48,24 @@ export default function AthleteDashboard() {
     queryKey: ["/api/teams", currentTeam?.id, "plays"],
     queryFn: () => currentTeam ? getTeamPlays(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
+  });
+
+  const { data: aggregateStats } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "stats", "aggregate"],
+    queryFn: () => currentTeam ? getTeamAggregateStats(currentTeam.id) : Promise.resolve({ games: 0, wins: 0, losses: 0, ties: 0, pointsFor: 0, pointsAgainst: 0, statTotals: {} }),
+    enabled: !!currentTeam,
+  });
+
+  const { data: advancedStats } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "stats", "advanced"],
+    queryFn: () => currentTeam ? getAdvancedTeamStats(currentTeam.id) : Promise.resolve({ gameHistory: [], athletePerformance: [], ratios: {} }),
+    enabled: !!currentTeam,
+  });
+
+  const { data: myStats } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "athletes", user?.id, "stats"],
+    queryFn: () => currentTeam && user ? getAthleteStats(currentTeam.id, user.id) : Promise.resolve({ gamesPlayed: 0, stats: {}, gameHistory: [], hotStreak: false, streakLength: 0 }),
+    enabled: !!currentTeam && !!user,
   });
 
   const queryClient = useQueryClient();
@@ -319,32 +337,109 @@ export default function AthleteDashboard() {
           </div>
         );
       case "stats":
+        if (!aggregateStats || aggregateStats.games === 0) {
+          return (
+            <div className="text-center py-12 text-muted-foreground">
+              <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-bold">No stats yet</p>
+              <p className="text-sm">Statistics will appear here after games are completed.</p>
+            </div>
+          );
+        }
+
+        const myTotalStats = myStats ? Object.values(myStats.stats).reduce((sum, s) => sum + s.total, 0) : 0;
+
         return (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-background/40 border-white/10">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground mb-1 uppercase">Goals</p>
-                <p className="text-3xl font-display font-bold">0</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-background/40 border-white/10">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground mb-1 uppercase">Assists</p>
-                <p className="text-3xl font-display font-bold">0</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-background/40 border-white/10">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground mb-1 uppercase">Games</p>
-                <p className="text-3xl font-display font-bold">0</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-background/40 border-white/10">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground mb-1 uppercase">Rating</p>
-                <p className="text-3xl font-display font-bold text-accent">-</p>
-              </CardContent>
-            </Card>
+          <div className="space-y-6">
+            {myStats && myStats.gamesPlayed > 0 && (
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-primary">
+                  <TrendingUp className="h-5 w-5" />
+                  My Stats
+                  {myStats.hotStreak && (
+                    <Badge className="bg-orange-500/20 text-orange-500 border-orange-500/30">
+                      <Activity className="h-3 w-3 mr-1" />
+                      {myStats.streakLength} game streak
+                    </Badge>
+                  )}
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                  <div className="bg-background/50 border rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold">{myStats.gamesPlayed}</p>
+                    <p className="text-xs text-muted-foreground">Games Played</p>
+                  </div>
+                  <div className="bg-background/50 border rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold">{myTotalStats}</p>
+                    <p className="text-xs text-muted-foreground">Total Stats</p>
+                  </div>
+                  <div className="bg-background/50 border rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold">{myStats.gamesPlayed > 0 ? Math.round(myTotalStats / myStats.gamesPlayed * 10) / 10 : 0}</p>
+                    <p className="text-xs text-muted-foreground">Per Game Avg</p>
+                  </div>
+                  <div className="bg-background/50 border rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-primary">{Object.keys(myStats.stats).length}</p>
+                    <p className="text-xs text-muted-foreground">Stat Types</p>
+                  </div>
+                </div>
+                {Object.keys(myStats.stats).length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {Object.entries(myStats.stats).map(([key, stat]) => (
+                      <div key={key} className="bg-background/50 border rounded-lg p-2 text-center">
+                        <p className="text-lg font-bold">{stat.total}</p>
+                        <p className="text-[10px] text-muted-foreground">{stat.name}</p>
+                        <p className="text-[10px] text-primary">{stat.perGame}/game</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div>
+              <h3 className="font-semibold mb-3">Team Record</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-background/50 border rounded-lg p-4 text-center">
+                  <p className="text-3xl font-bold">{aggregateStats.games}</p>
+                  <p className="text-sm text-muted-foreground">Games</p>
+                </div>
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-center">
+                  <p className="text-3xl font-bold text-green-500">{aggregateStats.wins}</p>
+                  <p className="text-sm text-muted-foreground">Wins</p>
+                </div>
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-center">
+                  <p className="text-3xl font-bold text-red-500">{aggregateStats.losses}</p>
+                  <p className="text-sm text-muted-foreground">Losses</p>
+                </div>
+              </div>
+            </div>
+
+            {advancedStats?.ratios && Object.keys(advancedStats.ratios).length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3">Team Metrics</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                  {Object.entries(advancedStats.ratios).map(([key, ratio]) => (
+                    <div key={key} className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center" title={ratio.description}>
+                      <p className="text-2xl font-bold text-primary">{ratio.value}{key.includes('pct') || key === 'win_pct' ? '%' : ''}</p>
+                      <p className="text-xs text-muted-foreground">{ratio.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {Object.keys(aggregateStats.statTotals).length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3">Team Season Totals</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {(Object.entries(aggregateStats.statTotals) as [string, { name: string; total: number }][]).map(([key, stat]) => (
+                    <div key={key} className="bg-background/50 border rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold">{stat.total}</p>
+                      <p className="text-xs text-muted-foreground">{stat.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         );
       case "chat":
