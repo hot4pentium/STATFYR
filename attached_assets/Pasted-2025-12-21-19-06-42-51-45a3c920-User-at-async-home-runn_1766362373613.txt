@@ -1,0 +1,130 @@
+2025-12-21 19:06:42.51
+45a3c920
+User
+at async /home/runner/workspace/dist/index.cjs:70:113022 {
+2025-12-21 19:06:42.51
+45a3c920
+User
+at async /home/runner/workspace/dist/index.cjs:70:100036
+2025-12-21 19:06:42.51
+45a3c920
+User
+at Kd. (/home/runner/workspace/dist/index.cjs:64:4601)
+2025-12-21 19:06:42.51
+45a3c920
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-12-21 19:06:42.51
+45a3c920
+User
+[cause]: Error: Connection terminated unexpectedly
+2025-12-21 19:06:42.51
+45a3c920
+User
+Registration error: Error: Connection terminated due to connection timeout
+2025-12-21 19:06:42.51
+45a3c920
+User
+at Socket.emit (node:events:524:28)
+2025-12-21 19:06:42.51
+45a3c920
+User
+at async df.getUserByUsername (/home/runner/workspace/dist/index.cjs:70:104012)
+2025-12-21 19:06:42.51
+45a3c920
+User
+at Object.onceWrapper (node:events:638:28)
+2025-12-21 19:06:42.51
+45a3c920
+User
+at /home/runner/workspace/dist/index.cjs:64:13326
+2025-12-21 19:06:42.51
+45a3c920
+User
+at Socket. (/home/runner/workspace/dist/index.cjs:63:49804)
+2025-12-21 19:06:42.51
+45a3c920
+User
+at Kd.emit (node:events:524:28)
+2025-12-21 19:06:42.51
+45a3c920
+User
+}
+2025-12-21 19:06:42.52
+45a3c920
+User
+12:06:42 AM [express] POST /api/auth/register 500 in 30034ms :: {"error":"Failed to register user: Connection terminated due to connection timeout"}
+2025-12-21 19:08:45.65
+b32c5d31
+System
+system: received signal terminated
+2025-12-21 19:08:45.66
+b32c5d31
+System
+command finished with error [node ./dist/index.cjs]: signal: terminated
+2025-12-21 19:08:45.72
+b32c5d31
+System
+main done, exiting
+2025-12-21 19:11:12.30
+45a3c920
+User
+at async /home/runner/workspace/dist/index.cjs:70:100036
+2025-12-21 19:11:12.30
+45a3c920
+User
+at async df.getUserByUsername (/home/runner/workspace/dist/index.cjs:70:104012)
+2025-12-21 19:11:12.30
+45a3c920
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-12-21 19:11:12.30
+45a3c920
+User
+at Object.onceWrapper (node:events:638:28)
+2025-12-21 19:11:12.30
+45a3c920
+User
+at TCP. (node:net:343:12)
+2025-12-21 19:11:12.30
+45a3c920
+User
+at Kd. (/home/runner/workspace/dist/index.cjs:64:4601)
+2025-12-21 19:11:12.30
+45a3c920
+User
+at Kd.emit (node:events:524:28)
+2025-12-21 19:11:12.30
+45a3c920
+User
+at Socket.emit (node:events:524:28)
+2025-12-21 19:11:12.30
+45a3c920
+User
+at async /home/runner/workspace/dist/index.cjs:70:113022 {
+2025-12-21 19:11:12.30
+45a3c920
+User
+at Socket. (/home/runner/workspace/dist/index.cjs:63:49804)
+2025-12-21 19:11:12.30
+45a3c920
+User
+at /home/runner/workspace/dist/index.cjs:64:13326
+2025-12-21 19:11:12.30
+45a3c920
+User
+12:11:12 AM [express] POST /api/auth/register 500 in 30028ms :: {"error":"Failed to register user: Connection terminated due to connection timeout"}
+2025-12-21 19:11:12.30
+45a3c920
+User
+Registration error: Error: Connection terminated due to connection timeout
+2025-12-21 19:11:12.30
+45a3c920
+User
+}
+2025-12-21 19:11:12.30
+45a3c920
+User
+[cause]: Error: Connection terminated unexpectedly
+Wrap
+Colors
