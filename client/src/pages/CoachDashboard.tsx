@@ -10,6 +10,7 @@ import { useUser } from "@/lib/userContext";
 import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, getTeamAggregateStats, getAdvancedTeamStats, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup, type TeamAggregateStats, type AdvancedTeamStats } from "@/lib/api";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend } from "recharts";
 import { Flame, TrendingUp } from "lucide-react";
+import { TeamBadge } from "@/components/TeamBadge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { MoreVertical, UserCog, UserMinus, Hash, Award } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -1272,7 +1273,11 @@ export default function CoachDashboard() {
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div className="flex items-start gap-6 flex-1">
                   <div className="h-20 w-20 md:h-28 md:w-28 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
-                    <Shield className="h-10 w-10 md:h-16 md:w-16 text-white" />
+                    {currentTeam?.badgeId ? (
+                      <TeamBadge badgeId={currentTeam.badgeId} size="xl" className="text-white" />
+                    ) : (
+                      <Shield className="h-10 w-10 md:h-16 md:w-16 text-white" />
+                    )}
                   </div>
                   
                   <div className="space-y-3 flex-1">

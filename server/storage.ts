@@ -39,7 +39,7 @@ export interface IStorage {
   getTeamByCode(code: string): Promise<Team | undefined>;
   getTeamsByCoach(coachId: string): Promise<Team[]>;
   createTeam(team: InsertTeam, coachId: string): Promise<Team>;
-  updateTeam(id: string, data: Partial<{ name: string; sport: string; season: string }>): Promise<Team | undefined>;
+  updateTeam(id: string, data: Partial<{ name: string; sport: string; season: string; badgeId: string | null }>): Promise<Team | undefined>;
   
   getTeamMembers(teamId: string): Promise<(TeamMember & { user: User })[]>;
   getTeamMembership(teamId: string, userId: string): Promise<TeamMember | undefined>;
@@ -174,7 +174,7 @@ export class DatabaseStorage implements IStorage {
     return team;
   }
 
-  async updateTeam(id: string, data: Partial<{ name: string; sport: string; season: string }>): Promise<Team | undefined> {
+  async updateTeam(id: string, data: Partial<{ name: string; sport: string; season: string; badgeId: string | null }>): Promise<Team | undefined> {
     const [team] = await db
       .update(teams)
       .set(data)

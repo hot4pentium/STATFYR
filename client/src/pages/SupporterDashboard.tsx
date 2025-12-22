@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { usePWA } from "@/lib/pwaContext";
+import { TeamBadge } from "@/components/TeamBadge";
 
 function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
   return <span className={`px-2 py-1 rounded text-xs font-bold ${className}`}>{children}</span>;
@@ -793,7 +794,11 @@ export default function SupporterDashboard() {
               <div className="relative z-10 p-6 md:p-12">
                 <div className="flex items-start gap-4 md:gap-8">
                   <div className="h-14 w-14 md:h-32 md:w-32 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
-                    <Shield className="h-7 w-7 md:h-20 md:w-20 text-white" />
+                    {currentTeam?.badgeId ? (
+                      <TeamBadge badgeId={currentTeam.badgeId} size="xl" className="text-white" />
+                    ) : (
+                      <Shield className="h-7 w-7 md:h-20 md:w-20 text-white" />
+                    )}
                   </div>
                   
                   <div className="space-y-2 md:space-y-4 flex-1 min-w-0">
@@ -983,7 +988,11 @@ export default function SupporterDashboard() {
               <div className="flex flex-row items-center justify-between gap-4 md:gap-6">
                 <div className="flex items-start gap-4 md:gap-6 flex-1 min-w-0">
                   <div className="h-12 w-12 md:h-28 md:w-28 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
-                    <Shield className="h-6 w-6 md:h-16 md:w-16 text-white" />
+                    {currentTeam?.badgeId ? (
+                      <TeamBadge badgeId={currentTeam.badgeId} size="xl" className="text-white" />
+                    ) : (
+                      <Shield className="h-6 w-6 md:h-16 md:w-16 text-white" />
+                    )}
                   </div>
                   
                   <div className="space-y-1 md:space-y-3 flex-1 min-w-0">

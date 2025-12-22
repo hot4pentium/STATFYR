@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
 import { updateUser, updateTeam } from "@/lib/api";
+import { TEAM_BADGES } from "@shared/badges";
+import { TeamBadge } from "@/components/TeamBadge";
 
 const SPORTS = [
   "Football",
@@ -33,9 +35,15 @@ const SPORTS = [
 
 export default function CoachSettings() {
   const { user, setUser, currentTeam, setCurrentTeam } = useUser();
-  const [selectedBadge, setSelectedBadge] = useState("shield");
+  const [selectedBadge, setSelectedBadge] = useState(currentTeam?.badgeId || "");
   const [copied, setCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (currentTeam?.badgeId) {
+      setSelectedBadge(currentTeam.badgeId);
+    }
+  }, [currentTeam?.badgeId]);
 
   const [profileForm, setProfileForm] = useState({
     firstName: "",
@@ -108,17 +116,21 @@ export default function CoachSettings() {
     }
   };
 
-  const handleSaveBadge = () => {
-    toast.success("Team badge updated successfully!");
+  const handleSaveBadge = async () => {
+    if (!currentTeam) return;
+    setIsSaving(true);
+    try {
+      const updatedTeam = await updateTeam(currentTeam.id, {
+        badgeId: selectedBadge || null
+      });
+      setCurrentTeam(updatedTeam);
+      toast.success("Team badge updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update team badge");
+    } finally {
+      setIsSaving(false);
+    }
   };
-
-  const badges = [
-    { id: "shield", name: "Shield", icon: "🛡️" },
-    { id: "crown", name: "Crown", icon: "👑" },
-    { id: "thunder", name: "Thunder", icon: "⚡" },
-    { id: "star", name: "Star", icon: "⭐" },
-    { id: "fire", name: "Fire", icon: "🔥" },
-  ];
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(teamCode);
@@ -161,7 +173,11 @@ export default function CoachSettings() {
               </div>
               <div className="flex items-start gap-6">
                 <div className="h-16 w-16 md:h-20 md:w-20 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
-                  <Shield className="h-8 w-8 md:h-10 md:w-10 text-white" />
+                  {currentTeam?.badgeId ? (
+                    <TeamBadge badgeId={currentTeam.badgeId} size="lg" className="text-white" />
+                  ) : (
+                    <Shield className="h-8 w-8 md:h-10 md:w-10 text-white" />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <h1 className="text-3xl md:text-5xl font-display font-bold text-white uppercase tracking-tighter">Settings</h1>
@@ -321,28 +337,36 @@ export default function CoachSettings() {
                   <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Team Badge</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <p className="text-sm text-muted-foreground">Select your team's badge icon</p>
+                  <p className="text-sm text-muted-foreground">Select your team's badge design</p>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    {badges.map((badge) => (
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {TEAM_BADGES.map((badge) => (
                       <button
                         key={badge.id}
                         onClick={() => setSelectedBadge(badge.id)}
                         data-testid={`button-badge-${badge.id}`}
-                        className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                        className={`p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
                           selectedBadge === badge.id
                             ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
                             : "border-white/10 bg-background/50 hover:border-white/20"
                         }`}
                       >
-                        <span className="text-4xl">{badge.icon}</span>
-                        <span className="text-xs font-medium text-center">{badge.name}</span>
+                        <div 
+                          className="w-12 h-14 text-primary"
+                          dangerouslySetInnerHTML={{ __html: badge.svg }}
+                        />
+                        <span className="text-xs font-medium text-center">{badge.label}</span>
                       </button>
                     ))}
                   </div>
 
-                  <Button onClick={handleSaveBadge} data-testid="button-save-badge" className="w-full md:w-auto shadow-lg shadow-primary/30">
-                    Save Badge
+                  <Button 
+                    onClick={handleSaveBadge} 
+                    disabled={isSaving}
+                    data-testid="button-save-badge" 
+                    className="w-full md:w-auto shadow-lg shadow-primary/30"
+                  >
+                    {isSaving ? "Saving..." : "Save Badge"}
                   </Button>
                 </CardContent>
               </Card>
