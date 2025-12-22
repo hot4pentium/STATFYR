@@ -1560,20 +1560,7 @@ export default function AthleteDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Coach Messages */}
-              <Card className="bg-card/80 backdrop-blur-sm border-white/5">
-                <CardHeader>
-                  <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Coach Notes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <p className="text-sm text-blue-200 mb-3">
-                      "Great performance last match! Work on your positioning in the box. See you at practice."
-                    </p>
-                    <p className="text-xs text-muted-foreground">Coach Carter • 2 hours ago</p>
-                  </div>
-                </CardContent>
-              </Card>
+              
             </div>
           </div>
 
