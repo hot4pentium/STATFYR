@@ -111,8 +111,6 @@ export default function StatTrackerPage() {
         setViewMode("summary");
       } else if (currentGame.status === "active" || currentGame.status === "paused") {
         setViewMode("tracking");
-      } else if (gameRoster.length > 0) {
-        setViewMode("roster");
       }
     }
   }, [currentGame, gameRoster]);
@@ -274,11 +272,7 @@ export default function StatTrackerPage() {
     }
   };
 
-  const startGame = () => {
-    updateGameMutation.mutate({ 
-      status: "active", 
-      startedAt: new Date().toISOString() 
-    });
+  const goToTracking = () => {
     setViewMode("tracking");
   };
 
@@ -671,9 +665,9 @@ export default function StatTrackerPage() {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Setup
               </Button>
-              <Button className="flex-1" size="lg" onClick={startGame} data-testid="button-start-game">
+              <Button className="flex-1" size="lg" onClick={goToTracking} data-testid="button-start-game">
                 <Play className="h-4 w-4 mr-2" />
-                Start Game
+                Go to Tracking
               </Button>
             </div>
           </div>
