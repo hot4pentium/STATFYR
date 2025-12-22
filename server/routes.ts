@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
@@ -260,11 +260,77 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/teams/:teamId/members/:userId", async (req, res) => {
+    try {
+      const { teamId, userId } = req.params;
+      const requesterId = req.query.requesterId as string | undefined;
+      
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+      
+      // Authorization: only coaches and staff can update team members
+      const requesterMembership = await storage.getTeamMembership(teamId, requesterId);
+      const team = await storage.getTeam(teamId);
+      
+      const isCoach = team?.coachId === requesterId;
+      const isStaff = requesterMembership?.role === 'staff';
+      
+      if (!isCoach && !isStaff) {
+        return res.status(403).json({ error: "Only coaches and staff can manage team members" });
+      }
+      
+      // Prevent demoting the team coach
+      if (team?.coachId === userId && req.body.role && req.body.role !== 'coach') {
+        return res.status(400).json({ error: "Cannot change the team coach's role" });
+      }
+      
+      const parsed = updateTeamMemberSchema.parse(req.body);
+      const member = await storage.updateTeamMember(teamId, userId, parsed);
+      
+      if (!member) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      
+      res.json(member);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Failed to update team member:", error);
+      res.status(500).json({ error: "Failed to update team member" });
+    }
+  });
+
   app.delete("/api/teams/:teamId/members/:userId", async (req, res) => {
     try {
-      await storage.removeTeamMember(req.params.teamId, req.params.userId);
+      const { teamId, userId } = req.params;
+      const requesterId = req.query.requesterId as string | undefined;
+      
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+      
+      // Authorization: only coaches and staff can remove team members
+      const requesterMembership = await storage.getTeamMembership(teamId, requesterId);
+      const team = await storage.getTeam(teamId);
+      
+      const isCoach = team?.coachId === requesterId;
+      const isStaff = requesterMembership?.role === 'staff';
+      
+      if (!isCoach && !isStaff) {
+        return res.status(403).json({ error: "Only coaches and staff can remove team members" });
+      }
+      
+      // Prevent removing the team coach
+      if (team?.coachId === userId) {
+        return res.status(400).json({ error: "Cannot remove the team coach" });
+      }
+      
+      await storage.removeTeamMember(teamId, userId);
       res.json({ success: true });
     } catch (error) {
+      console.error("Failed to remove team member:", error);
       res.status(500).json({ error: "Failed to remove team member" });
     }
   });
