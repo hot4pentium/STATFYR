@@ -68,7 +68,7 @@ export default function SupporterSettings() {
 
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/users/${contextUser.id}`, {
+      const response = await fetch(`/api/users/${contextUser.id}?requesterId=${contextUser.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -183,7 +183,7 @@ export default function SupporterSettings() {
     reader.onload = async (event) => {
       const base64Avatar = event.target?.result as string;
       try {
-        const response = await fetch(`/api/users/${selectedAthleteForUpload.athlete.id}`, {
+        const response = await fetch(`/api/users/${selectedAthleteForUpload.athlete.id}?requesterId=${contextUser?.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ avatar: base64Avatar }),
@@ -240,7 +240,7 @@ export default function SupporterSettings() {
   };
 
   const handleSaveAthleteEdit = async () => {
-    if (!editingAthlete) return;
+    if (!editingAthlete || !contextUser) return;
     
     if (!editFirstName.trim() || !editLastName.trim()) {
       toast.error("First name and last name are required.");
@@ -249,7 +249,7 @@ export default function SupporterSettings() {
 
     setIsSavingEdit(true);
     try {
-      const response = await fetch(`/api/users/${editingAthlete.athlete.id}`, {
+      const response = await fetch(`/api/users/${editingAthlete.athlete.id}?requesterId=${contextUser.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -261,15 +261,19 @@ export default function SupporterSettings() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update athlete");
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 403) {
+          throw new Error(errorData.error || "You don't have permission to edit this athlete");
+        }
+        throw new Error(errorData.error || "Failed to update athlete");
       }
 
       toast.success(`${editFirstName.trim()} ${editLastName.trim()}'s profile updated!`);
       setEditingAthlete(null);
       refetchManagedAthletes();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update athlete:", error);
-      toast.error("Failed to update athlete. Please try again.");
+      toast.error(error.message || "Failed to update athlete. Please try again.");
     } finally {
       setIsSavingEdit(false);
     }

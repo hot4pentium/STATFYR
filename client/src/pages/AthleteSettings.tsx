@@ -43,7 +43,7 @@ export default function AthleteSettings() {
 
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/users/${contextUser.id}`, {
+      const response = await fetch(`/api/users/${contextUser.id}?requesterId=${contextUser.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

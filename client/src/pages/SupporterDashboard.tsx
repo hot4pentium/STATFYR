@@ -125,7 +125,7 @@ export default function SupporterDashboard() {
       reader.onload = async (event) => {
         const avatarData = event.target?.result as string;
         
-        const response = await fetch(`/api/users/${viewingAsAthlete.athlete.id}`, {
+        const response = await fetch(`/api/users/${viewingAsAthlete.athlete.id}?requesterId=${user?.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ avatar: avatarData }),

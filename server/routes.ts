@@ -93,10 +93,38 @@ export async function registerRoutes(
 
   app.patch("/api/users/:id", async (req, res) => {
     try {
-      console.log("Updating user:", req.params.id, "with data:", JSON.stringify(req.body).substring(0, 200));
-      const user = await storage.updateUser(req.params.id, req.body);
+      const targetUserId = req.params.id;
+      const requesterId = req.query.requesterId as string | undefined;
+      
+      console.log("Updating user:", targetUserId, "with data:", JSON.stringify(req.body).substring(0, 200));
+      
+      // Authorization check: requesterId is required for all updates
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+      
+      // If updating someone else's profile, verify authorization
+      if (requesterId !== targetUserId) {
+        const requester = await storage.getUser(requesterId);
+        if (!requester) {
+          return res.status(403).json({ error: "Invalid requester" });
+        }
+        
+        // Supporters can only edit athletes they manage
+        if (requester.role === 'supporter') {
+          const managesAthlete = await storage.supporterManagesAthlete(requesterId, targetUserId);
+          if (!managesAthlete) {
+            return res.status(403).json({ error: "You can only edit athletes you manage" });
+          }
+        } else {
+          // Non-supporters cannot edit other users (except coaches/staff which could be added later)
+          return res.status(403).json({ error: "Unauthorized to edit this user" });
+        }
+      }
+      
+      const user = await storage.updateUser(targetUserId, req.body);
       if (!user) {
-        console.log("User not found:", req.params.id);
+        console.log("User not found:", targetUserId);
         return res.status(404).json({ error: "User not found" });
       }
       console.log("User updated successfully:", user.id);

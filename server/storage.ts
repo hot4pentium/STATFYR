@@ -61,6 +61,7 @@ export interface IStorage {
   getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete: User })[]>;
   createManagedAthlete(data: InsertManagedAthlete): Promise<ManagedAthlete>;
   deleteManagedAthlete(id: string): Promise<void>;
+  supporterManagesAthlete(supporterId: string, athleteId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -335,6 +336,17 @@ export class DatabaseStorage implements IStorage {
 
   async deleteManagedAthlete(id: string): Promise<void> {
     await db.delete(managedAthletes).where(eq(managedAthletes.id, id));
+  }
+
+  async supporterManagesAthlete(supporterId: string, athleteId: string): Promise<boolean> {
+    const [managed] = await db
+      .select()
+      .from(managedAthletes)
+      .where(and(
+        eq(managedAthletes.supporterId, supporterId),
+        eq(managedAthletes.athleteId, athleteId)
+      ));
+    return !!managed;
   }
 }
 
