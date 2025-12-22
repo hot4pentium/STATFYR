@@ -617,69 +617,64 @@ export default function StatTrackerPage() {
                 <div className="flex items-center justify-between">
                   <div className="text-center flex-1">
                     <p className="text-[10px] text-muted-foreground uppercase">{selectedTeam.name}</p>
-                    <p className="text-3xl font-display font-bold" data-testid="text-team-score">
-                      {currentGame.teamScore}
-                    </p>
+                    <div className="flex items-center justify-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => updateGameMutation.mutate({ teamScore: Math.max(0, currentGame.teamScore - 1) })}
+                        data-testid="button-team-score-minus"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <p className="text-3xl font-display font-bold min-w-[3rem]" data-testid="text-team-score">
+                        {currentGame.teamScore}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => updateGameMutation.mutate({ teamScore: currentGame.teamScore + 1 })}
+                        data-testid="button-team-score-plus"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="px-2 flex flex-col items-center gap-1">
                     <Badge variant="outline" className="text-sm px-2 py-0.5" data-testid="badge-period">
                       {periodType.charAt(0).toUpperCase()}{currentGame.currentPeriod}
                     </Badge>
-                    <Dialog open={showScoreEdit} onOpenChange={setShowScoreEdit}>
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-6 px-2" onClick={() => {
-                          setTempTeamScore(currentGame.teamScore);
-                          setTempOpponentScore(currentGame.opponentScore);
-                        }} data-testid="button-edit-score">
-                          <Edit2 className="h-3 w-3" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Edit Score</DialogTitle>
-                        </DialogHeader>
-                        <div className="grid grid-cols-2 gap-4 py-4">
-                          <div className="space-y-2">
-                            <Label>{selectedTeam.name}</Label>
-                            <Input
-                              type="number"
-                              value={tempTeamScore}
-                              onChange={(e) => setTempTeamScore(Number(e.target.value))}
-                              data-testid="input-edit-team-score"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>{currentGame.opponentName || "Opponent"}</Label>
-                            <Input
-                              type="number"
-                              value={tempOpponentScore}
-                              onChange={(e) => setTempOpponentScore(Number(e.target.value))}
-                              data-testid="input-edit-opponent-score"
-                            />
-                          </div>
-                        </div>
-                        <Button onClick={() => {
-                          updateGameMutation.mutate({ 
-                            teamScore: tempTeamScore, 
-                            opponentScore: tempOpponentScore 
-                          });
-                          setShowScoreEdit(false);
-                        }} data-testid="button-save-score">
-                          <Save className="h-4 w-4 mr-2" />
-                          Save
-                        </Button>
-                      </DialogContent>
-                    </Dialog>
                   </div>
                   
                   <div className="text-center flex-1">
                     <p className="text-[10px] text-muted-foreground uppercase">
                       {currentGame.opponentName || "Opponent"}
                     </p>
-                    <p className="text-3xl font-display font-bold" data-testid="text-opponent-score">
-                      {currentGame.opponentScore}
-                    </p>
+                    <div className="flex items-center justify-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => updateGameMutation.mutate({ opponentScore: Math.max(0, currentGame.opponentScore - 1) })}
+                        data-testid="button-opponent-score-minus"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <p className="text-3xl font-display font-bold min-w-[3rem]" data-testid="text-opponent-score">
+                        {currentGame.opponentScore}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => updateGameMutation.mutate({ opponentScore: currentGame.opponentScore + 1 })}
+                        data-testid="button-opponent-score-plus"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 
