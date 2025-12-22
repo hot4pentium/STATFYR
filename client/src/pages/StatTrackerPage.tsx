@@ -56,6 +56,7 @@ export default function StatTrackerPage() {
   const [settingsTab, setSettingsTab] = useState<"stats" | "athletes">("stats");
   const [selectedStat, setSelectedStat] = useState<StatConfig | null>(null);
   const [isInitializingStats, setIsInitializingStats] = useState(false);
+  const [recordedPlayerId, setRecordedPlayerId] = useState<string | null>(null);
 
   const { data: events = [] } = useQuery({
     queryKey: ["team-events", selectedTeam?.id],
@@ -286,6 +287,8 @@ export default function StatTrackerPage() {
         athleteId: player.athleteId,
         pointsValue: config.value 
       });
+      setRecordedPlayerId(player.athleteId);
+      setTimeout(() => setRecordedPlayerId(null), 800);
       setSelectedStat(null);
     }
   };
@@ -717,6 +720,8 @@ export default function StatTrackerPage() {
                   >
                     {currentGame.status === "active" ? (
                       <><Pause className="h-3 w-3 mr-1" /> Pause</>
+                    ) : currentGame.status === "setup" || !currentGame.startedAt ? (
+                      <><Play className="h-3 w-3 mr-1" /> Start</>
                     ) : (
                       <><Play className="h-3 w-3 mr-1" /> Resume</>
                     )}
@@ -796,18 +801,28 @@ export default function StatTrackerPage() {
                                 {filteredPlayers.map(player => (
                                   <Button
                                     key={player.id}
-                                    variant="outline"
+                                    variant={recordedPlayerId === player.athleteId ? "default" : "outline"}
                                     size="sm"
-                                    className="flex-shrink-0 h-9 bg-background hover:bg-primary hover:text-primary-foreground"
+                                    className={`flex-shrink-0 h-9 transition-all duration-300 ${
+                                      recordedPlayerId === player.athleteId 
+                                        ? "bg-green-500 text-white scale-105" 
+                                        : "bg-background hover:bg-primary hover:text-primary-foreground"
+                                    }`}
                                     onClick={() => handlePlayerClick(player)}
                                     data-testid={`button-player-${player.athleteId}`}
                                   >
-                                    <span className="font-mono text-xs font-bold">
-                                      #{player.jerseyNumber || "--"}
-                                    </span>
-                                    <span className="ml-1 text-xs">
-                                      {player.athlete.firstName}
-                                    </span>
+                                    {recordedPlayerId === player.athleteId ? (
+                                      <Check className="h-4 w-4 animate-pulse" />
+                                    ) : (
+                                      <>
+                                        <span className="font-mono text-xs font-bold">
+                                          #{player.jerseyNumber || "--"}
+                                        </span>
+                                        <span className="ml-1 text-xs">
+                                          {player.athlete.firstName}
+                                        </span>
+                                      </>
+                                    )}
                                   </Button>
                                 ))}
                                 {filteredPlayers.length === 0 && (
