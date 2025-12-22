@@ -6,109 +6,44 @@ export interface TeamBadge {
 
 export const TEAM_BADGES: TeamBadge[] = [
   {
-    id: "shield-classic",
-    label: "Classic Shield",
-    svg: `<svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 4L8 14V38C8 54 32 76 32 76C32 76 56 54 56 38V14L32 4Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-      <path d="M32 12L14 20V38C14 50 32 68 32 68C32 68 50 50 50 38V20L32 12Z" fill="var(--badge-inner, white)" opacity="0.2"/>
-    </svg>`
+    id: "crown",
+    label: "Crown",
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></svg>`
   },
   {
-    id: "shield-pointed",
-    label: "Pointed Shield",
-    svg: `<svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 4L8 12V36C8 52 32 76 32 76C32 76 56 52 56 36V12L32 4Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-      <path d="M32 76V4" stroke="var(--badge-inner, white)" stroke-width="2" opacity="0.3"/>
-      <path d="M8 12H56" stroke="var(--badge-inner, white)" stroke-width="2" opacity="0.3"/>
-    </svg>`
+    id: "flame",
+    label: "Flame",
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg>`
   },
   {
-    id: "shield-banner",
-    label: "Banner Shield",
-    svg: `<svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 8H56V60L32 72L8 60V8Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-      <rect x="14" y="14" width="36" height="8" fill="var(--badge-inner, white)" opacity="0.3"/>
-      <path d="M32 30L38 42H26L32 30Z" fill="var(--badge-inner, white)" opacity="0.3"/>
-    </svg>`
+    id: "lightning",
+    label: "Lightning",
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z"></path></svg>`
   },
   {
-    id: "shield-crest",
-    label: "Royal Crest",
-    svg: `<svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 4L6 16V44C6 58 32 76 32 76C32 76 58 58 58 44V16L32 4Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-      <circle cx="32" cy="36" r="12" fill="var(--badge-inner, white)" opacity="0.2"/>
-      <path d="M32 24L35 32H43L37 38L39 46L32 42L25 46L27 38L21 32H29L32 24Z" fill="var(--badge-inner, white)" opacity="0.4"/>
-    </svg>`
+    id: "rocket",
+    label: "Rocket",
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13L6.35061 15.0617C6.22066 15.2242 6.15569 15.3054 6.10948 15.3958C6.06849 15.4761 6.03853 15.5615 6.02042 15.6497C6 15.7492 6 15.8532 6 16.0612V21L10 16M16 13L17.6494 15.0617C17.7793 15.2242 17.8443 15.3054 17.8905 15.3958C17.9315 15.4761 17.9615 15.5615 17.9796 15.6497C18 15.7492 18 15.8532 18 16.0612V21L14 16M12 13V20M8 8H16M12 3L8.40415 7.04534C8.25464 7.21353 8.17989 7.29762 8.1266 7.3932C8.07933 7.47797 8.04466 7.56917 8.02367 7.66393C8 7.77077 8 7.88329 8 8.10832V12C8 13.4001 8 14.1002 8.27248 14.635C8.51217 15.1054 8.89462 15.4878 9.36502 15.7275C9.8998 16 10.5999 16 12 16C13.4001 16 14.1002 16 14.635 15.7275C15.1054 15.4878 15.4878 15.1054 15.7275 14.635C16 14.1002 16 13.4001 16 12V8.10832C16 7.88329 16 7.77077 15.9763 7.66393C15.9553 7.56917 15.9207 7.47797 15.8734 7.3932C15.8201 7.29762 15.7454 7.21353 15.5959 7.04534L12 3Z"/></svg>`
   },
   {
-    id: "shield-diamond",
-    label: "Diamond Shield",
-    svg: `<svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 4L8 20V48L32 76L56 48V20L32 4Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-      <path d="M32 16L20 28V44L32 60L44 44V28L32 16Z" fill="var(--badge-inner, white)" opacity="0.2"/>
-    </svg>`
+    id: "shield",
+    label: "Shield",
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 9.00011L10 12.0001H14L12.5 15.0001M20 12.0001C20 16.4612 14.54 19.6939 12.6414 20.6831C12.4361 20.7901 12.3334 20.8436 12.191 20.8713C12.08 20.8929 11.92 20.8929 11.809 20.8713C11.6666 20.8436 11.5639 20.7901 11.3586 20.6831C9.45996 19.6939 4 16.4612 4 12.0001V8.21772C4 7.4182 4 7.01845 4.13076 6.67482C4.24627 6.37126 4.43398 6.10039 4.67766 5.88564C4.9535 5.64255 5.3278 5.50219 6.0764 5.22146L11.4382 3.21079C11.6461 3.13283 11.75 3.09385 11.857 3.07839C11.9518 3.06469 12.0482 3.06469 12.143 3.07839C12.25 3.09385 12.3539 3.13283 12.5618 3.21079L17.9236 5.22146C18.6722 5.50219 19.0465 5.64255 19.3223 5.88564C19.566 6.10039 19.7537 6.37126 19.8692 6.67482C20 7.01845 20 7.4182 20 8.21772V12.0001Z"/></svg>`
   },
   {
-    id: "shield-chevron",
-    label: "Chevron Shield",
-    svg: `<svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 4L8 14V42C8 56 32 76 32 76C32 76 56 56 56 42V14L32 4Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-      <path d="M16 24L32 40L48 24" stroke="var(--badge-inner, white)" stroke-width="4" opacity="0.4" stroke-linecap="round"/>
-      <path d="M16 36L32 52L48 36" stroke="var(--badge-inner, white)" stroke-width="4" opacity="0.3" stroke-linecap="round"/>
-    </svg>`
+    id: "star",
+    label: "Star",
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.245 4.174C11.4765 3.50808 11.5922 3.17513 11.7634 3.08285C11.9115 3.00298 12.0898 3.00298 12.238 3.08285C12.4091 3.17513 12.5248 3.50808 12.7563 4.174L14.2866 8.57639C14.3525 8.76592 14.3854 8.86068 14.4448 8.93125C14.4972 8.99359 14.5641 9.04218 14.6396 9.07278C14.725 9.10743 14.8253 9.10947 15.0259 9.11356L19.6857 9.20852C20.3906 9.22288 20.743 9.23007 20.8837 9.36432C21.0054 9.48051 21.0605 9.65014 21.0303 9.81569C20.9955 10.007 20.7146 10.2199 20.1528 10.6459L16.4387 13.4616C16.2788 13.5829 16.1989 13.6435 16.1501 13.7217C16.107 13.7909 16.0815 13.8695 16.0757 13.9507C16.0692 14.0427 16.0982 14.1387 16.1563 14.3308L17.506 18.7919C17.7101 19.4667 17.8122 19.8041 17.728 19.9793C17.6551 20.131 17.5108 20.2358 17.344 20.2583C17.1513 20.2842 16.862 20.0829 16.2833 19.6802L12.4576 17.0181C12.2929 16.9035 12.2106 16.8462 12.1211 16.8239C12.042 16.8043 11.9593 16.8043 11.8803 16.8239C11.7908 16.8462 11.7084 16.9035 11.5437 17.0181L7.71805 19.6802C7.13937 20.0829 6.85003 20.2842 6.65733 20.2583C6.49056 20.2358 6.34626 20.131 6.27337 19.9793C6.18915 19.8041 6.29123 19.4667 6.49538 18.7919L7.84503 14.3308C7.90313 14.1387 7.93218 14.0427 7.92564 13.9507C7.91986 13.8695 7.89432 13.7909 7.85123 13.7217C7.80246 13.6435 7.72251 13.5829 7.56262 13.4616L3.84858 10.6459C3.28678 10.2199 3.00588 10.007 2.97101 9.81569C2.94082 9.65014 2.99594 9.48051 3.11767 9.36432C3.25831 9.23007 3.61074 9.22289 4.31559 9.20852L8.9754 9.11356C9.176 9.10947 9.27631 9.10743 9.36177 9.07278C9.43726 9.04218 9.50414 8.99359 9.55657 8.93125C9.61593 8.86068 9.64887 8.76592 9.71475 8.57639L11.245 4.174Z"/></svg>`
   },
   {
-    id: "shield-stripe",
-    label: "Striped Shield",
-    svg: `<svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 4L8 14V42C8 56 32 76 32 76C32 76 56 56 56 42V14L32 4Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-      <path d="M20 4V76" stroke="var(--badge-inner, white)" stroke-width="6" opacity="0.3"/>
-      <path d="M44 4V76" stroke="var(--badge-inner, white)" stroke-width="6" opacity="0.3"/>
-    </svg>`
+    id: "swords",
+    label: "Swords",
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/></svg>`
   },
   {
-    id: "shield-emblem",
-    label: "Emblem Shield",
-    svg: `<svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 2L4 14V44C4 60 32 78 32 78C32 78 60 60 60 44V14L32 2Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-      <circle cx="32" cy="38" r="16" stroke="var(--badge-inner, white)" stroke-width="3" opacity="0.4" fill="none"/>
-      <circle cx="32" cy="38" r="8" fill="var(--badge-inner, white)" opacity="0.3"/>
-    </svg>`
-  },
-  {
-    id: "shield-wing",
-    label: "Winged Shield",
-    svg: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M40 8L20 16V40C20 52 40 72 40 72C40 72 60 52 60 40V16L40 8Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-      <path d="M20 24C12 20 4 24 4 24C4 24 8 40 20 44" stroke="currentColor" stroke-width="2" fill="currentColor" opacity="0.6"/>
-      <path d="M60 24C68 20 76 24 76 24C76 24 72 40 60 44" stroke="currentColor" stroke-width="2" fill="currentColor" opacity="0.6"/>
-      <path d="M40 20V56" stroke="var(--badge-inner, white)" stroke-width="2" opacity="0.3"/>
-    </svg>`
-  },
-  {
-    id: "shield-cross",
-    label: "Cross Shield",
-    svg: `<svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 4L8 14V42C8 56 32 76 32 76C32 76 56 56 56 42V14L32 4Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-      <rect x="28" y="16" width="8" height="44" fill="var(--badge-inner, white)" opacity="0.4"/>
-      <rect x="16" y="28" width="32" height="8" fill="var(--badge-inner, white)" opacity="0.4"/>
-    </svg>`
-  },
-  {
-    id: "shield-crown",
-    label: "Crown Shield",
-    svg: `<svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 12L8 22V46C8 58 32 76 32 76C32 76 56 58 56 46V22L32 12Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-      <path d="M20 4L24 12H40L44 4L48 12L40 8H24L16 12L20 4Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-      <path d="M32 28L36 36H44L38 42L40 50L32 46L24 50L26 42L20 36H28L32 28Z" fill="var(--badge-inner, white)" opacity="0.3"/>
-    </svg>`
-  },
-  {
-    id: "shield-simple",
-    label: "Simple Shield",
-    svg: `<svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 4L8 14V42C8 56 32 76 32 76C32 76 56 56 56 42V14L32 4Z" fill="currentColor" stroke="currentColor" stroke-width="2"/>
-    </svg>`
+    id: "trophy",
+    label: "Trophy",
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/><path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/><path d="M18 9h1.5a1 1 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6 9H4.5a1 1 0 0 1 0-5H6"/></svg>`
   }
 ];
 
