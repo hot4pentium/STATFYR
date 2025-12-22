@@ -29,6 +29,7 @@ export const teams = pgTable("teams", {
   sport: text("sport").notNull().default("Football"),
   division: text("division"),
   season: text("season"),
+  badgeId: text("badge_id"),
   coachId: varchar("coach_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
