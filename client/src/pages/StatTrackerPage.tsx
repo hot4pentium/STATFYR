@@ -709,175 +709,98 @@ export default function StatTrackerPage() {
               </CardContent>
             </Card>
 
-            {/* Desktop: Side-by-side layout */}
-            <div className="hidden lg:flex gap-4">
-              {/* Stats Grid - 2 columns */}
-              <Card className="bg-card border-white/5 flex-[2]">
-                <CardHeader className="pb-2 px-3 pt-3">
-                  <CardTitle className="text-sm flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <Target className="h-4 w-4" />
-                      {trackingMode === "team" ? "Record Stats" : "1. Tap a Stat"}
-                    </span>
-                    {selectedStat && (
-                      <Badge variant="default" className="animate-pulse">
-                        {selectedStat.shortName} selected
-                      </Badge>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-3 pb-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    {activeStats.map(config => (
-                      <Button
-                        key={config.id}
-                        variant={selectedStat?.id === config.id ? "default" : "outline"}
-                        className={`h-14 flex flex-col gap-0.5 ${selectedStat?.id === config.id ? "ring-2 ring-primary" : ""}`}
-                        onClick={() => handleStatClick(config)}
-                        data-testid={`button-stat-${config.shortName}`}
-                      >
-                        <span className="text-base font-bold">{config.shortName}</span>
-                        <span className="text-[9px] text-muted-foreground leading-tight truncate max-w-full">
-                          {config.name}
-                        </span>
-                        {config.value > 0 && (
-                          <Badge variant="secondary" className="text-[9px] px-1 py-0 mt-0.5">
-                            +{config.value}
-                          </Badge>
-                        )}
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Players List - Desktop */}
-              {trackingMode === "individual" && (
-                <Card className="bg-card border-white/5 w-64">
-                  <CardHeader className="pb-2 px-3 pt-3">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      2. Tap Player
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-3 pb-3">
-                    <ScrollArea className="h-[400px]">
-                      <div className="space-y-1">
-                        {filteredPlayers.map(player => (
-                          <Button
-                            key={player.id}
-                            variant="ghost"
-                            className={`w-full justify-start h-12 px-2 ${!selectedStat ? "opacity-50" : "hover:bg-primary/20"}`}
-                            onClick={() => handlePlayerClick(player)}
-                            disabled={!selectedStat}
-                            data-testid={`button-player-desktop-${player.athleteId}`}
-                          >
-                            <span className="font-mono text-sm font-bold w-8 text-muted-foreground">
-                              #{player.jerseyNumber || "--"}
-                            </span>
-                            <span className="ml-2 truncate">
-                              {player.athlete.firstName} {player.athlete.lastName?.charAt(0)}.
-                            </span>
-                          </Button>
-                        ))}
-                        {filteredPlayers.length === 0 && (
-                          <p className="text-center text-muted-foreground py-4 text-sm">
-                            {selectedStat ? "No eligible players" : "No players in game"}
-                          </p>
+            {/* Stats Grid with inline player selection */}
+            <Card className="bg-card border-white/5">
+              <CardHeader className="pb-2 px-3 pt-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  {trackingMode === "team" ? "Record Stats" : "Tap Stat, Then Player"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-3 pb-3">
+                <div className="space-y-2">
+                  {(() => {
+                    const rows: StatConfig[][] = [];
+                    for (let i = 0; i < activeStats.length; i += 2) {
+                      rows.push(activeStats.slice(i, i + 2));
+                    }
+                    const selectedRowIndex = selectedStat 
+                      ? rows.findIndex(row => row.some(s => s.id === selectedStat.id))
+                      : -1;
+                    
+                    return rows.map((row, rowIndex) => (
+                      <div key={rowIndex}>
+                        <div className="grid grid-cols-2 gap-2">
+                          {row.map(config => (
+                            <Button
+                              key={config.id}
+                              variant={selectedStat?.id === config.id ? "default" : "outline"}
+                              className={`h-14 flex flex-col gap-0.5 ${selectedStat?.id === config.id ? "ring-2 ring-primary" : ""}`}
+                              onClick={() => handleStatClick(config)}
+                              data-testid={`button-stat-${config.shortName}`}
+                            >
+                              <span className="text-base font-bold">{config.shortName}</span>
+                              <span className="text-[9px] text-muted-foreground leading-tight truncate max-w-full">
+                                {config.name}
+                              </span>
+                              {config.value > 0 && (
+                                <Badge variant="secondary" className="text-[9px] px-1 py-0 mt-0.5">
+                                  +{config.value}
+                                </Badge>
+                              )}
+                            </Button>
+                          ))}
+                        </div>
+                        {trackingMode === "individual" && selectedRowIndex === rowIndex && selectedStat && (
+                          <div className="mt-2 p-2 bg-primary/10 rounded-lg border border-primary/20">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Users className="h-3 w-3 text-primary" />
+                              <span className="text-xs text-primary font-medium">
+                                Tap player for {selectedStat.shortName}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="ml-auto h-6 px-2 text-xs"
+                                onClick={() => setSelectedStat(null)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <ScrollArea className="w-full">
+                              <div className="flex gap-2 pb-1">
+                                {filteredPlayers.map(player => (
+                                  <Button
+                                    key={player.id}
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-shrink-0 h-9 bg-background hover:bg-primary hover:text-primary-foreground"
+                                    onClick={() => handlePlayerClick(player)}
+                                    data-testid={`button-player-${player.athleteId}`}
+                                  >
+                                    <span className="font-mono text-xs font-bold">
+                                      #{player.jerseyNumber || "--"}
+                                    </span>
+                                    <span className="ml-1 text-xs">
+                                      {player.athlete.firstName}
+                                    </span>
+                                  </Button>
+                                ))}
+                                {filteredPlayers.length === 0 && (
+                                  <span className="text-xs text-muted-foreground py-2">No eligible players</span>
+                                )}
+                              </div>
+                            </ScrollArea>
+                          </div>
                         )}
                       </div>
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            {/* Mobile: Stats grid with sticky player bar at bottom */}
-            <div className="lg:hidden space-y-4 pb-32">
-              {/* Stats Grid - Mobile */}
-              <Card className="bg-card border-white/5">
-                <CardHeader className="pb-2 px-3 pt-3">
-                  <CardTitle className="text-sm flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <Target className="h-4 w-4" />
-                      {trackingMode === "team" ? "Record Stats" : "1. Tap a Stat"}
-                    </span>
-                    {selectedStat && (
-                      <Badge variant="default" className="animate-pulse">
-                        {selectedStat.shortName} selected
-                      </Badge>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-3 pb-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    {activeStats.map(config => (
-                      <Button
-                        key={config.id}
-                        variant={selectedStat?.id === config.id ? "default" : "outline"}
-                        className={`h-14 flex flex-col gap-0.5 ${selectedStat?.id === config.id ? "ring-2 ring-primary" : ""}`}
-                        onClick={() => handleStatClick(config)}
-                        data-testid={`button-stat-mobile-${config.shortName}`}
-                      >
-                        <span className="text-base font-bold">{config.shortName}</span>
-                        <span className="text-[9px] text-muted-foreground leading-tight truncate max-w-full">
-                          {config.name}
-                        </span>
-                        {config.value > 0 && (
-                          <Badge variant="secondary" className="text-[9px] px-1 py-0 mt-0.5">
-                            +{config.value}
-                          </Badge>
-                        )}
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Mobile: Sticky player bar at bottom */}
-            {trackingMode === "individual" && (
-              <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-white/10 p-3 z-50">
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">2. Tap Player</span>
-                  {selectedStat && (
-                    <Badge variant="default" className="ml-auto text-xs">
-                      {selectedStat.shortName}
-                    </Badge>
-                  )}
+                    ));
+                  })()}
                 </div>
-                <ScrollArea className="w-full">
-                  <div className="flex gap-2 pb-1">
-                    {filteredPlayers.map(player => (
-                      <Button
-                        key={player.id}
-                        variant={!selectedStat ? "ghost" : "outline"}
-                        size="sm"
-                        className={`flex-shrink-0 h-10 ${!selectedStat ? "opacity-50" : ""}`}
-                        onClick={() => handlePlayerClick(player)}
-                        disabled={!selectedStat}
-                        data-testid={`button-player-${player.athleteId}`}
-                      >
-                        <span className="font-mono text-xs font-bold">
-                          #{player.jerseyNumber || "--"}
-                        </span>
-                        <span className="ml-1 text-xs">
-                          {player.athlete.firstName}
-                        </span>
-                      </Button>
-                    ))}
-                    {filteredPlayers.length === 0 && (
-                      <span className="text-xs text-muted-foreground py-2">
-                        {selectedStat ? "No eligible players" : "No players in game"}
-                      </span>
-                    )}
-                  </div>
-                </ScrollArea>
-              </div>
-            )}
+              </CardContent>
+            </Card>
 
-            {/* Recent Activity - Collapsible on mobile */}
+            {/* Recent Activity */}
             <Card className="bg-card border-white/5">
               <CardHeader className="pb-2 px-3 pt-3">
                 <CardTitle className="text-sm flex items-center justify-between">
