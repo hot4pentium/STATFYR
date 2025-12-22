@@ -94,7 +94,7 @@ export default function StatTrackerPage() {
     enabled: !!currentGameId
   });
 
-  const gameEvents = events.filter(e => e.type?.toLowerCase() === "game" || e.type?.toLowerCase() === "match");
+  const gameEvents = events.filter(e => e.type?.toLowerCase() === "game");
   const upcomingGames = gameEvents.filter(e => new Date(e.date) >= new Date());
 
   useEffect(() => {

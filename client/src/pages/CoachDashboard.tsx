@@ -645,7 +645,7 @@ export default function CoachDashboard() {
                                   )}
                                 </div>
                                 <div className="flex gap-1">
-                                  {(event.type?.toLowerCase() === "game" || event.type?.toLowerCase() === "match") && (
+                                  {event.type?.toLowerCase() === "game" && (
                                     <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => openLineupDialog(event)} data-testid={`button-set-lineup-${event.id}`}>
                                       <Users className="h-3 w-3" />
                                       Lineup
@@ -1342,7 +1342,7 @@ export default function CoachDashboard() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Practice">Practice</SelectItem>
-                  <SelectItem value="Match">Match</SelectItem>
+                  <SelectItem value="Game">Game</SelectItem>
                   <SelectItem value="Meeting">Meeting</SelectItem>
                   <SelectItem value="Tournament">Tournament</SelectItem>
                   <SelectItem value="Other">Other</SelectItem>
