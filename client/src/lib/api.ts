@@ -505,3 +505,49 @@ export async function bulkCreateGameRoster(gameId: string, requesterId: string):
   const res = await apiRequest("POST", `/api/games/${gameId}/roster/bulk?requesterId=${requesterId}`, {});
   return res.json();
 }
+
+// Starting Lineup
+export interface StartingLineupPlayer {
+  id: string;
+  lineupId: string;
+  teamMemberId: string;
+  positionOverride?: string | null;
+  orderIndex: number;
+  isStarter: boolean;
+  createdAt?: string | null;
+  teamMember: TeamMember;
+}
+
+export interface StartingLineup {
+  id: string;
+  eventId: string;
+  teamId: string;
+  createdById: string;
+  notes?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  players: StartingLineupPlayer[];
+}
+
+export async function getStartingLineup(eventId: string): Promise<StartingLineup | null> {
+  const res = await fetch(`/api/events/${eventId}/lineup`);
+  if (!res.ok) throw new Error("Failed to get starting lineup");
+  return res.json();
+}
+
+export async function saveStartingLineup(eventId: string, requesterId: string, data: {
+  notes?: string;
+  players: {
+    teamMemberId: string;
+    positionOverride?: string;
+    orderIndex?: number;
+    isStarter: boolean;
+  }[];
+}): Promise<StartingLineup> {
+  const res = await apiRequest("PUT", `/api/events/${eventId}/lineup?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
+export async function deleteStartingLineup(eventId: string, requesterId: string): Promise<void> {
+  await apiRequest("DELETE", `/api/events/${eventId}/lineup?requesterId=${requesterId}`, {});
+}

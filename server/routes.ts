@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
@@ -1150,6 +1150,155 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error bulk creating game roster:", error);
       res.status(500).json({ error: "Failed to create game roster" });
+    }
+  });
+
+  // Starting Lineup routes
+  app.get("/api/events/:eventId/lineup", async (req, res) => {
+    try {
+      const lineup = await storage.getStartingLineupByEvent(req.params.eventId);
+      res.json(lineup || null);
+    } catch (error) {
+      console.error("Error getting starting lineup:", error);
+      res.status(500).json({ error: "Failed to get starting lineup" });
+    }
+  });
+
+  app.post("/api/events/:eventId/lineup", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const event = await storage.getEvent(req.params.eventId);
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      const membership = await storage.getTeamMembership(event.teamId, requesterId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can create lineups" });
+      }
+
+      // Check if lineup already exists
+      const existing = await storage.getStartingLineupByEvent(req.params.eventId);
+      if (existing) {
+        return res.status(400).json({ error: "Lineup already exists for this event. Use PUT to update." });
+      }
+
+      const lineup = await storage.createStartingLineup({
+        eventId: req.params.eventId,
+        teamId: event.teamId,
+        createdById: requesterId,
+        notes: req.body.notes,
+      });
+
+      // Add players if provided
+      if (req.body.players && Array.isArray(req.body.players)) {
+        const players = req.body.players.map((p: any, index: number) => ({
+          lineupId: lineup.id,
+          teamMemberId: p.teamMemberId,
+          positionOverride: p.positionOverride,
+          orderIndex: p.orderIndex ?? index,
+          isStarter: p.isStarter ?? true,
+        }));
+        await storage.setStartingLineupPlayers(lineup.id, players);
+      }
+
+      const fullLineup = await storage.getStartingLineupByEvent(req.params.eventId);
+      res.json(fullLineup);
+    } catch (error: any) {
+      console.error("Error creating starting lineup:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create starting lineup" });
+    }
+  });
+
+  app.put("/api/events/:eventId/lineup", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const event = await storage.getEvent(req.params.eventId);
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      const membership = await storage.getTeamMembership(event.teamId, requesterId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can update lineups" });
+      }
+
+      let lineup = await storage.getStartingLineupByEvent(req.params.eventId);
+      
+      if (!lineup) {
+        // Create new lineup
+        const newLineup = await storage.createStartingLineup({
+          eventId: req.params.eventId,
+          teamId: event.teamId,
+          createdById: requesterId,
+          notes: req.body.notes,
+        });
+        lineup = { ...newLineup, players: [] };
+      } else {
+        // Update existing
+        await storage.updateStartingLineup(lineup.id, { notes: req.body.notes });
+      }
+
+      // Update players
+      if (req.body.players && Array.isArray(req.body.players)) {
+        const players = req.body.players.map((p: any, index: number) => ({
+          lineupId: lineup!.id,
+          teamMemberId: p.teamMemberId,
+          positionOverride: p.positionOverride,
+          orderIndex: p.orderIndex ?? index,
+          isStarter: p.isStarter ?? true,
+        }));
+        await storage.setStartingLineupPlayers(lineup.id, players);
+      }
+
+      const fullLineup = await storage.getStartingLineupByEvent(req.params.eventId);
+      res.json(fullLineup);
+    } catch (error: any) {
+      console.error("Error updating starting lineup:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update starting lineup" });
+    }
+  });
+
+  app.delete("/api/events/:eventId/lineup", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const event = await storage.getEvent(req.params.eventId);
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      const membership = await storage.getTeamMembership(event.teamId, requesterId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can delete lineups" });
+      }
+
+      const lineup = await storage.getStartingLineupByEvent(req.params.eventId);
+      if (lineup) {
+        await storage.deleteStartingLineup(lineup.id);
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting starting lineup:", error);
+      res.status(500).json({ error: "Failed to delete starting lineup" });
     }
   });
 

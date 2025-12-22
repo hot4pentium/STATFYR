@@ -1,6 +1,6 @@
 import { 
   users, teams, teamMembers, events, highlightVideos, plays, managedAthletes,
-  games, statConfigurations, gameStats, gameRosters,
+  games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -11,7 +11,9 @@ import {
   type Game, type InsertGame, type UpdateGame,
   type StatConfig, type InsertStatConfig, type UpdateStatConfig,
   type GameStat, type InsertGameStat,
-  type GameRoster, type InsertGameRoster, type UpdateGameRoster
+  type GameRoster, type InsertGameRoster, type UpdateGameRoster,
+  type StartingLineup, type InsertStartingLineup,
+  type StartingLineupPlayer, type InsertStartingLineupPlayer
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -92,6 +94,13 @@ export interface IStorage {
   createGameRoster(data: InsertGameRoster): Promise<GameRoster>;
   updateGameRoster(id: string, data: UpdateGameRoster): Promise<GameRoster | undefined>;
   deleteGameRoster(id: string): Promise<void>;
+  
+  // Starting Lineup methods
+  getStartingLineupByEvent(eventId: string): Promise<(StartingLineup & { players: (StartingLineupPlayer & { teamMember: TeamMember & { user: User } })[] }) | undefined>;
+  createStartingLineup(data: InsertStartingLineup): Promise<StartingLineup>;
+  updateStartingLineup(id: string, data: Partial<InsertStartingLineup>): Promise<StartingLineup | undefined>;
+  deleteStartingLineup(id: string): Promise<void>;
+  setStartingLineupPlayers(lineupId: string, players: InsertStartingLineupPlayer[]): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -534,6 +543,67 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGameRoster(id: string): Promise<void> {
     await db.delete(gameRosters).where(eq(gameRosters.id, id));
+  }
+
+  // Starting Lineup methods
+  async getStartingLineupByEvent(eventId: string): Promise<(StartingLineup & { players: (StartingLineupPlayer & { teamMember: TeamMember & { user: User } })[] }) | undefined> {
+    const [lineup] = await db
+      .select()
+      .from(startingLineups)
+      .where(eq(startingLineups.eventId, eventId));
+    
+    if (!lineup) return undefined;
+
+    const players = await db
+      .select()
+      .from(startingLineupPlayers)
+      .where(eq(startingLineupPlayers.lineupId, lineup.id))
+      .orderBy(startingLineupPlayers.orderIndex);
+
+    const playersWithDetails: (StartingLineupPlayer & { teamMember: TeamMember & { user: User } })[] = [];
+    for (const player of players) {
+      const [member] = await db
+        .select()
+        .from(teamMembers)
+        .where(eq(teamMembers.id, player.teamMemberId));
+      if (member) {
+        const user = await this.getUser(member.userId);
+        if (user) {
+          playersWithDetails.push({
+            ...player,
+            teamMember: { ...member, user }
+          });
+        }
+      }
+    }
+
+    return { ...lineup, players: playersWithDetails };
+  }
+
+  async createStartingLineup(data: InsertStartingLineup): Promise<StartingLineup> {
+    const [lineup] = await db.insert(startingLineups).values(data).returning();
+    return lineup;
+  }
+
+  async updateStartingLineup(id: string, data: Partial<InsertStartingLineup>): Promise<StartingLineup | undefined> {
+    const [lineup] = await db
+      .update(startingLineups)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(startingLineups.id, id))
+      .returning();
+    return lineup || undefined;
+  }
+
+  async deleteStartingLineup(id: string): Promise<void> {
+    await db.delete(startingLineupPlayers).where(eq(startingLineupPlayers.lineupId, id));
+    await db.delete(startingLineups).where(eq(startingLineups.id, id));
+  }
+
+  async setStartingLineupPlayers(lineupId: string, players: InsertStartingLineupPlayer[]): Promise<void> {
+    await db.delete(startingLineupPlayers).where(eq(startingLineupPlayers.lineupId, lineupId));
+    if (players.length > 0) {
+      await db.insert(startingLineupPlayers).values(players);
+    }
   }
 }
 

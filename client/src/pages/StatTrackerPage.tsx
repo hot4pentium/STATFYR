@@ -26,7 +26,7 @@ import {
   getTeamStatConfigs, createStatConfig, updateStatConfig,
   getGameStats, recordGameStat, deleteGameStat,
   getGameRoster, addToGameRoster, updateGameRoster, bulkCreateGameRoster,
-  getTeamEvents, getTeamMembers, updateTeamMember,
+  getTeamEvents, getTeamMembers, updateTeamMember, getStartingLineup,
   type Game, type StatConfig, type GameStat, type GameRoster, type Event, type TeamMember
 } from "@/lib/api";
 import { SPORT_STATS, SPORT_POSITIONS } from "@/lib/sportConstants";
@@ -94,7 +94,7 @@ export default function StatTrackerPage() {
     enabled: !!currentGameId
   });
 
-  const gameEvents = events.filter(e => e.type === "game");
+  const gameEvents = events.filter(e => e.type?.toLowerCase() === "game");
   const upcomingGames = gameEvents.filter(e => new Date(e.date) >= new Date());
 
   useEffect(() => {
@@ -135,9 +135,37 @@ export default function StatTrackerPage() {
         toast({ title: "Game started", description: "Recording team stats" });
       } else {
         await bulkCreateGameRoster(game.id, user!.id);
+        
+        if (selectedEventId && selectedEventId !== "none") {
+          try {
+            const lineup = await getStartingLineup(selectedEventId);
+            if (lineup && lineup.players && lineup.players.length > 0) {
+              const starterIds = lineup.players.filter(p => p.isStarter).map(p => p.teamMemberId);
+              const benchIds = lineup.players.filter(p => !p.isStarter).map(p => p.teamMemberId);
+              
+              const updatedRoster = await getGameRoster(game.id);
+              for (const rosterEntry of updatedRoster) {
+                const isStarter = starterIds.includes(rosterEntry.teamMemberId);
+                const isBench = benchIds.includes(rosterEntry.teamMemberId);
+                if (isStarter || isBench) {
+                  await updateGameRoster(rosterEntry.id, user!.id, { isInGame: isStarter });
+                }
+              }
+              
+              queryClient.invalidateQueries({ queryKey: ["game-roster", game.id] });
+              toast({ title: "Game created", description: "Lineup loaded from pre-game settings" });
+            } else {
+              toast({ title: "Game created", description: "Set up your game roster" });
+            }
+          } catch {
+            toast({ title: "Game created", description: "Set up your game roster" });
+          }
+        } else {
+          toast({ title: "Game created", description: "Set up your game roster" });
+        }
+        
         queryClient.invalidateQueries({ queryKey: ["game-roster", game.id] });
         setViewMode("roster");
-        toast({ title: "Game created", description: "Set up your game roster" });
       }
     },
     onError: () => toast({ title: "Error", description: "Failed to create game", variant: "destructive" })

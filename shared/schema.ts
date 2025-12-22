@@ -262,6 +262,54 @@ export const gameRostersRelations = relations(gameRosters, ({ one }) => ({
   }),
 }));
 
+// Starting Lineups - pre-game lineup planning
+export const startingLineups = pgTable("starting_lineups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull().references(() => events.id),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  createdById: varchar("created_by_id").notNull().references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const startingLineupsRelations = relations(startingLineups, ({ one, many }) => ({
+  event: one(events, {
+    fields: [startingLineups.eventId],
+    references: [events.id],
+  }),
+  team: one(teams, {
+    fields: [startingLineups.teamId],
+    references: [teams.id],
+  }),
+  createdBy: one(users, {
+    fields: [startingLineups.createdById],
+    references: [users.id],
+  }),
+  players: many(startingLineupPlayers),
+}));
+
+export const startingLineupPlayers = pgTable("starting_lineup_players", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  lineupId: varchar("lineup_id").notNull().references(() => startingLineups.id),
+  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id),
+  positionOverride: text("position_override"),
+  orderIndex: integer("order_index").notNull().default(0),
+  isStarter: boolean("is_starter").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const startingLineupPlayersRelations = relations(startingLineupPlayers, ({ one }) => ({
+  lineup: one(startingLineups, {
+    fields: [startingLineupPlayers.lineupId],
+    references: [startingLineups.id],
+  }),
+  teamMember: one(teamMembers, {
+    fields: [startingLineupPlayers.teamMemberId],
+    references: [teamMembers.id],
+  }),
+}));
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -409,3 +457,20 @@ export type GameStat = typeof gameStats.$inferSelect;
 export type InsertGameRoster = z.infer<typeof insertGameRosterSchema>;
 export type UpdateGameRoster = z.infer<typeof updateGameRosterSchema>;
 export type GameRoster = typeof gameRosters.$inferSelect;
+
+// Starting Lineup schemas
+export const insertStartingLineupSchema = createInsertSchema(startingLineups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStartingLineupPlayerSchema = createInsertSchema(startingLineupPlayers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertStartingLineup = z.infer<typeof insertStartingLineupSchema>;
+export type StartingLineup = typeof startingLineups.$inferSelect;
+export type InsertStartingLineupPlayer = z.infer<typeof insertStartingLineupPlayerSchema>;
+export type StartingLineupPlayer = typeof startingLineupPlayers.$inferSelect;

@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, type TeamMember, type Event, type HighlightVideo, type Play } from "@/lib/api";
+import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup } from "@/lib/api";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { MoreVertical, UserCog, UserMinus, Hash, Award } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -61,6 +61,9 @@ export default function CoachDashboard() {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [memberEditForm, setMemberEditForm] = useState({ jerseyNumber: "", position: "" });
   const [deletingMember, setDeletingMember] = useState<TeamMember | null>(null);
+  const [lineupEvent, setLineupEvent] = useState<Event | null>(null);
+  const [lineupStarters, setLineupStarters] = useState<string[]>([]);
+  const [lineupBench, setLineupBench] = useState<string[]>([]);
 
   const { data: coachTeams } = useQuery({
     queryKey: ["/api/coach", user?.id, "teams"],
@@ -187,6 +190,39 @@ export default function CoachDashboard() {
     },
     onError: () => toast.error("Failed to remove team member"),
   });
+
+  const saveLineupMutation = useMutation({
+    mutationFn: async () => {
+      if (!lineupEvent || !user) throw new Error("No event selected");
+      const players = [
+        ...lineupStarters.map((id, idx) => ({ teamMemberId: id, isStarter: true, orderIndex: idx })),
+        ...lineupBench.map((id, idx) => ({ teamMemberId: id, isStarter: false, orderIndex: idx }))
+      ];
+      return saveStartingLineup(lineupEvent.id, user.id, { players });
+    },
+    onSuccess: () => {
+      toast.success("Starting lineup saved!");
+      setLineupEvent(null);
+    },
+    onError: () => toast.error("Failed to save lineup"),
+  });
+
+  const openLineupDialog = async (event: Event) => {
+    setLineupEvent(event);
+    try {
+      const lineup = await getStartingLineup(event.id);
+      if (lineup && lineup.players) {
+        setLineupStarters(lineup.players.filter(p => p.isStarter).sort((a, b) => a.orderIndex - b.orderIndex).map(p => p.teamMemberId));
+        setLineupBench(lineup.players.filter(p => !p.isStarter).sort((a, b) => a.orderIndex - b.orderIndex).map(p => p.teamMemberId));
+      } else {
+        setLineupStarters([]);
+        setLineupBench([]);
+      }
+    } catch {
+      setLineupStarters([]);
+      setLineupBench([]);
+    }
+  };
 
   const openEditMember = (member: TeamMember) => {
     setEditingMember(member);
@@ -609,6 +645,12 @@ export default function CoachDashboard() {
                                   )}
                                 </div>
                                 <div className="flex gap-1">
+                                  {event.type?.toLowerCase() === "game" && (
+                                    <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => openLineupDialog(event)} data-testid={`button-set-lineup-${event.id}`}>
+                                      <Users className="h-3 w-3" />
+                                      Lineup
+                                    </Button>
+                                  )}
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditEvent(event)} data-testid={`button-edit-event-${event.id}`}>
                                     <Pencil className="h-3 w-3" />
                                   </Button>
@@ -1674,6 +1716,145 @@ export default function CoachDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Starting Lineup Dialog */}
+      <Dialog open={!!lineupEvent} onOpenChange={() => setLineupEvent(null)}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Set Starting Lineup</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {lineupEvent?.title} - {lineupEvent?.date ? format(new Date(lineupEvent.date), "MMM d, yyyy") : ""}
+          </p>
+          
+          {(() => {
+            const athleteMembers = teamMembers.filter(m => m.role === "athlete");
+            const availableAthletes = athleteMembers.filter(m => 
+              !lineupStarters.includes(m.id) && !lineupBench.includes(m.id)
+            );
+            
+            const getMemberById = (id: string) => teamMembers.find(m => m.id === id);
+            
+            return (
+              <div className="space-y-4 py-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="font-semibold">Starters ({lineupStarters.length})</Label>
+                  </div>
+                  <div className="min-h-[60px] border border-dashed border-green-500/30 rounded-lg p-2 bg-green-500/5">
+                    {lineupStarters.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-4">Click athletes below to add starters</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {lineupStarters.map(id => {
+                          const member = getMemberById(id);
+                          if (!member) return null;
+                          return (
+                            <Button 
+                              key={id} 
+                              variant="secondary" 
+                              size="sm"
+                              className="h-8 gap-1"
+                              onClick={() => setLineupStarters(lineupStarters.filter(s => s !== id))}
+                              data-testid={`lineup-starter-${id}`}
+                            >
+                              <span className="font-mono text-xs">#{member.jerseyNumber || "--"}</span>
+                              {member.user.firstName}
+                              <X className="h-3 w-3 ml-1" />
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="font-semibold">Bench ({lineupBench.length})</Label>
+                  </div>
+                  <div className="min-h-[60px] border border-dashed border-orange-500/30 rounded-lg p-2 bg-orange-500/5">
+                    {lineupBench.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-4">Click athletes below to add to bench</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {lineupBench.map(id => {
+                          const member = getMemberById(id);
+                          if (!member) return null;
+                          return (
+                            <Button 
+                              key={id} 
+                              variant="outline" 
+                              size="sm"
+                              className="h-8 gap-1"
+                              onClick={() => setLineupBench(lineupBench.filter(b => b !== id))}
+                              data-testid={`lineup-bench-${id}`}
+                            >
+                              <span className="font-mono text-xs">#{member.jerseyNumber || "--"}</span>
+                              {member.user.firstName}
+                              <X className="h-3 w-3 ml-1" />
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="font-semibold mb-2 block">Available Athletes ({availableAthletes.length})</Label>
+                  <div className="border rounded-lg p-2 max-h-[200px] overflow-y-auto">
+                    {availableAthletes.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-4">All athletes assigned</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {availableAthletes.map(member => (
+                          <div key={member.id} className="flex gap-1">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="h-8 gap-1 border-green-500/50 hover:bg-green-500/20"
+                              onClick={() => setLineupStarters([...lineupStarters, member.id])}
+                              data-testid={`add-starter-${member.id}`}
+                            >
+                              <span className="font-mono text-xs">#{member.jerseyNumber || "--"}</span>
+                              {member.user.firstName}
+                              <Check className="h-3 w-3 ml-1 text-green-500" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-8 px-2 hover:bg-orange-500/20"
+                              onClick={() => setLineupBench([...lineupBench, member.id])}
+                              title="Add to bench"
+                              data-testid={`add-bench-${member.id}`}
+                            >
+                              <ChevronRight className="h-3 w-3 text-orange-500" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setLineupEvent(null)} data-testid="button-cancel-lineup">
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => saveLineupMutation.mutate()}
+              disabled={saveLineupMutation.isPending}
+              data-testid="button-save-lineup"
+            >
+              {saveLineupMutation.isPending ? "Saving..." : "Save Lineup"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
