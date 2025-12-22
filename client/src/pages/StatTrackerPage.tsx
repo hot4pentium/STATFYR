@@ -94,7 +94,7 @@ export default function StatTrackerPage() {
     enabled: !!currentGameId
   });
 
-  const gameEvents = events.filter(e => e.type?.toLowerCase() === "game");
+  const gameEvents = events.filter(e => e.type?.toLowerCase() === "game" || e.type?.toLowerCase() === "match");
   const upcomingGames = gameEvents.filter(e => new Date(e.date) >= new Date());
 
   useEffect(() => {
@@ -140,13 +140,13 @@ export default function StatTrackerPage() {
           try {
             const lineup = await getStartingLineup(selectedEventId);
             if (lineup && lineup.players && lineup.players.length > 0) {
-              const starterIds = lineup.players.filter(p => p.isStarter).map(p => p.teamMemberId);
-              const benchIds = lineup.players.filter(p => !p.isStarter).map(p => p.teamMemberId);
+              const starterUserIds = lineup.players.filter(p => p.isStarter).map(p => p.teamMember?.userId).filter(Boolean);
+              const benchUserIds = lineup.players.filter(p => !p.isStarter).map(p => p.teamMember?.userId).filter(Boolean);
               
               const updatedRoster = await getGameRoster(game.id);
               for (const rosterEntry of updatedRoster) {
-                const isStarter = starterIds.includes(rosterEntry.teamMemberId);
-                const isBench = benchIds.includes(rosterEntry.teamMemberId);
+                const isStarter = starterUserIds.includes(rosterEntry.athleteId);
+                const isBench = benchUserIds.includes(rosterEntry.athleteId);
                 if (isStarter || isBench) {
                   await updateGameRoster(rosterEntry.id, user!.id, { isInGame: isStarter });
                 }

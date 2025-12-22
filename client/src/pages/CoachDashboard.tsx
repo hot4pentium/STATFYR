@@ -645,7 +645,7 @@ export default function CoachDashboard() {
                                   )}
                                 </div>
                                 <div className="flex gap-1">
-                                  {event.type?.toLowerCase() === "game" && (
+                                  {(event.type?.toLowerCase() === "game" || event.type?.toLowerCase() === "match") && (
                                     <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => openLineupDialog(event)} data-testid={`button-set-lineup-${event.id}`}>
                                       <Users className="h-3 w-3" />
                                       Lineup
