@@ -7,7 +7,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, type TeamMember, type Event, type HighlightVideo, type Play } from "@/lib/api";
+import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, type TeamMember, type Event, type HighlightVideo, type Play } from "@/lib/api";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { MoreVertical, UserCog, UserMinus, Hash, Award } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { VideoUploader } from "@/components/VideoUploader";
 import { PlaybookCanvas } from "@/components/PlaybookCanvas";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +57,9 @@ export default function CoachDashboard() {
   const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(new Date()));
   const [expandedPlay, setExpandedPlay] = useState<Play | null>(null);
   const [playbookTab, setPlaybookTab] = useState<"Offense" | "Defense" | "Special">("Offense");
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [memberEditForm, setMemberEditForm] = useState({ jerseyNumber: "", position: "" });
+  const [deletingMember, setDeletingMember] = useState<TeamMember | null>(null);
 
   const { data: coachTeams } = useQuery({
     queryKey: ["/api/coach", user?.id, "teams"],
@@ -154,6 +160,59 @@ export default function CoachDashboard() {
     },
     onError: () => toast.error("Failed to delete event"),
   });
+
+  const updateMemberMutation = useMutation({
+    mutationFn: ({ memberId, data }: { memberId: string; data: { role?: string; jerseyNumber?: string | null; position?: string | null } }) => {
+      if (!currentTeam || !user) throw new Error("No team selected");
+      return updateTeamMember(currentTeam.id, memberId, user.id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "members"] });
+      toast.success("Team member updated!");
+      setEditingMember(null);
+    },
+    onError: () => toast.error("Failed to update team member"),
+  });
+
+  const removeMemberMutation = useMutation({
+    mutationFn: (memberId: string) => {
+      if (!currentTeam || !user) throw new Error("No team selected");
+      return removeTeamMember(currentTeam.id, memberId, user.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "members"] });
+      toast.success("Team member removed!");
+      setDeletingMember(null);
+    },
+    onError: () => toast.error("Failed to remove team member"),
+  });
+
+  const openEditMember = (member: TeamMember) => {
+    setEditingMember(member);
+    setMemberEditForm({
+      jerseyNumber: member.jerseyNumber || "",
+      position: member.position || "",
+    });
+  };
+
+  const handleSaveMemberEdit = () => {
+    if (!editingMember) return;
+    updateMemberMutation.mutate({
+      memberId: editingMember.userId,
+      data: {
+        jerseyNumber: memberEditForm.jerseyNumber || null,
+        position: memberEditForm.position || null,
+      },
+    });
+  };
+
+  const handlePromoteDemote = (member: TeamMember) => {
+    const newRole = member.role === "staff" ? "athlete" : "staff";
+    updateMemberMutation.mutate({
+      memberId: member.userId,
+      data: { role: newRole },
+    });
+  };
 
   const resetEventForm = () => {
     setEventForm({ type: "Practice", date: "", hour: "09", minute: "00", ampm: "AM", location: "", details: "", opponent: "", drinksAthleteId: "", snacksAthleteId: "" });
@@ -361,39 +420,86 @@ export default function CoachDashboard() {
                   )}
                 </div>
               ) : (
-                filteredRosterMembers.map((member: TeamMember) => (
-                  <Card 
-                    key={member.id} 
-                    className={`bg-background/40 border-white/10 hover:border-primary/50 transition-all ${member.role === "athlete" ? "cursor-pointer" : ""}`}
-                    onClick={() => {
-                      if (member.role === "athlete") {
-                        setSelectedAthlete(member);
-                        setIsAthleteCardFlipped(false);
-                      }
-                    }}
-                    data-testid={`roster-card-${member.id}`}
-                  >
-                    <CardContent className="p-3 md:p-4">
-                      <div className="flex flex-col items-center text-center gap-2 md:gap-3">
-                        <Avatar className="h-10 w-10 md:h-12 md:w-12 border-2 border-white/20">
-                          <AvatarImage src={member.user.avatar || undefined} />
-                          <AvatarFallback>{member.user.name?.[0] || "A"}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          {member.role === "coach" ? (
-                            <div className="font-bold text-foreground uppercase text-[10px] md:text-xs bg-primary/20 text-primary px-2 py-1 rounded mb-1">Coach</div>
-                          ) : member.role === "supporter" ? (
-                            <div className="font-bold text-foreground uppercase text-[10px] md:text-xs bg-accent/20 text-accent px-2 py-1 rounded mb-1">Fan</div>
-                          ) : (
-                            <div className="font-bold text-foreground text-sm md:text-base">#{member.user.number || "00"}</div>
-                          )}
-                          <div className="text-xs md:text-sm font-bold text-primary truncate max-w-[80px] md:max-w-none">{member.user.name || member.user.username}</div>
-                          <div className="text-[10px] md:text-xs text-muted-foreground">{member.role === "coach" ? "Head Coach" : member.role === "supporter" ? "Supporter" : (member.user.position || "Player")}</div>
+                filteredRosterMembers.map((member: TeamMember) => {
+                  const isCoachMember = member.userId === currentTeam?.coachId;
+                  const canManage = !isCoachMember && (member.role === "athlete" || member.role === "staff" || member.role === "supporter");
+                  
+                  return (
+                    <Card 
+                      key={member.id} 
+                      className={`bg-background/40 border-white/10 hover:border-primary/50 transition-all relative group ${member.role === "athlete" || member.role === "staff" ? "cursor-pointer" : ""}`}
+                      onClick={() => {
+                        if (member.role === "athlete" || member.role === "staff") {
+                          setSelectedAthlete(member);
+                          setIsAthleteCardFlipped(false);
+                        }
+                      }}
+                      data-testid={`roster-card-${member.id}`}
+                    >
+                      {canManage && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                              onClick={(e) => e.stopPropagation()}
+                              data-testid={`roster-menu-${member.id}`}
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                            {(member.role === "athlete" || member.role === "staff") && (
+                              <>
+                                <DropdownMenuItem onClick={() => openEditMember(member)} data-testid={`edit-member-${member.id}`}>
+                                  <Hash className="h-4 w-4 mr-2" />
+                                  Edit Jersey/Position
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handlePromoteDemote(member)} data-testid={`promote-demote-${member.id}`}>
+                                  <Award className="h-4 w-4 mr-2" />
+                                  {member.role === "staff" ? "Remove Staff" : "Make Staff"}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+                            <DropdownMenuItem 
+                              onClick={() => setDeletingMember(member)} 
+                              className="text-destructive focus:text-destructive"
+                              data-testid={`remove-member-${member.id}`}
+                            >
+                              <UserMinus className="h-4 w-4 mr-2" />
+                              Remove from Team
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                      <CardContent className="p-3 md:p-4">
+                        <div className="flex flex-col items-center text-center gap-2 md:gap-3">
+                          <Avatar className="h-10 w-10 md:h-12 md:w-12 border-2 border-white/20">
+                            <AvatarImage src={member.user.avatar || undefined} />
+                            <AvatarFallback>{member.user.name?.[0] || "A"}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            {member.role === "coach" ? (
+                              <div className="font-bold text-foreground uppercase text-[10px] md:text-xs bg-primary/20 text-primary px-2 py-1 rounded mb-1">Coach</div>
+                            ) : member.role === "staff" ? (
+                              <div className="font-bold text-foreground uppercase text-[10px] md:text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded mb-1">Staff</div>
+                            ) : member.role === "supporter" ? (
+                              <div className="font-bold text-foreground uppercase text-[10px] md:text-xs bg-accent/20 text-accent px-2 py-1 rounded mb-1">Fan</div>
+                            ) : (
+                              <div className="font-bold text-foreground text-sm md:text-base">#{member.jerseyNumber || "00"}</div>
+                            )}
+                            <div className="text-xs md:text-sm font-bold text-primary truncate max-w-[80px] md:max-w-none">{member.user.name || member.user.username}</div>
+                            <div className="text-[10px] md:text-xs text-muted-foreground">
+                              {member.role === "coach" ? "Head Coach" : member.role === "staff" ? "Staff" : member.role === "supporter" ? "Supporter" : (member.position || "Player")}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                      </CardContent>
+                    </Card>
+                  );
+                })
               )}
             </div>
           </div>
@@ -1399,12 +1505,12 @@ export default function CoachDashboard() {
                       </div>
 
                       <div className="absolute bottom-0 left-0 p-6">
-                        <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{selectedAthlete.user.position || "Player"}</p>
+                        <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{selectedAthlete.position || selectedAthlete.user.position || "Player"}</p>
                       </div>
 
                       <div className="absolute bottom-0 right-0 p-6">
                         <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-4 shadow-lg">
-                          <span className="text-white font-display font-bold text-4xl drop-shadow">#{selectedAthlete.user.number || "00"}</span>
+                          <span className="text-white font-display font-bold text-4xl drop-shadow">#{selectedAthlete.jerseyNumber || selectedAthlete.user.number || "00"}</span>
                         </div>
                       </div>
 
@@ -1495,6 +1601,74 @@ export default function CoachDashboard() {
           </div>
         </div>
       )}
+
+      {/* Edit Member Dialog */}
+      <Dialog open={!!editingMember} onOpenChange={() => setEditingMember(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Team Member</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Update jersey number and position for {editingMember?.user.name || editingMember?.user.username}
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="jerseyNumber">Jersey Number</Label>
+              <Input
+                id="jerseyNumber"
+                placeholder="e.g., 23"
+                value={memberEditForm.jerseyNumber}
+                onChange={(e) => setMemberEditForm({ ...memberEditForm, jerseyNumber: e.target.value })}
+                data-testid="input-jersey-number"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="position">Position</Label>
+              <Input
+                id="position"
+                placeholder="e.g., Forward, Pitcher, Quarterback"
+                value={memberEditForm.position}
+                onChange={(e) => setMemberEditForm({ ...memberEditForm, position: e.target.value })}
+                data-testid="input-position"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setEditingMember(null)} data-testid="button-cancel-edit-member">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveMemberEdit}
+              disabled={updateMemberMutation.isPending}
+              data-testid="button-save-member"
+            >
+              {updateMemberMutation.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Member Confirmation Dialog */}
+      <AlertDialog open={!!deletingMember} onOpenChange={() => setDeletingMember(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {deletingMember?.user.name || deletingMember?.user.username} from the team? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-remove-member">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingMember && removeMemberMutation.mutate(deletingMember.userId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-remove-member"
+            >
+              {removeMemberMutation.isPending ? "Removing..." : "Remove"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }

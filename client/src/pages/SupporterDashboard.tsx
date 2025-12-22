@@ -389,13 +389,15 @@ export default function SupporterDashboard() {
                         <div>
                           {member.role === "coach" ? (
                             <div className="font-bold text-foreground uppercase text-[10px] md:text-xs bg-primary/20 text-primary px-2 py-1 rounded mb-1">Coach</div>
+                          ) : member.role === "staff" ? (
+                            <div className="font-bold text-foreground uppercase text-[10px] md:text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded mb-1">Staff</div>
                           ) : member.role === "supporter" ? (
                             <div className="font-bold text-foreground uppercase text-[10px] md:text-xs bg-accent/20 text-accent px-2 py-1 rounded mb-1">Fan</div>
                           ) : (
-                            <div className="font-bold text-foreground text-sm md:text-base">#{member.user.number || "00"}</div>
+                            <div className="font-bold text-foreground text-sm md:text-base">#{member.jerseyNumber || "00"}</div>
                           )}
                           <div className="text-xs md:text-sm font-bold text-primary truncate max-w-[80px] md:max-w-none">{member.user.name || member.user.username}</div>
-                          <div className="text-[10px] md:text-xs text-muted-foreground">{member.role === "coach" ? "Head Coach" : member.role === "supporter" ? "Supporter" : (member.user.position || "Player")}</div>
+                          <div className="text-[10px] md:text-xs text-muted-foreground">{member.role === "coach" ? "Head Coach" : member.role === "staff" ? "Staff" : member.role === "supporter" ? "Supporter" : (member.position || "Player")}</div>
                         </div>
                       </div>
                     </CardContent>
@@ -1115,12 +1117,12 @@ export default function SupporterDashboard() {
                       </div>
 
                       <div className="absolute bottom-0 left-0 p-6">
-                        <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{selectedAthlete.user.position || "Player"}</p>
+                        <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{selectedAthlete.position || selectedAthlete.user.position || "Player"}</p>
                       </div>
 
                       <div className="absolute bottom-0 right-0 p-6">
                         <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-4 shadow-lg">
-                          <span className="text-white font-display font-bold text-4xl drop-shadow">#{selectedAthlete.user.number || "00"}</span>
+                          <span className="text-white font-display font-bold text-4xl drop-shadow">#{selectedAthlete.jerseyNumber || selectedAthlete.user.number || "00"}</span>
                         </div>
                       </div>
 

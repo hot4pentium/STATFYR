@@ -269,9 +269,14 @@ export async function registerRoutes(
         return res.status(400).json({ error: "requesterId is required" });
       }
       
-      // Authorization: only coaches and staff can update team members
+      // Authorization: verify requester belongs to this team and has coach/staff role
       const requesterMembership = await storage.getTeamMembership(teamId, requesterId);
       const team = await storage.getTeam(teamId);
+      
+      // Requester must be a member of this team
+      if (!requesterMembership && team?.coachId !== requesterId) {
+        return res.status(403).json({ error: "You are not a member of this team" });
+      }
       
       const isCoach = team?.coachId === requesterId;
       const isStaff = requesterMembership?.role === 'staff';
@@ -283,6 +288,11 @@ export async function registerRoutes(
       // Prevent demoting the team coach
       if (team?.coachId === userId && req.body.role && req.body.role !== 'coach') {
         return res.status(400).json({ error: "Cannot change the team coach's role" });
+      }
+      
+      // Staff members can only toggle between 'athlete' and 'staff' roles, not promote to 'coach'
+      if (isStaff && !isCoach && req.body.role === 'coach') {
+        return res.status(403).json({ error: "Only the coach can assign the coach role" });
       }
       
       const parsed = updateTeamMemberSchema.parse(req.body);
@@ -311,9 +321,14 @@ export async function registerRoutes(
         return res.status(400).json({ error: "requesterId is required" });
       }
       
-      // Authorization: only coaches and staff can remove team members
+      // Authorization: verify requester belongs to this team and has coach/staff role
       const requesterMembership = await storage.getTeamMembership(teamId, requesterId);
       const team = await storage.getTeam(teamId);
+      
+      // Requester must be a member of this team
+      if (!requesterMembership && team?.coachId !== requesterId) {
+        return res.status(403).json({ error: "You are not a member of this team" });
+      }
       
       const isCoach = team?.coachId === requesterId;
       const isStaff = requesterMembership?.role === 'staff';

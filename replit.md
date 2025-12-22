@@ -92,6 +92,16 @@ The database schema centers around four main entities:
 - **Profile Switcher**: Supporter dashboard includes a dropdown to switch between viewing as self or as a managed athlete
 - **Visual Indicator**: "Viewing as" banner appears when viewing as a managed athlete, with hero banner updating to show athlete info
 
+### Roster Management System
+- **Team-Specific Data**: Jersey numbers and positions are stored per team membership in `team_members` table, allowing athletes to have different numbers on different teams
+- **Role Management**: Coaches and staff can promote athletes to staff or demote staff back to athlete
+- **Member Editing**: Coaches and staff can assign/update jersey numbers and positions for team members
+- **Member Removal**: Coaches and staff can remove members from the team (except the head coach)
+- **Coach Protection**: The team's head coach cannot be demoted or removed from their own team
+- **Staff Permissions**: Staff members can manage athletes but cannot assign the coach role
+- **Authorization**: Backend verifies requester is a team member with coach/staff role before allowing changes
+- **Known Limitation**: Current auth uses client-side localStorage with requesterId query parameter; production should use session-based auth to prevent userId spoofing
+
 ### PWA Update Notifications
 - **Service Worker**: `client/public/service-worker.js` caches app assets with network-first strategy
 - **Version Tracking**: Cache version `teampulse-v1.0.1` - increment to trigger update notifications

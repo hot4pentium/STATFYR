@@ -57,6 +57,9 @@ export default function AthleteDashboard() {
   const coaches = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "coach"), [teamMembers]);
   const supporters = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "supporter"), [teamMembers]);
   
+  // Get the current user's team membership to access team-specific jersey number and position
+  const currentMembership = useMemo(() => teamMembers.find((m: TeamMember) => m.userId === user?.id), [teamMembers, user?.id]);
+  
   const [rosterTab, setRosterTab] = useState<"all" | "athletes" | "coach" | "supporters">("all");
   const filteredRosterMembers = useMemo(() => {
     switch (rosterTab) {
@@ -520,14 +523,16 @@ export default function AthleteDashboard() {
                         <div>
                           {member.role === "coach" ? (
                             <div className="font-bold uppercase text-[10px] bg-primary/20 text-primary px-2 py-1 rounded mb-1">Coach</div>
+                          ) : member.role === "staff" ? (
+                            <div className="font-bold uppercase text-[10px] bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded mb-1">Staff</div>
                           ) : member.role === "supporter" ? (
                             <div className="font-bold uppercase text-[10px] bg-accent/20 text-accent px-2 py-1 rounded mb-1">Fan</div>
                           ) : (
-                            <div className="font-bold text-sm">#{member.user.number || "00"}</div>
+                            <div className="font-bold text-sm">#{member.jerseyNumber || "00"}</div>
                           )}
                           <p className="text-xs font-bold text-primary truncate max-w-[70px]">{member.user.name || member.user.username}</p>
                           <p className="text-[10px] text-muted-foreground">
-                            {member.role === "coach" ? "Head Coach" : member.role === "supporter" ? "Supporter" : (member.user.position || "Player")}
+                            {member.role === "coach" ? "Head Coach" : member.role === "staff" ? "Staff" : member.role === "supporter" ? "Supporter" : (member.position || "Player")}
                           </p>
                         </div>
                       </div>
@@ -812,13 +817,13 @@ export default function AthleteDashboard() {
 
                     {/* Bottom Left - Position */}
                     <div className="absolute bottom-0 left-0 p-4">
-                      <p className="text-sm font-bold text-accent uppercase tracking-wider drop-shadow-lg">{user?.position || "Player"}</p>
+                      <p className="text-sm font-bold text-accent uppercase tracking-wider drop-shadow-lg">{currentMembership?.position || user?.position || "Player"}</p>
                     </div>
 
                     {/* Bottom Right - Number */}
                     <div className="absolute bottom-0 right-0 p-4">
                       <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-3 shadow-lg">
-                        <span className="text-white font-display font-bold text-2xl drop-shadow">#{user?.number || "00"}</span>
+                        <span className="text-white font-display font-bold text-2xl drop-shadow">#{currentMembership?.jerseyNumber || user?.number || "00"}</span>
                       </div>
                     </div>
 
@@ -982,13 +987,13 @@ export default function AthleteDashboard() {
 
                           {/* Bottom Left - Position */}
                           <div className="absolute bottom-0 left-0 p-6">
-                            <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{user?.position || "Player"}</p>
+                            <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{currentMembership?.position || user?.position || "Player"}</p>
                           </div>
 
                           {/* Bottom Right - Number */}
                           <div className="absolute bottom-0 right-0 p-6">
                             <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-4 shadow-lg">
-                              <span className="text-white font-display font-bold text-4xl drop-shadow">#{user?.number || "00"}</span>
+                              <span className="text-white font-display font-bold text-4xl drop-shadow">#{currentMembership?.jerseyNumber || user?.number || "00"}</span>
                             </div>
                           </div>
 
@@ -1133,12 +1138,12 @@ export default function AthleteDashboard() {
                           </div>
 
                           <div className="absolute bottom-0 left-0 p-6">
-                            <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{selectedAthlete.user.position || "Player"}</p>
+                            <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{selectedAthlete.position || selectedAthlete.user.position || "Player"}</p>
                           </div>
 
                           <div className="absolute bottom-0 right-0 p-6">
                             <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-4 shadow-lg">
-                              <span className="text-white font-display font-bold text-4xl drop-shadow">#{selectedAthlete.user.number || "00"}</span>
+                              <span className="text-white font-display font-bold text-4xl drop-shadow">#{selectedAthlete.jerseyNumber || selectedAthlete.user.number || "00"}</span>
                             </div>
                           </div>
 

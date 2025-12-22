@@ -29,6 +29,8 @@ export interface TeamMember {
   teamId: string;
   userId: string;
   role: string;
+  jerseyNumber?: string | null;
+  position?: string | null;
   joinedAt?: string | null;
   user: User;
 }
@@ -138,8 +140,18 @@ export async function getCoachTeams(coachId: string): Promise<Team[]> {
   return res.json();
 }
 
-export async function removeTeamMember(teamId: string, userId: string): Promise<void> {
-  await apiRequest("DELETE", `/api/teams/${teamId}/members/${userId}`, {});
+export async function updateTeamMember(
+  teamId: string, 
+  userId: string, 
+  requesterId: string,
+  data: { role?: string; jerseyNumber?: string | null; position?: string | null }
+): Promise<TeamMember> {
+  const res = await apiRequest("PATCH", `/api/teams/${teamId}/members/${userId}?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
+export async function removeTeamMember(teamId: string, userId: string, requesterId: string): Promise<void> {
+  await apiRequest("DELETE", `/api/teams/${teamId}/members/${userId}?requesterId=${requesterId}`, {});
 }
 
 export async function getTeamEvents(teamId: string): Promise<Event[]> {
