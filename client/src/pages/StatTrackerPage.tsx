@@ -206,7 +206,7 @@ export default function StatTrackerPage() {
     mutationFn: () => {
       if (!selectedTeam || !user) throw new Error("No team or user");
       return createGame(selectedTeam.id, user.id, {
-        eventId: selectedEventId || undefined,
+        eventId: selectedEventId && selectedEventId !== "none" ? selectedEventId : undefined,
         trackingMode,
         totalPeriods,
         periodType,
