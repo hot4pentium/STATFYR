@@ -46,3 +46,19 @@ pool.on('error', (err) => {
 });
 
 export const db = drizzle(pool, { schema });
+
+export async function warmupDatabase(): Promise<void> {
+  const startTime = Date.now();
+  console.log('Warming up database connection...');
+  
+  try {
+    const client = await pool.connect();
+    await client.query('SELECT 1');
+    client.release();
+    const duration = Date.now() - startTime;
+    console.log(`Database connection warm-up complete (${duration}ms)`);
+  } catch (err) {
+    const duration = Date.now() - startTime;
+    console.error(`Database warm-up failed after ${duration}ms:`, err);
+  }
+}
