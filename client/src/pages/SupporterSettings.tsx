@@ -386,67 +386,6 @@ export default function SupporterSettings() {
                 <p className="text-sm text-muted-foreground">Add and track athletes who can't manage their own profile</p>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-4 p-4 bg-background/30 rounded-lg border border-white/10">
-                  <h4 className="text-sm font-medium uppercase tracking-wider">Add New Athlete</h4>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="athlete-team-code" className="text-sm font-medium">Team Code</Label>
-                    <Input
-                      id="athlete-team-code"
-                      data-testid="input-athlete-team-code"
-                      value={athleteTeamCode}
-                      onChange={(e) => setAthleteTeamCode(e.target.value.toUpperCase())}
-                      placeholder="Enter 6-character team code"
-                      maxLength={6}
-                      className="bg-background/50 border-white/10 focus:border-primary/50 h-11 uppercase"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="athlete-first-name" className="text-sm font-medium">First Name</Label>
-                      <Input
-                        id="athlete-first-name"
-                        data-testid="input-athlete-first-name"
-                        value={athleteFirstName}
-                        onChange={(e) => setAthleteFirstName(e.target.value)}
-                        placeholder="First name"
-                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="athlete-last-name" className="text-sm font-medium">Last Name</Label>
-                      <Input
-                        id="athlete-last-name"
-                        data-testid="input-athlete-last-name"
-                        value={athleteLastName}
-                        onChange={(e) => setAthleteLastName(e.target.value)}
-                        placeholder="Last name"
-                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                      />
-                    </div>
-                  </div>
-
-                  <Button 
-                    onClick={handleAddAthlete}
-                    disabled={isAddingAthlete || !athleteTeamCode || !athleteFirstName || !athleteLastName}
-                    data-testid="button-add-athlete"
-                    className="w-full"
-                  >
-                    {isAddingAthlete ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Adding...
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Add Athlete to Team
-                      </>
-                    )}
-                  </Button>
-                </div>
-
                 {managedAthletes.length > 0 && (
                   <div className="space-y-3">
                     <h4 className="text-sm font-medium uppercase tracking-wider">Your Managed Athletes</h4>
@@ -507,6 +446,67 @@ export default function SupporterSettings() {
                     ))}
                   </div>
                 )}
+
+                <div className="space-y-4 p-4 bg-background/30 rounded-lg border border-white/10">
+                  <h4 className="text-sm font-medium uppercase tracking-wider">Add New Athlete</h4>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="athlete-team-code" className="text-sm font-medium">Team Code</Label>
+                    <Input
+                      id="athlete-team-code"
+                      data-testid="input-athlete-team-code"
+                      value={athleteTeamCode}
+                      onChange={(e) => setAthleteTeamCode(e.target.value.toUpperCase())}
+                      placeholder="Enter 6-character team code"
+                      maxLength={6}
+                      className="bg-background/50 border-white/10 focus:border-primary/50 h-11 uppercase"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="athlete-first-name" className="text-sm font-medium">First Name</Label>
+                      <Input
+                        id="athlete-first-name"
+                        data-testid="input-athlete-first-name"
+                        value={athleteFirstName}
+                        onChange={(e) => setAthleteFirstName(e.target.value)}
+                        placeholder="First name"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="athlete-last-name" className="text-sm font-medium">Last Name</Label>
+                      <Input
+                        id="athlete-last-name"
+                        data-testid="input-athlete-last-name"
+                        value={athleteLastName}
+                        onChange={(e) => setAthleteLastName(e.target.value)}
+                        placeholder="Last name"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                      />
+                    </div>
+                  </div>
+
+                  <Button 
+                    onClick={handleAddAthlete}
+                    disabled={isAddingAthlete || !athleteTeamCode || !athleteFirstName || !athleteLastName}
+                    data-testid="button-add-athlete"
+                    className="w-full"
+                  >
+                    {isAddingAthlete ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Adding...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add Athlete to Team
+                      </>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
