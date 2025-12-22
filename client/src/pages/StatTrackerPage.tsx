@@ -284,9 +284,16 @@ export default function StatTrackerPage() {
 
   const toggleGamePause = () => {
     if (!currentGame) return;
-    updateGameMutation.mutate({ 
-      status: currentGame.status === "active" ? "paused" : "active" 
-    });
+    if (currentGame.status === "active") {
+      updateGameMutation.mutate({ status: "paused" });
+    } else if (!currentGame.startedAt || currentGame.status === "setup") {
+      updateGameMutation.mutate({ 
+        status: "active", 
+        startedAt: new Date().toISOString() 
+      });
+    } else {
+      updateGameMutation.mutate({ status: "active" });
+    }
   };
 
   const confirmEndGame = () => {
