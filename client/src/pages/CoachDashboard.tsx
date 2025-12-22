@@ -891,7 +891,7 @@ export default function CoachDashboard() {
                 <h3 className="text-lg font-bold">StatTracker</h3>
                 <p className="text-sm text-muted-foreground">Track player and team statistics during games</p>
               </div>
-              <Button size="sm" className="gap-2">
+              <Button size="sm" className="gap-2" onClick={() => toast.info("StatTracker coming soon! This feature is under development.")} data-testid="button-new-game">
                 <Plus className="h-4 w-4" />
                 New Game
               </Button>
