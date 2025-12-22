@@ -98,6 +98,12 @@ export default function StatTrackerPage() {
 
   useEffect(() => {
     if (currentGame) {
+      if (currentGame.trackingMode) {
+        setTrackingMode(currentGame.trackingMode as "individual" | "team");
+      }
+      if (currentGame.periodType) {
+        setPeriodType(currentGame.periodType);
+      }
       if (currentGame.status === "completed") {
         setViewMode("summary");
       } else if (currentGame.status === "active" || currentGame.status === "paused") {
@@ -136,6 +142,8 @@ export default function StatTrackerPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["game", currentGameId] });
+      queryClient.invalidateQueries({ queryKey: ["game-stats", currentGameId] });
+      queryClient.invalidateQueries({ queryKey: ["game-roster", currentGameId] });
     }
   });
 
