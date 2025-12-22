@@ -891,15 +891,23 @@ export default function CoachDashboard() {
                 <h3 className="text-lg font-bold">StatTracker</h3>
                 <p className="text-sm text-muted-foreground">Track player and team statistics during games</p>
               </div>
-              <Button size="sm" className="gap-2" onClick={() => toast.info("StatTracker coming soon! This feature is under development.")} data-testid="button-new-game">
-                <Plus className="h-4 w-4" />
-                New Game
-              </Button>
+              <Link href="/stattracker">
+                <Button size="sm" className="gap-2" data-testid="button-new-game">
+                  <Plus className="h-4 w-4" />
+                  New Game
+                </Button>
+              </Link>
             </div>
             <div className="text-center py-12 text-muted-foreground">
               <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-bold">No game stats yet</p>
-              <p className="text-sm">Start tracking stats during your next game.</p>
+              <p className="text-lg font-bold">Track live game stats</p>
+              <p className="text-sm mb-4">Record stats for individual players or the whole team during games.</p>
+              <Link href="/stattracker">
+                <Button size="lg" className="gap-2" data-testid="button-open-stattracker">
+                  <Activity className="h-5 w-5" />
+                  Open StatTracker
+                </Button>
+              </Link>
             </div>
           </div>
         );

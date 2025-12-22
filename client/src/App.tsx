@@ -24,6 +24,7 @@ import CoachSettings from "@/pages/CoachSettings";
 import AthleteSettings from "@/pages/AthleteSettings";
 import SupporterSettings from "@/pages/SupporterSettings";
 import ShareableHypeCard from "@/pages/ShareableHypeCard";
+import StatTrackerPage from "@/pages/StatTrackerPage";
 
 function Router() {
   return (
@@ -46,6 +47,8 @@ function Router() {
       <Route path="/supporter/dashboard" component={SupporterDashboard} />
       <Route path="/supporter/settings" component={SupporterSettings} />
       <Route path="/share/athlete/:id" component={ShareableHypeCard} />
+      <Route path="/stattracker" component={StatTrackerPage} />
+      <Route path="/stattracker/:gameId" component={StatTrackerPage} />
       <Route component={NotFound} />
     </Switch>
   );
