@@ -420,6 +420,20 @@ export async function getAdvancedTeamStats(teamId: string): Promise<AdvancedTeam
   return res.json();
 }
 
+export interface AthleteStats {
+  gamesPlayed: number;
+  stats: Record<string, { name: string; total: number; perGame: number }>;
+  gameHistory: Array<{ gameId: string; date: string; opponent: string; result: 'W' | 'L' | 'T'; stats: Record<string, number> }>;
+  hotStreak: boolean;
+  streakLength: number;
+}
+
+export async function getAthleteStats(teamId: string, athleteId: string): Promise<AthleteStats> {
+  const res = await fetch(`/api/teams/${teamId}/athletes/${athleteId}/stats`);
+  if (!res.ok) throw new Error("Failed to get athlete stats");
+  return res.json();
+}
+
 export async function getGame(gameId: string): Promise<Game> {
   const res = await fetch(`/api/games/${gameId}`);
   if (!res.ok) throw new Error("Failed to get game");

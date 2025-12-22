@@ -652,6 +652,89 @@ export class DatabaseStorage implements IStorage {
     return { gameHistory, athletePerformance, ratios };
   }
 
+  async getAthleteStats(teamId: string, athleteId: string): Promise<{
+    gamesPlayed: number;
+    stats: Record<string, { name: string; total: number; perGame: number }>;
+    gameHistory: Array<{ gameId: string; date: string; opponent: string; result: 'W' | 'L' | 'T'; stats: Record<string, number> }>;
+    hotStreak: boolean;
+    streakLength: number;
+  }> {
+    const completedGames = await db
+      .select()
+      .from(games)
+      .where(and(eq(games.teamId, teamId), eq(games.status, "completed")))
+      .orderBy(desc(games.createdAt));
+
+    const gameHistory: Array<{ gameId: string; date: string; opponent: string; result: 'W' | 'L' | 'T'; stats: Record<string, number> }> = [];
+    const statTotals: Record<string, { name: string; total: number }> = {};
+    const gamesWithStats = new Set<string>();
+
+    for (const game of completedGames) {
+      const event = game.eventId ? await this.getEvent(game.eventId) : undefined;
+      const statsResult = await db
+        .select({ game_stats: gameStats, stat_configurations: statConfigurations })
+        .from(gameStats)
+        .innerJoin(statConfigurations, eq(gameStats.statConfigId, statConfigurations.id))
+        .where(and(
+          eq(gameStats.gameId, game.id),
+          eq(gameStats.athleteId, athleteId),
+          eq(gameStats.isDeleted, false)
+        ));
+
+      if (statsResult.length === 0) continue;
+
+      gamesWithStats.add(game.id);
+      const gameStatsMap: Record<string, number> = {};
+      
+      for (const { game_stats, stat_configurations } of statsResult) {
+        const key = stat_configurations.shortName;
+        gameStatsMap[key] = (gameStatsMap[key] || 0) + game_stats.value;
+        
+        if (!statTotals[key]) {
+          statTotals[key] = { name: stat_configurations.name, total: 0 };
+        }
+        statTotals[key].total += game_stats.value;
+      }
+
+      let result: 'W' | 'L' | 'T' = 'T';
+      if (game.teamScore > game.opponentScore) result = 'W';
+      else if (game.teamScore < game.opponentScore) result = 'L';
+
+      gameHistory.push({
+        gameId: game.id,
+        date: event?.date?.toISOString() || game.createdAt?.toISOString() || '',
+        opponent: game.opponentName || 'Opponent',
+        result,
+        stats: gameStatsMap
+      });
+    }
+
+    const gamesPlayed = gamesWithStats.size;
+    const stats: Record<string, { name: string; total: number; perGame: number }> = {};
+    for (const [key, { name, total }] of Object.entries(statTotals)) {
+      stats[key] = { name, total, perGame: gamesPlayed > 0 ? Math.round((total / gamesPlayed) * 10) / 10 : 0 };
+    }
+
+    let hotStreak = false;
+    let streakLength = 0;
+    if (gameHistory.length >= 3) {
+      const totalStats = Object.values(statTotals).reduce((a, b) => a + b.total, 0);
+      const avgPerGame = totalStats / gamesPlayed;
+      
+      for (const game of gameHistory.slice(0, 5)) {
+        const gameTotal = Object.values(game.stats).reduce((a, b) => a + b, 0);
+        if (gameTotal >= avgPerGame * 1.2) {
+          streakLength++;
+        } else {
+          break;
+        }
+      }
+      hotStreak = streakLength >= 3;
+    }
+
+    return { gamesPlayed, stats, gameHistory, hotStreak, streakLength };
+  }
+
   async createGame(data: InsertGame): Promise<Game> {
     const [game] = await db.insert(games).values(data).returning();
     return game;

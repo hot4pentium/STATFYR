@@ -788,6 +788,16 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/teams/:teamId/athletes/:athleteId/stats", async (req, res) => {
+    try {
+      const stats = await storage.getAthleteStats(req.params.teamId, req.params.athleteId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting athlete stats:", error);
+      res.status(500).json({ error: "Failed to get athlete stats" });
+    }
+  });
+
   app.get("/api/games/:id", async (req, res) => {
     try {
       const game = await storage.getGame(req.params.id);
