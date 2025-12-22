@@ -879,18 +879,6 @@ export default function CoachDashboard() {
       case "stattracker":
         return (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold">StatTracker</h3>
-                <p className="text-sm text-muted-foreground">Track player and team statistics during games</p>
-              </div>
-              <Link href="/stattracker">
-                <Button size="sm" className="gap-2" data-testid="button-new-game">
-                  <Plus className="h-4 w-4" />
-                  New Game
-                </Button>
-              </Link>
-            </div>
             <div className="text-center py-12 text-muted-foreground">
               <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-bold">Track live game stats</p>
