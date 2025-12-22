@@ -831,7 +831,14 @@ export async function registerRoutes(
         return res.status(403).json({ error: "Only coaches and staff can update games" });
       }
 
-      const parsed = updateGameSchema.parse(req.body);
+      const body = { ...req.body };
+      if (body.startedAt && typeof body.startedAt === 'string') {
+        body.startedAt = new Date(body.startedAt);
+      }
+      if (body.endedAt && typeof body.endedAt === 'string') {
+        body.endedAt = new Date(body.endedAt);
+      }
+      const parsed = updateGameSchema.parse(body);
       const updatedGame = await storage.updateGame(req.params.id, parsed);
       res.json(updatedGame);
     } catch (error: any) {
