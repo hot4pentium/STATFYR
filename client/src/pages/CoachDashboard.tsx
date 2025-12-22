@@ -459,18 +459,18 @@ export default function CoachDashboard() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                             {(member.role === "athlete" || member.role === "staff") && (
-                              <>
-                                <DropdownMenuItem onClick={() => openEditMember(member)} data-testid={`edit-member-${member.id}`}>
-                                  <Hash className="h-4 w-4 mr-2" />
-                                  Edit Jersey/Position
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handlePromoteDemote(member)} data-testid={`promote-demote-${member.id}`}>
-                                  <Award className="h-4 w-4 mr-2" />
-                                  {member.role === "staff" ? "Remove Staff" : "Make Staff"}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                              </>
+                              <DropdownMenuItem onClick={() => openEditMember(member)} data-testid={`edit-member-${member.id}`}>
+                                <Hash className="h-4 w-4 mr-2" />
+                                Edit Jersey/Position
+                              </DropdownMenuItem>
                             )}
+                            {(member.role === "athlete" || member.role === "staff" || member.role === "supporter") && (
+                              <DropdownMenuItem onClick={() => handlePromoteDemote(member)} data-testid={`promote-demote-${member.id}`}>
+                                <Award className="h-4 w-4 mr-2" />
+                                {member.role === "staff" ? "Remove Staff" : "Make Staff"}
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               onClick={() => setDeletingMember(member)} 
                               className="text-destructive focus:text-destructive"
