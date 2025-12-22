@@ -378,6 +378,19 @@ export async function getTeamGames(teamId: string): Promise<Game[]> {
   return res.json();
 }
 
+export interface TeamAggregateStats {
+  games: number;
+  wins: number;
+  losses: number;
+  statTotals: Record<string, { name: string; total: number }>;
+}
+
+export async function getTeamAggregateStats(teamId: string): Promise<TeamAggregateStats> {
+  const res = await fetch(`/api/teams/${teamId}/stats/aggregate`);
+  if (!res.ok) throw new Error("Failed to get aggregate stats");
+  return res.json();
+}
+
 export async function getGame(gameId: string): Promise<Game> {
   const res = await fetch(`/api/games/${gameId}`);
   if (!res.ok) throw new Error("Failed to get game");

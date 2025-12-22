@@ -75,6 +75,7 @@ export interface IStorage {
   getGame(id: string): Promise<Game | undefined>;
   getGameByEvent(eventId: string): Promise<Game | undefined>;
   getTeamGames(teamId: string): Promise<(Game & { event?: Event })[]>;
+  getTeamAggregateStats(teamId: string): Promise<{ games: number; wins: number; losses: number; statTotals: Record<string, { name: string; total: number }> }>;
   createGame(data: InsertGame): Promise<Game>;
   updateGame(id: string, data: UpdateGame): Promise<Game | undefined>;
   deleteGame(id: string): Promise<void>;
@@ -424,6 +425,45 @@ export class DatabaseStorage implements IStorage {
       result.push({ ...game, event });
     }
     return result;
+  }
+
+  async getTeamAggregateStats(teamId: string): Promise<{ games: number; wins: number; losses: number; statTotals: Record<string, { name: string; total: number }> }> {
+    const completedGames = await db
+      .select()
+      .from(games)
+      .where(and(eq(games.teamId, teamId), eq(games.status, "completed")));
+    
+    let wins = 0;
+    let losses = 0;
+    for (const game of completedGames) {
+      if (game.teamScore > game.opponentScore) wins++;
+      else if (game.teamScore < game.opponentScore) losses++;
+    }
+
+    const statTotals: Record<string, { name: string; total: number }> = {};
+    
+    for (const game of completedGames) {
+      const stats = await db
+        .select()
+        .from(gameStats)
+        .innerJoin(statConfigurations, eq(gameStats.statConfigId, statConfigurations.id))
+        .where(and(eq(gameStats.gameId, game.id), eq(gameStats.isDeleted, false)));
+      
+      for (const { game_stats, stat_configurations } of stats) {
+        const key = stat_configurations.shortName;
+        if (!statTotals[key]) {
+          statTotals[key] = { name: stat_configurations.name, total: 0 };
+        }
+        statTotals[key].total += game_stats.value;
+      }
+    }
+
+    return {
+      games: completedGames.length,
+      wins,
+      losses,
+      statTotals
+    };
   }
 
   async createGame(data: InsertGame): Promise<Game> {

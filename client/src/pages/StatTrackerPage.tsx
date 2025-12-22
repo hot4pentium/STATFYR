@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -57,6 +58,7 @@ export default function StatTrackerPage() {
   const [selectedStat, setSelectedStat] = useState<StatConfig | null>(null);
   const [isInitializingStats, setIsInitializingStats] = useState(false);
   const [recordedPlayerId, setRecordedPlayerId] = useState<string | null>(null);
+  const [showEndGameConfirm, setShowEndGameConfirm] = useState(false);
 
   const { data: events = [] } = useQuery({
     queryKey: ["team-events", selectedTeam?.id],
@@ -287,11 +289,12 @@ export default function StatTrackerPage() {
     });
   };
 
-  const endGame = () => {
+  const confirmEndGame = () => {
     updateGameMutation.mutate({ 
       status: "completed", 
       endedAt: new Date().toISOString() 
     });
+    setShowEndGameConfirm(false);
     setViewMode("summary");
   };
 
@@ -759,7 +762,7 @@ export default function StatTrackerPage() {
                       Next {periodType}
                     </Button>
                   )}
-                  <Button variant="destructive" size="sm" className="h-7 text-xs" onClick={endGame} data-testid="button-end-game">
+                  <Button variant="destructive" size="sm" className="h-7 text-xs" onClick={() => setShowEndGameConfirm(true)} data-testid="button-end-game">
                     End
                   </Button>
                 </div>
@@ -1288,6 +1291,29 @@ export default function StatTrackerPage() {
           </div>
         )}
       </div>
+
+      {/* End Game Confirmation Dialog */}
+      <AlertDialog open={showEndGameConfirm} onOpenChange={setShowEndGameConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>End Game?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to end this game? The final score will be {currentGame?.teamScore || 0} - {currentGame?.opponentScore || 0}. 
+              You won't be able to record more stats after ending.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-end-game">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmEndGame}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-end-game"
+            >
+              End Game
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }

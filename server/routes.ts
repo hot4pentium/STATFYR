@@ -767,6 +767,17 @@ export async function registerRoutes(
     }
   });
 
+  // Get aggregated team stats from all completed games
+  app.get("/api/teams/:teamId/stats/aggregate", async (req, res) => {
+    try {
+      const stats = await storage.getTeamAggregateStats(req.params.teamId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting aggregate stats:", error);
+      res.status(500).json({ error: "Failed to get aggregate stats" });
+    }
+  });
+
   app.get("/api/games/:id", async (req, res) => {
     try {
       const game = await storage.getGame(req.params.id);

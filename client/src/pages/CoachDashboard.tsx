@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup } from "@/lib/api";
+import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, getTeamAggregateStats, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup, type TeamAggregateStats } from "@/lib/api";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { MoreVertical, UserCog, UserMinus, Hash, Award } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -94,6 +94,12 @@ export default function CoachDashboard() {
   const { data: teamPlays = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "plays"],
     queryFn: () => currentTeam ? getTeamPlays(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+  });
+
+  const { data: aggregateStats } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "stats", "aggregate"],
+    queryFn: () => currentTeam ? getTeamAggregateStats(currentTeam.id) : Promise.resolve({ games: 0, wins: 0, losses: 0, statTotals: {} }),
     enabled: !!currentTeam,
   });
 
@@ -935,11 +941,60 @@ export default function CoachDashboard() {
           </div>
         );
       case "stats":
+        if (!aggregateStats || aggregateStats.games === 0) {
+          return (
+            <div className="text-center py-12 text-muted-foreground">
+              <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-bold">No stats yet</p>
+              <p className="text-sm">Statistics will appear here after you complete games in StatTracker.</p>
+              <Link href="/stattracker">
+                <Button className="mt-4 gap-2" data-testid="button-go-to-stattracker">
+                  <Activity className="h-4 w-4" />
+                  Open StatTracker
+                </Button>
+              </Link>
+            </div>
+          );
+        }
         return (
-          <div className="text-center py-12 text-muted-foreground">
-            <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-bold">No stats yet</p>
-            <p className="text-sm">Statistics will appear here as you track team performance.</p>
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-background/50 border rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold">{aggregateStats.games}</p>
+                <p className="text-sm text-muted-foreground">Games Played</p>
+              </div>
+              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold text-green-500">{aggregateStats.wins}</p>
+                <p className="text-sm text-muted-foreground">Wins</p>
+              </div>
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold text-red-500">{aggregateStats.losses}</p>
+                <p className="text-sm text-muted-foreground">Losses</p>
+              </div>
+            </div>
+            
+            {Object.keys(aggregateStats.statTotals).length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3">Season Totals</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {(Object.entries(aggregateStats.statTotals) as [string, { name: string; total: number }][]).map(([key, stat]) => (
+                    <div key={key} className="bg-background/50 border rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold">{stat.total}</p>
+                      <p className="text-xs text-muted-foreground">{stat.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <div className="text-center pt-4">
+              <Link href="/stattracker">
+                <Button variant="outline" className="gap-2" data-testid="button-view-stattracker">
+                  <Activity className="h-4 w-4" />
+                  Track New Game
+                </Button>
+              </Link>
+            </div>
           </div>
         );
       case "highlights":
