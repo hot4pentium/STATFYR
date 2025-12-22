@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, UserPlus, Trash2, Camera } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, UserPlus, Trash2, Camera, Pencil } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -26,9 +27,16 @@ export default function SupporterSettings() {
   const [athleteFirstName, setAthleteFirstName] = useState("");
   const [athleteLastName, setAthleteLastName] = useState("");
   const [isAddingAthlete, setIsAddingAthlete] = useState(false);
-  const [uploadingAthleteId, setUploadingAthleteId] = useState<number | null>(null);
+  const [uploadingAthleteId, setUploadingAthleteId] = useState<string | null>(null);
   const athleteAvatarInputRef = useRef<HTMLInputElement>(null);
   const [selectedAthleteForUpload, setSelectedAthleteForUpload] = useState<ManagedAthlete | null>(null);
+  
+  const [editingAthlete, setEditingAthlete] = useState<ManagedAthlete | null>(null);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [editAvatarPreview, setEditAvatarPreview] = useState<string | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const editAvatarInputRef = useRef<HTMLInputElement>(null);
 
   const appVersion = "1.0.0";
 
@@ -204,6 +212,67 @@ export default function SupporterSettings() {
       toast.error("Failed to load image");
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleEditAthleteClick = (managed: ManagedAthlete) => {
+    setEditingAthlete(managed);
+    setEditFirstName(managed.athlete.firstName || "");
+    setEditLastName(managed.athlete.lastName || "");
+    setEditAvatarPreview(managed.athlete.avatar || null);
+  };
+
+  const handleEditAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image must be less than 5MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setEditAvatarPreview(event.target?.result as string);
+      };
+      reader.onerror = () => {
+        toast.error("Failed to load image");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveAthleteEdit = async () => {
+    if (!editingAthlete) return;
+    
+    if (!editFirstName.trim() || !editLastName.trim()) {
+      toast.error("First name and last name are required.");
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      const response = await fetch(`/api/users/${editingAthlete.athlete.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: editFirstName.trim(),
+          lastName: editLastName.trim(),
+          name: `${editFirstName.trim()} ${editLastName.trim()}`,
+          avatar: editAvatarPreview,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update athlete");
+      }
+
+      toast.success(`${editFirstName.trim()} ${editLastName.trim()}'s profile updated!`);
+      setEditingAthlete(null);
+      refetchManagedAthletes();
+    } catch (error) {
+      console.error("Failed to update athlete:", error);
+      toast.error("Failed to update athlete. Please try again.");
+    } finally {
+      setIsSavingEdit(false);
+    }
   };
 
   return (
@@ -400,14 +469,12 @@ export default function SupporterSettings() {
                     {managedAthletes.map((managed) => (
                       <div 
                         key={managed.id} 
-                        className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-white/10"
+                        className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-white/10 cursor-pointer hover:bg-background/50 transition-colors"
                         data-testid={`managed-athlete-${managed.id}`}
+                        onClick={() => handleEditAthleteClick(managed)}
                       >
                         <div className="flex items-center gap-3">
-                          <div 
-                            className="relative w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden cursor-pointer group"
-                            onClick={() => handleAthleteAvatarClick(managed)}
-                          >
+                          <div className="relative w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
                             {managed.athlete.avatar ? (
                               <img 
                                 src={managed.athlete.avatar} 
@@ -417,13 +484,6 @@ export default function SupporterSettings() {
                             ) : (
                               <User className="h-6 w-6 text-primary" />
                             )}
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                              {uploadingAthleteId === managed.athlete.id ? (
-                                <Loader2 className="h-4 w-4 text-white animate-spin" />
-                              ) : (
-                                <Camera className="h-4 w-4 text-white" />
-                              )}
-                            </div>
                           </div>
                           <div>
                             <p className="font-medium">{managed.athlete.name}</p>
@@ -433,15 +493,26 @@ export default function SupporterSettings() {
                             </p>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteManagedAthlete(managed)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          data-testid={`button-remove-athlete-${managed.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => { e.stopPropagation(); handleEditAthleteClick(managed); }}
+                            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                            data-testid={`button-edit-athlete-${managed.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteManagedAthlete(managed); }}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            data-testid={`button-remove-athlete-${managed.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -524,6 +595,106 @@ export default function SupporterSettings() {
           </Card>
         </div>
       </div>
+
+      <Dialog open={!!editingAthlete} onOpenChange={(open) => !open && setEditingAthlete(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-display font-bold uppercase tracking-wide">
+              Edit Athlete Profile
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            <div className="flex flex-col items-center gap-4">
+              <div 
+                className="relative w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden cursor-pointer group"
+                onClick={() => editAvatarInputRef.current?.click()}
+              >
+                {editAvatarPreview ? (
+                  <img 
+                    src={editAvatarPreview} 
+                    alt="Athlete avatar" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User className="h-10 w-10 text-primary" />
+                )}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                  <Camera className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <input
+                type="file"
+                ref={editAvatarInputRef}
+                accept="image/*"
+                onChange={handleEditAvatarChange}
+                className="hidden"
+                data-testid="input-edit-athlete-avatar"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => editAvatarInputRef.current?.click()}
+                data-testid="button-change-athlete-photo"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Change Photo
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-first-name" className="text-sm font-medium">First Name</Label>
+                <Input
+                  id="edit-first-name"
+                  data-testid="input-edit-first-name"
+                  value={editFirstName}
+                  onChange={(e) => setEditFirstName(e.target.value)}
+                  placeholder="First name"
+                  className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-last-name" className="text-sm font-medium">Last Name</Label>
+                <Input
+                  id="edit-last-name"
+                  data-testid="input-edit-last-name"
+                  value={editLastName}
+                  onChange={(e) => setEditLastName(e.target.value)}
+                  placeholder="Last name"
+                  className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setEditingAthlete(null)}
+                data-testid="button-cancel-edit"
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleSaveAthleteEdit}
+                disabled={isSavingEdit || !editFirstName.trim() || !editLastName.trim()}
+                data-testid="button-save-athlete-edit"
+              >
+                {isSavingEdit ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
