@@ -102,6 +102,20 @@ The database schema centers around four main entities:
 - **Authorization**: Backend verifies requester is a team member with coach/staff role before allowing changes
 - **Known Limitation**: Current auth uses client-side localStorage with requesterId query parameter; production should use session-based auth to prevent userId spoofing
 
+### StatTracker System
+- **Purpose**: Live game statistics tracking for coaches and staff during games
+- **Tracking Modes**: Individual (stats per player) or Team (team totals only)
+- **Setup Flow**: Select event (optional) → Choose tracking mode → Configure periods → Create game
+- **Game Roster**: On Bench / In Game sections with easy toggle between states
+- **Stats Configuration**: Sport-specific stat presets for Baseball, Basketball, Football, Soccer, Volleyball
+- **Live Tracking**: Scoreboard with periods, player selection (individual mode), stat buttons filtered by position
+- **Score Override**: Manual score editing available during games
+- **Corrections**: Soft delete (undo) for stats with activity log showing recent entries
+- **Game Summary**: Final score display with team totals and individual player breakdowns
+- **Database Tables**: `games` (linked to events), `stat_configurations` (position-to-stat mappings), `game_stats` (with soft delete), `game_rosters` (bench vs in-game)
+- **Authorization**: Only coaches and staff can create/manage games, record stats, and manage game rosters
+- **Routes**: `/stattracker` for new game setup, `/stattracker/:gameId` to resume existing game
+
 ### PWA Update Notifications
 - **Service Worker**: `client/public/service-worker.js` caches app assets with network-first strategy
 - **Version Tracking**: Cache version `teampulse-v1.0.1` - increment to trigger update notifications
