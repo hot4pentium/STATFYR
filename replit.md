@@ -111,8 +111,9 @@ The database schema centers around four main entities:
 - **Settings View**: Accessible via sliders icon on setup page for managing stat-to-position and athlete-to-position assignments
 - **Position-to-Stat Mapping**: Coaches/staff can assign which positions can track each stat via checkboxes; stats with no positions are available to all
 - **Athlete Position Assignment**: Coaches/staff can assign positions to athletes; positions persist in team_members and apply when new game rosters are created
-- **Stat Filtering**: During tracking, stat buttons filter based on selected player's assigned positions
-- **Live Tracking**: Scoreboard with periods, player selection (individual mode), stat buttons filtered by position
+- **Stat-First UI Flow**: Two-panel layout with stats grid (2 columns) and always-visible player list; tap stat first, then tap player to record
+- **Player Filtering**: When a stat is selected, player list filters to show only eligible players based on their positions
+- **Responsive Layout**: Desktop shows side-by-side panels; mobile shows stats grid with sticky player bar fixed at bottom of screen
 - **Score Override**: Manual score editing available during games
 - **Corrections**: Soft delete (undo) for stats with activity log showing recent entries
 - **Game Summary**: Final score display with team totals and individual player breakdowns
