@@ -108,11 +108,16 @@ The database schema centers around four main entities:
 - **Setup Flow**: Select event (optional) → Choose tracking mode → Configure periods → Create game
 - **Game Roster**: On Bench / In Game sections with easy toggle between states
 - **Stats Configuration**: Sport-specific stat presets for Baseball, Basketball, Football, Soccer, Volleyball
+- **Settings View**: Accessible via sliders icon on setup page for managing stat-to-position and athlete-to-position assignments
+- **Position-to-Stat Mapping**: Coaches/staff can assign which positions can track each stat via checkboxes; stats with no positions are available to all
+- **Athlete Position Assignment**: Coaches/staff can assign positions to athletes; positions persist in team_members and apply when new game rosters are created
+- **Stat Filtering**: During tracking, stat buttons filter based on selected player's assigned positions
 - **Live Tracking**: Scoreboard with periods, player selection (individual mode), stat buttons filtered by position
 - **Score Override**: Manual score editing available during games
 - **Corrections**: Soft delete (undo) for stats with activity log showing recent entries
 - **Game Summary**: Final score display with team totals and individual player breakdowns
-- **Database Tables**: `games` (linked to events), `stat_configurations` (position-to-stat mappings), `game_stats` (with soft delete), `game_rosters` (bench vs in-game)
+- **Database Tables**: `games` (linked to events), `stat_configurations` (position-to-stat mappings), `game_stats` (with soft delete), `game_rosters` (bench vs in-game, positions array)
+- **Shared Constants**: `client/src/lib/sportConstants.ts` exports SPORT_POSITIONS and SPORT_STATS for reuse across components
 - **Authorization**: Only coaches and staff can create/manage games, record stats, and manage game rosters
 - **Routes**: `/stattracker` for new game setup, `/stattracker/:gameId` to resume existing game
 

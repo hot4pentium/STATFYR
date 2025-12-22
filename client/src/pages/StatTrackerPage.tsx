@@ -9,11 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft, Play, Pause, RotateCcw, Users, Timer, Target, 
   Plus, Minus, Check, X, ChevronUp, ChevronDown, Activity,
-  Settings, User, Trophy, Edit2, Undo2, Clock, Save
+  Settings, User, Trophy, Edit2, Undo2, Clock, Save, Sliders
 } from "lucide-react";
 import { Link, useLocation, useRoute } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,116 +23,15 @@ import { useUser } from "@/lib/userContext";
 import { useToast } from "@/hooks/use-toast";
 import {
   getTeamGames, getGame, createGame, updateGame, getGameByEvent,
-  getTeamStatConfigs, createStatConfig,
+  getTeamStatConfigs, createStatConfig, updateStatConfig,
   getGameStats, recordGameStat, deleteGameStat,
   getGameRoster, addToGameRoster, updateGameRoster, bulkCreateGameRoster,
-  getTeamEvents, getTeamMembers,
+  getTeamEvents, getTeamMembers, updateTeamMember,
   type Game, type StatConfig, type GameStat, type GameRoster, type Event, type TeamMember
 } from "@/lib/api";
+import { SPORT_STATS, SPORT_POSITIONS } from "@/lib/sportConstants";
 
-const SPORT_STATS: Record<string, { category: string; stats: { name: string; shortName: string; value: number; positions?: string[] }[] }[]> = {
-  Baseball: [
-    { category: "Batting", stats: [
-      { name: "At Bat", shortName: "AB", value: 0 },
-      { name: "Hit", shortName: "H", value: 0 },
-      { name: "Single", shortName: "1B", value: 0 },
-      { name: "Double", shortName: "2B", value: 0 },
-      { name: "Triple", shortName: "3B", value: 0 },
-      { name: "Home Run", shortName: "HR", value: 1 },
-      { name: "RBI", shortName: "RBI", value: 0 },
-      { name: "Walk", shortName: "BB", value: 0 },
-      { name: "Strikeout", shortName: "K", value: 0 },
-    ]},
-    { category: "Pitching", stats: [
-      { name: "Strikeout", shortName: "K", value: 0, positions: ["Pitcher"] },
-      { name: "Walk Allowed", shortName: "BB", value: 0, positions: ["Pitcher"] },
-      { name: "Hit Allowed", shortName: "HA", value: 0, positions: ["Pitcher"] },
-      { name: "Earned Run", shortName: "ER", value: 0, positions: ["Pitcher"] },
-    ]},
-    { category: "Fielding", stats: [
-      { name: "Putout", shortName: "PO", value: 0 },
-      { name: "Assist", shortName: "A", value: 0 },
-      { name: "Error", shortName: "E", value: 0 },
-    ]}
-  ],
-  Basketball: [
-    { category: "Scoring", stats: [
-      { name: "Free Throw", shortName: "FT", value: 1 },
-      { name: "2-Point", shortName: "2PT", value: 2 },
-      { name: "3-Point", shortName: "3PT", value: 3 },
-    ]},
-    { category: "Other", stats: [
-      { name: "Rebound", shortName: "REB", value: 0 },
-      { name: "Assist", shortName: "AST", value: 0 },
-      { name: "Steal", shortName: "STL", value: 0 },
-      { name: "Block", shortName: "BLK", value: 0 },
-      { name: "Turnover", shortName: "TO", value: 0 },
-      { name: "Foul", shortName: "PF", value: 0 },
-    ]}
-  ],
-  Football: [
-    { category: "Offense", stats: [
-      { name: "Touchdown", shortName: "TD", value: 6 },
-      { name: "Extra Point", shortName: "XP", value: 1 },
-      { name: "2-Point Conv", shortName: "2PC", value: 2 },
-      { name: "Field Goal", shortName: "FG", value: 3 },
-      { name: "Safety", shortName: "SAF", value: 2 },
-    ]},
-    { category: "Passing", stats: [
-      { name: "Completion", shortName: "CMP", value: 0, positions: ["Quarterback"] },
-      { name: "Incompletion", shortName: "INC", value: 0, positions: ["Quarterback"] },
-      { name: "Pass TD", shortName: "PTD", value: 6, positions: ["Quarterback"] },
-      { name: "Interception", shortName: "INT", value: 0, positions: ["Quarterback"] },
-    ]},
-    { category: "Rushing", stats: [
-      { name: "Carry", shortName: "CAR", value: 0 },
-      { name: "Rush TD", shortName: "RTD", value: 6 },
-    ]},
-    { category: "Defense", stats: [
-      { name: "Tackle", shortName: "TKL", value: 0 },
-      { name: "Sack", shortName: "SCK", value: 0 },
-      { name: "INT", shortName: "INT", value: 0 },
-      { name: "Fumble Recovery", shortName: "FR", value: 0 },
-    ]}
-  ],
-  Soccer: [
-    { category: "Offense", stats: [
-      { name: "Goal", shortName: "G", value: 1 },
-      { name: "Assist", shortName: "A", value: 0 },
-      { name: "Shot", shortName: "SH", value: 0 },
-      { name: "Shot on Target", shortName: "SOT", value: 0 },
-    ]},
-    { category: "Defense", stats: [
-      { name: "Save", shortName: "SV", value: 0, positions: ["Goalkeeper"] },
-      { name: "Tackle", shortName: "TKL", value: 0 },
-      { name: "Interception", shortName: "INT", value: 0 },
-      { name: "Clearance", shortName: "CLR", value: 0 },
-    ]},
-    { category: "Discipline", stats: [
-      { name: "Yellow Card", shortName: "YC", value: 0 },
-      { name: "Red Card", shortName: "RC", value: 0 },
-      { name: "Foul", shortName: "FL", value: 0 },
-    ]}
-  ],
-  Volleyball: [
-    { category: "Offense", stats: [
-      { name: "Kill", shortName: "K", value: 1 },
-      { name: "Assist", shortName: "A", value: 0 },
-      { name: "Ace", shortName: "ACE", value: 1 },
-    ]},
-    { category: "Defense", stats: [
-      { name: "Dig", shortName: "DIG", value: 0 },
-      { name: "Block", shortName: "BLK", value: 1 },
-    ]},
-    { category: "Errors", stats: [
-      { name: "Attack Error", shortName: "AE", value: 0 },
-      { name: "Service Error", shortName: "SE", value: 0 },
-      { name: "Ball Handling Error", shortName: "BHE", value: 0 },
-    ]}
-  ]
-};
-
-type ViewMode = "setup" | "roster" | "tracking" | "summary";
+type ViewMode = "setup" | "roster" | "tracking" | "summary" | "settings";
 
 export default function StatTrackerPage() {
   const { user, currentTeam: selectedTeam } = useUser();
@@ -150,6 +51,10 @@ export default function StatTrackerPage() {
   const [showScoreEdit, setShowScoreEdit] = useState(false);
   const [tempTeamScore, setTempTeamScore] = useState(0);
   const [tempOpponentScore, setTempOpponentScore] = useState(0);
+  const [editingStatConfig, setEditingStatConfig] = useState<StatConfig | null>(null);
+  const [editingAthlete, setEditingAthlete] = useState<TeamMember | null>(null);
+  const [athletePosition, setAthletePosition] = useState("");
+  const [settingsTab, setSettingsTab] = useState<"stats" | "athletes">("stats");
 
   const { data: events = [] } = useQuery({
     queryKey: ["team-events", selectedTeam?.id],
@@ -266,6 +171,32 @@ export default function StatTrackerPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["game-stats", currentGameId] });
       queryClient.invalidateQueries({ queryKey: ["game", currentGameId] });
+    }
+  });
+
+  const updateStatConfigMutation = useMutation({
+    mutationFn: ({ configId, positions }: { configId: string; positions: string[] }) => {
+      if (!user) throw new Error("No user");
+      return updateStatConfig(configId, user.id, { positions });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stat-configs", selectedTeam?.id] });
+      setEditingStatConfig(null);
+      toast({ title: "Stat updated", description: "Position assignments saved" });
+    }
+  });
+
+  const updateAthleteMutation = useMutation({
+    mutationFn: ({ memberId, position }: { memberId: string; position: string }) => {
+      if (!user || !selectedTeam) throw new Error("No user or team");
+      return updateTeamMember(selectedTeam.id, memberId, user.id, { position });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team-members", selectedTeam?.id] });
+      queryClient.invalidateQueries({ queryKey: ["game-roster", currentGameId] });
+      setEditingAthlete(null);
+      setAthletePosition("");
+      toast({ title: "Athlete updated", description: "Position saved. Changes will apply to new games." });
     }
   });
 
@@ -392,9 +323,20 @@ export default function StatTrackerPage() {
               {viewMode === "roster" && "Manage game roster"}
               {viewMode === "tracking" && "Live game tracking"}
               {viewMode === "summary" && "Game summary"}
+              {viewMode === "settings" && "Configure stats & positions"}
             </p>
           </div>
-          {currentGame && viewMode !== "setup" && (
+          {viewMode === "setup" && (
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => setViewMode("settings")}
+              data-testid="button-settings"
+            >
+              <Sliders className="h-5 w-5" />
+            </Button>
+          )}
+          {currentGame && viewMode !== "setup" && viewMode !== "settings" && (
             <Badge variant={currentGame.status === "active" ? "default" : "secondary"} data-testid="badge-game-status">
               {currentGame.status}
             </Badge>
@@ -1004,6 +946,237 @@ export default function StatTrackerPage() {
                 New Game
               </Button>
             </div>
+          </div>
+        )}
+
+        {viewMode === "settings" && (
+          <div className="space-y-6">
+            <Button 
+              variant="ghost" 
+              onClick={() => setViewMode("setup")}
+              className="mb-2"
+              data-testid="button-back-setup"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Setup
+            </Button>
+
+            <Tabs value={settingsTab} onValueChange={(v) => setSettingsTab(v as "stats" | "athletes")}>
+              <TabsList className="w-full grid grid-cols-2">
+                <TabsTrigger value="stats" data-testid="tab-stats">
+                  <Target className="h-4 w-4 mr-2" />
+                  Stat Positions
+                </TabsTrigger>
+                <TabsTrigger value="athletes" data-testid="tab-athletes">
+                  <Users className="h-4 w-4 mr-2" />
+                  Athlete Positions
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="stats" className="space-y-4 mt-4">
+                <Card className="bg-card border-white/5">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Assign Positions to Stats</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Choose which positions can track each stat. Stats with no positions assigned will be available to everyone.
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {statConfigs.map(config => (
+                        <div 
+                          key={config.id} 
+                          className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                          data-testid={`stat-config-${config.id}`}
+                        >
+                          <div>
+                            <p className="font-medium">{config.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {config.positions && config.positions.length > 0 
+                                ? config.positions.join(", ")
+                                : "All positions"}
+                            </p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingStatConfig(config)}
+                            data-testid={`button-edit-stat-${config.id}`}
+                          >
+                            <Edit2 className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                        </div>
+                      ))}
+                      {statConfigs.length === 0 && (
+                        <p className="text-center text-muted-foreground py-4">
+                          No stats configured. Start a game to initialize stats.
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="athletes" className="space-y-4 mt-4">
+                <Card className="bg-card border-white/5">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Assign Athlete Positions</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Set each athlete's position for stat filtering during games.
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {teamMembers
+                        .filter(m => m.role === "athlete")
+                        .map(member => (
+                          <div 
+                            key={member.id} 
+                            className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                            data-testid={`athlete-member-${member.id}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="font-mono font-bold text-primary">
+                                #{member.jerseyNumber || "--"}
+                              </span>
+                              <div>
+                                <p className="font-medium">
+                                  {member.user.firstName} {member.user.lastName}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {member.position || "No position set"}
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingAthlete(member);
+                                setAthletePosition(member.position || "");
+                              }}
+                              data-testid={`button-edit-athlete-${member.id}`}
+                            >
+                              <Edit2 className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                          </div>
+                        ))}
+                      {teamMembers.filter(m => m.role === "athlete").length === 0 && (
+                        <p className="text-center text-muted-foreground py-4">
+                          No athletes on this team yet.
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+
+            <Dialog open={!!editingStatConfig} onOpenChange={(open) => !open && setEditingStatConfig(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Stat Positions</DialogTitle>
+                </DialogHeader>
+                {editingStatConfig && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Select which positions can track "{editingStatConfig.name}". Leave all unchecked to allow all positions.
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(SPORT_POSITIONS[selectedTeam?.sport || ""] || []).map(pos => (
+                        <label 
+                          key={pos} 
+                          className="flex items-center gap-2 p-2 rounded hover:bg-muted/50 cursor-pointer"
+                          data-testid={`checkbox-position-${pos}`}
+                        >
+                          <Checkbox
+                            checked={editingStatConfig.positions?.includes(pos) || false}
+                            onCheckedChange={(checked) => {
+                              const current = editingStatConfig.positions || [];
+                              const updated = checked 
+                                ? [...current, pos]
+                                : current.filter(p => p !== pos);
+                              setEditingStatConfig({ ...editingStatConfig, positions: updated });
+                            }}
+                          />
+                          <span className="text-sm">{pos}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <DialogFooter className="gap-2">
+                  <Button variant="outline" onClick={() => setEditingStatConfig(null)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (editingStatConfig) {
+                        updateStatConfigMutation.mutate({
+                          configId: editingStatConfig.id,
+                          positions: editingStatConfig.positions || []
+                        });
+                      }
+                    }}
+                    disabled={updateStatConfigMutation.isPending}
+                    data-testid="button-save-stat-positions"
+                  >
+                    {updateStatConfigMutation.isPending ? "Saving..." : "Save"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={!!editingAthlete} onOpenChange={(open) => !open && setEditingAthlete(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Athlete Position</DialogTitle>
+                </DialogHeader>
+                {editingAthlete && (
+                  <div className="space-y-4">
+                    <p className="font-medium">
+                      {editingAthlete.user.firstName} {editingAthlete.user.lastName}
+                    </p>
+                    <div className="space-y-2">
+                      <Label>Position</Label>
+                      <Select value={athletePosition} onValueChange={setAthletePosition}>
+                        <SelectTrigger data-testid="select-athlete-position">
+                          <SelectValue placeholder="Select a position" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(SPORT_POSITIONS[selectedTeam?.sport || ""] || []).map(pos => (
+                            <SelectItem key={pos} value={pos} data-testid={`position-option-${pos}`}>
+                              {pos}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+                <DialogFooter className="gap-2">
+                  <Button variant="outline" onClick={() => setEditingAthlete(null)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (editingAthlete && athletePosition) {
+                        updateAthleteMutation.mutate({
+                          memberId: editingAthlete.id,
+                          position: athletePosition
+                        });
+                      }
+                    }}
+                    disabled={updateAthleteMutation.isPending || !athletePosition}
+                    data-testid="button-save-athlete-position"
+                  >
+                    {updateAthleteMutation.isPending ? "Saving..." : "Save"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
       </div>
