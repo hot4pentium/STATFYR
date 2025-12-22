@@ -466,6 +466,192 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async getAdvancedTeamStats(teamId: string): Promise<{
+    gameHistory: Array<{
+      id: string;
+      date: string;
+      opponent: string;
+      teamScore: number;
+      opponentScore: number;
+      result: 'W' | 'L' | 'T';
+      stats: Record<string, number>;
+    }>;
+    athletePerformance: Array<{
+      athleteId: string;
+      athleteName: string;
+      gamesPlayed: number;
+      stats: Record<string, number>;
+      recentGames: Array<{ gameId: string; stats: Record<string, number> }>;
+      hotStreak: boolean;
+      streakLength: number;
+    }>;
+    ratios: Record<string, { name: string; value: number; description: string }>;
+  }> {
+    const completedGames = await db
+      .select()
+      .from(games)
+      .where(and(eq(games.teamId, teamId), eq(games.status, "completed")))
+      .orderBy(desc(games.createdAt));
+
+    const gameHistory: Array<{
+      id: string;
+      date: string;
+      opponent: string;
+      teamScore: number;
+      opponentScore: number;
+      result: 'W' | 'L' | 'T';
+      stats: Record<string, number>;
+    }> = [];
+
+    const athleteStatsMap: Map<string, {
+      athleteId: string;
+      athleteName: string;
+      gamesPlayed: Set<string>;
+      stats: Record<string, number>;
+      recentGames: Array<{ gameId: string; date: string; stats: Record<string, number> }>;
+    }> = new Map();
+
+    let totalMade = 0;
+    let totalAttempts = 0;
+
+    for (const game of completedGames) {
+      const event = game.eventId ? await this.getEvent(game.eventId) : undefined;
+      const statsResult = await db
+        .select()
+        .from(gameStats)
+        .innerJoin(statConfigurations, eq(gameStats.statConfigId, statConfigurations.id))
+        .where(and(eq(gameStats.gameId, game.id), eq(gameStats.isDeleted, false)));
+
+      const statsForGame: Record<string, number> = {};
+      for (const { game_stats, stat_configurations } of statsResult) {
+        const key = stat_configurations.shortName;
+        statsForGame[key] = (statsForGame[key] || 0) + game_stats.value;
+
+        if (key.toLowerCase().includes('fg') || key.toLowerCase().includes('made')) {
+          totalMade += game_stats.value;
+        }
+        if (key.toLowerCase().includes('fga') || key.toLowerCase().includes('att')) {
+          totalAttempts += game_stats.value;
+        }
+
+        if (game_stats.athleteId) {
+          let athleteData = athleteStatsMap.get(game_stats.athleteId);
+          if (!athleteData) {
+            const user = await this.getUser(game_stats.athleteId);
+            athleteData = {
+              athleteId: game_stats.athleteId,
+              athleteName: user ? `${user.firstName} ${user.lastName}`.trim() || user.username : 'Unknown',
+              gamesPlayed: new Set(),
+              stats: {},
+              recentGames: []
+            };
+            athleteStatsMap.set(game_stats.athleteId, athleteData);
+          }
+          athleteData.gamesPlayed.add(game.id);
+          athleteData.stats[key] = (athleteData.stats[key] || 0) + game_stats.value;
+
+          let gameEntry = athleteData.recentGames.find(g => g.gameId === game.id);
+          if (!gameEntry) {
+            gameEntry = { gameId: game.id, date: game.createdAt?.toISOString() || '', stats: {} };
+            athleteData.recentGames.push(gameEntry);
+          }
+          gameEntry.stats[key] = (gameEntry.stats[key] || 0) + game_stats.value;
+        }
+      }
+
+      let result: 'W' | 'L' | 'T' = 'T';
+      if (game.teamScore > game.opponentScore) result = 'W';
+      else if (game.teamScore < game.opponentScore) result = 'L';
+
+      gameHistory.push({
+        id: game.id,
+        date: event?.date?.toISOString() || game.createdAt?.toISOString() || '',
+        opponent: game.opponentName || 'Opponent',
+        teamScore: game.teamScore,
+        opponentScore: game.opponentScore,
+        result,
+        stats: statsForGame
+      });
+    }
+
+    const athletePerformance = Array.from(athleteStatsMap.values()).map(athlete => {
+      athlete.recentGames.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      const last5 = athlete.recentGames.slice(0, 5);
+
+      let hotStreak = false;
+      let streakLength = 0;
+      if (last5.length >= 3) {
+        const totalStats = Object.values(athlete.stats).reduce((a, b) => a + b, 0);
+        const avgPerGame = totalStats / athlete.gamesPlayed.size;
+        
+        for (const game of last5) {
+          const gameTotal = Object.values(game.stats).reduce((a, b) => a + b, 0);
+          if (gameTotal >= avgPerGame * 1.2) {
+            streakLength++;
+          } else {
+            break;
+          }
+        }
+        hotStreak = streakLength >= 3;
+      }
+
+      return {
+        athleteId: athlete.athleteId,
+        athleteName: athlete.athleteName,
+        gamesPlayed: athlete.gamesPlayed.size,
+        stats: athlete.stats,
+        recentGames: last5.map(g => ({ gameId: g.gameId, stats: g.stats })),
+        hotStreak,
+        streakLength
+      };
+    }).sort((a, b) => {
+      const aTotalStats = Object.values(a.stats).reduce((sum, v) => sum + v, 0);
+      const bTotalStats = Object.values(b.stats).reduce((sum, v) => sum + v, 0);
+      return bTotalStats - aTotalStats;
+    });
+
+    const ratios: Record<string, { name: string; value: number; description: string }> = {};
+    if (totalAttempts > 0) {
+      ratios['fg_pct'] = {
+        name: 'Field Goal %',
+        value: Math.round((totalMade / totalAttempts) * 1000) / 10,
+        description: 'Made shots / Attempts'
+      };
+    }
+    
+    const wins = gameHistory.filter(g => g.result === 'W').length;
+    const totalGames = gameHistory.length;
+    if (totalGames > 0) {
+      ratios['win_pct'] = {
+        name: 'Win Rate',
+        value: Math.round((wins / totalGames) * 1000) / 10,
+        description: 'Games won / Total games'
+      };
+    }
+
+    const totalPoints = gameHistory.reduce((sum, g) => sum + g.teamScore, 0);
+    const totalOpponentPoints = gameHistory.reduce((sum, g) => sum + g.opponentScore, 0);
+    if (totalGames > 0) {
+      ratios['ppg'] = {
+        name: 'Points Per Game',
+        value: Math.round((totalPoints / totalGames) * 10) / 10,
+        description: 'Average points scored per game'
+      };
+      ratios['opp_ppg'] = {
+        name: 'Opp PPG',
+        value: Math.round((totalOpponentPoints / totalGames) * 10) / 10,
+        description: 'Average points allowed per game'
+      };
+      ratios['point_diff'] = {
+        name: 'Point Differential',
+        value: Math.round(((totalPoints - totalOpponentPoints) / totalGames) * 10) / 10,
+        description: 'Average margin per game'
+      };
+    }
+
+    return { gameHistory, athletePerformance, ratios };
+  }
+
   async createGame(data: InsertGame): Promise<Game> {
     const [game] = await db.insert(games).values(data).returning();
     return game;

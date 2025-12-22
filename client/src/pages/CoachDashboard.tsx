@@ -7,7 +7,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, getTeamAggregateStats, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup, type TeamAggregateStats } from "@/lib/api";
+import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, getTeamAggregateStats, getAdvancedTeamStats, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup, type TeamAggregateStats, type AdvancedTeamStats } from "@/lib/api";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend } from "recharts";
+import { Flame, TrendingUp } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { MoreVertical, UserCog, UserMinus, Hash, Award } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -100,6 +102,12 @@ export default function CoachDashboard() {
   const { data: aggregateStats } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "stats", "aggregate"],
     queryFn: () => currentTeam ? getTeamAggregateStats(currentTeam.id) : Promise.resolve({ games: 0, wins: 0, losses: 0, statTotals: {} }),
+    enabled: !!currentTeam,
+  });
+
+  const { data: advancedStats } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "stats", "advanced"],
+    queryFn: () => currentTeam ? getAdvancedTeamStats(currentTeam.id) : Promise.resolve({ gameHistory: [], athletePerformance: [], ratios: {} }),
     enabled: !!currentTeam,
   });
 
@@ -956,6 +964,17 @@ export default function CoachDashboard() {
             </div>
           );
         }
+
+        const gameChartData = (advancedStats?.gameHistory?.slice(0, 10) || []).reverse().map((game, idx) => ({
+          name: `G${idx + 1}`,
+          team: game.teamScore,
+          opponent: game.opponentScore,
+          result: game.result
+        }));
+
+        const hotAthletes = advancedStats?.athletePerformance?.filter(a => a.hotStreak) || [];
+        const topPerformers = advancedStats?.athletePerformance?.slice(0, 5) || [];
+
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-3 gap-4">
@@ -972,7 +991,101 @@ export default function CoachDashboard() {
                 <p className="text-sm text-muted-foreground">Losses</p>
               </div>
             </div>
-            
+
+            {advancedStats?.ratios && Object.keys(advancedStats.ratios).length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Key Metrics
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                  {Object.entries(advancedStats.ratios).map(([key, ratio]) => (
+                    <div key={key} className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center" title={ratio.description}>
+                      <p className="text-2xl font-bold text-primary">{ratio.value}{key.includes('pct') || key === 'win_pct' ? '%' : ''}</p>
+                      <p className="text-xs text-muted-foreground">{ratio.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {hotAthletes.length > 0 && (
+              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-orange-500">
+                  <Flame className="h-5 w-5" />
+                  Hot Streaks
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {hotAthletes.map((athlete) => (
+                    <div key={athlete.athleteId} className="bg-orange-500/20 rounded-lg px-4 py-2 flex items-center gap-2">
+                      <Flame className="h-4 w-4 text-orange-500" />
+                      <span className="font-medium">{athlete.athleteName}</span>
+                      <Badge variant="outline" className="border-orange-500/50 text-orange-500 text-xs">
+                        {athlete.streakLength} game streak
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {gameChartData.length >= 2 && (
+              <div>
+                <h3 className="font-semibold mb-3">Game-by-Game Scores</h3>
+                <div className="bg-background/50 border rounded-lg p-4">
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={gameChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip 
+                        contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                        labelStyle={{ color: 'hsl(var(--foreground))' }}
+                      />
+                      <Legend />
+                      <Bar dataKey="team" name="Your Team" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="opponent" name="Opponent" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {topPerformers.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3">Top Performers</h3>
+                <div className="space-y-2">
+                  {topPerformers.map((athlete, idx) => {
+                    const totalStats = Object.values(athlete.stats).reduce((a, b) => a + b, 0);
+                    return (
+                      <div key={athlete.athleteId} className="bg-background/50 border rounded-lg p-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                            idx === 0 ? 'bg-yellow-500/20 text-yellow-500' : 
+                            idx === 1 ? 'bg-gray-400/20 text-gray-400' : 
+                            idx === 2 ? 'bg-orange-700/20 text-orange-700' : 
+                            'bg-muted text-muted-foreground'
+                          }`}>
+                            {idx + 1}
+                          </div>
+                          <div>
+                            <p className="font-medium flex items-center gap-2">
+                              {athlete.athleteName}
+                              {athlete.hotStreak && <Flame className="h-4 w-4 text-orange-500" />}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{athlete.gamesPlayed} games played</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-lg">{totalStats}</p>
+                          <p className="text-xs text-muted-foreground">total stats</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {Object.keys(aggregateStats.statTotals).length > 0 && (
               <div>
                 <h3 className="font-semibold mb-3">Season Totals</h3>

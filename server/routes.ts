@@ -778,6 +778,16 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/teams/:teamId/stats/advanced", async (req, res) => {
+    try {
+      const stats = await storage.getAdvancedTeamStats(req.params.teamId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting advanced stats:", error);
+      res.status(500).json({ error: "Failed to get advanced stats" });
+    }
+  });
+
   app.get("/api/games/:id", async (req, res) => {
     try {
       const game = await storage.getGame(req.params.id);

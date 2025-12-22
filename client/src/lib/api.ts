@@ -391,6 +391,34 @@ export async function getTeamAggregateStats(teamId: string): Promise<TeamAggrega
   return res.json();
 }
 
+export interface AdvancedTeamStats {
+  gameHistory: Array<{
+    id: string;
+    date: string;
+    opponent: string;
+    teamScore: number;
+    opponentScore: number;
+    result: 'W' | 'L' | 'T';
+    stats: Record<string, number>;
+  }>;
+  athletePerformance: Array<{
+    athleteId: string;
+    athleteName: string;
+    gamesPlayed: number;
+    stats: Record<string, number>;
+    recentGames: Array<{ gameId: string; stats: Record<string, number> }>;
+    hotStreak: boolean;
+    streakLength: number;
+  }>;
+  ratios: Record<string, { name: string; value: number; description: string }>;
+}
+
+export async function getAdvancedTeamStats(teamId: string): Promise<AdvancedTeamStats> {
+  const res = await fetch(`/api/teams/${teamId}/stats/advanced`);
+  if (!res.ok) throw new Error("Failed to get advanced stats");
+  return res.json();
+}
+
 export async function getGame(gameId: string): Promise<Game> {
   const res = await fetch(`/api/games/${gameId}`);
   if (!res.ok) throw new Error("Failed to get game");
