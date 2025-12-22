@@ -127,10 +127,17 @@ export default function StatTrackerPage() {
     },
     onSuccess: async (game) => {
       setCurrentGameId(game.id);
-      await bulkCreateGameRoster(game.id, user!.id);
-      queryClient.invalidateQueries({ queryKey: ["game-roster", game.id] });
-      setViewMode("roster");
-      toast({ title: "Game created", description: "Set up your game roster" });
+      if (trackingMode === "team") {
+        await updateGame(game.id, user!.id, { status: "active", startedAt: new Date().toISOString() });
+        queryClient.invalidateQueries({ queryKey: ["game", game.id] });
+        setViewMode("tracking");
+        toast({ title: "Game started", description: "Recording team stats" });
+      } else {
+        await bulkCreateGameRoster(game.id, user!.id);
+        queryClient.invalidateQueries({ queryKey: ["game-roster", game.id] });
+        setViewMode("roster");
+        toast({ title: "Game created", description: "Set up your game roster" });
+      }
     },
     onError: () => toast({ title: "Error", description: "Failed to create game", variant: "destructive" })
   });
@@ -297,12 +304,13 @@ export default function StatTrackerPage() {
     }
   };
 
-  const sortedInGamePlayers = [...gameRoster.filter(r => r.isInGame)].sort((a, b) => 
+  const athleteRoster = gameRoster.filter(r => r.athlete?.role === "athlete");
+  const sortedInGamePlayers = [...athleteRoster.filter(r => r.isInGame)].sort((a, b) => 
     (a.athlete.firstName || "").localeCompare(b.athlete.firstName || "")
   );
 
-  const inGamePlayers = gameRoster.filter(r => r.isInGame);
-  const benchPlayers = gameRoster.filter(r => !r.isInGame);
+  const inGamePlayers = athleteRoster.filter(r => r.isInGame);
+  const benchPlayers = athleteRoster.filter(r => !r.isInGame);
   const activeStats = statConfigs.filter(c => c.isActive);
 
   const getFilteredPlayersForStat = (stat: StatConfig | null) => {
@@ -391,7 +399,15 @@ export default function StatTrackerPage() {
               <CardContent className="space-y-6">
                 <div className="space-y-3">
                   <Label>Select Game (Optional)</Label>
-                  <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+                  <Select value={selectedEventId} onValueChange={(value) => {
+                    setSelectedEventId(value);
+                    if (value && value !== "none") {
+                      const selectedEvent = events.find(e => e.id === value);
+                      if (selectedEvent?.opponent) {
+                        setOpponentName(selectedEvent.opponent);
+                      }
+                    }
+                  }}>
                     <SelectTrigger data-testid="select-event">
                       <SelectValue placeholder="Choose a scheduled game or track standalone" />
                     </SelectTrigger>
@@ -405,6 +421,11 @@ export default function StatTrackerPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {selectedEventId && selectedEventId !== "none" && (
+                    <p className="text-xs text-green-500">
+                      Game linked to schedule event
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-3">
