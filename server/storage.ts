@@ -2,7 +2,7 @@ import {
   users, teams, teamMembers, events, highlightVideos, plays, managedAthletes,
   type User, type InsertUser,
   type Team, type InsertTeam,
-  type TeamMember, type InsertTeamMember,
+  type TeamMember, type InsertTeamMember, type UpdateTeamMember,
   type Event, type InsertEvent, type UpdateEvent,
   type HighlightVideo, type InsertHighlightVideo, type UpdateHighlightVideo,
   type Play, type InsertPlay, type UpdatePlay,
@@ -38,6 +38,7 @@ export interface IStorage {
   getTeamMembership(teamId: string, userId: string): Promise<TeamMember | undefined>;
   getUserTeams(userId: string): Promise<Team[]>;
   addTeamMember(data: InsertTeamMember): Promise<TeamMember>;
+  updateTeamMember(teamId: string, userId: string, data: UpdateTeamMember): Promise<TeamMember | undefined>;
   removeTeamMember(teamId: string, userId: string): Promise<void>;
   
   getTeamEvents(teamId: string): Promise<Event[]>;
@@ -194,6 +195,15 @@ export class DatabaseStorage implements IStorage {
       .values(data)
       .returning();
     return member;
+  }
+
+  async updateTeamMember(teamId: string, userId: string, data: UpdateTeamMember): Promise<TeamMember | undefined> {
+    const [member] = await db
+      .update(teamMembers)
+      .set(data)
+      .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)))
+      .returning();
+    return member || undefined;
   }
 
   async removeTeamMember(teamId: string, userId: string): Promise<void> {

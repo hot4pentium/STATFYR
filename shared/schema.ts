@@ -46,6 +46,8 @@ export const teamMembers = pgTable("team_members", {
   teamId: varchar("team_id").notNull().references(() => teams.id),
   userId: varchar("user_id").notNull().references(() => users.id),
   role: text("role").notNull().default("athlete"),
+  jerseyNumber: text("jersey_number"),
+  position: text("position"),
   joinedAt: timestamp("joined_at").defaultNow(),
 });
 
@@ -180,7 +182,15 @@ export const insertTeamMemberSchema = createInsertSchema(teamMembers).pick({
   teamId: true,
   userId: true,
   role: true,
+  jerseyNumber: true,
+  position: true,
 });
+
+export const updateTeamMemberSchema = createInsertSchema(teamMembers).pick({
+  role: true,
+  jerseyNumber: true,
+  position: true,
+}).partial();
 
 export const insertEventSchema = createInsertSchema(events).omit({
   id: true,
@@ -224,6 +234,7 @@ export type User = typeof users.$inferSelect;
 export type InsertTeam = z.infer<typeof insertTeamSchema>;
 export type Team = typeof teams.$inferSelect;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+export type UpdateTeamMember = z.infer<typeof updateTeamMemberSchema>;
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type UpdateEvent = z.infer<typeof updateEventSchema>;
