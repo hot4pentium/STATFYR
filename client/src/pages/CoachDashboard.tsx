@@ -25,6 +25,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
 import { MapPin, Clock, Utensils, Coffee } from "lucide-react";
 
+const SPORT_POSITIONS: Record<string, string[]> = {
+  Baseball: ["Pitcher", "Catcher", "First Base", "Second Base", "Shortstop", "Third Base", "Left Field", "Center Field", "Right Field", "Designated Hitter"],
+  Basketball: ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"],
+  Football: ["Quarterback", "Running Back", "Wide Receiver", "Tight End", "Offensive Line", "Defensive Line", "Linebacker", "Cornerback", "Safety", "Kicker", "Punter"],
+  Soccer: ["Goalkeeper", "Center Back", "Left Back", "Right Back", "Defensive Midfielder", "Central Midfielder", "Attacking Midfielder", "Left Wing", "Right Wing", "Striker"],
+  Volleyball: ["Setter", "Outside Hitter", "Middle Blocker", "Opposite Hitter", "Libero", "Defensive Specialist"],
+};
+
 export default function CoachDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, setCurrentTeam, logout } = useUser();
@@ -1624,13 +1632,21 @@ export default function CoachDashboard() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="position">Position</Label>
-              <Input
-                id="position"
-                placeholder="e.g., Forward, Pitcher, Quarterback"
+              <Select
                 value={memberEditForm.position}
-                onChange={(e) => setMemberEditForm({ ...memberEditForm, position: e.target.value })}
-                data-testid="input-position"
-              />
+                onValueChange={(value) => setMemberEditForm({ ...memberEditForm, position: value })}
+              >
+                <SelectTrigger data-testid="select-position">
+                  <SelectValue placeholder="Select a position" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(SPORT_POSITIONS[currentTeam?.sport || ""] || []).map((pos) => (
+                    <SelectItem key={pos} value={pos} data-testid={`position-option-${pos}`}>
+                      {pos}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
