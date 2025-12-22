@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
@@ -751,6 +751,398 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting managed athlete:", error);
       res.status(500).json({ error: "Failed to delete managed athlete" });
+    }
+  });
+
+  // ================== StatTracker Routes ==================
+
+  // Games
+  app.get("/api/teams/:teamId/games", async (req, res) => {
+    try {
+      const games = await storage.getTeamGames(req.params.teamId);
+      res.json(games);
+    } catch (error) {
+      console.error("Error getting games:", error);
+      res.status(500).json({ error: "Failed to get games" });
+    }
+  });
+
+  app.get("/api/games/:id", async (req, res) => {
+    try {
+      const game = await storage.getGame(req.params.id);
+      if (!game) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+      res.json(game);
+    } catch (error) {
+      console.error("Error getting game:", error);
+      res.status(500).json({ error: "Failed to get game" });
+    }
+  });
+
+  app.get("/api/events/:eventId/game", async (req, res) => {
+    try {
+      const game = await storage.getGameByEvent(req.params.eventId);
+      res.json(game || null);
+    } catch (error) {
+      console.error("Error getting game by event:", error);
+      res.status(500).json({ error: "Failed to get game" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/games", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const membership = await storage.getTeamMembership(req.params.teamId, requesterId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can create games" });
+      }
+
+      const parsed = insertGameSchema.parse({ ...req.body, teamId: req.params.teamId });
+      const game = await storage.createGame(parsed);
+      res.json(game);
+    } catch (error: any) {
+      console.error("Error creating game:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create game" });
+    }
+  });
+
+  app.patch("/api/games/:id", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const game = await storage.getGame(req.params.id);
+      if (!game) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+
+      const membership = await storage.getTeamMembership(game.teamId, requesterId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can update games" });
+      }
+
+      const parsed = updateGameSchema.parse(req.body);
+      const updatedGame = await storage.updateGame(req.params.id, parsed);
+      res.json(updatedGame);
+    } catch (error: any) {
+      console.error("Error updating game:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update game" });
+    }
+  });
+
+  app.delete("/api/games/:id", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const game = await storage.getGame(req.params.id);
+      if (!game) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+
+      const membership = await storage.getTeamMembership(game.teamId, requesterId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can delete games" });
+      }
+
+      await storage.deleteGame(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting game:", error);
+      res.status(500).json({ error: "Failed to delete game" });
+    }
+  });
+
+  // Stat Configurations
+  app.get("/api/teams/:teamId/stat-configs", async (req, res) => {
+    try {
+      const configs = await storage.getTeamStatConfigs(req.params.teamId);
+      res.json(configs);
+    } catch (error) {
+      console.error("Error getting stat configs:", error);
+      res.status(500).json({ error: "Failed to get stat configurations" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/stat-configs", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const membership = await storage.getTeamMembership(req.params.teamId, requesterId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can configure stats" });
+      }
+
+      const parsed = insertStatConfigSchema.parse({ ...req.body, teamId: req.params.teamId });
+      const config = await storage.createStatConfig(parsed);
+      res.json(config);
+    } catch (error: any) {
+      console.error("Error creating stat config:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create stat configuration" });
+    }
+  });
+
+  app.patch("/api/stat-configs/:id", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const config = await storage.getStatConfig(req.params.id);
+      if (!config) {
+        return res.status(404).json({ error: "Stat configuration not found" });
+      }
+
+      const membership = await storage.getTeamMembership(config.teamId, requesterId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can update stat configurations" });
+      }
+
+      const parsed = updateStatConfigSchema.parse(req.body);
+      const updatedConfig = await storage.updateStatConfig(req.params.id, parsed);
+      res.json(updatedConfig);
+    } catch (error: any) {
+      console.error("Error updating stat config:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update stat configuration" });
+    }
+  });
+
+  app.delete("/api/stat-configs/:id", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const config = await storage.getStatConfig(req.params.id);
+      if (!config) {
+        return res.status(404).json({ error: "Stat configuration not found" });
+      }
+
+      const membership = await storage.getTeamMembership(config.teamId, requesterId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can delete stat configurations" });
+      }
+
+      await storage.deleteStatConfig(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting stat config:", error);
+      res.status(500).json({ error: "Failed to delete stat configuration" });
+    }
+  });
+
+  // Game Stats
+  app.get("/api/games/:gameId/stats", async (req, res) => {
+    try {
+      const stats = await storage.getGameStats(req.params.gameId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting game stats:", error);
+      res.status(500).json({ error: "Failed to get game stats" });
+    }
+  });
+
+  app.post("/api/games/:gameId/stats", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const game = await storage.getGame(req.params.gameId);
+      if (!game) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+
+      const membership = await storage.getTeamMembership(game.teamId, requesterId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can record stats" });
+      }
+
+      const parsed = insertGameStatSchema.parse({ 
+        ...req.body, 
+        gameId: req.params.gameId,
+        recordedById: requesterId 
+      });
+      const stat = await storage.createGameStat(parsed);
+
+      // Auto-update team score if stat has point value
+      if (parsed.pointsValue && parsed.pointsValue > 0) {
+        await storage.updateGame(req.params.gameId, {
+          teamScore: game.teamScore + parsed.pointsValue
+        });
+      }
+
+      res.json(stat);
+    } catch (error: any) {
+      console.error("Error recording stat:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to record stat" });
+    }
+  });
+
+  app.delete("/api/game-stats/:id", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      const hardDelete = req.query.hard === "true";
+      
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      // Soft delete by default for corrections
+      if (hardDelete) {
+        await storage.deleteGameStat(req.params.id);
+      } else {
+        await storage.softDeleteGameStat(req.params.id);
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting stat:", error);
+      res.status(500).json({ error: "Failed to delete stat" });
+    }
+  });
+
+  // Game Roster
+  app.get("/api/games/:gameId/roster", async (req, res) => {
+    try {
+      const roster = await storage.getGameRoster(req.params.gameId);
+      res.json(roster);
+    } catch (error) {
+      console.error("Error getting game roster:", error);
+      res.status(500).json({ error: "Failed to get game roster" });
+    }
+  });
+
+  app.post("/api/games/:gameId/roster", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const game = await storage.getGame(req.params.gameId);
+      if (!game) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+
+      const membership = await storage.getTeamMembership(game.teamId, requesterId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can manage game roster" });
+      }
+
+      const parsed = insertGameRosterSchema.parse({ ...req.body, gameId: req.params.gameId });
+      const rosterEntry = await storage.createGameRoster(parsed);
+      res.json(rosterEntry);
+    } catch (error: any) {
+      console.error("Error adding to game roster:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to add to game roster" });
+    }
+  });
+
+  app.patch("/api/game-roster/:id", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const parsed = updateGameRosterSchema.parse(req.body);
+      const rosterEntry = await storage.updateGameRoster(req.params.id, parsed);
+      res.json(rosterEntry);
+    } catch (error: any) {
+      console.error("Error updating game roster:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update game roster" });
+    }
+  });
+
+  app.delete("/api/game-roster/:id", async (req, res) => {
+    try {
+      await storage.deleteGameRoster(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing from game roster:", error);
+      res.status(500).json({ error: "Failed to remove from game roster" });
+    }
+  });
+
+  // Bulk create game roster from team members
+  app.post("/api/games/:gameId/roster/bulk", async (req, res) => {
+    try {
+      const requesterId = req.query.requesterId as string;
+      if (!requesterId) {
+        return res.status(400).json({ error: "requesterId is required" });
+      }
+
+      const game = await storage.getGame(req.params.gameId);
+      if (!game) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+
+      const membership = await storage.getTeamMembership(game.teamId, requesterId);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can manage game roster" });
+      }
+
+      // Get all team athletes
+      const teamMembers = await storage.getTeamMembers(game.teamId);
+      const athletes = teamMembers.filter(m => m.role === "athlete" || m.role === "staff");
+
+      const createdRoster = [];
+      for (const member of athletes) {
+        const existing = (await storage.getGameRoster(req.params.gameId)).find(
+          r => r.athleteId === member.userId
+        );
+        if (!existing) {
+          const rosterEntry = await storage.createGameRoster({
+            gameId: req.params.gameId,
+            athleteId: member.userId,
+            jerseyNumber: member.jerseyNumber || undefined,
+            positions: member.position ? [member.position] : [],
+            isInGame: false,
+          });
+          createdRoster.push(rosterEntry);
+        }
+      }
+
+      res.json(createdRoster);
+    } catch (error) {
+      console.error("Error bulk creating game roster:", error);
+      res.status(500).json({ error: "Failed to create game roster" });
     }
   });
 

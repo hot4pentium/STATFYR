@@ -1,5 +1,5 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -158,6 +158,110 @@ export const managedAthletesRelations = relations(managedAthletes, ({ one }) => 
   }),
 }));
 
+// StatTracker tables
+export const games = pgTable("games", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  eventId: varchar("event_id").references(() => events.id),
+  trackingMode: text("tracking_mode").notNull().default("individual"), // 'individual' or 'team'
+  status: text("status").notNull().default("setup"), // 'setup', 'active', 'paused', 'completed'
+  currentPeriod: integer("current_period").notNull().default(1),
+  totalPeriods: integer("total_periods").notNull().default(4),
+  periodType: text("period_type").notNull().default("quarter"), // 'quarter', 'half', 'period'
+  teamScore: integer("team_score").notNull().default(0),
+  opponentScore: integer("opponent_score").notNull().default(0),
+  opponentName: text("opponent_name"),
+  startedAt: timestamp("started_at"),
+  endedAt: timestamp("ended_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const gamesRelations = relations(games, ({ one, many }) => ({
+  team: one(teams, {
+    fields: [games.teamId],
+    references: [teams.id],
+  }),
+  event: one(events, {
+    fields: [games.eventId],
+    references: [events.id],
+  }),
+  stats: many(gameStats),
+  roster: many(gameRosters),
+}));
+
+export const statConfigurations = pgTable("stat_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  name: text("name").notNull(), // e.g., "2 Points", "3 Points", "Rebound"
+  shortName: text("short_name").notNull(), // e.g., "2PT", "3PT", "REB"
+  value: integer("value").notNull().default(0), // points value for scoreboard (0 for non-scoring stats)
+  positions: text("positions").array(), // positions that can record this stat (null = all)
+  category: text("category").notNull().default("scoring"), // 'scoring', 'defense', 'other'
+  isActive: boolean("is_active").notNull().default(true),
+  displayOrder: integer("display_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const statConfigurationsRelations = relations(statConfigurations, ({ one }) => ({
+  team: one(teams, {
+    fields: [statConfigurations.teamId],
+    references: [teams.id],
+  }),
+}));
+
+export const gameStats = pgTable("game_stats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id),
+  statConfigId: varchar("stat_config_id").notNull().references(() => statConfigurations.id),
+  athleteId: varchar("athlete_id").references(() => users.id), // null for team-only stats
+  period: integer("period").notNull(),
+  value: integer("value").notNull().default(1), // how many (usually 1)
+  pointsValue: integer("points_value").notNull().default(0), // points added to score
+  isDeleted: boolean("is_deleted").notNull().default(false), // soft delete for corrections
+  recordedAt: timestamp("recorded_at").defaultNow(),
+  recordedById: varchar("recorded_by_id").references(() => users.id),
+});
+
+export const gameStatsRelations = relations(gameStats, ({ one }) => ({
+  game: one(games, {
+    fields: [gameStats.gameId],
+    references: [games.id],
+  }),
+  statConfig: one(statConfigurations, {
+    fields: [gameStats.statConfigId],
+    references: [statConfigurations.id],
+  }),
+  athlete: one(users, {
+    fields: [gameStats.athleteId],
+    references: [users.id],
+  }),
+  recordedBy: one(users, {
+    fields: [gameStats.recordedById],
+    references: [users.id],
+  }),
+}));
+
+export const gameRosters = pgTable("game_rosters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id),
+  athleteId: varchar("athlete_id").notNull().references(() => users.id),
+  jerseyNumber: text("jersey_number"),
+  positions: text("positions").array(), // can have multiple positions
+  isInGame: boolean("is_in_game").notNull().default(false), // true = in game, false = on bench
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const gameRostersRelations = relations(gameRosters, ({ one }) => ({
+  game: one(games, {
+    fields: [gameRosters.gameId],
+    references: [games.id],
+  }),
+  athlete: one(users, {
+    fields: [gameRosters.athleteId],
+    references: [users.id],
+  }),
+}));
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -253,3 +357,55 @@ export const insertManagedAthleteSchema = createInsertSchema(managedAthletes).om
 
 export type InsertManagedAthlete = z.infer<typeof insertManagedAthleteSchema>;
 export type ManagedAthlete = typeof managedAthletes.$inferSelect;
+
+// StatTracker schemas
+export const insertGameSchema = createInsertSchema(games).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateGameSchema = createInsertSchema(games).omit({
+  id: true,
+  createdAt: true,
+  teamId: true,
+}).partial();
+
+export const insertStatConfigSchema = createInsertSchema(statConfigurations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateStatConfigSchema = createInsertSchema(statConfigurations).omit({
+  id: true,
+  createdAt: true,
+  teamId: true,
+}).partial();
+
+export const insertGameStatSchema = createInsertSchema(gameStats).omit({
+  id: true,
+  recordedAt: true,
+});
+
+export const insertGameRosterSchema = createInsertSchema(gameRosters).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateGameRosterSchema = createInsertSchema(gameRosters).omit({
+  id: true,
+  createdAt: true,
+  gameId: true,
+  athleteId: true,
+}).partial();
+
+export type InsertGame = z.infer<typeof insertGameSchema>;
+export type UpdateGame = z.infer<typeof updateGameSchema>;
+export type Game = typeof games.$inferSelect;
+export type InsertStatConfig = z.infer<typeof insertStatConfigSchema>;
+export type UpdateStatConfig = z.infer<typeof updateStatConfigSchema>;
+export type StatConfig = typeof statConfigurations.$inferSelect;
+export type InsertGameStat = z.infer<typeof insertGameStatSchema>;
+export type GameStat = typeof gameStats.$inferSelect;
+export type InsertGameRoster = z.infer<typeof insertGameRosterSchema>;
+export type UpdateGameRoster = z.infer<typeof updateGameRosterSchema>;
+export type GameRoster = typeof gameRosters.$inferSelect;

@@ -311,3 +311,197 @@ export async function createManagedAthlete(supporterId: string, data: {
 export async function deleteManagedAthlete(id: string): Promise<void> {
   await apiRequest("DELETE", `/api/managed-athletes/${id}`, {});
 }
+
+// ================== StatTracker API ==================
+
+export interface Game {
+  id: string;
+  teamId: string;
+  eventId?: string | null;
+  trackingMode: string; // 'individual' or 'team'
+  status: string; // 'setup', 'active', 'paused', 'completed'
+  currentPeriod: number;
+  totalPeriods: number;
+  periodType: string; // 'quarter', 'half', 'period'
+  teamScore: number;
+  opponentScore: number;
+  opponentName?: string | null;
+  startedAt?: string | null;
+  endedAt?: string | null;
+  createdAt?: string | null;
+  event?: Event;
+}
+
+export interface StatConfig {
+  id: string;
+  teamId: string;
+  name: string;
+  shortName: string;
+  value: number;
+  positions?: string[] | null;
+  category: string;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt?: string | null;
+}
+
+export interface GameStat {
+  id: string;
+  gameId: string;
+  statConfigId: string;
+  athleteId?: string | null;
+  period: number;
+  value: number;
+  pointsValue: number;
+  isDeleted: boolean;
+  recordedAt?: string | null;
+  recordedById?: string | null;
+  statConfig: StatConfig;
+  athlete?: User;
+}
+
+export interface GameRoster {
+  id: string;
+  gameId: string;
+  athleteId: string;
+  jerseyNumber?: string | null;
+  positions?: string[] | null;
+  isInGame: boolean;
+  createdAt?: string | null;
+  athlete: User;
+}
+
+// Games
+export async function getTeamGames(teamId: string): Promise<Game[]> {
+  const res = await fetch(`/api/teams/${teamId}/games`);
+  if (!res.ok) throw new Error("Failed to get games");
+  return res.json();
+}
+
+export async function getGame(gameId: string): Promise<Game> {
+  const res = await fetch(`/api/games/${gameId}`);
+  if (!res.ok) throw new Error("Failed to get game");
+  return res.json();
+}
+
+export async function getGameByEvent(eventId: string): Promise<Game | null> {
+  const res = await fetch(`/api/events/${eventId}/game`);
+  if (!res.ok) throw new Error("Failed to get game");
+  return res.json();
+}
+
+export async function createGame(teamId: string, requesterId: string, data: {
+  eventId?: string;
+  trackingMode: string;
+  totalPeriods: number;
+  periodType: string;
+  opponentName?: string;
+}): Promise<Game> {
+  const res = await apiRequest("POST", `/api/teams/${teamId}/games?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
+export async function updateGame(gameId: string, requesterId: string, data: {
+  status?: string;
+  currentPeriod?: number;
+  teamScore?: number;
+  opponentScore?: number;
+  startedAt?: string;
+  endedAt?: string;
+}): Promise<Game> {
+  const res = await apiRequest("PATCH", `/api/games/${gameId}?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
+export async function deleteGame(gameId: string, requesterId: string): Promise<void> {
+  await apiRequest("DELETE", `/api/games/${gameId}?requesterId=${requesterId}`, {});
+}
+
+// Stat Configurations
+export async function getTeamStatConfigs(teamId: string): Promise<StatConfig[]> {
+  const res = await fetch(`/api/teams/${teamId}/stat-configs`);
+  if (!res.ok) throw new Error("Failed to get stat configurations");
+  return res.json();
+}
+
+export async function createStatConfig(teamId: string, requesterId: string, data: {
+  name: string;
+  shortName: string;
+  value: number;
+  positions?: string[];
+  category: string;
+  displayOrder?: number;
+}): Promise<StatConfig> {
+  const res = await apiRequest("POST", `/api/teams/${teamId}/stat-configs?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
+export async function updateStatConfig(configId: string, requesterId: string, data: {
+  name?: string;
+  shortName?: string;
+  value?: number;
+  positions?: string[];
+  category?: string;
+  isActive?: boolean;
+  displayOrder?: number;
+}): Promise<StatConfig> {
+  const res = await apiRequest("PATCH", `/api/stat-configs/${configId}?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
+export async function deleteStatConfig(configId: string, requesterId: string): Promise<void> {
+  await apiRequest("DELETE", `/api/stat-configs/${configId}?requesterId=${requesterId}`, {});
+}
+
+// Game Stats
+export async function getGameStats(gameId: string): Promise<GameStat[]> {
+  const res = await fetch(`/api/games/${gameId}/stats`);
+  if (!res.ok) throw new Error("Failed to get game stats");
+  return res.json();
+}
+
+export async function recordGameStat(gameId: string, requesterId: string, data: {
+  statConfigId: string;
+  athleteId?: string;
+  period: number;
+  value?: number;
+  pointsValue: number;
+}): Promise<GameStat> {
+  const res = await apiRequest("POST", `/api/games/${gameId}/stats?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
+export async function deleteGameStat(statId: string, requesterId: string, hard?: boolean): Promise<void> {
+  await apiRequest("DELETE", `/api/game-stats/${statId}?requesterId=${requesterId}${hard ? '&hard=true' : ''}`, {});
+}
+
+// Game Roster
+export async function getGameRoster(gameId: string): Promise<GameRoster[]> {
+  const res = await fetch(`/api/games/${gameId}/roster`);
+  if (!res.ok) throw new Error("Failed to get game roster");
+  return res.json();
+}
+
+export async function addToGameRoster(gameId: string, requesterId: string, data: {
+  athleteId: string;
+  jerseyNumber?: string;
+  positions?: string[];
+  isInGame?: boolean;
+}): Promise<GameRoster> {
+  const res = await apiRequest("POST", `/api/games/${gameId}/roster?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
+export async function updateGameRoster(rosterId: string, requesterId: string, data: {
+  jerseyNumber?: string;
+  positions?: string[];
+  isInGame?: boolean;
+}): Promise<GameRoster> {
+  const res = await apiRequest("PATCH", `/api/game-roster/${rosterId}?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
+export async function bulkCreateGameRoster(gameId: string, requesterId: string): Promise<GameRoster[]> {
+  const res = await apiRequest("POST", `/api/games/${gameId}/roster/bulk?requesterId=${requesterId}`, {});
+  return res.json();
+}

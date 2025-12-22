@@ -1,12 +1,17 @@
 import { 
   users, teams, teamMembers, events, highlightVideos, plays, managedAthletes,
+  games, statConfigurations, gameStats, gameRosters,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
   type Event, type InsertEvent, type UpdateEvent,
   type HighlightVideo, type InsertHighlightVideo, type UpdateHighlightVideo,
   type Play, type InsertPlay, type UpdatePlay,
-  type ManagedAthlete, type InsertManagedAthlete
+  type ManagedAthlete, type InsertManagedAthlete,
+  type Game, type InsertGame, type UpdateGame,
+  type StatConfig, type InsertStatConfig, type UpdateStatConfig,
+  type GameStat, type InsertGameStat,
+  type GameRoster, type InsertGameRoster, type UpdateGameRoster
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -63,6 +68,30 @@ export interface IStorage {
   createManagedAthlete(data: InsertManagedAthlete): Promise<ManagedAthlete>;
   deleteManagedAthlete(id: string): Promise<void>;
   supporterManagesAthlete(supporterId: string, athleteId: string): Promise<boolean>;
+  
+  // StatTracker methods
+  getGame(id: string): Promise<Game | undefined>;
+  getGameByEvent(eventId: string): Promise<Game | undefined>;
+  getTeamGames(teamId: string): Promise<(Game & { event?: Event })[]>;
+  createGame(data: InsertGame): Promise<Game>;
+  updateGame(id: string, data: UpdateGame): Promise<Game | undefined>;
+  deleteGame(id: string): Promise<void>;
+  
+  getTeamStatConfigs(teamId: string): Promise<StatConfig[]>;
+  getStatConfig(id: string): Promise<StatConfig | undefined>;
+  createStatConfig(data: InsertStatConfig): Promise<StatConfig>;
+  updateStatConfig(id: string, data: UpdateStatConfig): Promise<StatConfig | undefined>;
+  deleteStatConfig(id: string): Promise<void>;
+  
+  getGameStats(gameId: string): Promise<(GameStat & { statConfig: StatConfig; athlete?: User })[]>;
+  createGameStat(data: InsertGameStat): Promise<GameStat>;
+  deleteGameStat(id: string): Promise<void>;
+  softDeleteGameStat(id: string): Promise<void>;
+  
+  getGameRoster(gameId: string): Promise<(GameRoster & { athlete: User })[]>;
+  createGameRoster(data: InsertGameRoster): Promise<GameRoster>;
+  updateGameRoster(id: string, data: UpdateGameRoster): Promise<GameRoster | undefined>;
+  deleteGameRoster(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -357,6 +386,154 @@ export class DatabaseStorage implements IStorage {
         eq(managedAthletes.athleteId, athleteId)
       ));
     return !!managed;
+  }
+
+  // StatTracker implementations
+  async getGame(id: string): Promise<Game | undefined> {
+    const [game] = await db.select().from(games).where(eq(games.id, id));
+    return game || undefined;
+  }
+
+  async getGameByEvent(eventId: string): Promise<Game | undefined> {
+    const [game] = await db.select().from(games).where(eq(games.eventId, eventId));
+    return game || undefined;
+  }
+
+  async getTeamGames(teamId: string): Promise<(Game & { event?: Event })[]> {
+    const teamGames = await db
+      .select()
+      .from(games)
+      .where(eq(games.teamId, teamId))
+      .orderBy(desc(games.createdAt));
+    
+    const result: (Game & { event?: Event })[] = [];
+    for (const game of teamGames) {
+      let event: Event | undefined;
+      if (game.eventId) {
+        event = await this.getEvent(game.eventId);
+      }
+      result.push({ ...game, event });
+    }
+    return result;
+  }
+
+  async createGame(data: InsertGame): Promise<Game> {
+    const [game] = await db.insert(games).values(data).returning();
+    return game;
+  }
+
+  async updateGame(id: string, data: UpdateGame): Promise<Game | undefined> {
+    const [game] = await db
+      .update(games)
+      .set(data)
+      .where(eq(games.id, id))
+      .returning();
+    return game || undefined;
+  }
+
+  async deleteGame(id: string): Promise<void> {
+    await db.delete(gameStats).where(eq(gameStats.gameId, id));
+    await db.delete(gameRosters).where(eq(gameRosters.gameId, id));
+    await db.delete(games).where(eq(games.id, id));
+  }
+
+  async getTeamStatConfigs(teamId: string): Promise<StatConfig[]> {
+    return await db
+      .select()
+      .from(statConfigurations)
+      .where(eq(statConfigurations.teamId, teamId))
+      .orderBy(statConfigurations.displayOrder);
+  }
+
+  async getStatConfig(id: string): Promise<StatConfig | undefined> {
+    const [config] = await db.select().from(statConfigurations).where(eq(statConfigurations.id, id));
+    return config || undefined;
+  }
+
+  async createStatConfig(data: InsertStatConfig): Promise<StatConfig> {
+    const [config] = await db.insert(statConfigurations).values(data).returning();
+    return config;
+  }
+
+  async updateStatConfig(id: string, data: UpdateStatConfig): Promise<StatConfig | undefined> {
+    const [config] = await db
+      .update(statConfigurations)
+      .set(data)
+      .where(eq(statConfigurations.id, id))
+      .returning();
+    return config || undefined;
+  }
+
+  async deleteStatConfig(id: string): Promise<void> {
+    await db.delete(statConfigurations).where(eq(statConfigurations.id, id));
+  }
+
+  async getGameStats(gameId: string): Promise<(GameStat & { statConfig: StatConfig; athlete?: User })[]> {
+    const stats = await db
+      .select()
+      .from(gameStats)
+      .where(and(eq(gameStats.gameId, gameId), eq(gameStats.isDeleted, false)))
+      .orderBy(desc(gameStats.recordedAt));
+    
+    const result: (GameStat & { statConfig: StatConfig; athlete?: User })[] = [];
+    for (const stat of stats) {
+      const statConfig = await this.getStatConfig(stat.statConfigId);
+      if (!statConfig) continue;
+      
+      let athlete: User | undefined;
+      if (stat.athleteId) {
+        athlete = await this.getUser(stat.athleteId);
+      }
+      result.push({ ...stat, statConfig, athlete });
+    }
+    return result;
+  }
+
+  async createGameStat(data: InsertGameStat): Promise<GameStat> {
+    const [stat] = await db.insert(gameStats).values(data).returning();
+    return stat;
+  }
+
+  async deleteGameStat(id: string): Promise<void> {
+    await db.delete(gameStats).where(eq(gameStats.id, id));
+  }
+
+  async softDeleteGameStat(id: string): Promise<void> {
+    await db.update(gameStats).set({ isDeleted: true }).where(eq(gameStats.id, id));
+  }
+
+  async getGameRoster(gameId: string): Promise<(GameRoster & { athlete: User })[]> {
+    const roster = await db
+      .select()
+      .from(gameRosters)
+      .where(eq(gameRosters.gameId, gameId));
+    
+    const result: (GameRoster & { athlete: User })[] = [];
+    for (const r of roster) {
+      const athlete = await this.getUser(r.athleteId);
+      if (athlete) {
+        result.push({ ...r, athlete });
+      }
+    }
+    return result;
+  }
+
+  async createGameRoster(data: InsertGameRoster): Promise<GameRoster> {
+    const [roster] = await db.insert(gameRosters).values(data).returning();
+    return roster;
+  }
+
+  async updateGameRoster(id: string, data: UpdateGameRoster): Promise<GameRoster | undefined> {
+    const [roster] = await db
+      .update(gameRosters)
+      .set(data)
+      .where(eq(gameRosters.id, id))
+      .returning();
+    return roster || undefined;
+  }
+
+  async deleteGameRoster(id: string): Promise<void> {
+    await db.delete(gameRosters).where(eq(gameRosters.id, id));
   }
 }
 
