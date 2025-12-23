@@ -845,9 +845,9 @@ export default function AthleteDashboard() {
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
         <div className="max-w-full px-4 md:px-8 py-8">
           {/* HYPE Card & Quick Navigation Grid */}
-          <div ref={hypeCardRef} className="grid grid-cols-[280px_1fr] gap-2 mb-6 items-center">
-            {/* HYPE Card - Sports Trading Card Style with Flip */}
-            <div className="w-60 space-y-2">
+          <div ref={hypeCardRef} className="flex flex-col md:grid md:grid-cols-[280px_1fr] gap-4 mb-6 md:items-center">
+            {/* HYPE Card - Sports Trading Card Style with Flip - Hidden on Mobile */}
+            <div className="hidden md:block w-60 space-y-2">
               {/* Share Button */}
               <div className="flex justify-end">
                 <button
@@ -1014,25 +1014,40 @@ export default function AthleteDashboard() {
             </div>
 
             {/* Quick Navigation - Icons Only */}
-            <div className="w-full h-60">
-              <div className="grid grid-cols-2 gap-2 h-full pl-[0px] pr-[0px] ml-[5px] mr-[5px]">
+            <div className="w-full md:h-60">
+              <div className="grid grid-cols-3 md:grid-cols-2 gap-2 md:h-full">
                 {quickActions.map((action) => (
                   <button
                     key={action.id}
                     onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
-                    className={`h-full rounded-lg border transition-all duration-200 backdrop-blur-sm group flex items-center justify-center bg-slate-300/90 dark:bg-transparent border-slate-400 dark:border-white/5 ${
+                    className={`aspect-square md:aspect-auto md:h-full rounded-xl border transition-all duration-200 backdrop-blur-sm group flex flex-col items-center justify-center gap-1 bg-slate-300/90 dark:bg-transparent border-slate-400 dark:border-white/5 ${
                       selectedCard === action.id
                         ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
                         : `dark:bg-gradient-to-br ${action.color} hover:border-slate-500 dark:hover:border-white/20 hover:bg-slate-400/50 dark:hover:bg-white/5`
                     }`}
+                    data-testid={`button-quick-action-${action.id}`}
                   >
-                    <div className="p-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                      <action.icon className="h-7 w-7 text-primary group-hover:scale-110 transition-transform" />
+                    <div className="p-2 md:p-3 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
+                      <action.icon className="h-5 w-5 md:h-7 md:w-7 text-primary group-hover:scale-110 transition-transform" />
                     </div>
+                    <span className="text-[10px] font-medium text-muted-foreground md:hidden">{action.name}</span>
                   </button>
                 ))}
               </div>
             </div>
+
+            {/* View Hype Card Button - Mobile Only */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="md:hidden w-full py-4 rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 hover:from-primary/20 hover:via-accent/20 hover:to-primary/20 transition-all duration-300 flex items-center justify-center gap-3 group"
+              data-testid="button-view-hype-card-mobile"
+            >
+              <div className="p-2 rounded-lg bg-primary/20 group-hover:bg-primary/30 transition-colors">
+                <Trophy className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-sm font-bold uppercase tracking-wide text-foreground">View Hype Card</span>
+              <div className="h-px w-8 bg-gradient-to-r from-primary/50 to-transparent" />
+            </button>
           </div>
 
           {/* HYPE Card Modal */}
