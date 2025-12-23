@@ -198,37 +198,31 @@ export default function AthleteDashboard() {
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
             <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
             
-            <div className="relative p-6 md:p-8 flex flex-col md:flex-row gap-6 items-start md:items-center">
+            <div className="relative p-6 md:p-8 flex flex-col sm:flex-row gap-4 sm:gap-6 items-center sm:items-start">
               {/* Profile Avatar */}
-              <div className="flex flex-col items-center md:items-start">
-                <Avatar className="h-24 w-24 md:h-28 md:w-28 rounded-xl border-2 border-primary/50 shadow-lg">
-                  <AvatarImage src={user?.avatar || ""} alt={user?.name || user?.username || ""} className="object-cover" />
-                  <AvatarFallback className="text-2xl font-bold bg-primary/20 rounded-xl">
-                    {(user?.name || user?.username || "A").charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="mt-3 text-center md:text-left">
-                  <h2 className="text-lg font-bold text-primary">{user?.name || user?.username}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {currentMembership?.position || "Athlete"} - {currentTeam?.name}
-                  </p>
-                </div>
-              </div>
+              <Avatar className="h-24 w-24 md:h-28 md:w-28 rounded-xl border-2 border-primary/50 shadow-lg flex-shrink-0">
+                <AvatarImage src={user?.avatar || ""} alt={user?.name || user?.username || ""} className="object-cover" />
+                <AvatarFallback className="text-2xl font-bold bg-primary/20 rounded-xl">
+                  {(user?.name || user?.username || "A").charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
 
-              {/* Dashboard Title & Welcome */}
-              <div className="flex-1 text-center md:text-left md:ml-4">
+              {/* Dashboard Title & Info */}
+              <div className="flex-1 text-center sm:text-left">
                 <h1 className="text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
                   Athlete Dashboard
                 </h1>
                 <p className="text-muted-foreground mt-1">Welcome back, {user?.name?.split(' ')[0] || user?.username}!</p>
-                <p className="text-xl md:text-2xl font-medium text-foreground mt-3">
-                  Your team. Your stats. Your journey.
-                </p>
-                {currentMembership?.jerseyNumber && (
-                  <Badge variant="outline" className="mt-3 text-lg px-4 py-1 border-accent/50 text-accent">
-                    #{currentMembership.jerseyNumber}
-                  </Badge>
-                )}
+                <div className="mt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <p className="text-sm text-foreground font-semibold">{user?.name || user?.username}</p>
+                  <span className="text-muted-foreground">•</span>
+                  <p className="text-sm text-muted-foreground">{currentMembership?.position || "Athlete"} - {currentTeam?.name}</p>
+                  {currentMembership?.jerseyNumber && (
+                    <Badge variant="outline" className="text-sm px-2 py-0.5 border-accent/50 text-accent">
+                      #{currentMembership.jerseyNumber}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
           </div>
