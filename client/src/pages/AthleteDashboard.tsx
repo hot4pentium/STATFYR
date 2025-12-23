@@ -538,18 +538,15 @@ export default function AthleteDashboard() {
                 <div className="flex justify-center">
                   <div className="w-80 perspective-1000">
                     <div 
-                      className={`relative w-full transition-transform duration-700 transform-style-3d cursor-pointer ${hypeCardFlipped ? "rotate-y-180" : ""}`}
+                      className={`flip-card-inner cursor-pointer ${hypeCardFlipped ? "flipped" : ""}`}
                       onClick={() => setHypeCardFlipped(!hypeCardFlipped)}
-                      style={{ transformStyle: "preserve-3d" }}
                       data-testid="hype-card-flip"
+                      style={{ height: "426px" }}
                     >
                       {/* Front of Card */}
-                      <div 
-                        className="relative w-full backface-hidden"
-                        style={{ backfaceVisibility: "hidden", transform: hypeCardFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
-                      >
+                      <div className="flip-card-front">
                         <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-orange-400 to-orange-600 rounded-3xl blur opacity-75" />
-                        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-3xl overflow-hidden border border-orange-500/30 shadow-2xl aspect-[3/4]">
+                        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-3xl overflow-hidden border border-orange-500/30 shadow-2xl h-full">
                           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
                           
                           {/* Top Left - Name */}
@@ -593,12 +590,9 @@ export default function AthleteDashboard() {
                       </div>
                       
                       {/* Back of Card */}
-                      <div 
-                        className="absolute inset-0 w-full backface-hidden"
-                        style={{ backfaceVisibility: "hidden", transform: hypeCardFlipped ? "rotateY(0deg)" : "rotateY(-180deg)" }}
-                      >
+                      <div className="flip-card-back">
                         <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-orange-400 to-orange-600 rounded-3xl blur opacity-75" />
-                        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-3xl overflow-hidden border border-orange-500/30 shadow-2xl aspect-[3/4] p-4">
+                        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-3xl overflow-hidden border border-orange-500/30 shadow-2xl h-full p-4">
                           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
                           
                           {/* 2x2 Grid */}
