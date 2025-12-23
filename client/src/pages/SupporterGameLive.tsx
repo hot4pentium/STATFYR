@@ -43,7 +43,7 @@ export default function SupporterGameLive() {
   const [selectedAthlete, setSelectedAthlete] = useState<GameRoster | null>(null);
   const [newBadge, setNewBadge] = useState<BadgeDefinition | null>(null);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastTapRef = useRef<number>(0);
+  const tapCountRef = useRef<number>(0);
   const badgeCheckRef = useRef<NodeJS.Timeout | null>(null);
 
   const gameId = params?.gameId;
@@ -103,14 +103,17 @@ export default function SupporterGameLive() {
   }, [user, currentTeam]);
 
   const flushTaps = useCallback(async () => {
-    if (localTapCount > 0 && user && gameId) {
-      const tapsToSend = Math.floor(localTapCount / 3);
+    const currentCount = tapCountRef.current;
+    if (currentCount > 0 && user && gameId) {
+      const tapsToSend = Math.floor(currentCount / 3);
       if (tapsToSend > 0) {
         try {
           const response = await sendTapBurst(gameId, user.id, tapsToSend);
           setSeasonTotal(response.seasonTotal);
           setGameTapCount(response.gameTapCount);
-          setLocalTapCount(prev => prev % 3);
+          const remainder = currentCount % 3;
+          tapCountRef.current = remainder;
+          setLocalTapCount(remainder);
           
           if (badgeCheckRef.current) {
             clearTimeout(badgeCheckRef.current);
@@ -125,7 +128,7 @@ export default function SupporterGameLive() {
         }
       }
     }
-  }, [localTapCount, user, gameId, checkForBadges]);
+  }, [user, gameId, checkForBadges]);
 
   const handleTap = () => {
     if (game?.status !== "active") {
@@ -134,8 +137,9 @@ export default function SupporterGameLive() {
     }
     
     setIsTapping(true);
-    setLocalTapCount(prev => prev + 1);
-    lastTapRef.current = Date.now();
+    tapCountRef.current += 1;
+    const newCount = tapCountRef.current;
+    setLocalTapCount(newCount);
     
     setTimeout(() => setIsTapping(false), 100);
 
@@ -146,7 +150,7 @@ export default function SupporterGameLive() {
       flushTaps();
     }, 5000);
 
-    if (localTapCount > 0 && (localTapCount + 1) % 3 === 0) {
+    if (newCount % 3 === 0) {
       flushTaps();
     }
   };
@@ -260,23 +264,24 @@ export default function SupporterGameLive() {
                 <p className="text-lg font-bold">{seasonTotal} taps</p>
               </div>
               
-              <button
-                onClick={handleTap}
-                disabled={!isActive}
-                className={`w-full h-32 rounded-2xl font-bold text-2xl transition-all duration-100 
-                  ${isActive 
-                    ? `bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg 
-                       hover:from-orange-400 hover:to-orange-500 active:scale-95
-                       ${isTapping ? "scale-95 shadow-md" : ""}` 
-                    : "bg-muted text-muted-foreground cursor-not-allowed"
-                  }`}
-                data-testid="button-tap"
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <Hand className={`h-12 w-12 ${isTapping ? "animate-bounce" : ""}`} />
-                  <span>TAP!</span>
-                </div>
-              </button>
+              <div className="relative h-32">
+                <button
+                  onClick={handleTap}
+                  disabled={!isActive}
+                  className={`absolute inset-0 rounded-2xl font-bold text-2xl transition-transform duration-75 origin-center
+                    ${isActive 
+                      ? `bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg 
+                         ${isTapping ? "scale-[0.97]" : "scale-100"}` 
+                      : "bg-muted text-muted-foreground cursor-not-allowed"
+                    }`}
+                  data-testid="button-tap"
+                >
+                  <div className="flex flex-col items-center justify-center h-full gap-2">
+                    <Hand className={`h-12 w-12 ${isTapping ? "scale-110" : ""} transition-transform`} />
+                    <span>TAP!</span>
+                  </div>
+                </button>
+              </div>
               
               {localTapCount > 0 && (
                 <p className="text-center text-sm text-muted-foreground mt-2">
