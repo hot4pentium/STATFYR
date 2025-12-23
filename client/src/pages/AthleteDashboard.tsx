@@ -56,7 +56,7 @@ export default function AthleteDashboard() {
           const targetPosition = heroElement.getBoundingClientRect().top + window.scrollY - 80;
           const startPosition = window.scrollY;
           const distance = targetPosition - startPosition;
-          const duration = 800; // slower scroll duration in ms
+          const duration = 1500; // slower scroll duration in ms
           let startTime: number | null = null;
           
           const easeInOutQuad = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
