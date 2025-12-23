@@ -733,23 +733,6 @@ export default function CoachDashboard() {
                                   )}
                                 </div>
                                 <div className="flex gap-1 items-center">
-                                  {event.type?.toLowerCase() === "game" && (
-                                    <Button 
-                                      variant={eventSessions[event.id]?.status === "live" ? "default" : "ghost"} 
-                                      size="sm" 
-                                      className={`h-7 text-xs gap-1 ${eventSessions[event.id]?.status === "live" ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : ""}`}
-                                      onClick={() => handleToggleGameDayLive(event)} 
-                                      disabled={loadingSessionForEvent === event.id}
-                                      data-testid={`button-game-day-live-${event.id}`}
-                                    >
-                                      {loadingSessionForEvent === event.id ? (
-                                        <Loader2 className="h-3 w-3 animate-spin" />
-                                      ) : (
-                                        <Radio className="h-3 w-3" />
-                                      )}
-                                      {eventSessions[event.id]?.status === "live" ? "LIVE" : "Go Live"}
-                                    </Button>
-                                  )}
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button variant="ghost" size="icon" className="h-7 w-7" data-testid={`button-event-menu-${event.id}`}>
