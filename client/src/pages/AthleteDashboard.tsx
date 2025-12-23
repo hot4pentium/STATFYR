@@ -255,7 +255,7 @@ export default function AthleteDashboard() {
                   }`}
                   data-testid={`card-nav-${card.id}`}
                 >
-                  <CardContent className="p-5 flex items-start gap-4">
+                  <CardContent className="p-5 flex items-start gap-4 bg-[#d9d0d000]">
                     <div className={`p-2.5 rounded-lg border transition-colors ${
                       activeSection === card.id 
                         ? "bg-primary/20 border-primary/40" 
