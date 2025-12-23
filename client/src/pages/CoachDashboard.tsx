@@ -732,36 +732,48 @@ export default function CoachDashboard() {
                                     </span>
                                   )}
                                 </div>
-                                <div className="flex gap-1">
+                                <div className="flex gap-1 items-center">
                                   {event.type?.toLowerCase() === "game" && (
-                                    <>
-                                      <Button 
-                                        variant={eventSessions[event.id]?.status === "live" ? "default" : "ghost"} 
-                                        size="sm" 
-                                        className={`h-7 text-xs gap-1 ${eventSessions[event.id]?.status === "live" ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : ""}`}
-                                        onClick={() => handleToggleGameDayLive(event)} 
-                                        disabled={loadingSessionForEvent === event.id}
-                                        data-testid={`button-game-day-live-${event.id}`}
-                                      >
-                                        {loadingSessionForEvent === event.id ? (
-                                          <Loader2 className="h-3 w-3 animate-spin" />
-                                        ) : (
-                                          <Radio className="h-3 w-3" />
-                                        )}
-                                        {eventSessions[event.id]?.status === "live" ? "LIVE" : "Go Live"}
-                                      </Button>
-                                      <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => openLineupDialog(event)} data-testid={`button-set-lineup-${event.id}`}>
-                                        <Users className="h-3 w-3" />
-                                        Lineup
-                                      </Button>
-                                    </>
+                                    <Button 
+                                      variant={eventSessions[event.id]?.status === "live" ? "default" : "ghost"} 
+                                      size="sm" 
+                                      className={`h-7 text-xs gap-1 ${eventSessions[event.id]?.status === "live" ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : ""}`}
+                                      onClick={() => handleToggleGameDayLive(event)} 
+                                      disabled={loadingSessionForEvent === event.id}
+                                      data-testid={`button-game-day-live-${event.id}`}
+                                    >
+                                      {loadingSessionForEvent === event.id ? (
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                      ) : (
+                                        <Radio className="h-3 w-3" />
+                                      )}
+                                      {eventSessions[event.id]?.status === "live" ? "LIVE" : "Go Live"}
+                                    </Button>
                                   )}
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditEvent(event)} data-testid={`button-edit-event-${event.id}`}>
-                                    <Pencil className="h-3 w-3" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteConfirmEvent(event)} data-testid={`button-delete-event-${event.id}`}>
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-7 w-7" data-testid={`button-event-menu-${event.id}`}>
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      {event.type?.toLowerCase() === "game" && (
+                                        <DropdownMenuItem onClick={() => openLineupDialog(event)} data-testid={`button-set-lineup-${event.id}`}>
+                                          <Users className="h-4 w-4 mr-2" />
+                                          Set Lineup
+                                        </DropdownMenuItem>
+                                      )}
+                                      <DropdownMenuItem onClick={() => openEditEvent(event)} data-testid={`button-edit-event-${event.id}`}>
+                                        <Pencil className="h-4 w-4 mr-2" />
+                                        Edit
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem className="text-destructive" onClick={() => setDeleteConfirmEvent(event)} data-testid={`button-delete-event-${event.id}`}>
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
                               </div>
                               
