@@ -31,18 +31,26 @@ interface FeatureCardProps {
   description: string;
   color: string;
   delay?: number;
+  image?: React.ReactNode;
+  narrow?: boolean;
 }
 
-function FeatureCard({ icon, title, description, color, delay = 0 }: FeatureCardProps) {
+function FeatureCard({ icon, title, description, color, delay = 0, image, narrow }: FeatureCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay }}
+      className={narrow ? "max-w-xs mx-auto" : ""}
     >
       <Card className={`h-full bg-gradient-to-br ${color} border-white/10 hover:border-white/30 transition-all hover:scale-105 hover:shadow-xl`}>
         <CardContent className="p-6">
+          {image && (
+            <div className="mb-4 rounded-lg overflow-hidden border border-white/10">
+              {image}
+            </div>
+          )}
           <div className="mb-4 p-3 rounded-xl bg-white/10 w-fit">
             {icon}
           </div>
@@ -51,6 +59,35 @@ function FeatureCard({ icon, title, description, color, delay = 0 }: FeatureCard
         </CardContent>
       </Card>
     </motion.div>
+  );
+}
+
+function PlaybookCanvasMockup() {
+  return (
+    <div className="bg-slate-900 p-3 h-32 relative">
+      <div className="absolute left-2 top-2 bottom-2 w-8 bg-slate-800 rounded flex flex-col items-center gap-2 py-2">
+        <div className="w-4 h-4 rounded bg-purple-500/50" />
+        <div className="w-4 h-4 rounded-full bg-blue-500/50" />
+        <div className="w-4 h-0.5 bg-green-500/50" />
+        <div className="w-4 h-4 border border-yellow-500/50 rounded" />
+      </div>
+      <div className="ml-10 h-full border border-dashed border-white/20 rounded relative">
+        <svg className="w-full h-full" viewBox="0 0 200 80">
+          <circle cx="40" cy="40" r="8" fill="#3b82f6" opacity="0.7" />
+          <circle cx="80" cy="25" r="8" fill="#3b82f6" opacity="0.7" />
+          <circle cx="80" cy="55" r="8" fill="#3b82f6" opacity="0.7" />
+          <circle cx="140" cy="40" r="8" fill="#ef4444" opacity="0.7" />
+          <circle cx="160" cy="20" r="8" fill="#ef4444" opacity="0.7" />
+          <path d="M48 40 L72 28" stroke="#22c55e" strokeWidth="2" strokeDasharray="4" fill="none" />
+          <path d="M88 55 L132 42" stroke="#22c55e" strokeWidth="2" fill="none" markerEnd="url(#arrow)" />
+          <defs>
+            <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#22c55e" />
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
   );
 }
 
@@ -71,7 +108,9 @@ const coachFeatures = [
     icon: <ClipboardList className="h-6 w-6 text-purple-400" />,
     title: "Playbook Designer",
     description: "Draw and design plays with our interactive canvas. Save, categorize, and share with your team.",
-    color: "from-purple-500/20 to-purple-600/10"
+    color: "from-purple-500/20 to-purple-600/10",
+    image: <PlaybookCanvasMockup />,
+    narrow: true
   },
   {
     icon: <BarChart3 className="h-6 w-6 text-orange-400" />,
@@ -344,6 +383,8 @@ export default function LandingPage() {
                   description={feature.description}
                   color={feature.color}
                   delay={index * 0.1}
+                  image={feature.image}
+                  narrow={feature.narrow}
                 />
               ))}
             </motion.div>
