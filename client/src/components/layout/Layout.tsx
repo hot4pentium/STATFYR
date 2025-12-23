@@ -39,7 +39,7 @@ export function Layout({ children }: LayoutProps) {
       <main className="flex-1 h-screen overflow-hidden flex flex-col">
         <header className="h-16 border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-10 px-4 md:px-8 flex items-center justify-between gap-4">
           <h2 className="text-sm md:text-lg font-medium text-muted-foreground">
-            {currentTeam?.name || "TeamPulse"} - {currentTeam?.season || "Season 2024-2025"}
+            {currentTeam?.name || "STATFyR"} - {currentTeam?.season || "Season 2024-2025"}
           </h2>
           <div className="flex items-center gap-3">
             {updateAvailable && (

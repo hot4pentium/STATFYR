@@ -155,7 +155,10 @@ export default function AthleteDashboard() {
         {/* Header Bar */}
         <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-white/10">
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-            <h1 className="text-lg font-display font-bold text-primary uppercase tracking-wide">TeamPulse</h1>
+            <div className="flex items-center gap-2">
+              <img src="/attached_assets/red_logo-removebg-preview_1766458331534.png" alt="STATFyR" className="h-8 w-8" />
+              <h1 className="text-lg font-display font-bold text-orange-500 uppercase tracking-wide">STATFyR</h1>
+            </div>
             <div className="flex items-center gap-2">
               {updateAvailable && (
                 <Button
