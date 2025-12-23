@@ -854,3 +854,19 @@ export async function checkSessionLifecycle(teamId: string): Promise<{ autoStart
   const res = await apiRequest("POST", `/api/live-sessions/check-lifecycle`, { teamId });
   return res.json();
 }
+
+export async function getLiveSessionByEvent(eventId: string): Promise<LiveEngagementSession | null> {
+  const res = await fetch(`/api/events/${eventId}/live-session`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Failed to get session for event");
+  return res.json();
+}
+
+export async function createLiveSessionForEvent(eventId: string, teamId: string, scheduledStart: Date, scheduledEnd?: Date): Promise<LiveEngagementSession> {
+  const res = await apiRequest("POST", `/api/events/${eventId}/live-session`, {
+    teamId,
+    scheduledStart: scheduledStart.toISOString(),
+    scheduledEnd: scheduledEnd?.toISOString() || null,
+  });
+  return res.json();
+}

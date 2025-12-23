@@ -1,13 +1,13 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, Activity } from "lucide-react";
+import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, Activity, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, getTeamAggregateStats, getAdvancedTeamStats, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup, type TeamAggregateStats, type AdvancedTeamStats } from "@/lib/api";
+import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, getTeamAggregateStats, getAdvancedTeamStats, getLiveSessionByEvent, createLiveSessionForEvent, startLiveSession, endLiveSession, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup, type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession } from "@/lib/api";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend } from "recharts";
 import { Flame, TrendingUp } from "lucide-react";
 import { TeamBadge } from "@/components/TeamBadge";
@@ -67,6 +67,8 @@ export default function CoachDashboard() {
   const [lineupEvent, setLineupEvent] = useState<Event | null>(null);
   const [lineupStarters, setLineupStarters] = useState<string[]>([]);
   const [lineupBench, setLineupBench] = useState<string[]>([]);
+  const [eventSessions, setEventSessions] = useState<Record<string, LiveEngagementSession | null>>({});
+  const [loadingSessionForEvent, setLoadingSessionForEvent] = useState<string | null>(null);
 
   const { data: coachTeams } = useQuery({
     queryKey: ["/api/coach", user?.id, "teams"],
@@ -239,6 +241,53 @@ export default function CoachDashboard() {
     }
   };
 
+  const handleToggleGameDayLive = async (event: Event) => {
+    if (!currentTeam) return;
+    setLoadingSessionForEvent(event.id);
+    try {
+      let session = eventSessions[event.id];
+      if (session === undefined) {
+        session = await getLiveSessionByEvent(event.id);
+        setEventSessions(prev => ({ ...prev, [event.id]: session }));
+      }
+      
+      if (!session) {
+        const newSession = await createLiveSessionForEvent(
+          event.id,
+          currentTeam.id,
+          new Date(event.date),
+          event.endDate ? new Date(event.endDate) : undefined
+        );
+        const startedSession = await startLiveSession(newSession.id);
+        setEventSessions(prev => ({ ...prev, [event.id]: startedSession }));
+        toast.success("Game Day Live started!");
+      } else if (session.status === "scheduled") {
+        const startedSession = await startLiveSession(session.id);
+        setEventSessions(prev => ({ ...prev, [event.id]: startedSession }));
+        toast.success("Game Day Live started!");
+      } else if (session.status === "live") {
+        const endedSession = await endLiveSession(session.id);
+        setEventSessions(prev => ({ ...prev, [event.id]: endedSession }));
+        toast.success("Game Day Live ended");
+      } else {
+        const newSession = await createLiveSessionForEvent(
+          event.id,
+          currentTeam.id,
+          new Date(event.date),
+          event.endDate ? new Date(event.endDate) : undefined
+        );
+        const startedSession = await startLiveSession(newSession.id);
+        setEventSessions(prev => ({ ...prev, [event.id]: startedSession }));
+        toast.success("Game Day Live restarted!");
+      }
+    } catch (error) {
+      console.error("Error toggling Game Day Live:", error);
+      toast.error("Failed to toggle Game Day Live");
+    } finally {
+      setLoadingSessionForEvent(null);
+    }
+  };
+
   const openEditMember = (member: TeamMember) => {
     setEditingMember(member);
     setMemberEditForm({
@@ -311,15 +360,16 @@ export default function CoachDashboard() {
       return;
     }
     
-    // Convert 12-hour time to 24-hour format and create full datetime
+    // Convert 12-hour time to 24-hour format and create full datetime with local timezone
     let hour24 = parseInt(eventForm.hour, 10);
     if (eventForm.ampm === "PM" && hour24 !== 12) {
       hour24 += 12;
     } else if (eventForm.ampm === "AM" && hour24 === 12) {
       hour24 = 0;
     }
-    const timeString = `${hour24.toString().padStart(2, "0")}:${eventForm.minute}`;
-    const fullDateTime = `${eventForm.date}T${timeString}`;
+    // Create a local date and convert to ISO string to preserve timezone
+    const localDate = new Date(eventForm.date + "T" + `${hour24.toString().padStart(2, "0")}:${eventForm.minute}:00`);
+    const fullDateTime = localDate.toISOString();
     
     const data = {
       type: eventForm.type,
@@ -666,10 +716,27 @@ export default function CoachDashboard() {
                                 </div>
                                 <div className="flex gap-1">
                                   {event.type?.toLowerCase() === "game" && (
-                                    <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => openLineupDialog(event)} data-testid={`button-set-lineup-${event.id}`}>
-                                      <Users className="h-3 w-3" />
-                                      Lineup
-                                    </Button>
+                                    <>
+                                      <Button 
+                                        variant={eventSessions[event.id]?.status === "live" ? "default" : "ghost"} 
+                                        size="sm" 
+                                        className={`h-7 text-xs gap-1 ${eventSessions[event.id]?.status === "live" ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : ""}`}
+                                        onClick={() => handleToggleGameDayLive(event)} 
+                                        disabled={loadingSessionForEvent === event.id}
+                                        data-testid={`button-game-day-live-${event.id}`}
+                                      >
+                                        {loadingSessionForEvent === event.id ? (
+                                          <Loader2 className="h-3 w-3 animate-spin" />
+                                        ) : (
+                                          <Radio className="h-3 w-3" />
+                                        )}
+                                        {eventSessions[event.id]?.status === "live" ? "LIVE" : "Go Live"}
+                                      </Button>
+                                      <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => openLineupDialog(event)} data-testid={`button-set-lineup-${event.id}`}>
+                                        <Users className="h-3 w-3" />
+                                        Lineup
+                                      </Button>
+                                    </>
                                   )}
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditEvent(event)} data-testid={`button-edit-event-${event.id}`}>
                                     <Pencil className="h-3 w-3" />
