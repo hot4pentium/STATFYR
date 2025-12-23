@@ -9,7 +9,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useTheme } from "next-themes";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, type TeamMember, type Event, type HighlightVideo, type Play } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount, type TeamMember, type Event, type HighlightVideo, type Play, type Shoutout } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
 import { format, isSameDay } from "date-fns";
@@ -99,6 +99,20 @@ export default function AthleteDashboard() {
     queryFn: () => currentTeam ? getAllTeamHighlights(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam && (activeSection === "highlights" || activeSection === "hype-card"),
     refetchInterval: activeSection === "highlights" ? 5000 : false,
+  });
+
+  const { data: athleteShoutouts = [] } = useQuery({
+    queryKey: ["/api/athletes", user?.id, "shoutouts"],
+    queryFn: () => user ? getAthleteShoutouts(user.id, 20) : Promise.resolve([]),
+    enabled: !!user && (activeSection === "hype-card" || hypeCardTab === "shoutouts"),
+    refetchInterval: 10000,
+  });
+
+  const { data: shoutoutCount = 0 } = useQuery({
+    queryKey: ["/api/athletes", user?.id, "shoutouts", "count"],
+    queryFn: () => user ? getAthleteShoutoutCount(user.id) : Promise.resolve(0),
+    enabled: !!user && activeSection === "hype-card",
+    refetchInterval: 30000,
   });
 
   const { data: teamPlays = [] } = useQuery({
@@ -675,7 +689,7 @@ export default function AthleteDashboard() {
                             >
                               <Trophy className="h-8 w-8 text-orange-400 mb-2" />
                               <span className="text-sm font-semibold text-white">Shoutouts</span>
-                              <span className="text-2xl font-bold text-orange-400 mt-1">0</span>
+                              <span className="text-2xl font-bold text-orange-400 mt-1">{shoutoutCount}</span>
                             </div>
                           </div>
                           

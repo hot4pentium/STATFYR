@@ -475,3 +475,178 @@ export type InsertStartingLineup = z.infer<typeof insertStartingLineupSchema>;
 export type StartingLineup = typeof startingLineups.$inferSelect;
 export type InsertStartingLineupPlayer = z.infer<typeof insertStartingLineupPlayerSchema>;
 export type StartingLineupPlayer = typeof startingLineupPlayers.$inferSelect;
+
+// Shoutouts - supporters send quick cheers to athletes during games
+export const shoutouts = pgTable("shoutouts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id),
+  supporterId: varchar("supporter_id").notNull().references(() => users.id),
+  athleteId: varchar("athlete_id").notNull().references(() => users.id),
+  message: text("message").notNull().default("🔥"), // preset emoji/message
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const shoutoutsRelations = relations(shoutouts, ({ one }) => ({
+  game: one(games, {
+    fields: [shoutouts.gameId],
+    references: [games.id],
+  }),
+  supporter: one(users, {
+    fields: [shoutouts.supporterId],
+    references: [users.id],
+  }),
+  athlete: one(users, {
+    fields: [shoutouts.athleteId],
+    references: [users.id],
+  }),
+}));
+
+// Live Tap Events - audit log of tap bursts (every 3 taps = 1 increment)
+export const liveTapEvents = pgTable("live_tap_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id),
+  supporterId: varchar("supporter_id").notNull().references(() => users.id),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  tapCount: integer("tap_count").notNull().default(1), // number of increments in this burst
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const liveTapEventsRelations = relations(liveTapEvents, ({ one }) => ({
+  game: one(games, {
+    fields: [liveTapEvents.gameId],
+    references: [games.id],
+  }),
+  supporter: one(users, {
+    fields: [liveTapEvents.supporterId],
+    references: [users.id],
+  }),
+  team: one(teams, {
+    fields: [liveTapEvents.teamId],
+    references: [teams.id],
+  }),
+}));
+
+// Live Tap Totals - aggregated season totals per supporter per team
+export const liveTapTotals = pgTable("live_tap_totals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  supporterId: varchar("supporter_id").notNull().references(() => users.id),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  season: text("season").notNull(), // e.g., "2024-2025"
+  totalTaps: integer("total_taps").notNull().default(0),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const liveTapTotalsRelations = relations(liveTapTotals, ({ one }) => ({
+  supporter: one(users, {
+    fields: [liveTapTotals.supporterId],
+    references: [users.id],
+  }),
+  team: one(teams, {
+    fields: [liveTapTotals.teamId],
+    references: [teams.id],
+  }),
+}));
+
+// Badge Definitions - defines badge tiers and their requirements
+export const badgeDefinitions = pgTable("badge_definitions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // "Bronze", "Silver", "Gold", "Legend"
+  tier: integer("tier").notNull(), // 1, 2, 3, 4 for ordering
+  tapThreshold: integer("tap_threshold").notNull(), // taps needed to earn
+  themeId: text("theme_id").notNull(), // theme unlocked by this badge
+  iconEmoji: text("icon_emoji").notNull().default("🏅"),
+  color: text("color").notNull().default("#cd7f32"), // badge color
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Supporter Badges - badges earned by supporters
+export const supporterBadges = pgTable("supporter_badges", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  supporterId: varchar("supporter_id").notNull().references(() => users.id),
+  badgeId: varchar("badge_id").notNull().references(() => badgeDefinitions.id),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  season: text("season").notNull(),
+  earnedAt: timestamp("earned_at").defaultNow(),
+});
+
+export const supporterBadgesRelations = relations(supporterBadges, ({ one }) => ({
+  supporter: one(users, {
+    fields: [supporterBadges.supporterId],
+    references: [users.id],
+  }),
+  badge: one(badgeDefinitions, {
+    fields: [supporterBadges.badgeId],
+    references: [badgeDefinitions.id],
+  }),
+  team: one(teams, {
+    fields: [supporterBadges.teamId],
+    references: [teams.id],
+  }),
+}));
+
+// Theme Unlocks - themes unlocked by badges (supporter's active selection)
+export const themeUnlocks = pgTable("theme_unlocks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  supporterId: varchar("supporter_id").notNull().references(() => users.id),
+  themeId: text("theme_id").notNull(), // references badge's themeId
+  isActive: boolean("is_active").notNull().default(false), // currently selected theme
+  unlockedAt: timestamp("unlocked_at").defaultNow(),
+});
+
+export const themeUnlocksRelations = relations(themeUnlocks, ({ one }) => ({
+  supporter: one(users, {
+    fields: [themeUnlocks.supporterId],
+    references: [users.id],
+  }),
+}));
+
+// Shoutouts schemas
+export const insertShoutoutSchema = createInsertSchema(shoutouts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertShoutout = z.infer<typeof insertShoutoutSchema>;
+export type Shoutout = typeof shoutouts.$inferSelect;
+
+// Live Tap schemas
+export const insertLiveTapEventSchema = createInsertSchema(liveTapEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const upsertLiveTapTotalSchema = createInsertSchema(liveTapTotals).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertLiveTapEvent = z.infer<typeof insertLiveTapEventSchema>;
+export type LiveTapEvent = typeof liveTapEvents.$inferSelect;
+export type UpsertLiveTapTotal = z.infer<typeof upsertLiveTapTotalSchema>;
+export type LiveTapTotal = typeof liveTapTotals.$inferSelect;
+
+// Badge schemas
+export const insertBadgeDefinitionSchema = createInsertSchema(badgeDefinitions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSupporterBadgeSchema = createInsertSchema(supporterBadges).omit({
+  id: true,
+  earnedAt: true,
+});
+
+export type InsertBadgeDefinition = z.infer<typeof insertBadgeDefinitionSchema>;
+export type BadgeDefinition = typeof badgeDefinitions.$inferSelect;
+export type InsertSupporterBadge = z.infer<typeof insertSupporterBadgeSchema>;
+export type SupporterBadge = typeof supporterBadges.$inferSelect;
+
+// Theme schemas
+export const insertThemeUnlockSchema = createInsertSchema(themeUnlocks).omit({
+  id: true,
+  unlockedAt: true,
+});
+
+export type InsertThemeUnlock = z.infer<typeof insertThemeUnlockSchema>;
+export type ThemeUnlock = typeof themeUnlocks.$inferSelect;

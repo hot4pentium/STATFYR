@@ -129,3 +129,21 @@ The database schema centers around four main entities:
 - **Update Button**: Amber pulsing AlertCircle icon appears in headers when update is available
 - **Update Flow**: Service worker detects new version → PWAContext tracks state → Click button to refresh
 - **Check Interval**: Every 60 seconds the service worker checks for updates
+
+### Supporter Engagement System
+- **Purpose**: Allow supporters to cheer for athletes during live games through shoutouts and taps
+- **Shoutouts**: Quick one-button cheers (🔥, 💪, ⭐, ❤️, ⚡, 🏆) that supporters can send to in-game athletes
+- **Live Taps**: Large tap button that supporters smash during exciting plays; every 3 client taps = 1 server increment (cost optimization)
+- **Rate Limiting**: In-memory rate limiter (5 bursts per 10 seconds) prevents tap abuse
+- **Supporter Game Live**: `/supporter/game/:gameId` page with tap button, shoutout grid, and real-time tap counts
+- **Database Tables**: `shoutouts` (per-athlete messages), `live_tap_events` (per-game taps), `live_tap_totals` (season aggregates)
+
+### Badge & Theme System
+- **Badge Definitions**: Bronze (100 taps), Silver (500 taps), Gold (2000 taps), Legend (10000 taps)
+- **Auto-Seeding**: Default badges created on first `/api/badges` request if none exist
+- **Badge Checking**: `POST /api/supporters/:supporterId/check-badges` compares tap totals to badge thresholds
+- **Theme Unlocks**: Each badge unlocks a corresponding dashboard theme (bronze, silver, gold, legend)
+- **Theme Selection**: Supporters can view and activate unlocked themes in the Badges section
+- **Database Tables**: `badge_definitions`, `supporter_badges` (earned), `theme_unlocks` (unlocked themes with isActive flag)
+- **Badge Display**: Hype Card quadrant shows shoutout count; Badges section shows tap totals, progress bar, earned badges, and theme selector
+- **Live Game Banner**: Supporter Dashboard shows pulsing "LIVE GAME NOW!" banner when active games exist

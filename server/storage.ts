@@ -1,6 +1,7 @@
 import { 
   users, teams, teamMembers, events, highlightVideos, plays, managedAthletes,
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
+  shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -13,10 +14,16 @@ import {
   type GameStat, type InsertGameStat,
   type GameRoster, type InsertGameRoster, type UpdateGameRoster,
   type StartingLineup, type InsertStartingLineup,
-  type StartingLineupPlayer, type InsertStartingLineupPlayer
+  type StartingLineupPlayer, type InsertStartingLineupPlayer,
+  type Shoutout, type InsertShoutout,
+  type LiveTapEvent, type InsertLiveTapEvent,
+  type LiveTapTotal, type UpsertLiveTapTotal,
+  type BadgeDefinition, type InsertBadgeDefinition,
+  type SupporterBadge, type InsertSupporterBadge,
+  type ThemeUnlock, type InsertThemeUnlock
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, gte, sql } from "drizzle-orm";
 
 function generateTeamCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -102,6 +109,31 @@ export interface IStorage {
   updateStartingLineup(id: string, data: Partial<InsertStartingLineup>): Promise<StartingLineup | undefined>;
   deleteStartingLineup(id: string): Promise<void>;
   setStartingLineupPlayers(lineupId: string, players: InsertStartingLineupPlayer[]): Promise<void>;
+  
+  // Shoutouts methods
+  getGameShoutouts(gameId: string): Promise<(Shoutout & { supporter: User; athlete: User })[]>;
+  getAthleteShoutouts(athleteId: string, limit?: number): Promise<(Shoutout & { supporter: User; game: Game })[]>;
+  getAthleteShoutoutCount(athleteId: string): Promise<number>;
+  createShoutout(data: InsertShoutout): Promise<Shoutout>;
+  
+  // Live Taps methods
+  createLiveTapEvent(data: InsertLiveTapEvent): Promise<LiveTapEvent>;
+  getGameTapCount(gameId: string): Promise<number>;
+  getSupporterTapTotal(supporterId: string, teamId: string, season: string): Promise<LiveTapTotal | undefined>;
+  upsertLiveTapTotal(supporterId: string, teamId: string, season: string, incrementBy: number): Promise<LiveTapTotal>;
+  
+  // Badge methods
+  getAllBadgeDefinitions(): Promise<BadgeDefinition[]>;
+  getBadgeDefinition(id: string): Promise<BadgeDefinition | undefined>;
+  createBadgeDefinition(data: InsertBadgeDefinition): Promise<BadgeDefinition>;
+  getSupporterBadges(supporterId: string, teamId: string, season: string): Promise<(SupporterBadge & { badge: BadgeDefinition })[]>;
+  createSupporterBadge(data: InsertSupporterBadge): Promise<SupporterBadge>;
+  
+  // Theme methods
+  getSupporterThemes(supporterId: string): Promise<ThemeUnlock[]>;
+  getActiveTheme(supporterId: string): Promise<ThemeUnlock | undefined>;
+  createThemeUnlock(data: InsertThemeUnlock): Promise<ThemeUnlock>;
+  setActiveTheme(supporterId: string, themeId: string): Promise<ThemeUnlock | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -913,6 +945,191 @@ export class DatabaseStorage implements IStorage {
     if (players.length > 0) {
       await db.insert(startingLineupPlayers).values(players);
     }
+  }
+
+  // Shoutouts implementations
+  async getGameShoutouts(gameId: string): Promise<(Shoutout & { supporter: User; athlete: User })[]> {
+    const gameShoutouts = await db
+      .select()
+      .from(shoutouts)
+      .where(eq(shoutouts.gameId, gameId))
+      .orderBy(desc(shoutouts.createdAt));
+    
+    const result: (Shoutout & { supporter: User; athlete: User })[] = [];
+    for (const shoutout of gameShoutouts) {
+      const supporter = await this.getUser(shoutout.supporterId);
+      const athlete = await this.getUser(shoutout.athleteId);
+      if (supporter && athlete) {
+        result.push({ ...shoutout, supporter, athlete });
+      }
+    }
+    return result;
+  }
+
+  async getAthleteShoutouts(athleteId: string, limit = 50): Promise<(Shoutout & { supporter: User; game: Game })[]> {
+    const athleteShoutouts = await db
+      .select()
+      .from(shoutouts)
+      .where(eq(shoutouts.athleteId, athleteId))
+      .orderBy(desc(shoutouts.createdAt))
+      .limit(limit);
+    
+    const result: (Shoutout & { supporter: User; game: Game })[] = [];
+    for (const shoutout of athleteShoutouts) {
+      const supporter = await this.getUser(shoutout.supporterId);
+      const game = await this.getGame(shoutout.gameId);
+      if (supporter && game) {
+        result.push({ ...shoutout, supporter, game });
+      }
+    }
+    return result;
+  }
+
+  async createShoutout(data: InsertShoutout): Promise<Shoutout> {
+    const [shoutout] = await db.insert(shoutouts).values(data).returning();
+    return shoutout;
+  }
+
+  async getAthleteShoutoutCount(athleteId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(shoutouts)
+      .where(eq(shoutouts.athleteId, athleteId));
+    return result[0]?.count || 0;
+  }
+
+  // Live Taps implementations
+  async createLiveTapEvent(data: InsertLiveTapEvent): Promise<LiveTapEvent> {
+    const [tapEvent] = await db.insert(liveTapEvents).values(data).returning();
+    return tapEvent;
+  }
+
+  async getGameTapCount(gameId: string): Promise<number> {
+    const result = await db
+      .select({ total: sql<number>`COALESCE(SUM(${liveTapEvents.tapCount}), 0)` })
+      .from(liveTapEvents)
+      .where(eq(liveTapEvents.gameId, gameId));
+    return result[0]?.total || 0;
+  }
+
+  async getSupporterTapTotal(supporterId: string, teamId: string, season: string): Promise<LiveTapTotal | undefined> {
+    const [total] = await db
+      .select()
+      .from(liveTapTotals)
+      .where(and(
+        eq(liveTapTotals.supporterId, supporterId),
+        eq(liveTapTotals.teamId, teamId),
+        eq(liveTapTotals.season, season)
+      ));
+    return total || undefined;
+  }
+
+  async upsertLiveTapTotal(supporterId: string, teamId: string, season: string, incrementBy: number): Promise<LiveTapTotal> {
+    const existing = await this.getSupporterTapTotal(supporterId, teamId, season);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(liveTapTotals)
+        .set({ 
+          totalTaps: existing.totalTaps + incrementBy,
+          updatedAt: new Date()
+        })
+        .where(eq(liveTapTotals.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(liveTapTotals)
+        .values({ supporterId, teamId, season, totalTaps: incrementBy })
+        .returning();
+      return created;
+    }
+  }
+
+  // Badge implementations
+  async getAllBadgeDefinitions(): Promise<BadgeDefinition[]> {
+    return await db
+      .select()
+      .from(badgeDefinitions)
+      .orderBy(badgeDefinitions.tier);
+  }
+
+  async getBadgeDefinition(id: string): Promise<BadgeDefinition | undefined> {
+    const [badge] = await db.select().from(badgeDefinitions).where(eq(badgeDefinitions.id, id));
+    return badge || undefined;
+  }
+
+  async createBadgeDefinition(data: InsertBadgeDefinition): Promise<BadgeDefinition> {
+    const [badge] = await db.insert(badgeDefinitions).values(data).returning();
+    return badge;
+  }
+
+  async getSupporterBadges(supporterId: string, teamId: string, season: string): Promise<(SupporterBadge & { badge: BadgeDefinition })[]> {
+    const badges = await db
+      .select()
+      .from(supporterBadges)
+      .where(and(
+        eq(supporterBadges.supporterId, supporterId),
+        eq(supporterBadges.teamId, teamId),
+        eq(supporterBadges.season, season)
+      ))
+      .orderBy(desc(supporterBadges.earnedAt));
+    
+    const result: (SupporterBadge & { badge: BadgeDefinition })[] = [];
+    for (const sb of badges) {
+      const badge = await this.getBadgeDefinition(sb.badgeId);
+      if (badge) {
+        result.push({ ...sb, badge });
+      }
+    }
+    return result;
+  }
+
+  async createSupporterBadge(data: InsertSupporterBadge): Promise<SupporterBadge> {
+    const [badge] = await db.insert(supporterBadges).values(data).returning();
+    return badge;
+  }
+
+  // Theme implementations
+  async getSupporterThemes(supporterId: string): Promise<ThemeUnlock[]> {
+    return await db
+      .select()
+      .from(themeUnlocks)
+      .where(eq(themeUnlocks.supporterId, supporterId))
+      .orderBy(desc(themeUnlocks.unlockedAt));
+  }
+
+  async getActiveTheme(supporterId: string): Promise<ThemeUnlock | undefined> {
+    const [theme] = await db
+      .select()
+      .from(themeUnlocks)
+      .where(and(
+        eq(themeUnlocks.supporterId, supporterId),
+        eq(themeUnlocks.isActive, true)
+      ));
+    return theme || undefined;
+  }
+
+  async createThemeUnlock(data: InsertThemeUnlock): Promise<ThemeUnlock> {
+    const [theme] = await db.insert(themeUnlocks).values(data).returning();
+    return theme;
+  }
+
+  async setActiveTheme(supporterId: string, themeId: string): Promise<ThemeUnlock | undefined> {
+    await db
+      .update(themeUnlocks)
+      .set({ isActive: false })
+      .where(eq(themeUnlocks.supporterId, supporterId));
+    
+    const [theme] = await db
+      .update(themeUnlocks)
+      .set({ isActive: true })
+      .where(and(
+        eq(themeUnlocks.supporterId, supporterId),
+        eq(themeUnlocks.themeId, themeId)
+      ))
+      .returning();
+    return theme || undefined;
   }
 }
 

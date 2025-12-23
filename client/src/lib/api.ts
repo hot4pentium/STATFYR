@@ -607,3 +607,154 @@ export async function saveStartingLineup(eventId: string, requesterId: string, d
 export async function deleteStartingLineup(eventId: string, requesterId: string): Promise<void> {
   await apiRequest("DELETE", `/api/events/${eventId}/lineup?requesterId=${requesterId}`, {});
 }
+
+// ============ SHOUTOUTS ============
+
+export interface Shoutout {
+  id: string;
+  gameId: string;
+  supporterId: string;
+  athleteId: string;
+  message: string;
+  createdAt?: string | null;
+  supporter?: User;
+  athlete?: User;
+  game?: Game;
+}
+
+export async function getGameShoutouts(gameId: string): Promise<Shoutout[]> {
+  const res = await fetch(`/api/games/${gameId}/shoutouts`);
+  if (!res.ok) throw new Error("Failed to get shoutouts");
+  return res.json();
+}
+
+export async function getAthleteShoutouts(athleteId: string, limit = 50): Promise<Shoutout[]> {
+  const res = await fetch(`/api/athletes/${athleteId}/shoutouts?limit=${limit}`);
+  if (!res.ok) throw new Error("Failed to get shoutouts");
+  return res.json();
+}
+
+export async function getAthleteShoutoutCount(athleteId: string): Promise<number> {
+  const res = await fetch(`/api/athletes/${athleteId}/shoutouts/count`);
+  if (!res.ok) throw new Error("Failed to get shoutout count");
+  const data = await res.json();
+  return data.count;
+}
+
+export async function sendShoutout(gameId: string, supporterId: string, athleteId: string, message: string): Promise<Shoutout> {
+  const res = await apiRequest("POST", `/api/games/${gameId}/shoutouts?supporterId=${supporterId}`, { athleteId, message });
+  return res.json();
+}
+
+// ============ LIVE TAPS ============
+
+export interface LiveTapEvent {
+  id: string;
+  gameId: string;
+  supporterId: string;
+  teamId: string;
+  tapCount: number;
+  createdAt?: string | null;
+}
+
+export interface TapResponse {
+  tapEvent: LiveTapEvent;
+  seasonTotal: number;
+  gameTapCount: number;
+}
+
+export async function sendTapBurst(gameId: string, supporterId: string, tapCount: number): Promise<TapResponse> {
+  const res = await apiRequest("POST", `/api/games/${gameId}/taps?supporterId=${supporterId}`, { tapCount });
+  return res.json();
+}
+
+export async function getGameTapCount(gameId: string): Promise<{ count: number }> {
+  const res = await fetch(`/api/games/${gameId}/taps`);
+  if (!res.ok) throw new Error("Failed to get tap count");
+  return res.json();
+}
+
+export async function getSupporterTapTotal(supporterId: string, teamId: string, season = "2024-2025"): Promise<{ totalTaps: number }> {
+  const res = await fetch(`/api/supporters/${supporterId}/taps?teamId=${teamId}&season=${season}`);
+  if (!res.ok) throw new Error("Failed to get tap total");
+  return res.json();
+}
+
+// ============ BADGES ============
+
+export interface BadgeDefinition {
+  id: string;
+  name: string;
+  tier: number;
+  tapThreshold: number;
+  themeId: string;
+  iconEmoji: string;
+  color: string;
+  description?: string | null;
+  createdAt?: string | null;
+}
+
+export interface SupporterBadge {
+  id: string;
+  supporterId: string;
+  badgeId: string;
+  teamId: string;
+  season: string;
+  earnedAt?: string | null;
+  badge: BadgeDefinition;
+}
+
+export async function getAllBadges(): Promise<BadgeDefinition[]> {
+  const res = await fetch("/api/badges");
+  if (!res.ok) throw new Error("Failed to get badges");
+  return res.json();
+}
+
+export async function getSupporterBadges(supporterId: string, teamId: string, season = "2024-2025"): Promise<SupporterBadge[]> {
+  const res = await fetch(`/api/supporters/${supporterId}/badges?teamId=${teamId}&season=${season}`);
+  if (!res.ok) throw new Error("Failed to get badges");
+  return res.json();
+}
+
+export interface CheckBadgesResponse {
+  earnedBadges: SupporterBadge[];
+  newBadges: Array<SupporterBadge & { badge: BadgeDefinition }>;
+}
+
+export async function checkBadges(supporterId: string, teamId: string, season = "2024-2025"): Promise<CheckBadgesResponse> {
+  const res = await apiRequest("POST", `/api/supporters/${supporterId}/check-badges?teamId=${teamId}&season=${season}`, {});
+  return res.json();
+}
+
+// ============ THEMES ============
+
+export interface ThemeUnlock {
+  id: string;
+  supporterId: string;
+  themeId: string;
+  isActive: boolean;
+  unlockedAt?: string | null;
+}
+
+export async function getSupporterThemes(supporterId: string): Promise<ThemeUnlock[]> {
+  const res = await fetch(`/api/supporters/${supporterId}/themes`);
+  if (!res.ok) throw new Error("Failed to get themes");
+  return res.json();
+}
+
+export async function getActiveTheme(supporterId: string): Promise<ThemeUnlock | null> {
+  const res = await fetch(`/api/supporters/${supporterId}/themes/active`);
+  if (!res.ok) throw new Error("Failed to get active theme");
+  return res.json();
+}
+
+export async function activateTheme(supporterId: string, themeId: string): Promise<ThemeUnlock> {
+  const res = await apiRequest("POST", `/api/supporters/${supporterId}/themes/${themeId}/activate`, {});
+  return res.json();
+}
+
+export async function getActiveGames(teamId: string): Promise<Game[]> {
+  const res = await fetch(`/api/teams/${teamId}/games?status=active`);
+  if (!res.ok) throw new Error("Failed to get active games");
+  return res.json();
+}

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
@@ -759,7 +759,11 @@ export async function registerRoutes(
   // Games
   app.get("/api/teams/:teamId/games", async (req, res) => {
     try {
-      const games = await storage.getTeamGames(req.params.teamId);
+      let games = await storage.getTeamGames(req.params.teamId);
+      const status = req.query.status as string | undefined;
+      if (status) {
+        games = games.filter(g => g.status === status);
+      }
       res.json(games);
     } catch (error) {
       console.error("Error getting games:", error);
@@ -1330,6 +1334,331 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting starting lineup:", error);
       res.status(500).json({ error: "Failed to delete starting lineup" });
+    }
+  });
+
+  // ============ SHOUTOUTS ROUTES ============
+  
+  app.get("/api/games/:gameId/shoutouts", async (req, res) => {
+    try {
+      const shoutouts = await storage.getGameShoutouts(req.params.gameId);
+      res.json(shoutouts);
+    } catch (error) {
+      console.error("Error getting game shoutouts:", error);
+      res.status(500).json({ error: "Failed to get shoutouts" });
+    }
+  });
+
+  app.get("/api/athletes/:athleteId/shoutouts", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 50;
+      const shoutouts = await storage.getAthleteShoutouts(req.params.athleteId, limit);
+      res.json(shoutouts);
+    } catch (error) {
+      console.error("Error getting athlete shoutouts:", error);
+      res.status(500).json({ error: "Failed to get shoutouts" });
+    }
+  });
+
+  app.get("/api/athletes/:athleteId/shoutouts/count", async (req, res) => {
+    try {
+      const count = await storage.getAthleteShoutoutCount(req.params.athleteId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error getting athlete shoutout count:", error);
+      res.status(500).json({ error: "Failed to get shoutout count" });
+    }
+  });
+
+  app.post("/api/games/:gameId/shoutouts", async (req, res) => {
+    try {
+      const supporterId = req.query.supporterId as string;
+      if (!supporterId) {
+        return res.status(400).json({ error: "supporterId is required" });
+      }
+
+      const game = await storage.getGame(req.params.gameId);
+      if (!game) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+
+      if (game.status !== "active") {
+        return res.status(400).json({ error: "Can only send shoutouts during active games" });
+      }
+
+      const parsed = insertShoutoutSchema.parse({
+        ...req.body,
+        gameId: req.params.gameId,
+        supporterId,
+      });
+
+      const shoutout = await storage.createShoutout(parsed);
+      res.json(shoutout);
+    } catch (error: any) {
+      console.error("Error creating shoutout:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create shoutout" });
+    }
+  });
+
+  // ============ LIVE TAPS ROUTES ============
+  
+  const tapRateLimiter = new Map<string, { count: number; resetAt: number }>();
+  const TAP_RATE_LIMIT = 5; // max 5 bursts
+  const TAP_RATE_WINDOW = 10000; // per 10 seconds
+
+  app.post("/api/games/:gameId/taps", async (req, res) => {
+    try {
+      const supporterId = req.query.supporterId as string;
+      if (!supporterId) {
+        return res.status(400).json({ error: "supporterId is required" });
+      }
+
+      const game = await storage.getGame(req.params.gameId);
+      if (!game) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+
+      if (game.status !== "active") {
+        return res.status(400).json({ error: "Can only tap during active games" });
+      }
+
+      const now = Date.now();
+      const key = `${supporterId}-${req.params.gameId}`;
+      const limiter = tapRateLimiter.get(key);
+      
+      if (limiter && now < limiter.resetAt) {
+        if (limiter.count >= TAP_RATE_LIMIT) {
+          return res.status(429).json({ error: "Too many taps, please slow down" });
+        }
+        limiter.count++;
+      } else {
+        tapRateLimiter.set(key, { count: 1, resetAt: now + TAP_RATE_WINDOW });
+      }
+
+      const tapCount = req.body.tapCount || 1;
+      
+      const tapEvent = await storage.createLiveTapEvent({
+        gameId: req.params.gameId,
+        supporterId,
+        teamId: game.teamId,
+        tapCount,
+      });
+
+      const team = await storage.getTeam(game.teamId);
+      const season = team?.season || "2024-2025";
+      
+      const updatedTotal = await storage.upsertLiveTapTotal(
+        supporterId,
+        game.teamId,
+        season,
+        tapCount
+      );
+
+      const gameTapCount = await storage.getGameTapCount(req.params.gameId);
+
+      res.json({ 
+        tapEvent, 
+        seasonTotal: updatedTotal.totalTaps,
+        gameTapCount 
+      });
+    } catch (error: any) {
+      console.error("Error recording tap:", error);
+      res.status(500).json({ error: "Failed to record tap" });
+    }
+  });
+
+  app.get("/api/games/:gameId/taps", async (req, res) => {
+    try {
+      const count = await storage.getGameTapCount(req.params.gameId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error getting tap count:", error);
+      res.status(500).json({ error: "Failed to get tap count" });
+    }
+  });
+
+  app.get("/api/supporters/:supporterId/taps", async (req, res) => {
+    try {
+      const teamId = req.query.teamId as string;
+      const season = req.query.season as string || "2024-2025";
+      
+      if (!teamId) {
+        return res.status(400).json({ error: "teamId is required" });
+      }
+
+      const total = await storage.getSupporterTapTotal(req.params.supporterId, teamId, season);
+      res.json({ totalTaps: total?.totalTaps || 0 });
+    } catch (error) {
+      console.error("Error getting supporter tap total:", error);
+      res.status(500).json({ error: "Failed to get tap total" });
+    }
+  });
+
+  // ============ BADGE ROUTES ============
+
+  const DEFAULT_BADGES = [
+    { name: "Bronze", tier: 1, tapThreshold: 100, themeId: "bronze", iconEmoji: "🥉", color: "#cd7f32", description: "Earned 100 taps - Bronze supporter!" },
+    { name: "Silver", tier: 2, tapThreshold: 500, themeId: "silver", iconEmoji: "🥈", color: "#c0c0c0", description: "Earned 500 taps - Silver supporter!" },
+    { name: "Gold", tier: 3, tapThreshold: 2000, themeId: "gold", iconEmoji: "🥇", color: "#ffd700", description: "Earned 2000 taps - Gold supporter!" },
+    { name: "Legend", tier: 4, tapThreshold: 10000, themeId: "legend", iconEmoji: "🏆", color: "#9333ea", description: "Earned 10000 taps - Legendary supporter!" },
+  ];
+
+  app.get("/api/badges", async (req, res) => {
+    try {
+      let badges = await storage.getAllBadgeDefinitions();
+      
+      if (badges.length === 0) {
+        for (const badge of DEFAULT_BADGES) {
+          await storage.createBadgeDefinition(badge);
+        }
+        badges = await storage.getAllBadgeDefinitions();
+      }
+      
+      res.json(badges);
+    } catch (error) {
+      console.error("Error getting badges:", error);
+      res.status(500).json({ error: "Failed to get badges" });
+    }
+  });
+
+  app.post("/api/badges/seed", async (req, res) => {
+    try {
+      const existing = await storage.getAllBadgeDefinitions();
+      if (existing.length > 0) {
+        return res.json({ message: "Badges already seeded", badges: existing });
+      }
+      
+      const created = [];
+      for (const badge of DEFAULT_BADGES) {
+        const newBadge = await storage.createBadgeDefinition(badge);
+        created.push(newBadge);
+      }
+      
+      res.json({ message: "Badges seeded successfully", badges: created });
+    } catch (error) {
+      console.error("Error seeding badges:", error);
+      res.status(500).json({ error: "Failed to seed badges" });
+    }
+  });
+
+  app.post("/api/badges", async (req, res) => {
+    try {
+      const parsed = insertBadgeDefinitionSchema.parse(req.body);
+      const badge = await storage.createBadgeDefinition(parsed);
+      res.json(badge);
+    } catch (error: any) {
+      console.error("Error creating badge:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create badge" });
+    }
+  });
+
+  app.get("/api/supporters/:supporterId/badges", async (req, res) => {
+    try {
+      const teamId = req.query.teamId as string;
+      const season = req.query.season as string || "2024-2025";
+      
+      if (!teamId) {
+        return res.status(400).json({ error: "teamId is required" });
+      }
+
+      const badges = await storage.getSupporterBadges(req.params.supporterId, teamId, season);
+      res.json(badges);
+    } catch (error) {
+      console.error("Error getting supporter badges:", error);
+      res.status(500).json({ error: "Failed to get badges" });
+    }
+  });
+
+  app.post("/api/supporters/:supporterId/check-badges", async (req, res) => {
+    try {
+      const { supporterId } = req.params;
+      const teamId = req.query.teamId as string;
+      const season = req.query.season as string || "2024-2025";
+      
+      if (!teamId) {
+        return res.status(400).json({ error: "teamId is required" });
+      }
+
+      const tapTotal = await storage.getSupporterTapTotal(supporterId, teamId, season);
+      if (!tapTotal) {
+        return res.json({ earnedBadges: [], newBadges: [] });
+      }
+
+      const allBadges = await storage.getAllBadgeDefinitions();
+      const existingBadges = await storage.getSupporterBadges(supporterId, teamId, season);
+      const existingBadgeIds = new Set(existingBadges.map(b => b.badgeId));
+
+      const newBadges = [];
+      
+      for (const badge of allBadges) {
+        if (tapTotal.totalTaps >= badge.tapThreshold && !existingBadgeIds.has(badge.id)) {
+          const supporterBadge = await storage.createSupporterBadge({
+            supporterId,
+            badgeId: badge.id,
+            teamId,
+            season,
+          });
+          
+          const existingThemes = await storage.getSupporterThemes(supporterId);
+          const hasTheme = existingThemes.some(t => t.themeId === badge.themeId);
+          if (!hasTheme) {
+            await storage.createThemeUnlock({
+              supporterId,
+              themeId: badge.themeId,
+              isActive: false,
+            });
+          }
+          
+          newBadges.push({ ...supporterBadge, badge });
+        }
+      }
+
+      const allEarned = await storage.getSupporterBadges(supporterId, teamId, season);
+      res.json({ earnedBadges: allEarned, newBadges });
+    } catch (error) {
+      console.error("Error checking badges:", error);
+      res.status(500).json({ error: "Failed to check badges" });
+    }
+  });
+
+  // ============ THEME ROUTES ============
+
+  app.get("/api/supporters/:supporterId/themes", async (req, res) => {
+    try {
+      const themes = await storage.getSupporterThemes(req.params.supporterId);
+      res.json(themes);
+    } catch (error) {
+      console.error("Error getting supporter themes:", error);
+      res.status(500).json({ error: "Failed to get themes" });
+    }
+  });
+
+  app.get("/api/supporters/:supporterId/themes/active", async (req, res) => {
+    try {
+      const theme = await storage.getActiveTheme(req.params.supporterId);
+      res.json(theme || null);
+    } catch (error) {
+      console.error("Error getting active theme:", error);
+      res.status(500).json({ error: "Failed to get active theme" });
+    }
+  });
+
+  app.post("/api/supporters/:supporterId/themes/:themeId/activate", async (req, res) => {
+    try {
+      const theme = await storage.setActiveTheme(req.params.supporterId, req.params.themeId);
+      if (!theme) {
+        return res.status(404).json({ error: "Theme not found or not unlocked" });
+      }
+      res.json(theme);
+    } catch (error) {
+      console.error("Error activating theme:", error);
+      res.status(500).json({ error: "Failed to activate theme" });
     }
   });
 

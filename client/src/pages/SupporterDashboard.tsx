@@ -3,13 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getSupporterBadges, getAllBadges, getSupporterThemes, getActiveTheme, activateTheme, getSupporterTapTotal, getActiveGames, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats, type SupporterBadge, type BadgeDefinition, type ThemeUnlock, type Game } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
@@ -90,6 +90,54 @@ export default function SupporterDashboard() {
     queryFn: () => currentTeam && viewingAsAthlete ? getAthleteStats(currentTeam.id, viewingAsAthlete.athlete.id) : Promise.resolve({ gamesPlayed: 0, stats: {}, gameHistory: [], hotStreak: false, streakLength: 0 }),
     enabled: !!currentTeam && !!viewingAsAthlete,
   });
+
+  const { data: allBadges = [] } = useQuery({
+    queryKey: ["/api/badges"],
+    queryFn: () => getAllBadges(),
+  });
+
+  const { data: supporterBadges = [] } = useQuery({
+    queryKey: ["/api/supporters", user?.id, "badges", currentTeam?.id],
+    queryFn: () => user && currentTeam ? getSupporterBadges(user.id, currentTeam.id) : Promise.resolve([]),
+    enabled: !!user && !!currentTeam,
+  });
+
+  const { data: supporterTapTotal } = useQuery({
+    queryKey: ["/api/supporters", user?.id, "taps", currentTeam?.id],
+    queryFn: () => user && currentTeam ? getSupporterTapTotal(user.id, currentTeam.id) : Promise.resolve({ totalTaps: 0 }),
+    enabled: !!user && !!currentTeam,
+  });
+
+  const { data: activeGames = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "games", "active"],
+    queryFn: () => currentTeam ? getActiveGames(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+    refetchInterval: 10000,
+  });
+
+  const { data: supporterThemes = [], refetch: refetchThemes } = useQuery({
+    queryKey: ["/api/supporters", user?.id, "themes"],
+    queryFn: () => user ? getSupporterThemes(user.id) : Promise.resolve([]),
+    enabled: !!user,
+  });
+
+  const { data: activeTheme, refetch: refetchActiveTheme } = useQuery({
+    queryKey: ["/api/supporters", user?.id, "themes", "active"],
+    queryFn: () => user ? getActiveTheme(user.id) : Promise.resolve(null),
+    enabled: !!user,
+  });
+
+  const handleActivateTheme = async (themeId: string) => {
+    if (!user) return;
+    try {
+      await activateTheme(user.id, themeId);
+      refetchThemes();
+      refetchActiveTheme();
+      toast.success("Theme activated!");
+    } catch (error) {
+      toast.error("Failed to activate theme");
+    }
+  };
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(new Date()));
@@ -216,6 +264,13 @@ export default function SupporterDashboard() {
       icon: BookOpen, 
       color: "from-green-500/20 to-green-600/20",
       description: "Team plays"
+    },
+    { 
+      name: "Badges", 
+      id: "badges",
+      icon: Trophy, 
+      color: "from-amber-500/20 to-amber-600/20",
+      description: "Your rewards"
     },
   ];
 
@@ -728,6 +783,103 @@ export default function SupporterDashboard() {
             </Dialog>
           </div>
         );
+      case "badges":
+        const earnedBadgeIds = new Set(supporterBadges.map(b => b.badgeId));
+        const sortedBadges = [...allBadges].sort((a, b) => a.tier - b.tier);
+        const currentTaps = supporterTapTotal?.totalTaps || 0;
+        const nextBadge = sortedBadges.find(b => !earnedBadgeIds.has(b.id) && b.tapThreshold > currentTaps);
+        const progress = nextBadge ? Math.min((currentTaps / nextBadge.tapThreshold) * 100, 100) : 100;
+        
+        return (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-xl p-6 border border-orange-500/30">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h4 className="text-lg font-bold text-orange-400">Your Tap Total</h4>
+                  <p className="text-4xl font-bold text-white">{currentTaps.toLocaleString()}</p>
+                </div>
+                {nextBadge && (
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Next Badge</p>
+                    <p className="text-lg font-bold">{nextBadge.iconEmoji} {nextBadge.name}</p>
+                    <p className="text-xs text-muted-foreground">{nextBadge.tapThreshold - currentTaps} taps to go</p>
+                  </div>
+                )}
+              </div>
+              {nextBadge && (
+                <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              )}
+            </div>
+            
+            <h4 className="text-lg font-bold">Your Badges</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {sortedBadges.map(badge => {
+                const isEarned = earnedBadgeIds.has(badge.id);
+                return (
+                  <div 
+                    key={badge.id}
+                    className={`p-4 rounded-xl border text-center transition-all ${
+                      isEarned 
+                        ? "bg-gradient-to-br from-orange-500/20 to-amber-500/20 border-orange-500/50" 
+                        : "bg-white/5 border-white/10 opacity-50"
+                    }`}
+                  >
+                    <div className="text-4xl mb-2">{badge.iconEmoji}</div>
+                    <p className={`font-bold ${isEarned ? "text-white" : "text-muted-foreground"}`}>{badge.name}</p>
+                    <p className="text-xs text-muted-foreground">{badge.tapThreshold.toLocaleString()} taps</p>
+                    {isEarned && (
+                      <span className="inline-block mt-2 px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                        Earned!
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {supporterThemes.length > 0 && (
+              <>
+                <h4 className="text-lg font-bold mt-8">Unlocked Themes</h4>
+                <p className="text-sm text-muted-foreground mb-4">Each badge unlocks a special dashboard theme!</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {supporterThemes.map(theme => {
+                    const badge = sortedBadges.find(b => b.themeId === theme.themeId);
+                    const isActive = activeTheme?.themeId === theme.themeId;
+                    return (
+                      <button
+                        key={theme.id}
+                        onClick={() => handleActivateTheme(theme.themeId)}
+                        className={`p-4 rounded-xl border text-center transition-all ${
+                          isActive 
+                            ? "bg-gradient-to-br from-green-500/30 to-emerald-600/30 border-green-500/50 ring-2 ring-green-500" 
+                            : "bg-white/5 border-white/20 hover:bg-white/10"
+                        }`}
+                        data-testid={`button-theme-${theme.themeId}`}
+                      >
+                        <div className="text-3xl mb-2">{badge?.iconEmoji || "🎨"}</div>
+                        <p className="font-bold capitalize">{theme.themeId}</p>
+                        {isActive ? (
+                          <span className="inline-block mt-2 px-2 py-0.5 bg-green-500/30 text-green-400 text-xs rounded-full">
+                            Active
+                          </span>
+                        ) : (
+                          <span className="inline-block mt-2 px-2 py-0.5 bg-white/10 text-muted-foreground text-xs rounded-full">
+                            Tap to use
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        );
       default:
         return null;
     }
@@ -1124,7 +1276,32 @@ export default function SupporterDashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {activeGames.length > 0 && (
+          <button
+            onClick={() => setLocation(`/supporter/game/${activeGames[0].id}`)}
+            className="w-full p-4 rounded-xl bg-gradient-to-r from-green-500/30 to-emerald-600/30 border border-green-500/50 
+                       animate-pulse hover:animate-none hover:from-green-500/40 hover:to-emerald-600/40 transition-all 
+                       flex items-center justify-between group"
+            data-testid="button-join-live-game"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-green-500/30 rounded-xl">
+                <Zap className="h-6 w-6 text-green-400" />
+              </div>
+              <div className="text-left">
+                <p className="font-bold text-lg text-green-400">LIVE GAME NOW!</p>
+                <p className="text-sm text-white/80">
+                  {currentTeam?.name} vs {activeGames[0].opponentName || "Opponent"} • Tap to cheer!
+                </p>
+              </div>
+            </div>
+            <div className="text-green-400 font-bold text-xl group-hover:scale-110 transition-transform">
+              JOIN →
+            </div>
+          </button>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
           {quickActions.map((action) => (
             <button
               key={action.id}
