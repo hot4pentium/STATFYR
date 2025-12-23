@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { UserProvider } from "./lib/userContext";
 import { PWAProvider } from "./lib/pwaContext";
 import NotFound from "@/pages/not-found";
+import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
 import CoachDashboard from "@/pages/CoachDashboard";
 import RosterPage from "@/pages/RosterPage";
@@ -31,7 +32,8 @@ import SupporterSessionLive from "@/pages/SupporterSessionLive";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={AuthPage} />
+      <Route path="/" component={LandingPage} />
+      <Route path="/auth" component={AuthPage} />
       <Route path="/dashboard" component={CoachDashboard} />
       <Route path="/coach" component={CoachDashboard} />
       <Route path="/roster" component={RosterPage} />
