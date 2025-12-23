@@ -476,10 +476,43 @@ export type StartingLineup = typeof startingLineups.$inferSelect;
 export type InsertStartingLineupPlayer = z.infer<typeof insertStartingLineupPlayerSchema>;
 export type StartingLineupPlayer = typeof startingLineupPlayers.$inferSelect;
 
+// Live Engagement Sessions - independent from StatTracker games
+export const liveEngagementSessions = pgTable("live_engagement_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull().references(() => events.id),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  gameId: varchar("game_id").references(() => games.id), // optional link to StatTracker game
+  status: text("status").notNull().default("scheduled"), // scheduled, live, ended
+  scheduledStart: timestamp("scheduled_start").notNull(), // event start time
+  scheduledEnd: timestamp("scheduled_end"), // event end time
+  startedAt: timestamp("started_at"), // actual start time (manual or auto)
+  endedAt: timestamp("ended_at"), // actual end time
+  extendedUntil: timestamp("extended_until"), // if supporter extends past auto-end
+  startedBy: varchar("started_by").references(() => users.id), // who started (null = auto)
+  endedBy: varchar("ended_by").references(() => users.id), // who ended (null = auto)
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const liveEngagementSessionsRelations = relations(liveEngagementSessions, ({ one }) => ({
+  event: one(events, {
+    fields: [liveEngagementSessions.eventId],
+    references: [events.id],
+  }),
+  team: one(teams, {
+    fields: [liveEngagementSessions.teamId],
+    references: [teams.id],
+  }),
+  game: one(games, {
+    fields: [liveEngagementSessions.gameId],
+    references: [games.id],
+  }),
+}));
+
 // Shoutouts - supporters send quick cheers to athletes during games
 export const shoutouts = pgTable("shoutouts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  gameId: varchar("game_id").notNull().references(() => games.id),
+  sessionId: varchar("session_id").references(() => liveEngagementSessions.id), // new: session-based
+  gameId: varchar("game_id").references(() => games.id), // legacy: keep for backward compat (nullable now)
   supporterId: varchar("supporter_id").notNull().references(() => users.id),
   athleteId: varchar("athlete_id").notNull().references(() => users.id),
   message: text("message").notNull().default("🔥"), // preset emoji/message
@@ -487,6 +520,10 @@ export const shoutouts = pgTable("shoutouts", {
 });
 
 export const shoutoutsRelations = relations(shoutouts, ({ one }) => ({
+  session: one(liveEngagementSessions, {
+    fields: [shoutouts.sessionId],
+    references: [liveEngagementSessions.id],
+  }),
   game: one(games, {
     fields: [shoutouts.gameId],
     references: [games.id],
@@ -504,7 +541,8 @@ export const shoutoutsRelations = relations(shoutouts, ({ one }) => ({
 // Live Tap Events - audit log of tap bursts (every 3 taps = 1 increment)
 export const liveTapEvents = pgTable("live_tap_events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  gameId: varchar("game_id").notNull().references(() => games.id),
+  sessionId: varchar("session_id").references(() => liveEngagementSessions.id), // new: session-based
+  gameId: varchar("game_id").references(() => games.id), // legacy: keep for backward compat (nullable now)
   supporterId: varchar("supporter_id").notNull().references(() => users.id),
   teamId: varchar("team_id").notNull().references(() => teams.id),
   tapCount: integer("tap_count").notNull().default(1), // number of increments in this burst
@@ -512,6 +550,10 @@ export const liveTapEvents = pgTable("live_tap_events", {
 });
 
 export const liveTapEventsRelations = relations(liveTapEvents, ({ one }) => ({
+  session: one(liveEngagementSessions, {
+    fields: [liveTapEvents.sessionId],
+    references: [liveEngagementSessions.id],
+  }),
   game: one(games, {
     fields: [liveTapEvents.gameId],
     references: [games.id],
@@ -650,3 +692,20 @@ export const insertThemeUnlockSchema = createInsertSchema(themeUnlocks).omit({
 
 export type InsertThemeUnlock = z.infer<typeof insertThemeUnlockSchema>;
 export type ThemeUnlock = typeof themeUnlocks.$inferSelect;
+
+// Live Engagement Session schemas
+export const insertLiveEngagementSessionSchema = createInsertSchema(liveEngagementSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateLiveEngagementSessionSchema = createInsertSchema(liveEngagementSessions).omit({
+  id: true,
+  eventId: true,
+  teamId: true,
+  createdAt: true,
+}).partial();
+
+export type InsertLiveEngagementSession = z.infer<typeof insertLiveEngagementSessionSchema>;
+export type UpdateLiveEngagementSession = z.infer<typeof updateLiveEngagementSessionSchema>;
+export type LiveEngagementSession = typeof liveEngagementSessions.$inferSelect;

@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getSupporterBadges, getAllBadges, getSupporterThemes, getActiveTheme, activateTheme, getSupporterTapTotal, getActiveGames, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats, type SupporterBadge, type BadgeDefinition, type ThemeUnlock, type Game } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getSupporterBadges, getAllBadges, getSupporterThemes, getActiveTheme, activateTheme, getSupporterTapTotal, getActiveLiveSessions, checkSessionLifecycle, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats, type SupporterBadge, type BadgeDefinition, type ThemeUnlock, type LiveEngagementSession } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
@@ -108,12 +108,19 @@ export default function SupporterDashboard() {
     enabled: !!user && !!currentTeam,
   });
 
-  const { data: activeGames = [] } = useQuery({
-    queryKey: ["/api/teams", currentTeam?.id, "games", "active"],
-    queryFn: () => currentTeam ? getActiveGames(currentTeam.id) : Promise.resolve([]),
+  const { data: activeSessions = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "live-sessions", "active"],
+    queryFn: () => currentTeam ? getActiveLiveSessions(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
     refetchInterval: 10000,
   });
+
+  // Check and auto-start/end sessions on load
+  useEffect(() => {
+    if (currentTeam) {
+      checkSessionLifecycle(currentTeam.id).catch(console.error);
+    }
+  }, [currentTeam]);
 
   const { data: supporterThemes = [], refetch: refetchThemes } = useQuery({
     queryKey: ["/api/supporters", user?.id, "themes"],
@@ -1276,13 +1283,13 @@ export default function SupporterDashboard() {
           </div>
         )}
 
-        {activeGames.length > 0 && (
+        {activeSessions.length > 0 && (
           <button
-            onClick={() => setLocation(`/supporter/game/${activeGames[0].id}`)}
+            onClick={() => setLocation(`/supporter/live/${activeSessions[0].id}`)}
             className="w-full p-4 rounded-xl bg-gradient-to-r from-green-500/30 to-emerald-600/30 border border-green-500/50 
                        animate-pulse hover:animate-none hover:from-green-500/40 hover:to-emerald-600/40 transition-all 
                        flex items-center justify-between group"
-            data-testid="button-join-live-game"
+            data-testid="button-join-live-session"
           >
             <div className="flex items-center gap-4">
               <div className="p-3 bg-green-500/30 rounded-xl">
@@ -1291,7 +1298,7 @@ export default function SupporterDashboard() {
               <div className="text-left">
                 <p className="font-bold text-lg text-green-400">LIVE GAME NOW!</p>
                 <p className="text-sm text-white/80">
-                  {currentTeam?.name} vs {activeGames[0].opponentName || "Opponent"} • Tap to cheer!
+                  {currentTeam?.name} vs {activeSessions[0].event?.opponent || "Opponent"} • Tap to cheer!
                 </p>
               </div>
             </div>

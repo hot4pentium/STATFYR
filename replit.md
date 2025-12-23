@@ -130,13 +130,21 @@ The database schema centers around four main entities:
 - **Update Flow**: Service worker detects new version → PWAContext tracks state → Click button to refresh
 - **Check Interval**: Every 60 seconds the service worker checks for updates
 
-### Supporter Engagement System
-- **Purpose**: Allow supporters to cheer for athletes during live games through shoutouts and taps
+### Live Engagement Sessions (Game Day Live)
+- **Purpose**: Allow supporters to cheer for athletes during live games through shoutouts and taps, independent from StatTracker
+- **Session-Based**: Live engagement is tied to calendar events via `live_engagement_sessions` table, not to StatTracker games
+- **Auto-Start**: Sessions auto-start 15 minutes before event start time (checked via `/api/live-sessions/check-lifecycle`)
+- **Auto-End**: Sessions auto-end 30 minutes after scheduled end time (or extended end time)
+- **Manual Control**: Coaches/staff can manually start/end sessions from event detail pages
+- **Extension Flow**: Supporters see "Continue Cheering?" prompt when scheduled end time is reached; extends session by 30 minutes
+- **Game Started Confirmation**: Supporters see "Game Started?" confirmation button when joining an active session
+- **Session Status**: scheduled, live, ended
 - **Shoutouts**: Quick one-button cheers (🔥, 💪, ⭐, ❤️, ⚡, 🏆) that supporters can send to in-game athletes
 - **Live Taps**: Large tap button that supporters smash during exciting plays; every 3 client taps = 1 server increment (cost optimization)
 - **Rate Limiting**: In-memory rate limiter (5 bursts per 10 seconds) prevents tap abuse
-- **Supporter Game Live**: `/supporter/game/:gameId` page with tap button, shoutout grid, and real-time tap counts
-- **Database Tables**: `shoutouts` (per-athlete messages), `live_tap_events` (per-game taps), `live_tap_totals` (season aggregates)
+- **Routes**: `/supporter/live/:sessionId` for session-based engagement (new), `/supporter/game/:gameId` for legacy game-based flow
+- **Database Tables**: `live_engagement_sessions` (linked to events), `shoutouts` (with sessionId), `live_tap_events` (with sessionId), `live_tap_totals` (season aggregates)
+- **Backward Compatibility**: Legacy game-based shoutouts/taps still work via `gameId` columns
 
 ### Badge & Theme System
 - **Badge Definitions**: Bronze (100 taps), Silver (500 taps), Gold (2000 taps), Legend (10000 taps)

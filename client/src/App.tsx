@@ -26,6 +26,7 @@ import SupporterSettings from "@/pages/SupporterSettings";
 import ShareableHypeCard from "@/pages/ShareableHypeCard";
 import StatTrackerPage from "@/pages/StatTrackerPage";
 import SupporterGameLive from "@/pages/SupporterGameLive";
+import SupporterSessionLive from "@/pages/SupporterSessionLive";
 
 function Router() {
   return (
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/supporter/dashboard" component={SupporterDashboard} />
       <Route path="/supporter/settings" component={SupporterSettings} />
       <Route path="/supporter/game/:gameId" component={SupporterGameLive} />
+      <Route path="/supporter/live/:sessionId" component={SupporterSessionLive} />
       <Route path="/share/athlete/:id" component={ShareableHypeCard} />
       <Route path="/stattracker" component={StatTrackerPage} />
       <Route path="/stattracker/:gameId" component={StatTrackerPage} />

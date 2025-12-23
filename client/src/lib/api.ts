@@ -758,3 +758,99 @@ export async function getActiveGames(teamId: string): Promise<Game[]> {
   if (!res.ok) throw new Error("Failed to get active games");
   return res.json();
 }
+
+// ============ LIVE ENGAGEMENT SESSIONS ============
+
+export interface LiveEngagementSession {
+  id: string;
+  eventId: string;
+  teamId: string;
+  gameId?: string | null;
+  status: string; // "scheduled" | "live" | "ended"
+  scheduledStart: string;
+  scheduledEnd?: string | null;
+  startedAt?: string | null;
+  endedAt?: string | null;
+  extendedUntil?: string | null;
+  startedBy?: string | null;
+  endedBy?: string | null;
+  createdAt?: string | null;
+  event?: Event;
+}
+
+export async function getLiveSession(sessionId: string): Promise<LiveEngagementSession> {
+  const res = await fetch(`/api/live-sessions/${sessionId}`);
+  if (!res.ok) throw new Error("Failed to get live session");
+  return res.json();
+}
+
+export async function getActiveLiveSessions(teamId: string): Promise<LiveEngagementSession[]> {
+  const res = await fetch(`/api/teams/${teamId}/live-sessions/active`);
+  if (!res.ok) throw new Error("Failed to get active sessions");
+  return res.json();
+}
+
+export async function getUpcomingLiveSessions(teamId: string): Promise<LiveEngagementSession[]> {
+  const res = await fetch(`/api/teams/${teamId}/live-sessions/upcoming`);
+  if (!res.ok) throw new Error("Failed to get upcoming sessions");
+  return res.json();
+}
+
+export async function getEventLiveSession(eventId: string): Promise<LiveEngagementSession> {
+  const res = await fetch(`/api/events/${eventId}/live-session`);
+  if (!res.ok) throw new Error("Failed to get event session");
+  return res.json();
+}
+
+export async function createEventLiveSession(eventId: string): Promise<LiveEngagementSession> {
+  const res = await apiRequest("POST", `/api/events/${eventId}/live-session`, {});
+  return res.json();
+}
+
+export async function startLiveSession(sessionId: string, startedBy?: string): Promise<LiveEngagementSession> {
+  const res = await apiRequest("POST", `/api/live-sessions/${sessionId}/start`, { startedBy });
+  return res.json();
+}
+
+export async function endLiveSession(sessionId: string, endedBy?: string): Promise<LiveEngagementSession> {
+  const res = await apiRequest("POST", `/api/live-sessions/${sessionId}/end`, { endedBy });
+  return res.json();
+}
+
+export async function extendLiveSession(sessionId: string): Promise<LiveEngagementSession> {
+  const res = await apiRequest("POST", `/api/live-sessions/${sessionId}/extend`, {});
+  return res.json();
+}
+
+export async function getSessionTapCount(sessionId: string): Promise<{ count: number }> {
+  const res = await fetch(`/api/live-sessions/${sessionId}/taps`);
+  if (!res.ok) throw new Error("Failed to get session tap count");
+  return res.json();
+}
+
+export async function sendSessionTaps(sessionId: string, supporterId: string, tapCount: number): Promise<{ seasonTotal: number; sessionTapCount: number }> {
+  const res = await apiRequest("POST", `/api/live-sessions/${sessionId}/taps`, { supporterId, tapCount });
+  return res.json();
+}
+
+export async function getSessionShoutouts(sessionId: string): Promise<Shoutout[]> {
+  const res = await fetch(`/api/live-sessions/${sessionId}/shoutouts`);
+  if (!res.ok) throw new Error("Failed to get session shoutouts");
+  return res.json();
+}
+
+export async function sendSessionShoutout(sessionId: string, supporterId: string, athleteId: string, message: string): Promise<Shoutout> {
+  const res = await apiRequest("POST", `/api/live-sessions/${sessionId}/shoutouts`, { supporterId, athleteId, message });
+  return res.json();
+}
+
+export async function getSessionRoster(sessionId: string): Promise<TeamMember[]> {
+  const res = await fetch(`/api/live-sessions/${sessionId}/roster`);
+  if (!res.ok) throw new Error("Failed to get session roster");
+  return res.json();
+}
+
+export async function checkSessionLifecycle(teamId: string): Promise<{ autoStarted: string[]; autoEnded: string[] }> {
+  const res = await apiRequest("POST", `/api/live-sessions/check-lifecycle`, { teamId });
+  return res.json();
+}

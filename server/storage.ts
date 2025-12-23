@@ -2,6 +2,7 @@ import {
   users, teams, teamMembers, events, highlightVideos, plays, managedAthletes,
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
+  liveEngagementSessions,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -20,7 +21,8 @@ import {
   type LiveTapTotal, type UpsertLiveTapTotal,
   type BadgeDefinition, type InsertBadgeDefinition,
   type SupporterBadge, type InsertSupporterBadge,
-  type ThemeUnlock, type InsertThemeUnlock
+  type ThemeUnlock, type InsertThemeUnlock,
+  type LiveEngagementSession, type InsertLiveEngagementSession, type UpdateLiveEngagementSession
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql } from "drizzle-orm";
@@ -134,6 +136,23 @@ export interface IStorage {
   getActiveTheme(supporterId: string): Promise<ThemeUnlock | undefined>;
   createThemeUnlock(data: InsertThemeUnlock): Promise<ThemeUnlock>;
   setActiveTheme(supporterId: string, themeId: string): Promise<ThemeUnlock | undefined>;
+  
+  // Live Engagement Session methods
+  getLiveSession(id: string): Promise<LiveEngagementSession | undefined>;
+  getLiveSessionByEvent(eventId: string): Promise<LiveEngagementSession | undefined>;
+  getActiveLiveSessionsForTeam(teamId: string): Promise<(LiveEngagementSession & { event: Event })[]>;
+  getUpcomingLiveSessionsForTeam(teamId: string): Promise<(LiveEngagementSession & { event: Event })[]>;
+  createLiveSession(data: InsertLiveEngagementSession): Promise<LiveEngagementSession>;
+  updateLiveSession(id: string, data: UpdateLiveEngagementSession): Promise<LiveEngagementSession | undefined>;
+  startLiveSession(id: string, startedBy?: string): Promise<LiveEngagementSession | undefined>;
+  endLiveSession(id: string, endedBy?: string): Promise<LiveEngagementSession | undefined>;
+  extendLiveSession(id: string, extendMinutes: number): Promise<LiveEngagementSession | undefined>;
+  
+  // Session-based shoutouts and taps
+  getSessionShoutouts(sessionId: string): Promise<(Shoutout & { supporter: User; athlete: User })[]>;
+  getSessionTapCount(sessionId: string): Promise<number>;
+  createSessionShoutout(data: { sessionId: string; supporterId: string; athleteId: string; message: string }): Promise<Shoutout>;
+  createSessionTapEvent(data: { sessionId: string; supporterId: string; teamId: string; tapCount: number }): Promise<LiveTapEvent>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1130,6 +1149,161 @@ export class DatabaseStorage implements IStorage {
       ))
       .returning();
     return theme || undefined;
+  }
+
+  // Live Engagement Session implementations
+  async getLiveSession(id: string): Promise<LiveEngagementSession | undefined> {
+    const [session] = await db.select().from(liveEngagementSessions).where(eq(liveEngagementSessions.id, id));
+    return session || undefined;
+  }
+
+  async getLiveSessionByEvent(eventId: string): Promise<LiveEngagementSession | undefined> {
+    const [session] = await db.select().from(liveEngagementSessions).where(eq(liveEngagementSessions.eventId, eventId));
+    return session || undefined;
+  }
+
+  async getActiveLiveSessionsForTeam(teamId: string): Promise<(LiveEngagementSession & { event: Event })[]> {
+    const sessions = await db
+      .select()
+      .from(liveEngagementSessions)
+      .where(and(
+        eq(liveEngagementSessions.teamId, teamId),
+        eq(liveEngagementSessions.status, "live")
+      ));
+    
+    const result: (LiveEngagementSession & { event: Event })[] = [];
+    for (const session of sessions) {
+      const event = await this.getEvent(session.eventId);
+      if (event) {
+        result.push({ ...session, event });
+      }
+    }
+    return result;
+  }
+
+  async getUpcomingLiveSessionsForTeam(teamId: string): Promise<(LiveEngagementSession & { event: Event })[]> {
+    const now = new Date();
+    const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
+    
+    const sessions = await db
+      .select()
+      .from(liveEngagementSessions)
+      .where(and(
+        eq(liveEngagementSessions.teamId, teamId),
+        eq(liveEngagementSessions.status, "scheduled"),
+        gte(liveEngagementSessions.scheduledStart, fifteenMinutesAgo)
+      ));
+    
+    const result: (LiveEngagementSession & { event: Event })[] = [];
+    for (const session of sessions) {
+      const event = await this.getEvent(session.eventId);
+      if (event) {
+        result.push({ ...session, event });
+      }
+    }
+    return result;
+  }
+
+  async createLiveSession(data: InsertLiveEngagementSession): Promise<LiveEngagementSession> {
+    const [session] = await db.insert(liveEngagementSessions).values(data).returning();
+    return session;
+  }
+
+  async updateLiveSession(id: string, data: UpdateLiveEngagementSession): Promise<LiveEngagementSession | undefined> {
+    const [session] = await db
+      .update(liveEngagementSessions)
+      .set(data)
+      .where(eq(liveEngagementSessions.id, id))
+      .returning();
+    return session || undefined;
+  }
+
+  async startLiveSession(id: string, startedBy?: string): Promise<LiveEngagementSession | undefined> {
+    const [session] = await db
+      .update(liveEngagementSessions)
+      .set({
+        status: "live",
+        startedAt: new Date(),
+        startedBy: startedBy || null,
+      })
+      .where(eq(liveEngagementSessions.id, id))
+      .returning();
+    return session || undefined;
+  }
+
+  async endLiveSession(id: string, endedBy?: string): Promise<LiveEngagementSession | undefined> {
+    const [session] = await db
+      .update(liveEngagementSessions)
+      .set({
+        status: "ended",
+        endedAt: new Date(),
+        endedBy: endedBy || null,
+      })
+      .where(eq(liveEngagementSessions.id, id))
+      .returning();
+    return session || undefined;
+  }
+
+  async extendLiveSession(id: string, extendMinutes: number): Promise<LiveEngagementSession | undefined> {
+    const session = await this.getLiveSession(id);
+    if (!session) return undefined;
+    
+    const baseTime = session.extendedUntil || session.scheduledEnd || new Date();
+    const newExtendedUntil = new Date(baseTime.getTime() + extendMinutes * 60 * 1000);
+    
+    const [updated] = await db
+      .update(liveEngagementSessions)
+      .set({ extendedUntil: newExtendedUntil })
+      .where(eq(liveEngagementSessions.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Session-based shoutouts and taps implementations
+  async getSessionShoutouts(sessionId: string): Promise<(Shoutout & { supporter: User; athlete: User })[]> {
+    const shoutoutList = await db
+      .select()
+      .from(shoutouts)
+      .where(eq(shoutouts.sessionId, sessionId))
+      .orderBy(desc(shoutouts.createdAt));
+    
+    const result: (Shoutout & { supporter: User; athlete: User })[] = [];
+    for (const s of shoutoutList) {
+      const supporter = await this.getUser(s.supporterId);
+      const athlete = await this.getUser(s.athleteId);
+      if (supporter && athlete) {
+        result.push({ ...s, supporter, athlete });
+      }
+    }
+    return result;
+  }
+
+  async getSessionTapCount(sessionId: string): Promise<number> {
+    const [result] = await db
+      .select({ total: sql<number>`COALESCE(SUM(${liveTapEvents.tapCount}), 0)` })
+      .from(liveTapEvents)
+      .where(eq(liveTapEvents.sessionId, sessionId));
+    return Number(result?.total || 0);
+  }
+
+  async createSessionShoutout(data: { sessionId: string; supporterId: string; athleteId: string; message: string }): Promise<Shoutout> {
+    const [shoutout] = await db.insert(shoutouts).values({
+      sessionId: data.sessionId,
+      supporterId: data.supporterId,
+      athleteId: data.athleteId,
+      message: data.message,
+    }).returning();
+    return shoutout;
+  }
+
+  async createSessionTapEvent(data: { sessionId: string; supporterId: string; teamId: string; tapCount: number }): Promise<LiveTapEvent> {
+    const [event] = await db.insert(liveTapEvents).values({
+      sessionId: data.sessionId,
+      supporterId: data.supporterId,
+      teamId: data.teamId,
+      tapCount: data.tapCount,
+    }).returning();
+    return event;
   }
 }
 

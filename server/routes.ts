@@ -1662,6 +1662,341 @@ export async function registerRoutes(
     }
   });
 
+  // ============ LIVE ENGAGEMENT SESSION ROUTES ============
+
+  // Get a specific live session
+  app.get("/api/live-sessions/:sessionId", async (req, res) => {
+    try {
+      const session = await storage.getLiveSession(req.params.sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      res.json(session);
+    } catch (error) {
+      console.error("Error getting live session:", error);
+      res.status(500).json({ error: "Failed to get session" });
+    }
+  });
+
+  // Get active live sessions for a team
+  app.get("/api/teams/:teamId/live-sessions/active", async (req, res) => {
+    try {
+      const sessions = await storage.getActiveLiveSessionsForTeam(req.params.teamId);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error getting active sessions:", error);
+      res.status(500).json({ error: "Failed to get active sessions" });
+    }
+  });
+
+  // Get upcoming live sessions for a team
+  app.get("/api/teams/:teamId/live-sessions/upcoming", async (req, res) => {
+    try {
+      const sessions = await storage.getUpcomingLiveSessionsForTeam(req.params.teamId);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error getting upcoming sessions:", error);
+      res.status(500).json({ error: "Failed to get upcoming sessions" });
+    }
+  });
+
+  // Get or create session for an event (auto-creates if event exists and is a game type)
+  app.get("/api/events/:eventId/live-session", async (req, res) => {
+    try {
+      let session = await storage.getLiveSessionByEvent(req.params.eventId);
+      
+      // If no session exists and this is a game event, auto-create one
+      if (!session) {
+        const event = await storage.getEvent(req.params.eventId);
+        if (!event) {
+          return res.status(404).json({ error: "Event not found" });
+        }
+        
+        // Only auto-create for game events
+        if (event.type === "Game") {
+          session = await storage.createLiveSession({
+            eventId: event.id,
+            teamId: event.teamId,
+            status: "scheduled",
+            scheduledStart: event.date,
+            scheduledEnd: event.endDate || null,
+          });
+        } else {
+          return res.status(404).json({ error: "No live session for this event" });
+        }
+      }
+      
+      res.json(session);
+    } catch (error) {
+      console.error("Error getting event live session:", error);
+      res.status(500).json({ error: "Failed to get session" });
+    }
+  });
+
+  // Create a live session for an event (coach/staff)
+  app.post("/api/events/:eventId/live-session", async (req, res) => {
+    try {
+      const event = await storage.getEvent(req.params.eventId);
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      
+      // Check if session already exists
+      const existing = await storage.getLiveSessionByEvent(event.id);
+      if (existing) {
+        return res.status(400).json({ error: "Session already exists for this event" });
+      }
+      
+      const session = await storage.createLiveSession({
+        eventId: event.id,
+        teamId: event.teamId,
+        status: "scheduled",
+        scheduledStart: event.date,
+        scheduledEnd: event.endDate || null,
+      });
+      
+      res.json(session);
+    } catch (error) {
+      console.error("Error creating live session:", error);
+      res.status(500).json({ error: "Failed to create session" });
+    }
+  });
+
+  // Start a live session (coach/staff or auto-triggered)
+  app.post("/api/live-sessions/:sessionId/start", async (req, res) => {
+    try {
+      const { startedBy } = req.body;
+      const session = await storage.startLiveSession(req.params.sessionId, startedBy);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      res.json(session);
+    } catch (error) {
+      console.error("Error starting live session:", error);
+      res.status(500).json({ error: "Failed to start session" });
+    }
+  });
+
+  // End a live session (coach/staff or auto-triggered)
+  app.post("/api/live-sessions/:sessionId/end", async (req, res) => {
+    try {
+      const { endedBy } = req.body;
+      const session = await storage.endLiveSession(req.params.sessionId, endedBy);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      res.json(session);
+    } catch (error) {
+      console.error("Error ending live session:", error);
+      res.status(500).json({ error: "Failed to end session" });
+    }
+  });
+
+  // Extend a live session (supporter clicks "Continue Cheering")
+  app.post("/api/live-sessions/:sessionId/extend", async (req, res) => {
+    try {
+      const session = await storage.extendLiveSession(req.params.sessionId, 30); // 30 min extension
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      res.json(session);
+    } catch (error) {
+      console.error("Error extending live session:", error);
+      res.status(500).json({ error: "Failed to extend session" });
+    }
+  });
+
+  // Get tap count for a session
+  app.get("/api/live-sessions/:sessionId/taps", async (req, res) => {
+    try {
+      const count = await storage.getSessionTapCount(req.params.sessionId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error getting session taps:", error);
+      res.status(500).json({ error: "Failed to get tap count" });
+    }
+  });
+
+  // Send taps to a session
+  app.post("/api/live-sessions/:sessionId/taps", async (req, res) => {
+    try {
+      const { supporterId, tapCount } = req.body;
+      if (!supporterId || !tapCount) {
+        return res.status(400).json({ error: "supporterId and tapCount required" });
+      }
+      
+      // Rate limiting check (using same pattern as game-based taps)
+      const key = `tap-session:${supporterId}`;
+      const now = Date.now();
+      
+      const limiter = tapRateLimiter.get(key);
+      if (limiter && now < limiter.resetAt) {
+        if (limiter.count >= TAP_MAX_BURSTS) {
+          return res.status(429).json({ error: "Too many taps. Slow down!" });
+        }
+        limiter.count++;
+      } else {
+        tapRateLimiter.set(key, { count: 1, resetAt: now + TAP_RATE_WINDOW });
+      }
+      
+      // Get session to find team
+      const session = await storage.getLiveSession(req.params.sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      
+      if (session.status !== "live") {
+        return res.status(400).json({ error: "Session is not active" });
+      }
+      
+      // Create tap event
+      await storage.createSessionTapEvent({
+        sessionId: session.id,
+        supporterId,
+        teamId: session.teamId,
+        tapCount,
+      });
+      
+      // Update season total
+      const season = "2024-2025";
+      const total = await storage.upsertLiveTapTotal(supporterId, session.teamId, season, tapCount);
+      
+      // Get session tap count
+      const sessionTapCount = await storage.getSessionTapCount(session.id);
+      
+      res.json({
+        seasonTotal: total.totalTaps,
+        sessionTapCount,
+      });
+    } catch (error) {
+      console.error("Error recording session taps:", error);
+      res.status(500).json({ error: "Failed to record taps" });
+    }
+  });
+
+  // Get shoutouts for a session
+  app.get("/api/live-sessions/:sessionId/shoutouts", async (req, res) => {
+    try {
+      const shoutouts = await storage.getSessionShoutouts(req.params.sessionId);
+      res.json(shoutouts);
+    } catch (error) {
+      console.error("Error getting session shoutouts:", error);
+      res.status(500).json({ error: "Failed to get shoutouts" });
+    }
+  });
+
+  // Send shoutout to a session
+  app.post("/api/live-sessions/:sessionId/shoutouts", async (req, res) => {
+    try {
+      const { supporterId, athleteId, message } = req.body;
+      if (!supporterId || !athleteId || !message) {
+        return res.status(400).json({ error: "supporterId, athleteId, and message required" });
+      }
+      
+      const session = await storage.getLiveSession(req.params.sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      
+      if (session.status !== "live") {
+        return res.status(400).json({ error: "Session is not active" });
+      }
+      
+      const shoutout = await storage.createSessionShoutout({
+        sessionId: session.id,
+        supporterId,
+        athleteId,
+        message,
+      });
+      
+      res.json(shoutout);
+    } catch (error) {
+      console.error("Error creating session shoutout:", error);
+      res.status(500).json({ error: "Failed to create shoutout" });
+    }
+  });
+
+  // Get roster for a session (athletes on team)
+  app.get("/api/live-sessions/:sessionId/roster", async (req, res) => {
+    try {
+      const session = await storage.getLiveSession(req.params.sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      
+      // Get team members who are athletes
+      const members = await storage.getTeamMembers(session.teamId);
+      const athletes = members.filter(m => m.role === "athlete" || m.role === "staff");
+      
+      res.json(athletes);
+    } catch (error) {
+      console.error("Error getting session roster:", error);
+      res.status(500).json({ error: "Failed to get roster" });
+    }
+  });
+
+  // ============ AUTO SESSION MANAGEMENT (called on app load) ============
+
+  // Check and auto-start/end sessions based on time
+  app.post("/api/live-sessions/check-lifecycle", async (req, res) => {
+    try {
+      const { teamId } = req.body;
+      if (!teamId) {
+        return res.status(400).json({ error: "teamId required" });
+      }
+      
+      const now = new Date();
+      const autoStartWindow = new Date(now.getTime() + 15 * 60 * 1000); // 15 min from now
+      const autoEndBuffer = 30 * 60 * 1000; // 30 min buffer after scheduled end
+      
+      // Get all events for team
+      const events = await storage.getTeamEvents(teamId);
+      const gameEvents = events.filter(e => e.type === "Game");
+      
+      const results = {
+        autoStarted: [] as string[],
+        autoEnded: [] as string[],
+      };
+      
+      for (const event of gameEvents) {
+        let session = await storage.getLiveSessionByEvent(event.id);
+        
+        // Auto-create session if within 15 min of start
+        if (!session && event.date <= autoStartWindow && event.date >= now) {
+          session = await storage.createLiveSession({
+            eventId: event.id,
+            teamId: event.teamId,
+            status: "scheduled",
+            scheduledStart: event.date,
+            scheduledEnd: event.endDate || null,
+          });
+        }
+        
+        if (session) {
+          // Auto-start if scheduled and within 15 min of start
+          if (session.status === "scheduled" && now >= new Date(session.scheduledStart.getTime() - 15 * 60 * 1000)) {
+            await storage.startLiveSession(session.id);
+            results.autoStarted.push(session.id);
+          }
+          
+          // Auto-end if live and past end time + buffer (unless extended)
+          if (session.status === "live") {
+            const endTime = session.extendedUntil || session.scheduledEnd;
+            if (endTime && now >= new Date(endTime.getTime() + autoEndBuffer)) {
+              await storage.endLiveSession(session.id);
+              results.autoEnded.push(session.id);
+            }
+          }
+        }
+      }
+      
+      res.json(results);
+    } catch (error) {
+      console.error("Error checking session lifecycle:", error);
+      res.status(500).json({ error: "Failed to check lifecycle" });
+    }
+  });
+
   return httpServer;
 }
 
