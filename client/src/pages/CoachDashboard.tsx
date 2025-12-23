@@ -1659,7 +1659,7 @@ export default function CoachDashboard() {
           <p className="text-sm text-muted-foreground">
             Are you sure you want to delete "{deleteConfirmEvent?.title}"? This action cannot be undone.
           </p>
-          <DialogFooter className="flex-row justify-end gap-2">
+          <div className="flex flex-row justify-end gap-2 pt-4">
             <Button variant="outline" onClick={() => setDeleteConfirmEvent(null)} data-testid="button-cancel-delete">
               Cancel
             </Button>
@@ -1672,7 +1672,7 @@ export default function CoachDashboard() {
             >
               {deleteEventMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
