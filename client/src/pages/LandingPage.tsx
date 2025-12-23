@@ -204,32 +204,12 @@ function HypeCardSection() {
                 <span className="px-3 py-1 bg-purple-500/20 rounded-full text-xs text-purple-300 border border-purple-500/30">👑 Legend</span>
               </div>
             </div>
-            <div className="bg-gradient-to-b from-slate-900 to-slate-800 p-6 min-h-[200px] flex items-center justify-center">
-              <div className="bg-gradient-to-br from-amber-900/50 to-yellow-900/30 rounded-xl p-5 border border-yellow-500/30 w-full max-w-[220px]">
-                <div className="text-center mb-4">
-                  <div className="text-3xl mb-1">🔥</div>
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Season Hype</div>
-                </div>
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-black/30 rounded-lg p-2 text-center">
-                    <div className="text-xl font-bold text-orange-400">847</div>
-                    <div className="text-[10px] text-muted-foreground">Taps</div>
-                  </div>
-                  <div className="bg-black/30 rounded-lg p-2 text-center">
-                    <div className="text-xl font-bold text-red-400">32</div>
-                    <div className="text-[10px] text-muted-foreground">Shoutouts</div>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Next: Silver</span>
-                    <span className="text-yellow-400">847/500</span>
-                  </div>
-                  <div className="h-2 bg-black/30 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-full" style={{ width: '100%' }} />
-                  </div>
-                </div>
-              </div>
+            <div className="bg-gradient-to-b from-slate-900 to-slate-800 p-4 min-h-[200px] flex items-center justify-center">
+              <img 
+                src="/attached_assets/Screenshot_2025-12-23_at_6.55.26_PM_1766534201003.png" 
+                alt="Hype Card Example - Kim Allen #30 Setter" 
+                className="h-[280px] w-auto rounded-xl shadow-2xl border border-white/10"
+              />
             </div>
           </div>
         </CardContent>
