@@ -193,7 +193,7 @@ export default function AthleteDashboard() {
         {/* Main Content */}
         <main className="max-w-5xl mx-auto px-4 py-6">
           {/* Hero Section */}
-          <div className="relative rounded-2xl overflow-hidden mb-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-white/10">
+          <div className="relative rounded-2xl overflow-hidden mb-8 bg-gradient-to-br from-orange-50 via-white to-orange-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border border-orange-200 dark:border-white/10">
             {/* Background Pattern Overlay */}
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
             <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
@@ -234,12 +234,12 @@ export default function AthleteDashboard() {
               {currentTeam?.code && (
                 <button
                   onClick={copyTeamCode}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-white/10 hover:bg-slate-700 transition text-sm font-mono"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-100 dark:bg-slate-800 border border-orange-300 dark:border-white/10 hover:bg-orange-200 dark:hover:bg-slate-700 transition text-sm font-mono"
                   data-testid="button-copy-team-code"
                 >
-                  <span className="text-muted-foreground">Team Code:</span>
+                  <span className="text-orange-600 dark:text-muted-foreground">Team Code:</span>
                   <span className="text-foreground font-bold">{currentTeam.code}</span>
-                  {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
+                  {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-orange-500 dark:text-muted-foreground" />}
                 </button>
               )}
             </div>
@@ -250,18 +250,18 @@ export default function AthleteDashboard() {
                 <Card 
                   key={card.id}
                   onClick={() => handleCardClick(card.id)}
-                  className={`bg-slate-900/80 border-white/10 hover:border-primary/50 hover:bg-slate-800/80 transition-all duration-200 cursor-pointer group ${
-                    activeSection === card.id ? "border-primary/50 ring-2 ring-primary/20" : ""
+                  className={`bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-white/10 hover:border-orange-400 dark:hover:border-primary/50 hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-200 cursor-pointer group ${
+                    activeSection === card.id ? "border-orange-500 ring-2 ring-orange-500/20 dark:border-primary/50 dark:ring-primary/20" : ""
                   }`}
                   data-testid={`card-nav-${card.id}`}
                 >
-                  <CardContent className="p-5 flex items-start gap-4 bg-[#d9d0d000]">
+                  <CardContent className="p-5 flex items-start gap-4">
                     <div className={`p-2.5 rounded-lg border transition-colors ${
                       activeSection === card.id 
-                        ? "bg-primary/20 border-primary/40" 
-                        : "bg-primary/10 border-primary/20 group-hover:bg-primary/20"
+                        ? "bg-orange-500/20 border-orange-500/40 dark:bg-primary/20 dark:border-primary/40" 
+                        : "bg-orange-500/10 border-orange-500/20 dark:bg-primary/10 dark:border-primary/20 group-hover:bg-orange-500/20 dark:group-hover:bg-primary/20"
                     }`}>
-                      <card.icon className="h-6 w-6 text-primary" />
+                      <card.icon className="h-6 w-6 text-orange-500 dark:text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-foreground text-lg">{card.name}</h3>
@@ -296,7 +296,7 @@ export default function AthleteDashboard() {
               {activeSection === "schedule" && (
                 <div className="space-y-4">
                   {teamEvents.length === 0 ? (
-                    <Card className="bg-slate-900/80 border-white/10 p-8 text-center">
+                    <Card className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-white/10 p-8 text-center">
                       <CalendarIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                       <p className="text-lg font-bold">No events scheduled</p>
                       <p className="text-sm text-muted-foreground mt-1">Check back soon for upcoming games and practices.</p>
@@ -304,7 +304,7 @@ export default function AthleteDashboard() {
                   ) : (
                     <div className="grid gap-4">
                       {teamEvents.map((event: Event) => (
-                        <Card key={event.id} className="bg-slate-900/80 border-white/10" data-testid={`event-card-${event.id}`}>
+                        <Card key={event.id} className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-white/10" data-testid={`event-card-${event.id}`}>
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                               <div>
@@ -348,7 +348,7 @@ export default function AthleteDashboard() {
                     <h3 className="text-lg font-semibold mb-3">Coaches & Staff</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                       {coaches.map((member: TeamMember) => (
-                        <Card key={member.id} className="bg-slate-900/80 border-white/10" data-testid={`roster-member-${member.id}`}>
+                        <Card key={member.id} className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-white/10" data-testid={`roster-member-${member.id}`}>
                           <CardContent className="p-4 text-center">
                             <Avatar className="h-16 w-16 mx-auto mb-2">
                               <AvatarImage src={member.user.avatar || ""} />
@@ -365,7 +365,7 @@ export default function AthleteDashboard() {
                     <h3 className="text-lg font-semibold mb-3">Athletes ({athletes.length})</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                       {athletes.map((member: TeamMember) => (
-                        <Card key={member.id} className="bg-slate-900/80 border-white/10" data-testid={`roster-member-${member.id}`}>
+                        <Card key={member.id} className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-white/10" data-testid={`roster-member-${member.id}`}>
                           <CardContent className="p-4 text-center">
                             <Avatar className="h-16 w-16 mx-auto mb-2">
                               <AvatarImage src={member.user.avatar || ""} />
@@ -386,7 +386,7 @@ export default function AthleteDashboard() {
               {activeSection === "stats" && (
                 <div className="space-y-6">
                   {myStats && (
-                    <Card className="bg-slate-900/80 border-white/10">
+                    <Card className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-white/10">
                       <CardHeader>
                         <CardTitle className="text-primary">My Stats</CardTitle>
                       </CardHeader>
@@ -417,7 +417,7 @@ export default function AthleteDashboard() {
                     </Card>
                   )}
                   {aggregateStats && (
-                    <Card className="bg-slate-900/80 border-white/10">
+                    <Card className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-white/10">
                       <CardHeader>
                         <CardTitle className="text-primary">Team Stats</CardTitle>
                       </CardHeader>
@@ -446,7 +446,7 @@ export default function AthleteDashboard() {
               {activeSection === "highlights" && (
                 <div className="space-y-4">
                   {teamHighlights.length === 0 ? (
-                    <Card className="bg-slate-900/80 border-white/10 p-8 text-center">
+                    <Card className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-white/10 p-8 text-center">
                       <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                       <p className="text-lg font-bold">No highlights yet</p>
                       <p className="text-sm text-muted-foreground mt-1">Team highlights will appear here.</p>
@@ -454,7 +454,7 @@ export default function AthleteDashboard() {
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {teamHighlights.map((video: HighlightVideo) => (
-                        <Card key={video.id} className="bg-slate-900/80 border-white/10 overflow-hidden" data-testid={`highlight-${video.id}`}>
+                        <Card key={video.id} className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-white/10 overflow-hidden" data-testid={`highlight-${video.id}`}>
                           <div className="aspect-video bg-black relative">
                             {video.status === "ready" && video.publicUrl ? (
                               <video 
@@ -488,7 +488,7 @@ export default function AthleteDashboard() {
               {activeSection === "playbook" && (
                 <div className="space-y-4">
                   {teamPlays.length === 0 ? (
-                    <Card className="bg-slate-900/80 border-white/10 p-8 text-center">
+                    <Card className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-white/10 p-8 text-center">
                       <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                       <p className="text-lg font-bold">No plays yet</p>
                       <p className="text-sm text-muted-foreground mt-1">Your coach will add plays here.</p>
@@ -496,7 +496,7 @@ export default function AthleteDashboard() {
                   ) : (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {teamPlays.map((play: Play) => (
-                        <Card key={play.id} className="bg-slate-900/80 border-white/10 overflow-hidden" data-testid={`play-${play.id}`}>
+                        <Card key={play.id} className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-white/10 overflow-hidden" data-testid={`play-${play.id}`}>
                           {play.thumbnailData && (
                             <div className="aspect-video bg-green-900/20">
                               <img src={play.thumbnailData} alt={play.name} className="w-full h-full object-contain" />
