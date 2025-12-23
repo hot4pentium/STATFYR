@@ -285,9 +285,14 @@ export default function CoachDashboard() {
     const formattedHour = hours.toString().padStart(2, "0");
     const formattedMinute = eventDate.getMinutes().toString().padStart(2, "0");
     
+    const year = eventDate.getFullYear();
+    const month = (eventDate.getMonth() + 1).toString().padStart(2, "0");
+    const day = eventDate.getDate().toString().padStart(2, "0");
+    const localDateString = `${year}-${month}-${day}`;
+    
     setEventForm({
       type: event.type,
-      date: eventDate.toISOString().slice(0, 10),
+      date: localDateString,
       hour: formattedHour,
       minute: formattedMinute,
       ampm: ampm,
