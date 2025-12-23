@@ -48,10 +48,31 @@ export default function AthleteDashboard() {
         contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
     }
-    // Scroll to hero when closing a section
+    // Scroll to hero when closing a section (slower scroll)
     if (!section && prevSection) {
       setTimeout(() => {
-        heroRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        const heroElement = heroRef.current;
+        if (heroElement) {
+          const targetPosition = heroElement.getBoundingClientRect().top + window.scrollY - 80;
+          const startPosition = window.scrollY;
+          const distance = targetPosition - startPosition;
+          const duration = 800; // slower scroll duration in ms
+          let startTime: number | null = null;
+          
+          const easeInOutQuad = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+          
+          const animateScroll = (currentTime: number) => {
+            if (startTime === null) startTime = currentTime;
+            const timeElapsed = currentTime - startTime;
+            const progress = Math.min(timeElapsed / duration, 1);
+            window.scrollTo(0, startPosition + distance * easeInOutQuad(progress));
+            if (timeElapsed < duration) {
+              requestAnimationFrame(animateScroll);
+            }
+          };
+          
+          requestAnimationFrame(animateScroll);
+        }
       }, 100);
     }
   }, [searchString]);
