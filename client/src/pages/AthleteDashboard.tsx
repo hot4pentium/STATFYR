@@ -248,7 +248,7 @@ export default function AthleteDashboard() {
             </div>
 
             {/* Navigation Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {navCards.map((card) => (
                 <Card 
                   key={card.id}
@@ -258,17 +258,17 @@ export default function AthleteDashboard() {
                   }`}
                   data-testid={`card-nav-${card.id}`}
                 >
-                  <CardContent className="p-5 flex items-start gap-4">
-                    <div className={`p-2.5 rounded-lg border transition-colors ${
+                  <CardContent className="p-3 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4">
+                    <div className={`p-2 sm:p-2.5 rounded-lg border transition-colors ${
                       activeSection === card.id 
                         ? "bg-orange-500/20 border-orange-500/40" 
                         : "bg-orange-500/10 border-orange-500/20 group-hover:bg-orange-500/20"
                     }`}>
-                      <card.icon className="h-6 w-6 text-orange-500" />
+                      <card.icon className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-foreground text-lg">{card.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-0.5">{card.description}</p>
+                    <div className="flex-1 min-w-0 text-center sm:text-left">
+                      <h3 className="font-bold text-foreground text-sm sm:text-lg">{card.name}</h3>
+                      <p className="hidden sm:block text-sm text-muted-foreground mt-0.5">{card.description}</p>
                     </div>
                   </CardContent>
                 </Card>
