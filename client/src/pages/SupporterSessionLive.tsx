@@ -340,11 +340,9 @@ export default function SupporterSessionLive() {
                 </button>
               </div>
               
-              {localTapCount > 0 && (
-                <p className="text-center text-sm text-muted-foreground mt-2">
-                  +{localTapCount} tap{localTapCount !== 1 ? "s" : ""} (sends every 3)
-                </p>
-              )}
+              <p className="text-center text-lg font-bold text-primary mt-2">
+                {localTapCount} tap{localTapCount !== 1 ? "s" : ""}
+              </p>
             </CardContent>
           </Card>
 
