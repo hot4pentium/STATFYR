@@ -91,22 +91,6 @@ function PlaybookCanvasMockup() {
   );
 }
 
-function GameDayLiveMockup() {
-  return (
-    <div className="bg-gradient-to-b from-slate-900 to-slate-800 p-4 h-36 flex flex-col items-center justify-center relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.15)_0%,transparent_70%)]" />
-      <div className="text-xs text-red-400 font-bold mb-2 flex items-center gap-1">
-        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-        LIVE
-      </div>
-      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg shadow-red-500/30 border-4 border-red-400/50 hover:scale-105 transition-transform cursor-pointer">
-        <Hand className="h-8 w-8 text-white" />
-      </div>
-      <div className="text-xs text-muted-foreground mt-2">TAP TO CHEER!</div>
-    </div>
-  );
-}
-
 const coachFeatures = [
   {
     icon: <Users className="h-6 w-6 text-blue-400" />,
@@ -133,12 +117,6 @@ const coachFeatures = [
     title: "StatTracker",
     description: "Track live game statistics by player or team. See trends, ratios, and performance over time.",
     color: "from-orange-500/20 to-orange-600/10"
-  },
-  {
-    icon: <Radio className="h-6 w-6 text-red-400" />,
-    title: "Game Day Live",
-    description: "Go live during games and let supporters cheer from anywhere. One tap to start the energy.",
-    color: "from-red-500/20 to-red-600/10"
   },
   {
     icon: <Video className="h-6 w-6 text-cyan-400" />,
