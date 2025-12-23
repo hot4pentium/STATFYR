@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
-import { Shield, User, Users, Clipboard, ArrowLeft } from "lucide-react";
+import { User, Users, Clipboard, ArrowLeft } from "lucide-react";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
 import { registerUser, loginUser, getUserTeams } from "@/lib/api";
@@ -176,11 +176,9 @@ export default function AuthPage() {
       <div className="relative z-10 w-full max-w-4xl px-4 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div className="space-y-6">
           <div className="flex items-center gap-3 mb-8">
-            <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.5)]">
-              <Shield className="text-primary-foreground h-7 w-7" />
-            </div>
-            <h1 className="font-display text-5xl font-bold tracking-tight text-foreground">
-              TEAM<span className="text-primary">PULSE</span>
+            <img src="/logo.png" alt="STATFyR" className="h-12 w-12" />
+            <h1 className="font-display text-5xl font-bold tracking-tight text-orange-500">
+              STATFyR
             </h1>
           </div>
           <p className="text-xl text-muted-foreground leading-relaxed">
