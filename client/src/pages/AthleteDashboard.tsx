@@ -19,6 +19,8 @@ import { VideoUploader } from "@/components/VideoUploader";
 
 type SectionType = "schedule" | "roster" | "stats" | "highlights" | "playbook" | "hype-card" | null;
 
+type HypeCardTab = "events" | "stats" | "highlights" | "shoutouts";
+
 export default function AthleteDashboard() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
@@ -28,6 +30,8 @@ export default function AthleteDashboard() {
   const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>(null);
+  const [hypeCardFlipped, setHypeCardFlipped] = useState(false);
+  const [hypeCardTab, setHypeCardTab] = useState<HypeCardTab>("events");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -45,13 +49,18 @@ export default function AthleteDashboard() {
   const { data: teamEvents = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "events"],
     queryFn: () => currentTeam ? getTeamEvents(currentTeam.id) : Promise.resolve([]),
-    enabled: !!currentTeam && (activeSection === "schedule" || activeSection === null),
+    enabled: !!currentTeam && (activeSection === "schedule" || activeSection === "hype-card" || activeSection === null),
   });
+
+  const upcomingEvents = useMemo(() => {
+    const now = new Date();
+    return teamEvents.filter((e: Event) => new Date(e.date) >= now);
+  }, [teamEvents]);
 
   const { data: teamHighlights = [], refetch: refetchHighlights } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "highlights", "all"],
     queryFn: () => currentTeam ? getAllTeamHighlights(currentTeam.id) : Promise.resolve([]),
-    enabled: !!currentTeam && activeSection === "highlights",
+    enabled: !!currentTeam && (activeSection === "highlights" || activeSection === "hype-card"),
     refetchInterval: activeSection === "highlights" ? 5000 : false,
   });
 
@@ -70,7 +79,7 @@ export default function AthleteDashboard() {
   const { data: myStats } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "athletes", user?.id, "stats"],
     queryFn: () => currentTeam && user ? getAthleteStats(currentTeam.id, user.id) : Promise.resolve({ gamesPlayed: 0, stats: {}, gameHistory: [], hotStreak: false, streakLength: 0 }),
-    enabled: !!currentTeam && !!user && activeSection === "stats",
+    enabled: !!currentTeam && !!user && (activeSection === "stats" || activeSection === "hype-card"),
   });
 
   const currentMembership = teamMembers.find((m: TeamMember) => m.userId === user?.id);
@@ -527,32 +536,121 @@ export default function AthleteDashboard() {
               {/* Hype Card Section */}
               {activeSection === "hype-card" && (
                 <div className="flex justify-center">
-                  <div className="w-72">
-                    <div className="relative group">
-                      <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-3xl blur opacity-75" />
-                      <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-                        <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-                        <div className="relative p-6">
-                          <div className="aspect-square bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl overflow-hidden mb-4">
+                  <div className="w-80 perspective-1000">
+                    <div 
+                      className={`relative w-full transition-transform duration-700 transform-style-3d cursor-pointer ${hypeCardFlipped ? "rotate-y-180" : ""}`}
+                      onClick={() => setHypeCardFlipped(!hypeCardFlipped)}
+                      style={{ transformStyle: "preserve-3d" }}
+                      data-testid="hype-card-flip"
+                    >
+                      {/* Front of Card */}
+                      <div 
+                        className="relative w-full backface-hidden"
+                        style={{ backfaceVisibility: "hidden", transform: hypeCardFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
+                      >
+                        <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-orange-400 to-orange-600 rounded-3xl blur opacity-75" />
+                        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-3xl overflow-hidden border border-orange-500/30 shadow-2xl aspect-[3/4]">
+                          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+                          
+                          {/* Top Left - Name */}
+                          <div className="absolute top-4 left-4 z-10">
+                            <h3 className="text-xl font-display font-bold text-white uppercase tracking-tight drop-shadow-lg">
+                              {user?.name || user?.username}
+                            </h3>
+                          </div>
+                          
+                          {/* Top Right - Jersey Number */}
+                          {currentMembership?.jerseyNumber && (
+                            <div className="absolute top-4 right-4 z-10">
+                              <span className="text-3xl font-display font-bold text-orange-500 drop-shadow-lg">
+                                #{currentMembership.jerseyNumber}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {/* Full Length Avatar */}
+                          <div className="absolute inset-0 flex items-center justify-center">
                             <img 
                               src={user?.avatar || ""} 
                               alt={user?.name || ""} 
                               className="w-full h-full object-cover"
                             />
                           </div>
-                          <div className="text-center">
-                            <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tight">
-                              {user?.name || user?.username}
-                            </h3>
-                            <p className="text-sm text-primary font-semibold mt-1">
+                          
+                          {/* Bottom Left - Team & Position */}
+                          <div className="absolute bottom-4 left-4 z-10">
+                            <p className="text-sm font-semibold text-orange-400 drop-shadow-lg">
                               {currentMembership?.position || "Athlete"}
                             </p>
-                            <p className="text-xs text-muted-foreground">{currentTeam?.name}</p>
-                            {currentMembership?.jerseyNumber && (
-                              <div className="mt-4 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-accent to-primary">
-                                <span className="text-white font-display font-bold text-2xl">#{currentMembership.jerseyNumber}</span>
-                              </div>
-                            )}
+                            <p className="text-xs text-white/80 drop-shadow-lg">{currentTeam?.name}</p>
+                          </div>
+                          
+                          {/* Tap hint */}
+                          <div className="absolute bottom-4 right-4 z-10">
+                            <p className="text-xs text-white/50">Tap to flip</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Back of Card */}
+                      <div 
+                        className="absolute inset-0 w-full backface-hidden"
+                        style={{ backfaceVisibility: "hidden", transform: hypeCardFlipped ? "rotateY(0deg)" : "rotateY(-180deg)" }}
+                      >
+                        <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-orange-400 to-orange-600 rounded-3xl blur opacity-75" />
+                        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-3xl overflow-hidden border border-orange-500/30 shadow-2xl aspect-[3/4] p-4">
+                          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+                          
+                          {/* 2x2 Grid */}
+                          <div className="relative h-full grid grid-cols-2 grid-rows-2 gap-2">
+                            {/* Events Quadrant */}
+                            <div 
+                              className={`rounded-xl p-3 flex flex-col items-center justify-center transition-colors ${hypeCardTab === "events" ? "bg-orange-500/30 border border-orange-500/50" : "bg-white/5 hover:bg-white/10"}`}
+                              onClick={(e) => { e.stopPropagation(); setHypeCardTab("events"); }}
+                              data-testid="hype-quadrant-events"
+                            >
+                              <CalendarIcon className="h-8 w-8 text-orange-400 mb-2" />
+                              <span className="text-sm font-semibold text-white">Events</span>
+                              <span className="text-2xl font-bold text-orange-400 mt-1">{upcomingEvents.length}</span>
+                            </div>
+                            
+                            {/* Stats Quadrant */}
+                            <div 
+                              className={`rounded-xl p-3 flex flex-col items-center justify-center transition-colors ${hypeCardTab === "stats" ? "bg-orange-500/30 border border-orange-500/50" : "bg-white/5 hover:bg-white/10"}`}
+                              onClick={(e) => { e.stopPropagation(); setHypeCardTab("stats"); }}
+                              data-testid="hype-quadrant-stats"
+                            >
+                              <BarChart3 className="h-8 w-8 text-orange-400 mb-2" />
+                              <span className="text-sm font-semibold text-white">Stats</span>
+                              <span className="text-2xl font-bold text-orange-400 mt-1">{myStats?.gamesPlayed || 0}</span>
+                            </div>
+                            
+                            {/* Highlights Quadrant */}
+                            <div 
+                              className={`rounded-xl p-3 flex flex-col items-center justify-center transition-colors ${hypeCardTab === "highlights" ? "bg-orange-500/30 border border-orange-500/50" : "bg-white/5 hover:bg-white/10"}`}
+                              onClick={(e) => { e.stopPropagation(); setHypeCardTab("highlights"); }}
+                              data-testid="hype-quadrant-highlights"
+                            >
+                              <Video className="h-8 w-8 text-orange-400 mb-2" />
+                              <span className="text-sm font-semibold text-white">Highlights</span>
+                              <span className="text-2xl font-bold text-orange-400 mt-1">{teamHighlights.filter((h: HighlightVideo) => h.uploaderId === user?.id).length}</span>
+                            </div>
+                            
+                            {/* Shoutouts Quadrant */}
+                            <div 
+                              className={`rounded-xl p-3 flex flex-col items-center justify-center transition-colors ${hypeCardTab === "shoutouts" ? "bg-orange-500/30 border border-orange-500/50" : "bg-white/5 hover:bg-white/10"}`}
+                              onClick={(e) => { e.stopPropagation(); setHypeCardTab("shoutouts"); }}
+                              data-testid="hype-quadrant-shoutouts"
+                            >
+                              <Trophy className="h-8 w-8 text-orange-400 mb-2" />
+                              <span className="text-sm font-semibold text-white">Shoutouts</span>
+                              <span className="text-2xl font-bold text-orange-400 mt-1">0</span>
+                            </div>
+                          </div>
+                          
+                          {/* Tap hint */}
+                          <div className="absolute bottom-2 right-4 z-10">
+                            <p className="text-xs text-white/50">Tap to flip back</p>
                           </div>
                         </div>
                       </div>
