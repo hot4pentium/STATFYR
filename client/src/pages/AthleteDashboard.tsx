@@ -241,7 +241,7 @@ export default function AthleteDashboard() {
 
           {/* Quick Access Section */}
           <div className="mb-6">
-            <div className="flex flex-wrap items-center gap-3 mb-4">
+            <div className="flex items-center justify-between gap-3 mb-4">
               <h2 className="text-xl font-display font-bold uppercase tracking-wide text-primary">Quick Access</h2>
               {currentTeam?.code && (
                 <button
