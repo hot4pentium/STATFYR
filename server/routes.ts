@@ -1831,7 +1831,7 @@ export async function registerRoutes(
       
       const limiter = tapRateLimiter.get(key);
       if (limiter && now < limiter.resetAt) {
-        if (limiter.count >= TAP_MAX_BURSTS) {
+        if (limiter.count >= TAP_RATE_LIMIT) {
           return res.status(429).json({ error: "Too many taps. Slow down!" });
         }
         limiter.count++;
