@@ -210,27 +210,27 @@ export default function AthleteDashboard() {
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
             <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
             
-            <div className="relative p-6 md:p-8 flex flex-col sm:flex-row gap-4 sm:gap-6 items-center sm:items-start">
+            <div className="relative p-4 md:p-8 flex flex-row gap-4 md:gap-6 items-center">
               {/* Profile Avatar */}
-              <Avatar className="h-24 w-24 md:h-28 md:w-28 rounded-xl border-2 border-primary/50 shadow-lg flex-shrink-0">
+              <Avatar className="h-16 w-16 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-xl border-2 border-primary/50 shadow-lg flex-shrink-0">
                 <AvatarImage src={user?.avatar || ""} alt={user?.name || user?.username || ""} className="object-cover" />
-                <AvatarFallback className="text-2xl font-bold bg-primary/20 rounded-xl">
+                <AvatarFallback className="text-xl sm:text-2xl font-bold bg-primary/20 rounded-xl">
                   {(user?.name || user?.username || "A").charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
 
               {/* Dashboard Title & Info */}
-              <div className="flex-1 text-center sm:text-left">
-                <h1 className="text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
+              <div className="flex-1 text-left min-w-0">
+                <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
                   Athlete Dashboard
                 </h1>
-                <p className="text-muted-foreground mt-1">Welcome back, {user?.name?.split(' ')[0] || user?.username}!</p>
-                <div className="mt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                  <p className="text-sm text-foreground font-semibold">{user?.name || user?.username}</p>
-                  <span className="text-muted-foreground">•</span>
-                  <p className="text-sm text-muted-foreground">{currentMembership?.position || "Athlete"} - {currentTeam?.name}</p>
+                <p className="text-sm sm:text-base text-muted-foreground mt-0.5 sm:mt-1 truncate">Welcome back, {user?.name?.split(' ')[0] || user?.username}!</p>
+                <div className="mt-1 sm:mt-2 flex flex-wrap items-center gap-1 sm:gap-2">
+                  <p className="text-xs sm:text-sm text-foreground font-semibold truncate">{user?.name || user?.username}</p>
+                  <span className="text-muted-foreground hidden sm:inline">•</span>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate hidden sm:block">{currentMembership?.position || "Athlete"} - {currentTeam?.name}</p>
                   {currentMembership?.jerseyNumber && (
-                    <Badge variant="outline" className="text-sm px-2 py-0.5 border-accent/50 text-accent">
+                    <Badge variant="outline" className="text-xs sm:text-sm px-1.5 sm:px-2 py-0 sm:py-0.5 border-accent/50 text-accent">
                       #{currentMembership.jerseyNumber}
                     </Badge>
                   )}
