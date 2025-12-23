@@ -31,26 +31,18 @@ interface FeatureCardProps {
   description: string;
   color: string;
   delay?: number;
-  image?: React.ReactNode;
-  narrow?: boolean;
 }
 
-function FeatureCard({ icon, title, description, color, delay = 0, image, narrow }: FeatureCardProps) {
+function FeatureCard({ icon, title, description, color, delay = 0 }: FeatureCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay }}
-      className={narrow ? "max-w-xs mx-auto" : ""}
     >
       <Card className={`h-full bg-gradient-to-br ${color} border-white/10 hover:border-white/30 transition-all hover:scale-105 hover:shadow-xl`}>
         <CardContent className="p-6">
-          {image && (
-            <div className="mb-4 rounded-lg overflow-hidden border border-white/10">
-              {image}
-            </div>
-          )}
           <div className="mb-4 p-3 rounded-xl bg-white/10 w-fit">
             {icon}
           </div>
@@ -62,32 +54,187 @@ function FeatureCard({ icon, title, description, color, delay = 0, image, narrow
   );
 }
 
-function PlaybookCanvasMockup() {
+function PlaymakerSection() {
   return (
-    <div className="bg-slate-900 p-3 h-32 relative">
-      <div className="absolute left-2 top-2 bottom-2 w-8 bg-slate-800 rounded flex flex-col items-center gap-2 py-2">
-        <div className="w-4 h-4 rounded bg-purple-500/50" />
-        <div className="w-4 h-4 rounded-full bg-blue-500/50" />
-        <div className="w-4 h-0.5 bg-green-500/50" />
-        <div className="w-4 h-4 border border-yellow-500/50 rounded" />
-      </div>
-      <div className="ml-10 h-full border border-dashed border-white/20 rounded relative">
-        <svg className="w-full h-full" viewBox="0 0 200 80">
-          <circle cx="40" cy="40" r="8" fill="#3b82f6" opacity="0.7" />
-          <circle cx="80" cy="25" r="8" fill="#3b82f6" opacity="0.7" />
-          <circle cx="80" cy="55" r="8" fill="#3b82f6" opacity="0.7" />
-          <circle cx="140" cy="40" r="8" fill="#ef4444" opacity="0.7" />
-          <circle cx="160" cy="20" r="8" fill="#ef4444" opacity="0.7" />
-          <path d="M48 40 L72 28" stroke="#22c55e" strokeWidth="2" strokeDasharray="4" fill="none" />
-          <path d="M88 55 L132 42" stroke="#22c55e" strokeWidth="2" fill="none" markerEnd="url(#arrow)" />
-          <defs>
-            <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-              <path d="M0,0 L6,3 L0,6 Z" fill="#22c55e" />
-            </marker>
-          </defs>
-        </svg>
-      </div>
-    </div>
+    <motion.div 
+      className="mt-12 max-w-4xl mx-auto"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: 0.3 }}
+    >
+      <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-white/10 overflow-hidden">
+        <CardContent className="p-0">
+          <div className="grid md:grid-cols-2 gap-0">
+            <div className="p-8 flex flex-col justify-center">
+              <div className="mb-4 p-3 rounded-xl bg-white/10 w-fit">
+                <ClipboardList className="h-8 w-8 text-purple-400" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3">PlayMaker</h3>
+              <p className="text-muted-foreground mb-4">
+                Draw and design plays with our interactive canvas. Drag player icons, draw arrows, and save plays to share with your team.
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                <span className="px-3 py-1 bg-purple-500/20 rounded-full text-xs text-purple-300">Offense</span>
+                <span className="px-3 py-1 bg-blue-500/20 rounded-full text-xs text-blue-300">Defense</span>
+                <span className="px-3 py-1 bg-green-500/20 rounded-full text-xs text-green-300">Special</span>
+              </div>
+            </div>
+            <div className="bg-slate-900 p-4 min-h-[200px] relative">
+              <div className="absolute left-3 top-3 bottom-3 w-10 bg-slate-800 rounded-lg flex flex-col items-center gap-3 py-3">
+                <div className="w-5 h-5 rounded bg-purple-500/50 cursor-pointer hover:bg-purple-500/70" />
+                <div className="w-5 h-5 rounded-full bg-blue-500/50 cursor-pointer hover:bg-blue-500/70" />
+                <div className="w-5 h-1 bg-green-500/50 cursor-pointer hover:bg-green-500/70" />
+                <div className="w-5 h-5 border-2 border-yellow-500/50 rounded cursor-pointer hover:border-yellow-500/70" />
+                <div className="w-5 h-5 border-2 border-red-500/50 rounded-full cursor-pointer hover:border-red-500/70" />
+              </div>
+              <div className="ml-14 h-full border-2 border-dashed border-white/20 rounded-lg relative bg-slate-900/50">
+                <svg className="w-full h-full" viewBox="0 0 200 120">
+                  <circle cx="50" cy="60" r="12" fill="#3b82f6" opacity="0.8" />
+                  <text x="50" y="64" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">1</text>
+                  <circle cx="90" cy="35" r="12" fill="#3b82f6" opacity="0.8" />
+                  <text x="90" y="39" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">2</text>
+                  <circle cx="90" cy="85" r="12" fill="#3b82f6" opacity="0.8" />
+                  <text x="90" y="89" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">3</text>
+                  <circle cx="150" cy="60" r="12" fill="#ef4444" opacity="0.8" />
+                  <circle cx="170" cy="30" r="12" fill="#ef4444" opacity="0.8" />
+                  <path d="M62 55 L78 40" stroke="#22c55e" strokeWidth="3" strokeDasharray="6" fill="none" />
+                  <path d="M102 85 L138 65" stroke="#22c55e" strokeWidth="3" fill="none" markerEnd="url(#arrowGreen)" />
+                  <defs>
+                    <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                      <path d="M0,0 L8,4 L0,8 Z" fill="#22c55e" />
+                    </marker>
+                  </defs>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+function GameDayLiveSection() {
+  return (
+    <motion.div 
+      className="mt-12 max-w-4xl mx-auto"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: 0.3 }}
+    >
+      <Card className="bg-gradient-to-br from-red-500/20 to-orange-600/10 border-white/10 overflow-hidden">
+        <CardContent className="p-0">
+          <div className="grid md:grid-cols-2 gap-0">
+            <div className="p-8 flex flex-col justify-center">
+              <div className="mb-4 p-3 rounded-xl bg-white/10 w-fit">
+                <Zap className="h-8 w-8 text-red-400" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Game Day Live</h3>
+              <p className="text-muted-foreground mb-4">
+                Tap to cheer during live games! Every tap counts towards your season total and unlocks badges. Send shoutouts to your favorite athletes.
+              </p>
+              <div className="flex gap-4 text-sm">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-400">🔥</div>
+                  <div className="text-xs text-muted-foreground">Fire</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-400">💪</div>
+                  <div className="text-xs text-muted-foreground">Strong</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-400">⭐</div>
+                  <div className="text-xs text-muted-foreground">Star</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-400">❤️</div>
+                  <div className="text-xs text-muted-foreground">Love</div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gradient-to-b from-slate-900 to-slate-800 p-6 min-h-[200px] flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.2)_0%,transparent_70%)]" />
+              <div className="text-sm text-red-400 font-bold mb-3 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                LIVE NOW
+              </div>
+              <motion.div 
+                className="w-28 h-28 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-2xl shadow-red-500/40 border-4 border-red-400/50 cursor-pointer"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Hand className="h-12 w-12 text-white" />
+              </motion.div>
+              <div className="text-lg font-bold mt-3 text-white">TAP TO CHEER!</div>
+              <div className="text-xs text-muted-foreground mt-1">1,247 taps this game</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+function HypeCardSection() {
+  return (
+    <motion.div 
+      className="mt-12 max-w-4xl mx-auto"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: 0.3 }}
+    >
+      <Card className="bg-gradient-to-br from-yellow-500/20 to-amber-600/10 border-white/10 overflow-hidden">
+        <CardContent className="p-0">
+          <div className="grid md:grid-cols-2 gap-0">
+            <div className="p-8 flex flex-col justify-center">
+              <div className="mb-4 p-3 rounded-xl bg-white/10 w-fit">
+                <Award className="h-8 w-8 text-yellow-400" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Hype Card</h3>
+              <p className="text-muted-foreground mb-4">
+                See your fan stats at a glance! Track your total taps, shoutouts sent, and badge progress throughout the season.
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                <span className="px-3 py-1 bg-amber-700/30 rounded-full text-xs text-amber-300 border border-amber-500/30">🥉 Bronze</span>
+                <span className="px-3 py-1 bg-slate-400/20 rounded-full text-xs text-slate-300 border border-slate-400/30">🥈 Silver</span>
+                <span className="px-3 py-1 bg-yellow-500/20 rounded-full text-xs text-yellow-300 border border-yellow-500/30">🥇 Gold</span>
+                <span className="px-3 py-1 bg-purple-500/20 rounded-full text-xs text-purple-300 border border-purple-500/30">👑 Legend</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-b from-slate-900 to-slate-800 p-6 min-h-[200px] flex items-center justify-center">
+              <div className="bg-gradient-to-br from-amber-900/50 to-yellow-900/30 rounded-xl p-5 border border-yellow-500/30 w-full max-w-[220px]">
+                <div className="text-center mb-4">
+                  <div className="text-3xl mb-1">🔥</div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Season Hype</div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="bg-black/30 rounded-lg p-2 text-center">
+                    <div className="text-xl font-bold text-orange-400">847</div>
+                    <div className="text-[10px] text-muted-foreground">Taps</div>
+                  </div>
+                  <div className="bg-black/30 rounded-lg p-2 text-center">
+                    <div className="text-xl font-bold text-red-400">32</div>
+                    <div className="text-[10px] text-muted-foreground">Shoutouts</div>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Next: Silver</span>
+                    <span className="text-yellow-400">847/500</span>
+                  </div>
+                  <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-full" style={{ width: '100%' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
 
@@ -103,14 +250,6 @@ const coachFeatures = [
     title: "Smart Scheduling",
     description: "Create games, practices, and events with automatic drink and snack duty assignments.",
     color: "from-green-500/20 to-green-600/10"
-  },
-  {
-    icon: <ClipboardList className="h-6 w-6 text-purple-400" />,
-    title: "Playbook Designer",
-    description: "Draw and design plays with our interactive canvas. Save, categorize, and share with your team.",
-    color: "from-purple-500/20 to-purple-600/10",
-    image: <PlaybookCanvasMockup />,
-    narrow: true
   },
   {
     icon: <BarChart3 className="h-6 w-6 text-orange-400" />,
@@ -367,80 +506,24 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-              {getFeatures().map((feature, index) => (
-                <FeatureCard
-                  key={feature.title}
-                  icon={feature.icon}
-                  title={feature.title}
-                  description={feature.description}
-                  color={feature.color}
-                  delay={index * 0.1}
-                  image={feature.image}
-                  narrow={feature.narrow}
-                />
-              ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {getFeatures().map((feature, index) => (
+                  <FeatureCard
+                    key={feature.title}
+                    icon={feature.icon}
+                    title={feature.title}
+                    description={feature.description}
+                    color={feature.color}
+                    delay={index * 0.1}
+                  />
+                ))}
+              </div>
+              {activeTab === "coaches" && <PlaymakerSection />}
+              {activeTab === "athletes" && <HypeCardSection />}
+              {activeTab === "supporters" && <GameDayLiveSection />}
             </motion.div>
           </AnimatePresence>
-        </div>
-      </section>
-
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/10 to-orange-500/20" />
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5" />
-        
-        <div className="relative z-10 container mx-auto px-6">
-          <motion.div
-            className="max-w-4xl mx-auto text-center"
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <Zap className="h-16 w-16 text-primary mx-auto mb-6" />
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Game Day Live
-            </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              The heart of STATFyR. Coaches go live during games, and supporters can tap, cheer, and send shoutouts in real-time — no matter where they are.
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-              <motion.div 
-                className="text-center p-6"
-                whileHover={{ scale: 1.05 }}
-              >
-                <div className="w-20 h-20 rounded-full bg-green-500/20 border-2 border-green-500/50 flex items-center justify-center mx-auto mb-4">
-                  <Radio className="h-10 w-10 text-green-500" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Coach Goes Live</h3>
-                <p className="text-muted-foreground text-sm">One tap starts the session 15 minutes before game time</p>
-              </motion.div>
-              
-              <motion.div 
-                className="text-center p-6"
-                whileHover={{ scale: 1.05 }}
-              >
-                <div className="w-20 h-20 rounded-full bg-orange-500/20 border-2 border-orange-500/50 flex items-center justify-center mx-auto mb-4">
-                  <Hand className="h-10 w-10 text-orange-500" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Supporters Tap</h3>
-                <p className="text-muted-foreground text-sm">Every tap counts toward badges and season totals</p>
-              </motion.div>
-              
-              <motion.div 
-                className="text-center p-6"
-                whileHover={{ scale: 1.05 }}
-              >
-                <div className="w-20 h-20 rounded-full bg-yellow-500/20 border-2 border-yellow-500/50 flex items-center justify-center mx-auto mb-4">
-                  <Award className="h-10 w-10 text-yellow-500" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Unlock Rewards</h3>
-                <p className="text-muted-foreground text-sm">Bronze, Silver, Gold, and Legend badges await</p>
-              </motion.div>
-            </div>
-          </motion.div>
         </div>
       </section>
 
