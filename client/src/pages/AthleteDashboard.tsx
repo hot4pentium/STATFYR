@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, Copy, Check, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2 } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useTheme } from "next-themes";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { useUser } from "@/lib/userContext";
@@ -33,11 +33,27 @@ export default function AthleteDashboard() {
   const [hypeCardFlipped, setHypeCardFlipped] = useState(false);
   const [hypeCardTab, setHypeCardTab] = useState<HypeCardTab>("events");
   const queryClient = useQueryClient();
+  const heroRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(searchString);
     const section = params.get("section") as SectionType;
+    const prevSection = activeSection;
     setActiveSection(section);
+    
+    // Scroll to content when opening a section
+    if (section && !prevSection) {
+      setTimeout(() => {
+        contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+    // Scroll to hero when closing a section
+    if (!section && prevSection) {
+      setTimeout(() => {
+        heroRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
   }, [searchString]);
 
   const { data: teamMembers = [] } = useQuery({
@@ -205,7 +221,7 @@ export default function AthleteDashboard() {
         {/* Main Content */}
         <main className="max-w-5xl mx-auto px-4 py-6">
           {/* Hero Section */}
-          <div className="relative rounded-2xl overflow-hidden mb-8 bg-gradient-to-br from-orange-50 via-white to-orange-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border border-orange-200 dark:border-orange-500/20">
+          <div ref={heroRef} className="relative rounded-2xl overflow-hidden mb-8 bg-gradient-to-br from-orange-50 via-white to-orange-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border border-orange-200 dark:border-orange-500/20">
             {/* Background Pattern Overlay */}
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
             <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
@@ -287,7 +303,7 @@ export default function AthleteDashboard() {
 
           {/* Section Content */}
           {activeSection && (
-            <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div ref={contentRef} className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div className="flex items-center gap-3 mb-4">
                 <Button 
                   variant="ghost" 
