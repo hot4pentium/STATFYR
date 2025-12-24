@@ -467,7 +467,7 @@ export default function LandingPage() {
             <div className="flex items-center justify-center gap-3 mb-6">
               <Flame className="h-12 w-12 text-primary animate-pulse" />
               <h1 className="text-5xl md:text-7xl tracking-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-                STAT<span className="text-orange-500">y</span>R
+                STAT<span className="text-orange-500 text-[18px]">y</span>R
               </h1>
             </div>
           </motion.div>
@@ -542,7 +542,6 @@ export default function LandingPage() {
           </div>
         </motion.div>
       </motion.section>
-
       <section id="features" className="py-24 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
         
@@ -614,7 +613,6 @@ export default function LandingPage() {
           </AnimatePresence>
         </div>
       </section>
-
       <section className="py-24 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-primary/10" />
         
@@ -655,7 +653,6 @@ export default function LandingPage() {
           </motion.div>
         </div>
       </section>
-
       <footer className="py-8 border-t border-white/10">
         <div className="container mx-auto px-6 text-center text-muted-foreground">
           <div className="flex items-center justify-center gap-2 mb-4">
