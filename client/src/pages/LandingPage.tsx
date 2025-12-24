@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import hypeCardImage from "@assets/Screenshot_2025-12-23_at_6.55.26_PM_1766534201003.png";
@@ -421,9 +421,19 @@ const supporterFeatures = [
   }
 ];
 
+const SUPPORTED_SPORTS = ["Baseball", "Basketball", "Football", "Soccer", "Volleyball"];
+
 export default function LandingPage() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<"coaches" | "athletes" | "supporters">("coaches");
+  const [currentSportIndex, setCurrentSportIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSportIndex((prev) => (prev + 1) % SUPPORTED_SPORTS.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   const goToAuth = () => setLocation("/auth");
 
@@ -516,8 +526,20 @@ export default function LandingPage() {
               <div className="text-sm">Game Engagement</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-400">All</div>
-              <div className="text-sm">Sports Supported</div>
+              <div className="text-3xl font-bold text-orange-400 h-10 overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentSportIndex}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {SUPPORTED_SPORTS[currentSportIndex]}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              <div className="text-sm">& More Sports</div>
             </div>
           </motion.div>
         </div>
