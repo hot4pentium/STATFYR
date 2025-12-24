@@ -1380,6 +1380,10 @@ export default function CoachDashboard() {
 
   return (
     <Layout>
+      <OnboardingTour 
+        steps={coachTourSteps} 
+        storageKey="coach-onboarding-completed"
+      />
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
         <div className="space-y-6">
           {/* Hero Banner */}
@@ -1512,6 +1516,7 @@ export default function CoachDashboard() {
                     ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
                     : `border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5`
                 }`}
+                data-testid={`card-${action.id}`}
               >
                 <div className="flex flex-col items-center text-center gap-2">
                   <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">

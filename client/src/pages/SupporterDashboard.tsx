@@ -282,6 +282,39 @@ export default function SupporterDashboard() {
     },
   ];
 
+  const supporterTourSteps: TourStep[] = [
+    {
+      target: '[data-testid="card-schedule"]',
+      title: "Team Schedule",
+      description: "View upcoming games and practices. When a game is live, you'll see a banner to join and cheer!",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-roster"]',
+      title: "Team Roster",
+      description: "See all team members including athletes, coaches, and fellow supporters.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-badges"]',
+      title: "Earn Badges",
+      description: "Cheer at games to earn badges! Tap the button during live games to boost your tap count and unlock special themes.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-highlights"]',
+      title: "Team Highlights",
+      description: "Watch video highlights from games and practices.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-stats"]',
+      title: "Team Stats",
+      description: "View team performance statistics and see how your athletes are doing.",
+      position: "bottom"
+    }
+  ];
+
   const renderContent = () => {
     switch(selectedCard) {
       case "schedule":
@@ -899,6 +932,10 @@ export default function SupporterDashboard() {
 
   return (
     <div className="min-h-screen bg-background relative">
+      <OnboardingTour 
+        steps={supporterTourSteps} 
+        storageKey="supporter-onboarding-completed"
+      />
       <DashboardBackground />
       <header className="h-16 border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-10 px-4 md:px-8 flex items-center justify-between gap-4">
         <h2 className="text-sm md:text-lg font-medium text-muted-foreground">
@@ -1319,6 +1356,7 @@ export default function SupporterDashboard() {
                   ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
                   : `border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5`
               }`}
+              data-testid={`card-${action.id}`}
             >
               <div className="flex flex-col items-center text-center gap-2">
                 <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">

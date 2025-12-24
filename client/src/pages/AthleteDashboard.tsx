@@ -209,8 +209,45 @@ export default function AthleteDashboard() {
     }
   };
 
+  const athleteTourSteps: TourStep[] = [
+    {
+      target: '[data-testid="card-nav-hype-card"]',
+      title: "Your Hype Card",
+      description: "View your personalized player card showcasing your stats, achievements, and upcoming events.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-nav-schedule"]',
+      title: "Team Schedule",
+      description: "Check upcoming practices, games, and team events. Never miss an important date!",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-nav-stats"]',
+      title: "Your Stats",
+      description: "Track your performance statistics and see how you're improving over time.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-nav-highlights"]',
+      title: "Team Highlights",
+      description: "Watch video highlights from games and practices. You can also upload your own!",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-nav-playbook"]',
+      title: "Playbook",
+      description: "Review team plays and strategies created by your coaches.",
+      position: "bottom"
+    }
+  ];
+
   return (
     <>
+      <OnboardingTour 
+        steps={athleteTourSteps} 
+        storageKey="athlete-onboarding-completed"
+      />
       <DashboardBackground />
       <div className="min-h-screen relative z-10">
         {/* Header Bar */}
