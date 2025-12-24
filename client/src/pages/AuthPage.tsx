@@ -181,17 +181,6 @@ export default function AuthPage() {
               STATFyR
             </h1>
           </div>
-          <div className="flex gap-4 pt-4">
-             <div className="flex flex-col">
-                <span className="text-3xl font-display font-bold text-foreground">14</span>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Active Teams</span>
-             </div>
-             <div className="w-px h-12 bg-border mx-2" />
-             <div className="flex flex-col">
-                <span className="text-3xl font-display font-bold text-foreground">320+</span>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Athletes</span>
-             </div>
-          </div>
         </div>
 
         {authMode === "select" && (
