@@ -34,7 +34,7 @@ export default function CoachDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, setCurrentTeam, logout } = useUser();
   const queryClient = useQueryClient();
-  const [selectedCard, setSelectedCard] = useState<string | null>("schedule");
+  const [selectedCard, setSelectedCard] = useState<string | null>("events");
   const [codeCopied, setCodeCopied] = useState(false);
   const [rosterTab, setRosterTab] = useState<"all" | "athletes" | "coach" | "supporters">("all");
   const contentRef = useRef<HTMLDivElement>(null);
