@@ -533,29 +533,30 @@ export default function LandingPage() {
         </motion.div>
       </motion.section>
 
-      {/* Graphic Section Divider - Flame Pattern */}
-      <div className="relative h-20 overflow-hidden">
+      {/* Graphic Section Divider - Chevron Pattern */}
+      <div className="relative h-16 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-black to-zinc-900" />
-        <div className="absolute inset-x-0 bottom-0 flex justify-center items-end">
-          <div className="flex gap-1 items-end">
-            {[...Array(25)].map((_, i) => {
-              const heights = [16, 24, 32, 40, 48, 56, 48, 40, 32, 24, 16, 20, 28, 36, 44, 52, 44, 36, 28, 20, 16, 22, 30, 38, 16];
-              const delays = [0, 0.1, 0.2, 0.15, 0.05, 0.25, 0.1, 0.2, 0.15, 0.05, 0.3, 0.1, 0.2, 0.15, 0.05, 0.25, 0.1, 0.2, 0.15, 0.05, 0.15, 0.25, 0.1, 0.2, 0];
-              return (
-                <div
-                  key={i}
-                  className="w-3 md:w-5 rounded-t-full bg-gradient-to-t from-orange-600 via-orange-500 to-yellow-400 animate-pulse"
-                  style={{ 
-                    height: `${heights[i]}px`,
-                    animationDelay: `${delays[i]}s`,
-                    opacity: 0.6 + (heights[i] / 100)
-                  }}
-                />
-              );
-            })}
-          </div>
+        <svg 
+          className="absolute inset-0 w-full h-full" 
+          viewBox="0 0 100 100" 
+          preserveAspectRatio="none"
+        >
+          <polygon 
+            points="0,100 50,60 100,100" 
+            className="fill-zinc-900"
+          />
+          <polygon 
+            points="0,100 50,70 100,100" 
+            className="fill-orange-500/20"
+          />
+          <polygon 
+            points="0,100 50,80 100,100" 
+            className="fill-orange-500/10"
+          />
+        </svg>
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
+          <div className="w-16 h-1 rounded-full bg-gradient-to-r from-orange-500/50 via-orange-500 to-orange-500/50 shadow-lg shadow-orange-500/50" />
         </div>
-        <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
       </div>
 
       <section id="features" className="py-24 relative">
