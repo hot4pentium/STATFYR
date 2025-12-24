@@ -521,9 +521,15 @@ export default function LandingPage() {
             </div>
           </motion.div>
         </div>
+      </motion.section>
+
+      {/* Graphic Section Divider - Chevron Pattern */}
+      <div className="relative h-32 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-black to-zinc-900" />
         
+        {/* Scroll Indicator */}
         <motion.div 
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          className="absolute top-4 left-1/2 -translate-x-1/2 z-10"
           animate={{ y: [0, 10, 0] }}
           transition={{ repeat: Infinity, duration: 2 }}
         >
@@ -531,11 +537,6 @@ export default function LandingPage() {
             <div className="w-1.5 h-3 bg-muted-foreground/50 rounded-full" />
           </div>
         </motion.div>
-      </motion.section>
-
-      {/* Graphic Section Divider - Chevron Pattern */}
-      <div className="relative h-28 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-black to-zinc-900" />
         <svg 
           className="absolute inset-0 w-full h-full" 
           viewBox="0 0 100 100" 
