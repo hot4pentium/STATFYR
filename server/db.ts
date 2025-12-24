@@ -36,7 +36,7 @@ const databaseUrl = getDatabaseUrl();
 
 export const pool = new Pool({ 
   connectionString: databaseUrl,
-  connectionTimeoutMillis: 15000,
+  connectionTimeoutMillis: 30000,
   idleTimeoutMillis: 30000,
   max: 10,
 });
@@ -53,8 +53,8 @@ async function sleep(ms: number): Promise<void> {
 
 export async function withRetry<T>(
   operation: () => Promise<T>,
-  maxRetries: number = 2,
-  baseDelay: number = 500
+  maxRetries: number = 3,
+  baseDelay: number = 1000
 ): Promise<T> {
   let lastError: Error | null = null;
   
