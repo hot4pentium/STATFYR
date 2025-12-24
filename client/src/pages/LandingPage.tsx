@@ -472,15 +472,6 @@ export default function LandingPage() {
             </div>
           </motion.div>
           
-          <motion.h2 
-            className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white via-primary to-accent bg-clip-text text-transparent"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            Fuel Your Team's Fire
-          </motion.h2>
-          
           <motion.p 
             className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-8"
             initial={{ opacity: 0, y: 30 }}
