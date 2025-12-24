@@ -540,7 +540,6 @@ export default function LandingPage() {
                   </motion.div>
                 </AnimatePresence>
               </div>
-              <div className="text-sm">& More Sports</div>
             </div>
           </motion.div>
         </div>
