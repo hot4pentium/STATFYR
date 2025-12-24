@@ -64,39 +64,34 @@ function PlaymakerSection() {
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: 0.5 }}
     >
-      <Card className="h-full bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-white/10 hover:border-white/30 transition-all hover:scale-105 hover:shadow-xl overflow-hidden">
-        <CardContent className="p-0 h-full">
-          <div className="bg-slate-900 p-3 h-full min-h-[180px] relative">
-            <div className="absolute left-2 top-2 bottom-2 w-8 bg-slate-800 rounded-lg flex flex-col items-center gap-2 py-2">
-              <div className="w-4 h-4 rounded bg-purple-500/50" />
-              <div className="w-4 h-4 rounded-full bg-blue-500/50" />
-              <div className="w-4 h-1 bg-green-500/50" />
-              <div className="w-4 h-4 border-2 border-yellow-500/50 rounded" />
-              <div className="w-4 h-4 border-2 border-red-500/50 rounded-full" />
+      <Card className="h-full bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-white/10 hover:border-purple-500/30 transition-all hover:shadow-xl overflow-hidden">
+        <CardContent className="p-3 h-full">
+          <div className="h-full min-h-[140px] relative flex">
+            <div className="w-7 bg-slate-800 rounded flex flex-col items-center gap-1.5 py-2 shrink-0">
+              <div className="w-3 h-3 rounded bg-purple-500/50" />
+              <div className="w-3 h-3 rounded-full bg-blue-500/50" />
+              <div className="w-3 h-0.5 bg-green-500/50" />
+              <div className="w-3 h-3 border border-yellow-500/50 rounded" />
+              <div className="w-3 h-3 border border-red-500/50 rounded-full" />
             </div>
-            <div className="ml-10 h-full border-2 border-dashed border-white/20 rounded-lg relative bg-slate-900/50">
-              <svg className="w-full h-full" viewBox="0 0 200 120">
-                <circle cx="50" cy="60" r="12" fill="#3b82f6" opacity="0.8" />
-                <text x="50" y="64" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">1</text>
-                <circle cx="90" cy="35" r="12" fill="#3b82f6" opacity="0.8" />
-                <text x="90" y="39" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">2</text>
-                <circle cx="90" cy="85" r="12" fill="#3b82f6" opacity="0.8" />
-                <text x="90" y="89" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">3</text>
-                <circle cx="150" cy="60" r="12" fill="#ef4444" opacity="0.8" />
-                <circle cx="170" cy="30" r="12" fill="#ef4444" opacity="0.8" />
-                <path d="M62 55 L78 40" stroke="#22c55e" strokeWidth="3" strokeDasharray="6" fill="none" />
-                <path d="M102 85 L138 65" stroke="#22c55e" strokeWidth="3" fill="none" markerEnd="url(#arrowGreen)" />
+            <div className="flex-1 ml-2 border border-dashed border-white/20 rounded relative bg-slate-900/50">
+              <svg className="w-full h-full" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid meet">
+                <circle cx="40" cy="50" r="10" fill="#3b82f6" opacity="0.8" />
+                <text x="40" y="54" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">1</text>
+                <circle cx="70" cy="28" r="10" fill="#3b82f6" opacity="0.8" />
+                <text x="70" y="32" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">2</text>
+                <circle cx="70" cy="72" r="10" fill="#3b82f6" opacity="0.8" />
+                <text x="70" y="76" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">3</text>
+                <circle cx="120" cy="50" r="10" fill="#ef4444" opacity="0.8" />
+                <circle cx="135" cy="25" r="10" fill="#ef4444" opacity="0.8" />
+                <path d="M50 45 L62 33" stroke="#22c55e" strokeWidth="2" strokeDasharray="4" fill="none" />
+                <path d="M80 72 L108 55" stroke="#22c55e" strokeWidth="2" fill="none" markerEnd="url(#arrowGreen2)" />
                 <defs>
-                  <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-                    <path d="M0,0 L8,4 L0,8 Z" fill="#22c55e" />
+                  <marker id="arrowGreen2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                    <path d="M0,0 L6,3 L0,6 Z" fill="#22c55e" />
                   </marker>
                 </defs>
               </svg>
-            </div>
-            <div className="absolute bottom-2 right-2 flex gap-1">
-              <span className="px-2 py-0.5 bg-purple-500/30 rounded text-[10px] text-purple-300">Offense</span>
-              <span className="px-2 py-0.5 bg-blue-500/30 rounded text-[10px] text-blue-300">Defense</span>
-              <span className="px-2 py-0.5 bg-green-500/30 rounded text-[10px] text-green-300">Special</span>
             </div>
           </div>
         </CardContent>
