@@ -59,7 +59,7 @@ function FeatureCard({ icon, title, description, color, delay = 0 }: FeatureCard
 function PlaymakerSection() {
   return (
     <motion.div 
-      className="mt-12 max-w-4xl mx-auto"
+      className="mt-12 col-span-full"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -67,13 +67,13 @@ function PlaymakerSection() {
     >
       <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-white/10 overflow-hidden">
         <CardContent className="p-0">
-          <div className="grid md:grid-cols-2 gap-0">
-            <div className="p-8 flex flex-col justify-center">
+          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-0">
+            <div className="p-6 lg:p-8 flex flex-col justify-center lg:col-span-2">
               <div className="mb-4 p-3 rounded-xl bg-white/10 w-fit">
                 <ClipboardList className="h-8 w-8 text-purple-400" />
               </div>
               <h3 className="text-2xl font-bold mb-3">PlayMaker</h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-muted-foreground mb-4 text-sm lg:text-base">
                 Draw and design plays with our interactive canvas. Drag player icons, draw arrows, and save plays to share with your team.
               </p>
               <div className="flex gap-2 flex-wrap">
@@ -82,7 +82,7 @@ function PlaymakerSection() {
                 <span className="px-3 py-1 bg-green-500/20 rounded-full text-xs text-green-300">Special</span>
               </div>
             </div>
-            <div className="bg-slate-900 p-4 min-h-[200px] relative">
+            <div className="bg-slate-900 p-4 min-h-[180px] lg:min-h-[160px] relative lg:col-span-3">
               <div className="absolute left-3 top-3 bottom-3 w-10 bg-slate-800 rounded-lg flex flex-col items-center gap-3 py-3">
                 <div className="w-5 h-5 rounded bg-purple-500/50 cursor-pointer hover:bg-purple-500/70" />
                 <div className="w-5 h-5 rounded-full bg-blue-500/50 cursor-pointer hover:bg-blue-500/70" />
