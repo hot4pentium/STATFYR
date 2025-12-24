@@ -1,4 +1,3 @@
-import darkBgImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import lightBgImage from '@assets/white-honeycomb_1766286409745.png';
 
 export function DashboardBackground() {
@@ -12,15 +11,10 @@ export function DashboardBackground() {
           backgroundPosition: 'center',
         }}
       />
-      <div 
-        className="fixed inset-0 z-0 opacity-0 dark:opacity-20 pointer-events-none"
-        style={{
-          backgroundImage: `url(${darkBgImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      />
-      <div className="fixed inset-0 z-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 dark:opacity-100 pointer-events-none" />
+      <div className="fixed inset-0 z-0 opacity-0 dark:opacity-100 pointer-events-none bg-gradient-to-br from-black via-zinc-900 to-black" />
+      <div className="fixed inset-0 z-0 opacity-0 dark:opacity-100 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] dark:opacity-5" />
+      <div className="fixed -top-40 -right-40 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl opacity-0 dark:opacity-100 pointer-events-none" />
+      <div className="fixed -bottom-40 -left-40 w-96 h-96 bg-red-500/10 rounded-full blur-3xl opacity-0 dark:opacity-100 pointer-events-none" />
     </>
   );
 }
