@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap } from "lucide-react";
+import { OnboardingTour, type TourStep } from "@/components/OnboardingTour";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";

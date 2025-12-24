@@ -2,6 +2,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, Activity, Radio } from "lucide-react";
+import { OnboardingTour, type TourStep } from "@/components/OnboardingTour";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
@@ -519,6 +520,39 @@ export default function CoachDashboard() {
       color: "from-pink-500/20 to-pink-600/20",
       description: "Messages"
     },
+  ];
+
+  const coachTourSteps: TourStep[] = [
+    {
+      target: '[data-testid="card-roster"]',
+      title: "Team Roster",
+      description: "Manage your team members, assign jersey numbers, and set positions. Athletes and supporters can join using your team code.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-schedule"]',
+      title: "Schedule & Events",
+      description: "Create and manage practices, games, and team events. Set locations, times, and assign snack duties.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-stattracker"]',
+      title: "StatTracker",
+      description: "Track live game statistics for your athletes. Record plays, manage lineups, and monitor performance in real-time.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-playmaker"]',
+      title: "PlayMaker",
+      description: "Design custom plays with our canvas tool. Draw formations, add player icons, and save plays to your playbook.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-highlights"]',
+      title: "Team Highlights",
+      description: "Upload and share video highlights of great plays and memorable moments with your team.",
+      position: "bottom"
+    }
   ];
 
   const renderContent = () => {

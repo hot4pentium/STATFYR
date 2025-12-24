@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, Copy, Check, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2 } from "lucide-react";
+import { OnboardingTour, type TourStep } from "@/components/OnboardingTour";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
 import { useState, useEffect, useMemo, useRef } from "react";

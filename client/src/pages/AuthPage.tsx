@@ -181,10 +181,6 @@ export default function AuthPage() {
               STATFyR
             </h1>
           </div>
-          <p className="text-xl text-muted-foreground leading-relaxed">
-            The elite performance management platform for modern sports teams. 
-            Connect coaches, athletes, and supporters in one unified ecosystem.
-          </p>
           <div className="flex gap-4 pt-4">
              <div className="flex flex-col">
                 <span className="text-3xl font-display font-bold text-foreground">14</span>
