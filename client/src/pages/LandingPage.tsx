@@ -467,7 +467,7 @@ export default function LandingPage() {
             <div className="flex items-center justify-center gap-3 mb-6">
               <Flame className="h-12 w-12 text-primary animate-pulse" />
               <h1 className="text-5xl md:text-7xl tracking-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-                STAT<span className="text-orange-500 text-[18px]">y</span>R
+                STAT<span className="text-orange-500 text-[37px]">y</span>R
               </h1>
             </div>
           </motion.div>
