@@ -29,7 +29,7 @@ export default function SupporterDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, logout } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
-  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [selectedCard, setSelectedCard] = useState<string | null>("schedule");
   const contentRef = useRef<HTMLDivElement>(null);
   const heroBannerRef = useRef<HTMLDivElement>(null);
   const [selectedAthlete, setSelectedAthlete] = useState<TeamMember | null>(null);

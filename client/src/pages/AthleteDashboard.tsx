@@ -29,7 +29,7 @@ export default function AthleteDashboard() {
   const { updateAvailable, applyUpdate } = usePWA();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [activeSection, setActiveSection] = useState<SectionType>(null);
+  const [activeSection, setActiveSection] = useState<SectionType>("schedule");
   const [hypeCardFlipped, setHypeCardFlipped] = useState(false);
   const [hypeCardTab, setHypeCardTab] = useState<HypeCardTab>("events");
   const queryClient = useQueryClient();
