@@ -36,7 +36,7 @@ const databaseUrl = getDatabaseUrl();
 
 export const pool = new Pool({ 
   connectionString: databaseUrl,
-  connectionTimeoutMillis: 30000,
+  connectionTimeoutMillis: 60000,
   idleTimeoutMillis: 30000,
   max: 10,
 });
@@ -53,8 +53,8 @@ async function sleep(ms: number): Promise<void> {
 
 export async function withRetry<T>(
   operation: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelay: number = 1000
+  maxRetries: number = 4,
+  baseDelay: number = 2000
 ): Promise<T> {
   let lastError: Error | null = null;
   
@@ -90,7 +90,7 @@ export async function warmupDatabase(): Promise<void> {
       const client = await pool.connect();
       await client.query('SELECT 1');
       client.release();
-    }, 2, 500);
+    }, 5, 3000);
     const duration = Date.now() - startTime;
     console.log(`Database connection warm-up complete (${duration}ms)`);
   } catch (err) {
