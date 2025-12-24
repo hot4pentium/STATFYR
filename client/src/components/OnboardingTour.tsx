@@ -11,24 +11,40 @@ export interface TourStep {
   position?: "top" | "bottom" | "left" | "right";
 }
 
+export interface WelcomeModal {
+  title: string;
+  subtitle?: string;
+  description: string;
+  buttonText?: string;
+  icon?: React.ReactNode;
+}
+
 interface OnboardingTourProps {
   steps: TourStep[];
   storageKey: string;
+  welcomeModal?: WelcomeModal;
   onComplete?: () => void;
 }
 
-export function OnboardingTour({ steps, storageKey, onComplete }: OnboardingTourProps) {
+export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: OnboardingTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
     const hasCompleted = localStorage.getItem(storageKey);
     if (!hasCompleted && steps.length > 0) {
-      const timer = setTimeout(() => setIsVisible(true), 1000);
+      const timer = setTimeout(() => {
+        if (welcomeModal) {
+          setShowWelcome(true);
+        } else {
+          setIsVisible(true);
+        }
+      }, 800);
       return () => clearTimeout(timer);
     }
-  }, [storageKey, steps.length]);
+  }, [storageKey, steps.length, welcomeModal]);
 
   const updateTargetPosition = useCallback(() => {
     if (!isVisible || currentStep >= steps.length) return;
@@ -75,8 +91,81 @@ export function OnboardingTour({ steps, storageKey, onComplete }: OnboardingTour
   const handleComplete = () => {
     localStorage.setItem(storageKey, "true");
     setIsVisible(false);
+    setShowWelcome(false);
     onComplete?.();
   };
+
+  const handleStartTour = () => {
+    setShowWelcome(false);
+    setIsVisible(true);
+  };
+
+  if (showWelcome && welcomeModal) {
+    return (
+      <AnimatePresence>
+        <motion.div
+          className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: "spring", duration: 0.5 }}
+          >
+            <Card className="w-full max-w-md bg-gradient-to-br from-card via-card to-orange-500/5 border-orange-500/30 shadow-2xl shadow-orange-500/20">
+              <CardContent className="p-8 text-center">
+                <div className="mb-6">
+                  {welcomeModal.icon || (
+                    <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 flex items-center justify-center border-2 border-orange-500/40">
+                      <Sparkles className="h-10 w-10 text-orange-500" />
+                    </div>
+                  )}
+                </div>
+                
+                <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-orange-500 bg-clip-text text-transparent">
+                  {welcomeModal.title}
+                </h2>
+                
+                {welcomeModal.subtitle && (
+                  <p className="text-lg text-orange-500 font-medium mb-4">
+                    {welcomeModal.subtitle}
+                  </p>
+                )}
+                
+                <p className="text-muted-foreground mb-8 leading-relaxed">
+                  {welcomeModal.description}
+                </p>
+                
+                <div className="flex flex-col gap-3">
+                  <Button
+                    size="lg"
+                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold"
+                    onClick={handleStartTour}
+                    data-testid="button-start-tour"
+                  >
+                    {welcomeModal.buttonText || "Show Me Around"}
+                    <ChevronRight className="ml-2 h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={handleComplete}
+                    data-testid="button-skip-welcome"
+                  >
+                    I'll explore on my own
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
 
   if (!isVisible || steps.length === 0) return null;
 

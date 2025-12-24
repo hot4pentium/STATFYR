@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, Copy, Check, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2 } from "lucide-react";
-import { OnboardingTour, type TourStep } from "@/components/OnboardingTour";
+import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -209,35 +209,48 @@ export default function AthleteDashboard() {
     }
   };
 
+  const athleteWelcomeModal: WelcomeModal = {
+    title: "Welcome, Athlete!",
+    subtitle: `You're part of ${currentTeam?.name || "the team"}`,
+    description: "You're all set up and ready to go! Let us show you around so you can make the most of your dashboard.",
+    buttonText: "Let's Go!"
+  };
+
   const athleteTourSteps: TourStep[] = [
     {
-      target: '[data-testid="card-nav-hype-card"]',
-      title: "Your Hype Card",
-      description: "View your personalized player card showcasing your stats, achievements, and upcoming events.",
+      target: '[data-testid="card-nav-schedule"]',
+      title: "Stay Up to Date",
+      description: "Check the schedule regularly to stay informed about upcoming practices, games, and team events. Never miss an important moment!",
       position: "bottom"
     },
     {
-      target: '[data-testid="card-nav-schedule"]',
-      title: "Team Schedule",
-      description: "Check upcoming practices, games, and team events. Never miss an important date!",
+      target: '[data-testid="card-nav-playbook"]',
+      title: "Study the Playbook",
+      description: "Your coaches design plays here. Check back often to review new strategies and make sure you know your assignments!",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-nav-hype-card"]',
+      title: "Your Hype Card",
+      description: "This is YOUR spotlight! Return often to see your latest accomplishments, stats, and shoutouts from supporters.",
       position: "bottom"
     },
     {
       target: '[data-testid="card-nav-stats"]',
-      title: "Your Stats",
-      description: "Track your performance statistics and see how you're improving over time.",
+      title: "Track Your Progress",
+      description: "View your performance statistics and watch your improvement over time. Every game counts!",
       position: "bottom"
     },
     {
       target: '[data-testid="card-nav-highlights"]',
       title: "Team Highlights",
-      description: "Watch video highlights from games and practices. You can also upload your own!",
+      description: "Watch video highlights from games and practices. You can even upload your own best moments!",
       position: "bottom"
     },
     {
-      target: '[data-testid="card-nav-playbook"]',
-      title: "Playbook",
-      description: "Review team plays and strategies created by your coaches.",
+      target: '[data-testid="button-settings"]',
+      title: "Personalize Your Profile",
+      description: "Head to Settings to update your avatar and name. Make your profile stand out!",
       position: "bottom"
     }
   ];
@@ -247,6 +260,7 @@ export default function AthleteDashboard() {
       <OnboardingTour 
         steps={athleteTourSteps} 
         storageKey="athlete-onboarding-completed"
+        welcomeModal={athleteWelcomeModal}
       />
       <DashboardBackground />
       <div className="min-h-screen relative z-10">
