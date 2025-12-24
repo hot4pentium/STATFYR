@@ -532,8 +532,30 @@ export default function LandingPage() {
           </div>
         </motion.div>
       </motion.section>
+
+      {/* Graphic Section Divider */}
+      <div className="relative h-24 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-black to-zinc-900" />
+        <svg 
+          className="absolute bottom-0 w-full h-16" 
+          viewBox="0 0 1440 64" 
+          preserveAspectRatio="none"
+          fill="none"
+        >
+          <path 
+            d="M0 32L48 37.3C96 43 192 53 288 53.3C384 53 480 43 576 37.3C672 32 768 32 864 37.3C960 43 1056 53 1152 53.3C1248 53 1344 43 1392 37.3L1440 32V64H1392C1344 64 1248 64 1152 64C1056 64 960 64 864 64C768 64 672 64 576 64C480 64 384 64 288 64C192 64 96 64 48 64H0V32Z" 
+            className="fill-orange-500/20"
+          />
+          <path 
+            d="M0 48L48 50.7C96 53 192 59 288 58.7C384 59 480 53 576 50.7C672 48 768 48 864 50.7C960 53 1056 59 1152 58.7C1248 59 1344 53 1392 50.7L1440 48V64H1392C1344 64 1248 64 1152 64C1056 64 960 64 864 64C768 64 672 64 576 64C480 64 384 64 288 64C192 64 96 64 48 64H0V48Z" 
+            className="fill-orange-500/30"
+          />
+        </svg>
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
+      </div>
+
       <section id="features" className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-900/50 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900 via-zinc-900/50 to-black" />
         
         <div className="relative z-10 container mx-auto px-6">
           <motion.div 
