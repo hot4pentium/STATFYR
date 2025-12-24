@@ -178,6 +178,118 @@ function GameDayLiveSection() {
   );
 }
 
+function HypeCardBackMockup() {
+  return (
+    <div className="w-[180px] h-[280px] bg-gradient-to-b from-slate-900 to-slate-950 rounded-xl border border-blue-500/30 p-3 flex flex-col gap-2 shadow-2xl">
+      <div className="grid grid-cols-2 gap-2 flex-1">
+        <div className="bg-slate-800/80 rounded-lg p-2">
+          <div className="text-[10px] font-bold text-green-400 mb-1">EVENTS</div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+              <span className="text-[8px] text-white">vs Lions</span>
+              <span className="text-[7px] text-muted-foreground ml-auto">Dec 28</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <span className="text-[8px] text-white">@ Eagles</span>
+              <span className="text-[7px] text-muted-foreground ml-auto">Jan 4</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+              <span className="text-[8px] text-white">Practice</span>
+              <span className="text-[7px] text-muted-foreground ml-auto">Jan 6</span>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-800/80 rounded-lg p-2">
+          <div className="text-[10px] font-bold text-blue-400 mb-1">STATS</div>
+          <div className="space-y-1.5">
+            <div>
+              <div className="flex justify-between text-[8px]">
+                <span className="text-white">Kills</span>
+                <span className="text-green-400 font-bold">47</span>
+              </div>
+              <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full" style={{ width: '85%' }} />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-[8px]">
+                <span className="text-white">Digs</span>
+                <span className="text-yellow-400 font-bold">32</span>
+              </div>
+              <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-yellow-500 to-yellow-400 rounded-full" style={{ width: '60%' }} />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-[8px]">
+                <span className="text-white">Aces</span>
+                <span className="text-cyan-400 font-bold">12</span>
+              </div>
+              <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full" style={{ width: '35%' }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 flex-1">
+        <div className="bg-slate-800/80 rounded-lg p-2">
+          <div className="text-[10px] font-bold text-yellow-400 mb-1">HIGHLIGHTS</div>
+          <div className="grid grid-cols-2 gap-1">
+            <div className="aspect-video bg-slate-700 rounded overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 to-red-500/30" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-3 h-3 rounded-full bg-white/80 flex items-center justify-center">
+                  <div className="w-0 h-0 border-l-[4px] border-l-slate-900 border-y-[2px] border-y-transparent ml-0.5" />
+                </div>
+              </div>
+            </div>
+            <div className="aspect-video bg-slate-700 rounded overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-purple-500/30" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-3 h-3 rounded-full bg-white/80 flex items-center justify-center">
+                  <div className="w-0 h-0 border-l-[4px] border-l-slate-900 border-y-[2px] border-y-transparent ml-0.5" />
+                </div>
+              </div>
+            </div>
+            <div className="aspect-video bg-slate-700 rounded overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/30 to-cyan-500/30" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-3 h-3 rounded-full bg-white/80 flex items-center justify-center">
+                  <div className="w-0 h-0 border-l-[4px] border-l-slate-900 border-y-[2px] border-y-transparent ml-0.5" />
+                </div>
+              </div>
+            </div>
+            <div className="aspect-video bg-slate-700 rounded overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/30 to-orange-500/30" />
+              <div className="absolute inset-0 flex items-center justify-center text-[8px] text-white/70">+5</div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-800/80 rounded-lg p-2">
+          <div className="text-[10px] font-bold text-red-400 mb-1">SHOUTOUTS</div>
+          <div className="space-y-1">
+            <div className="text-[8px] italic text-white/80">"Great hustle!"</div>
+            <div className="text-[7px] text-muted-foreground">— Coach</div>
+            <div className="flex gap-1 mt-1">
+              <span className="text-[10px]">🔥</span>
+              <span className="text-[10px]">💪</span>
+              <span className="text-[10px]">⭐</span>
+              <span className="text-[8px] text-muted-foreground">+12</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="text-center text-[8px] text-muted-foreground border-t border-white/10 pt-1">
+        TAP TO FLIP
+      </div>
+    </div>
+  );
+}
+
 function HypeCardSection() {
   return (
     <motion.div 
@@ -196,7 +308,7 @@ function HypeCardSection() {
               </div>
               <h3 className="text-2xl font-bold mb-3">Hype Card</h3>
               <p className="text-muted-foreground mb-4">
-                See your fan stats at a glance! Track your total taps, shoutouts sent, and badge progress throughout the season.
+                Your athlete profile that flips! Front shows your photo and team info, back reveals stats, upcoming events, highlights, and shoutouts from fans.
               </p>
               <div className="flex gap-2 flex-wrap">
                 <span className="px-3 py-1 bg-amber-700/30 rounded-full text-xs text-amber-300 border border-amber-500/30">🥉 Bronze</span>
@@ -205,12 +317,13 @@ function HypeCardSection() {
                 <span className="px-3 py-1 bg-purple-500/20 rounded-full text-xs text-purple-300 border border-purple-500/30">👑 Legend</span>
               </div>
             </div>
-            <div className="bg-gradient-to-b from-slate-900 to-slate-800 p-4 min-h-[200px] flex items-center justify-center">
+            <div className="bg-gradient-to-b from-slate-900 to-slate-800 p-4 min-h-[200px] flex items-center justify-center gap-4">
               <img 
                 src={hypeCardImage} 
-                alt="Hype Card Example - Kim Allen #30 Setter" 
+                alt="Hype Card Front - Kim Allen #30 Setter" 
                 className="h-[280px] w-auto rounded-xl shadow-2xl border border-white/10"
               />
+              <HypeCardBackMockup />
             </div>
           </div>
         </CardContent>
