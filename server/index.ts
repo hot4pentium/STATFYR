@@ -62,7 +62,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  await warmupDatabase();
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -96,6 +95,10 @@ app.use((req, res, next) => {
     },
     () => {
       log(`serving on port ${port}`);
+      // Warm up database connection asynchronously after server starts
+      warmupDatabase().catch(err => {
+        console.error('Background database warmup failed:', err);
+      });
     },
   );
 })();
