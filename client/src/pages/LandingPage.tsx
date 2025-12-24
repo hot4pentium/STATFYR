@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import hypeCardImage from "@assets/Screenshot_2025-12-23_at_6.55.26_PM_1766534201003.png";
+import logoImage from "@assets/red_logo-removebg-preview_1766535816909.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -465,7 +466,7 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <div className="flex items-center justify-center gap-3 mb-6">
-              <Flame className="h-12 w-12 text-primary animate-pulse" />
+              <img src={logoImage} alt="STATyR Logo" className="h-16 w-16" />
               <h1 className="text-5xl md:text-7xl tracking-tight" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
                 STAT<span className="text-orange-500">y</span>R
               </h1>
@@ -656,8 +657,8 @@ export default function LandingPage() {
       <footer className="py-8 border-t border-white/10">
         <div className="container mx-auto px-6 text-center text-muted-foreground">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Flame className="h-5 w-5 text-primary" />
-            <span className="font-bold">STATFyR</span>
+            <img src={logoImage} alt="STATyR Logo" className="h-6 w-6" />
+            <span className="font-bold" style={{ fontFamily: "'Archivo Black', sans-serif" }}>STAT<span className="text-orange-500">y</span>R</span>
           </div>
           <p className="text-sm">
             &copy; {new Date().getFullYear()} STATFyR. Fuel Your Team's Fire.
