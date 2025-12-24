@@ -934,7 +934,7 @@ export default function SupporterDashboard() {
     <div className="min-h-screen bg-background relative">
       <OnboardingTour 
         steps={supporterTourSteps} 
-        storageKey="supporter-onboarding-completed"
+        storageKey={`supporter-onboarding-completed-${user?.id}`}
       />
       <DashboardBackground />
       <header className="h-16 border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-10 px-4 md:px-8 flex items-center justify-between gap-4">

@@ -250,7 +250,7 @@ export default function AthleteDashboard() {
     <>
       <OnboardingTour 
         steps={athleteTourSteps} 
-        storageKey="athlete-onboarding-completed"
+        storageKey={`athlete-onboarding-completed-${user?.id}`}
         welcomeModal={athleteWelcomeModal}
       />
       <DashboardBackground />
