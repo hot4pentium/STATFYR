@@ -526,20 +526,18 @@ export default function LandingPage() {
               <div className="text-sm">Game Engagement</div>
             </div>
             <div className="text-center w-32">
-              <div className="text-2xl font-bold text-orange-400 h-10 overflow-hidden relative">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentSportIndex}
-                    className="absolute inset-0 flex items-center justify-center"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.5 }}
+              <div className="text-2xl font-bold text-orange-400 h-10 flex items-center justify-center relative">
+                {SUPPORTED_SPORTS.map((sport, index) => (
+                  <span
+                    key={sport}
+                    className="absolute transition-opacity duration-700 ease-in-out"
+                    style={{ opacity: index === currentSportIndex ? 1 : 0 }}
                   >
-                    {SUPPORTED_SPORTS[currentSportIndex]}
-                  </motion.div>
-                </AnimatePresence>
+                    {sport}
+                  </span>
+                ))}
               </div>
+              <div className="text-sm">Sports Supported</div>
             </div>
           </motion.div>
         </div>
