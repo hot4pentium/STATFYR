@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { withRetry } from "./db";
 import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
@@ -22,15 +23,16 @@ export async function registerRoutes(
     try {
       const parsed = insertUserSchema.parse(req.body);
       
-      // Check if username already exists
-      const existingUsername = await storage.getUserByUsername(parsed.username);
+      // Check if username already exists (with retry for db wake-up)
+      const existingUsername = await withRetry(() => storage.getUserByUsername(parsed.username));
       if (existingUsername) {
         return res.status(400).json({ error: "Username already exists" });
       }
       
-      // Check if email already exists
+      // Check if email already exists (with retry for db wake-up)
       if (parsed.email) {
-        const existingEmail = await storage.getUserByEmail(parsed.email);
+        const email = parsed.email;
+        const existingEmail = await withRetry(() => storage.getUserByEmail(email));
         if (existingEmail) {
           return res.status(400).json({ error: "Email already exists" });
         }
@@ -38,7 +40,7 @@ export async function registerRoutes(
       
       // Hash the password before storing
       const hashedPassword = await bcrypt.hash(parsed.password, SALT_ROUNDS);
-      const user = await storage.createUser({ ...parsed, password: hashedPassword });
+      const user = await withRetry(() => storage.createUser({ ...parsed, password: hashedPassword }));
       const { password, ...safeUser } = user;
       res.json(safeUser);
     } catch (error: any) {
@@ -55,10 +57,10 @@ export async function registerRoutes(
     try {
       const { username, password } = req.body;
       
-      // Try to find user by email first, then by username
-      let user = await storage.getUserByEmail(username);
+      // Try to find user by email first, then by username (with retry for db wake-up)
+      let user = await withRetry(() => storage.getUserByEmail(username));
       if (!user) {
-        user = await storage.getUserByUsername(username);
+        user = await withRetry(() => storage.getUserByUsername(username));
       }
       
       if (!user) {
