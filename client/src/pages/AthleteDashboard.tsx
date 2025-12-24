@@ -105,7 +105,7 @@ export default function AthleteDashboard() {
     queryKey: ["/api/athletes", user?.id, "shoutouts"],
     queryFn: () => user ? getAthleteShoutouts(user.id, 20) : Promise.resolve([]),
     enabled: !!user && (activeSection === "hype-card" || hypeCardTab === "shoutouts"),
-    refetchInterval: 10000,
+    refetchInterval: 3000,
   });
 
   const { data: shoutoutCount = 0 } = useQuery({

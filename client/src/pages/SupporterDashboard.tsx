@@ -64,7 +64,7 @@ export default function SupporterDashboard() {
     queryKey: ["/api/teams", currentTeam?.id, "highlights", "all"],
     queryFn: () => currentTeam ? getAllTeamHighlights(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
-    refetchInterval: 10000,
+    refetchInterval: 3000,
   });
 
   const { data: teamPlays = [] } = useQuery({
@@ -112,7 +112,7 @@ export default function SupporterDashboard() {
     queryKey: ["/api/teams", currentTeam?.id, "live-sessions", "active"],
     queryFn: () => currentTeam ? getActiveLiveSessions(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
-    refetchInterval: 10000,
+    refetchInterval: 3000,
   });
 
   // Check and auto-start/end sessions on load
