@@ -526,7 +526,7 @@ export default function LandingPage() {
               <div className="text-sm">Game Engagement</div>
             </div>
             <div className="text-center w-32">
-              <div className="text-3xl font-bold text-orange-400 h-10 overflow-hidden relative">
+              <div className="text-2xl font-bold text-orange-400 h-10 overflow-hidden relative">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentSportIndex}
