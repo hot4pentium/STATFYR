@@ -2,7 +2,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, Activity, Radio } from "lucide-react";
-import { OnboardingTour, type TourStep } from "@/components/OnboardingTour";
+import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
@@ -521,6 +521,13 @@ export default function CoachDashboard() {
       description: "Messages"
     },
   ];
+
+  const coachWelcomeModal: WelcomeModal = {
+    title: "Welcome, Coach!",
+    subtitle: `Ready to lead ${currentTeam?.name || "your team"}`,
+    description: "Your command center is all set up! Let us give you a quick tour so you can start managing your team like a pro.",
+    buttonText: "Show Me Around"
+  };
 
   const coachTourSteps: TourStep[] = [
     {
@@ -1383,6 +1390,7 @@ export default function CoachDashboard() {
       <OnboardingTour 
         steps={coachTourSteps} 
         storageKey={`coach-onboarding-completed-${user?.id}`}
+        welcomeModal={coachWelcomeModal}
       />
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
         <div className="space-y-6">

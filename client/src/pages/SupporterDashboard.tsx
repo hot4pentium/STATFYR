@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap } from "lucide-react";
-import { OnboardingTour, type TourStep } from "@/components/OnboardingTour";
+import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
@@ -281,6 +281,13 @@ export default function SupporterDashboard() {
       description: "Your rewards"
     },
   ];
+
+  const supporterWelcomeModal: WelcomeModal = {
+    title: "Welcome, Supporter!",
+    subtitle: `Cheering for ${currentTeam?.name || "the team"}`,
+    description: "You're all set to support your athletes! Let us show you around so you can stay connected and cheer them on.",
+    buttonText: "Let's Go!"
+  };
 
   const supporterTourSteps: TourStep[] = [
     {
@@ -935,6 +942,7 @@ export default function SupporterDashboard() {
       <OnboardingTour 
         steps={supporterTourSteps} 
         storageKey={`supporter-onboarding-completed-${user?.id}`}
+        welcomeModal={supporterWelcomeModal}
       />
       <DashboardBackground />
       <header className="h-16 border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-10 px-4 md:px-8 flex items-center justify-between gap-4">

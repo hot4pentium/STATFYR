@@ -177,37 +177,66 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
       return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
     }
 
-    const padding = 16;
-    const tooltipWidth = 320;
+    const padding = 12;
+    const isMobile = window.innerWidth < 640;
+    const tooltipWidth = isMobile ? Math.min(280, window.innerWidth - padding * 2) : 320;
     const tooltipHeight = 180;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const clampLeft = (left: number) => Math.max(padding, Math.min(left, viewportWidth - tooltipWidth - padding));
+    const clampTop = (top: number) => Math.max(padding, Math.min(top, viewportHeight - tooltipHeight - padding));
+
+    let top: number;
+    let left: number;
 
     switch (position) {
       case "top":
-        return {
-          top: `${targetRect.top - tooltipHeight - padding}px`,
-          left: `${targetRect.left + targetRect.width / 2 - tooltipWidth / 2}px`,
-        };
+        top = targetRect.top - tooltipHeight - padding;
+        left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+        if (top < padding) {
+          top = targetRect.bottom + padding;
+        }
+        break;
       case "bottom":
-        return {
-          top: `${targetRect.bottom + padding}px`,
-          left: `${Math.max(padding, Math.min(targetRect.left + targetRect.width / 2 - tooltipWidth / 2, window.innerWidth - tooltipWidth - padding))}px`,
-        };
+        top = targetRect.bottom + padding;
+        left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+        if (top + tooltipHeight > viewportHeight - padding) {
+          top = targetRect.top - tooltipHeight - padding;
+        }
+        break;
       case "left":
-        return {
-          top: `${targetRect.top + targetRect.height / 2 - tooltipHeight / 2}px`,
-          left: `${targetRect.left - tooltipWidth - padding}px`,
-        };
+        top = targetRect.top + targetRect.height / 2 - tooltipHeight / 2;
+        left = targetRect.left - tooltipWidth - padding;
+        if (left < padding) {
+          left = targetRect.right + padding;
+          if (left + tooltipWidth > viewportWidth - padding) {
+            top = targetRect.bottom + padding;
+            left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+          }
+        }
+        break;
       case "right":
-        return {
-          top: `${targetRect.top + targetRect.height / 2 - tooltipHeight / 2}px`,
-          left: `${targetRect.right + padding}px`,
-        };
+        top = targetRect.top + targetRect.height / 2 - tooltipHeight / 2;
+        left = targetRect.right + padding;
+        if (left + tooltipWidth > viewportWidth - padding) {
+          left = targetRect.left - tooltipWidth - padding;
+          if (left < padding) {
+            top = targetRect.bottom + padding;
+            left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+          }
+        }
+        break;
       default:
-        return {
-          top: `${targetRect.bottom + padding}px`,
-          left: `${targetRect.left + targetRect.width / 2 - tooltipWidth / 2}px`,
-        };
+        top = targetRect.bottom + padding;
+        left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
     }
+
+    return {
+      top: `${clampTop(top)}px`,
+      left: `${clampLeft(left)}px`,
+      width: isMobile ? `${tooltipWidth}px` : undefined,
+    };
   };
 
   return (
@@ -239,7 +268,7 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
           )}
 
           <motion.div
-            className="fixed z-[102] w-80"
+            className="fixed z-[102] w-80 max-w-[calc(100vw-24px)]"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
