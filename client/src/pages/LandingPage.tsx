@@ -531,13 +531,10 @@ export default function LandingPage() {
                   <motion.div
                     key={currentSportIndex}
                     className="absolute inset-0 flex items-center justify-center"
-                    initial={{ y: 15, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -15, opacity: 0 }}
-                    transition={{ 
-                      duration: 0.4, 
-                      ease: [0.4, 0, 0.2, 1]
-                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
                   >
                     {SUPPORTED_SPORTS[currentSportIndex]}
                   </motion.div>
