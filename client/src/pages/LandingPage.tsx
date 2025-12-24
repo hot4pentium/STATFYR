@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
+import hypeCardImage from "@assets/Screenshot_2025-12-23_at_6.55.26_PM_1766534201003.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -206,7 +207,7 @@ function HypeCardSection() {
             </div>
             <div className="bg-gradient-to-b from-slate-900 to-slate-800 p-4 min-h-[200px] flex items-center justify-center">
               <img 
-                src="/attached_assets/Screenshot_2025-12-23_at_6.55.26_PM_1766534201003.png" 
+                src={hypeCardImage} 
                 alt="Hype Card Example - Kim Allen #30 Setter" 
                 className="h-[280px] w-auto rounded-xl shadow-2xl border border-white/10"
               />
