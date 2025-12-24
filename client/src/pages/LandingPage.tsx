@@ -58,57 +58,45 @@ function FeatureCard({ icon, title, description, color, delay = 0 }: FeatureCard
 
 function PlaymakerSection() {
   return (
-    <motion.div 
-      className="mt-6 lg:col-span-2"
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: 0.3 }}
+      transition={{ duration: 0.5, delay: 0.5 }}
     >
-      <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-white/10 overflow-hidden h-full">
+      <Card className="h-full bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-white/10 hover:border-white/30 transition-all hover:scale-105 hover:shadow-xl overflow-hidden">
         <CardContent className="p-0 h-full">
-          <div className="flex flex-col h-full">
-            <div className="p-4 flex flex-col justify-center">
-              <div className="mb-3 p-2 rounded-xl bg-white/10 w-fit">
-                <ClipboardList className="h-6 w-6 text-purple-400" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">PlayMaker</h3>
-              <p className="text-muted-foreground mb-3 text-sm">
-                Draw and design plays with our interactive canvas. Drag player icons, draw arrows, and save plays to share with your team.
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                <span className="px-2 py-0.5 bg-purple-500/20 rounded-full text-xs text-purple-300">Offense</span>
-                <span className="px-2 py-0.5 bg-blue-500/20 rounded-full text-xs text-blue-300">Defense</span>
-                <span className="px-2 py-0.5 bg-green-500/20 rounded-full text-xs text-green-300">Special</span>
-              </div>
+          <div className="bg-slate-900 p-3 h-full min-h-[180px] relative">
+            <div className="absolute left-2 top-2 bottom-2 w-8 bg-slate-800 rounded-lg flex flex-col items-center gap-2 py-2">
+              <div className="w-4 h-4 rounded bg-purple-500/50" />
+              <div className="w-4 h-4 rounded-full bg-blue-500/50" />
+              <div className="w-4 h-1 bg-green-500/50" />
+              <div className="w-4 h-4 border-2 border-yellow-500/50 rounded" />
+              <div className="w-4 h-4 border-2 border-red-500/50 rounded-full" />
             </div>
-            <div className="bg-slate-900 p-3 min-h-[140px] relative flex-1">
-              <div className="absolute left-3 top-3 bottom-3 w-10 bg-slate-800 rounded-lg flex flex-col items-center gap-3 py-3">
-                <div className="w-5 h-5 rounded bg-purple-500/50 cursor-pointer hover:bg-purple-500/70" />
-                <div className="w-5 h-5 rounded-full bg-blue-500/50 cursor-pointer hover:bg-blue-500/70" />
-                <div className="w-5 h-1 bg-green-500/50 cursor-pointer hover:bg-green-500/70" />
-                <div className="w-5 h-5 border-2 border-yellow-500/50 rounded cursor-pointer hover:border-yellow-500/70" />
-                <div className="w-5 h-5 border-2 border-red-500/50 rounded-full cursor-pointer hover:border-red-500/70" />
-              </div>
-              <div className="ml-14 h-full border-2 border-dashed border-white/20 rounded-lg relative bg-slate-900/50">
-                <svg className="w-full h-full" viewBox="0 0 200 120">
-                  <circle cx="50" cy="60" r="12" fill="#3b82f6" opacity="0.8" />
-                  <text x="50" y="64" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">1</text>
-                  <circle cx="90" cy="35" r="12" fill="#3b82f6" opacity="0.8" />
-                  <text x="90" y="39" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">2</text>
-                  <circle cx="90" cy="85" r="12" fill="#3b82f6" opacity="0.8" />
-                  <text x="90" y="89" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">3</text>
-                  <circle cx="150" cy="60" r="12" fill="#ef4444" opacity="0.8" />
-                  <circle cx="170" cy="30" r="12" fill="#ef4444" opacity="0.8" />
-                  <path d="M62 55 L78 40" stroke="#22c55e" strokeWidth="3" strokeDasharray="6" fill="none" />
-                  <path d="M102 85 L138 65" stroke="#22c55e" strokeWidth="3" fill="none" markerEnd="url(#arrowGreen)" />
-                  <defs>
-                    <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-                      <path d="M0,0 L8,4 L0,8 Z" fill="#22c55e" />
-                    </marker>
-                  </defs>
-                </svg>
-              </div>
+            <div className="ml-10 h-full border-2 border-dashed border-white/20 rounded-lg relative bg-slate-900/50">
+              <svg className="w-full h-full" viewBox="0 0 200 120">
+                <circle cx="50" cy="60" r="12" fill="#3b82f6" opacity="0.8" />
+                <text x="50" y="64" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">1</text>
+                <circle cx="90" cy="35" r="12" fill="#3b82f6" opacity="0.8" />
+                <text x="90" y="39" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">2</text>
+                <circle cx="90" cy="85" r="12" fill="#3b82f6" opacity="0.8" />
+                <text x="90" y="89" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">3</text>
+                <circle cx="150" cy="60" r="12" fill="#ef4444" opacity="0.8" />
+                <circle cx="170" cy="30" r="12" fill="#ef4444" opacity="0.8" />
+                <path d="M62 55 L78 40" stroke="#22c55e" strokeWidth="3" strokeDasharray="6" fill="none" />
+                <path d="M102 85 L138 65" stroke="#22c55e" strokeWidth="3" fill="none" markerEnd="url(#arrowGreen)" />
+                <defs>
+                  <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M0,0 L8,4 L0,8 Z" fill="#22c55e" />
+                  </marker>
+                </defs>
+              </svg>
+            </div>
+            <div className="absolute bottom-2 right-2 flex gap-1">
+              <span className="px-2 py-0.5 bg-purple-500/30 rounded text-[10px] text-purple-300">Offense</span>
+              <span className="px-2 py-0.5 bg-blue-500/30 rounded text-[10px] text-blue-300">Defense</span>
+              <span className="px-2 py-0.5 bg-green-500/30 rounded text-[10px] text-green-300">Special</span>
             </div>
           </div>
         </CardContent>
@@ -351,6 +339,12 @@ const coachFeatures = [
     title: "Video Highlights",
     description: "Upload and share team highlights. Automatic video processing and thumbnail generation.",
     color: "from-cyan-500/20 to-cyan-600/10"
+  },
+  {
+    icon: <ClipboardList className="h-6 w-6 text-purple-400" />,
+    title: "PlayMaker",
+    description: "Draw and design plays with our interactive canvas. Share plays with your team.",
+    color: "from-purple-500/20 to-purple-600/10"
   }
 ];
 
