@@ -308,7 +308,7 @@ function HypeCardSection() {
               </div>
               <h3 className="text-2xl font-bold mb-3">Hype Card</h3>
               <p className="text-muted-foreground mb-4">
-                Your athlete profile that flips! Front shows your photo and team info, back reveals stats, upcoming events, highlights, and shoutouts from fans.
+                Share your journey with anyone. Always have your best stuff ready to share. The coach and team staff can track your stats for you. Team supporters will uplift your game with Shoutouts during gameplay. You supply the highlights and your HYPE Card is set.
               </p>
               <div className="flex gap-2 flex-wrap">
                 <span className="px-3 py-1 bg-amber-700/30 rounded-full text-xs text-amber-300 border border-amber-500/30">🥉 Bronze</span>
