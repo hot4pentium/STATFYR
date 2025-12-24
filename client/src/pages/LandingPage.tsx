@@ -595,8 +595,8 @@ export default function LandingPage() {
                     delay={index * 0.1}
                   />
                 ))}
+                {activeTab === "coaches" && <PlaymakerSection />}
               </div>
-              {activeTab === "coaches" && <PlaymakerSection />}
               {activeTab === "athletes" && <HypeCardSection />}
               {activeTab === "supporters" && <GameDayLiveSection />}
             </motion.div>
