@@ -31,6 +31,9 @@ export const teams = pgTable("teams", {
   season: text("season"),
   badgeId: text("badge_id"),
   coachId: varchar("coach_id").references(() => users.id),
+  wins: integer("wins").notNull().default(0),
+  losses: integer("losses").notNull().default(0),
+  ties: integer("ties").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
