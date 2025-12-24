@@ -310,12 +310,6 @@ function HypeCardSection() {
               <p className="text-muted-foreground mb-4">
                 Share your journey with anyone. Always have your best stuff ready to share. The coach and team staff can track your stats for you. Team supporters will uplift your game with Shoutouts during gameplay. You supply the highlights and your HYPE Card is set.
               </p>
-              <div className="flex gap-2 flex-wrap">
-                <span className="px-3 py-1 bg-amber-700/30 rounded-full text-xs text-amber-300 border border-amber-500/30">🥉 Bronze</span>
-                <span className="px-3 py-1 bg-slate-400/20 rounded-full text-xs text-slate-300 border border-slate-400/30">🥈 Silver</span>
-                <span className="px-3 py-1 bg-yellow-500/20 rounded-full text-xs text-yellow-300 border border-yellow-500/30">🥇 Gold</span>
-                <span className="px-3 py-1 bg-purple-500/20 rounded-full text-xs text-purple-300 border border-purple-500/30">👑 Legend</span>
-              </div>
             </div>
             <div className="bg-gradient-to-b from-slate-900 to-slate-800 p-4 min-h-[200px] flex items-center justify-center gap-4">
               <img 
