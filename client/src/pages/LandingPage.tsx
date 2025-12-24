@@ -534,7 +534,7 @@ export default function LandingPage() {
       </motion.section>
 
       {/* Graphic Section Divider - Chevron Pattern */}
-      <div className="relative h-16 overflow-hidden">
+      <div className="relative h-28 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-black to-zinc-900" />
         <svg 
           className="absolute inset-0 w-full h-full" 
