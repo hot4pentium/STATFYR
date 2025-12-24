@@ -1414,6 +1414,13 @@ export default function CoachDashboard() {
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-3 pt-2">
+                      <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 flex items-center gap-3">
+                        <span className="text-sm font-bold text-green-400">{currentTeam?.wins || 0}W</span>
+                        <span className="text-white/40">-</span>
+                        <span className="text-sm font-bold text-red-400">{currentTeam?.losses || 0}L</span>
+                        <span className="text-white/40">-</span>
+                        <span className="text-sm font-bold text-yellow-400">{currentTeam?.ties || 0}T</span>
+                      </div>
                       {currentTeam?.code && (
                         <button
                           onClick={copyTeamCode}

@@ -328,6 +328,13 @@ export default function AthleteDashboard() {
                       #{currentMembership.jerseyNumber}
                     </Badge>
                   )}
+                  <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0 sm:py-0.5 bg-muted/50 rounded border border-muted-foreground/20">
+                    <span className="text-[10px] sm:text-xs font-bold text-green-500">{currentTeam?.wins || 0}W</span>
+                    <span className="text-muted-foreground/50">-</span>
+                    <span className="text-[10px] sm:text-xs font-bold text-red-500">{currentTeam?.losses || 0}L</span>
+                    <span className="text-muted-foreground/50">-</span>
+                    <span className="text-[10px] sm:text-xs font-bold text-yellow-500">{currentTeam?.ties || 0}T</span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1297,6 +1297,13 @@ export default function SupporterDashboard() {
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-2 md:gap-3 pt-1 md:pt-2">
+                      <div className="px-2 md:px-4 py-0.5 md:py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 flex items-center gap-2 md:gap-3">
+                        <span className="text-[10px] md:text-sm font-bold text-green-400">{currentTeam?.wins || 0}W</span>
+                        <span className="text-white/40">-</span>
+                        <span className="text-[10px] md:text-sm font-bold text-red-400">{currentTeam?.losses || 0}L</span>
+                        <span className="text-white/40">-</span>
+                        <span className="text-[10px] md:text-sm font-bold text-yellow-400">{currentTeam?.ties || 0}T</span>
+                      </div>
                       <span className="px-2 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-accent/20 border-accent/30 text-accent text-[10px] md:text-sm font-bold uppercase tracking-wider">
                         Supporter
                       </span>
