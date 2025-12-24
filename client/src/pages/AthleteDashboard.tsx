@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, Copy, Check, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2 } from "lucide-react";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
@@ -29,7 +29,6 @@ export default function AthleteDashboard() {
   const { updateAvailable, applyUpdate } = usePWA();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>(null);
   const [hypeCardFlipped, setHypeCardFlipped] = useState(false);
   const [hypeCardTab, setHypeCardTab] = useState<HypeCardTab>("events");
@@ -153,14 +152,6 @@ export default function AthleteDashboard() {
     setLocation("/");
   };
 
-  const copyTeamCode = () => {
-    if (currentTeam?.code) {
-      navigator.clipboard.writeText(currentTeam.code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      toast.success("Team code copied!");
-    }
-  };
 
   const navCards = [
     {
@@ -346,17 +337,6 @@ export default function AthleteDashboard() {
           <div className="mb-6">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h2 className="text-xl font-display font-bold uppercase tracking-wide text-primary">Quick Access</h2>
-              {currentTeam?.code && (
-                <button
-                  onClick={copyTeamCode}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-500/10 border border-orange-300 dark:border-orange-500/30 hover:bg-orange-200 dark:hover:bg-orange-500/20 transition text-sm font-mono"
-                  data-testid="button-copy-team-code"
-                >
-                  <span className="text-orange-600 dark:text-orange-400">Team Code:</span>
-                  <span className="text-foreground font-bold">{currentTeam.code}</span>
-                  {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-orange-500" />}
-                </button>
-              )}
             </div>
 
             {/* Navigation Cards Grid */}
