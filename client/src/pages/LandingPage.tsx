@@ -466,8 +466,8 @@ export default function LandingPage() {
           >
             <div className="flex items-center justify-center gap-3 mb-6">
               <Flame className="h-12 w-12 text-primary animate-pulse" />
-              <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tighter">
-                STAT<span className="text-orange-500 normal-case italic">y</span>R
+              <h1 className="text-5xl md:text-7xl font-sans font-black tracking-tight">
+                STAT<span className="text-orange-500 lowercase italic">y</span>R
               </h1>
             </div>
           </motion.div>
