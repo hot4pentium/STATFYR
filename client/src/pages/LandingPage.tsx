@@ -540,23 +540,27 @@ export default function LandingPage() {
               <div className="text-sm">Sports Supported</div>
             </div>
           </motion.div>
+          
+          {/* Scroll Indicator */}
+          <motion.div 
+            className="mt-12 flex justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, y: [0, 10, 0] }}
+            transition={{ 
+              opacity: { duration: 0.8, delay: 1.2 },
+              y: { repeat: Infinity, duration: 2 }
+            }}
+          >
+            <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/50 flex items-start justify-center p-1">
+              <div className="w-1.5 h-3 bg-muted-foreground/50 rounded-full" />
+            </div>
+          </motion.div>
         </div>
       </motion.section>
 
       {/* Graphic Section Divider - Chevron Pattern */}
-      <div className="relative h-32 overflow-hidden">
+      <div className="relative h-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-black to-zinc-900" />
-        
-        {/* Scroll Indicator */}
-        <motion.div 
-          className="absolute top-4 left-1/2 -translate-x-1/2 z-10"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-        >
-          <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/50 flex items-start justify-center p-1">
-            <div className="w-1.5 h-3 bg-muted-foreground/50 rounded-full" />
-          </div>
-        </motion.div>
         <svg 
           className="absolute inset-0 w-full h-full" 
           viewBox="0 0 100 100" 
