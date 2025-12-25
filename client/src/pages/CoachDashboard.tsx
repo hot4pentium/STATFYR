@@ -1421,22 +1421,22 @@ export default function CoachDashboard() {
                       </h2>
                     </div>
                     
-                    <div className="flex flex-wrap items-center gap-3 pt-2">
-                      <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 flex items-center gap-3">
-                        <span className="text-sm font-bold text-green-400">{currentTeam?.wins || 0}W</span>
+                    <div className="flex items-center gap-2 md:gap-3 pt-2">
+                      <div className="px-3 md:px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 flex items-center gap-2 md:gap-3">
+                        <span className="text-xs md:text-sm font-bold text-green-400">{currentTeam?.wins || 0}W</span>
                         <span className="text-white/40">-</span>
-                        <span className="text-sm font-bold text-red-400">{currentTeam?.losses || 0}L</span>
+                        <span className="text-xs md:text-sm font-bold text-red-400">{currentTeam?.losses || 0}L</span>
                         <span className="text-white/40">-</span>
-                        <span className="text-sm font-bold text-yellow-400">{currentTeam?.ties || 0}T</span>
+                        <span className="text-xs md:text-sm font-bold text-yellow-400">{currentTeam?.ties || 0}T</span>
                       </div>
                       {currentTeam?.code && (
                         <button
                           onClick={copyTeamCode}
-                          className="px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-lg border border-green-500/30 flex items-center gap-2 hover:bg-green-500/30 transition-colors"
+                          className="px-3 md:px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-lg border border-green-500/30 flex items-center gap-1.5 md:gap-2 hover:bg-green-500/30 transition-colors"
                           data-testid="button-copy-team-code"
                         >
-                          <span className="text-sm font-bold text-green-300 uppercase tracking-wider font-mono">Code: {currentTeam.code}</span>
-                          {codeCopied ? <Check className="h-4 w-4 text-green-300" /> : <Copy className="h-4 w-4 text-green-300" />}
+                          <span className="text-xs md:text-sm font-bold text-green-300 uppercase tracking-wider font-mono">Code: {currentTeam.code}</span>
+                          {codeCopied ? <Check className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-300" /> : <Copy className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-300" />}
                         </button>
                       )}
                     </div>
