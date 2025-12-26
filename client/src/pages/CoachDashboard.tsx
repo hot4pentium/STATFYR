@@ -1393,7 +1393,7 @@ export default function CoachDashboard() {
             {/* Right Side - Grid + Content */}
             <div className="flex-1 space-y-6">
               {/* Quick Navigation - Colorful Grid Cards */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3 p-2">
                 {quickActions.map((action) => (
                   <button
                     key={action.id}
