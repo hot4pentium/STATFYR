@@ -712,3 +712,52 @@ export const updateLiveEngagementSessionSchema = createInsertSchema(liveEngageme
 export type InsertLiveEngagementSession = z.infer<typeof insertLiveEngagementSessionSchema>;
 export type UpdateLiveEngagementSession = z.infer<typeof updateLiveEngagementSessionSchema>;
 export type LiveEngagementSession = typeof liveEngagementSessions.$inferSelect;
+
+// Profile Likes - public likes on athlete profiles
+export const profileLikes = pgTable("profile_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  athleteId: varchar("athlete_id").notNull().references(() => users.id),
+  visitorName: text("visitor_name").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const profileLikesRelations = relations(profileLikes, ({ one }) => ({
+  athlete: one(users, {
+    fields: [profileLikes.athleteId],
+    references: [users.id],
+  }),
+}));
+
+// Profile Comments - public comments on athlete profiles
+export const profileComments = pgTable("profile_comments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  athleteId: varchar("athlete_id").notNull().references(() => users.id),
+  visitorName: text("visitor_name").notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const profileCommentsRelations = relations(profileComments, ({ one }) => ({
+  athlete: one(users, {
+    fields: [profileComments.athleteId],
+    references: [users.id],
+  }),
+}));
+
+// Profile Like schemas
+export const insertProfileLikeSchema = createInsertSchema(profileLikes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertProfileLike = z.infer<typeof insertProfileLikeSchema>;
+export type ProfileLike = typeof profileLikes.$inferSelect;
+
+// Profile Comment schemas
+export const insertProfileCommentSchema = createInsertSchema(profileComments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertProfileComment = z.infer<typeof insertProfileCommentSchema>;
+export type ProfileComment = typeof profileComments.$inferSelect;
