@@ -12,6 +12,7 @@ import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent,
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend } from "recharts";
 import { Flame, TrendingUp } from "lucide-react";
 import { TeamBadge } from "@/components/TeamBadge";
+import { TeamHeroCard } from "@/components/dashboard/TeamHeroCard";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { MoreVertical, UserCog, UserMinus, Hash, Award } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -1395,67 +1396,27 @@ export default function CoachDashboard() {
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
         <div className="space-y-6">
           {/* Hero Banner */}
-          <div ref={heroBannerRef} className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
-            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-            <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
-            <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
-            
-            <div className="relative z-10 p-6 md:p-12">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
-                <div className="flex items-start gap-4 md:gap-6 flex-1 w-full">
-                  {/* Badge + W/L/T column on mobile */}
-                  <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                    <div className="h-16 w-16 md:h-28 md:w-28 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center shadow-xl">
-                      {currentTeam?.badgeId ? (
-                        <TeamBadge badgeId={currentTeam.badgeId} size="xl" className="text-white" />
-                      ) : (
-                        <Shield className="h-8 w-8 md:h-16 md:w-16 text-white" />
-                      )}
-                    </div>
-                    {/* W/L/T under badge on mobile only */}
-                    <div className="md:hidden px-2 py-1.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold text-green-400">{currentTeam?.wins || 0}W</span>
-                      <span className="text-white/40 text-[10px]">-</span>
-                      <span className="text-[10px] font-bold text-red-400">{currentTeam?.losses || 0}L</span>
-                      <span className="text-white/40 text-[10px]">-</span>
-                      <span className="text-[10px] font-bold text-yellow-400">{currentTeam?.ties || 0}T</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2 md:space-y-3 flex-1 min-w-0">
-                    <div className="space-y-0.5 md:space-y-1">
-                      <h1 className="text-2xl md:text-6xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
-                        {currentTeam?.name || "Thunderbolts FC"}
-                      </h1>
-                      <h2 className="text-sm md:text-2xl text-white/80 font-bold uppercase tracking-wide">
-                        {currentTeam?.sport || "Football"} <span className="text-white/60">•</span> {currentTeam?.season || "Season 2024-2025"}
-                      </h2>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 md:gap-3 pt-1 md:pt-2">
-                      {/* W/L/T on desktop only */}
-                      <div className="hidden md:flex px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 items-center gap-3">
-                        <span className="text-sm font-bold text-green-400">{currentTeam?.wins || 0}W</span>
-                        <span className="text-white/40">-</span>
-                        <span className="text-sm font-bold text-red-400">{currentTeam?.losses || 0}L</span>
-                        <span className="text-white/40">-</span>
-                        <span className="text-sm font-bold text-yellow-400">{currentTeam?.ties || 0}T</span>
-                      </div>
-                      {currentTeam?.code && (
-                        <button
-                          onClick={copyTeamCode}
-                          className="px-2.5 md:px-4 py-1.5 md:py-2 bg-green-500/20 backdrop-blur-sm rounded-lg border border-green-500/30 flex items-center gap-1.5 md:gap-2 hover:bg-green-500/30 transition-colors"
-                          data-testid="button-copy-team-code"
-                        >
-                          <span className="text-[10px] md:text-sm font-bold text-green-300 uppercase tracking-wider font-mono">Code: {currentTeam.code}</span>
-                          {codeCopied ? <Check className="h-3 w-3 md:h-4 md:w-4 text-green-300" /> : <Copy className="h-3 w-3 md:h-4 md:w-4 text-green-300" />}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div ref={heroBannerRef}>
+            {currentTeam && (
+              <TeamHeroCard
+                team={currentTeam}
+                wins={currentTeam.wins || 0}
+                losses={currentTeam.losses || 0}
+                ties={currentTeam.ties || 0}
+                bottomSlot={
+                  currentTeam.code && (
+                    <button
+                      onClick={copyTeamCode}
+                      className="px-3 md:px-4 py-1.5 md:py-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30 flex items-center gap-2 hover:bg-white/30 transition-colors"
+                      data-testid="button-copy-team-code"
+                    >
+                      <span className="text-xs md:text-sm font-bold text-white uppercase tracking-wider font-mono">Code: {currentTeam.code}</span>
+                      {codeCopied ? <Check className="h-4 w-4 text-white" /> : <Copy className="h-4 w-4 text-white" />}
+                    </button>
+                  )
+                }
+              />
+            )}
           </div>
 
           {/* Next Game Card - Prominent Game Day Live Controls */}

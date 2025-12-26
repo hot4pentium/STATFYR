@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { usePWA } from "@/lib/pwaContext";
 import { TeamBadge } from "@/components/TeamBadge";
+import { TeamHeroCard } from "@/components/dashboard/TeamHeroCard";
 
 function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
   return <span className={`px-2 py-1 rounded text-xs font-bold ${className}`}>{children}</span>;
@@ -1279,61 +1280,34 @@ export default function SupporterDashboard() {
             </div>
           </div>
         ) : (
-          <div ref={heroBannerRef} className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
-            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-            <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
-            <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
-            
-            <div className="relative z-10 p-8 md:p-12">
-              <div className="flex flex-row items-center justify-between gap-4 md:gap-6">
-                <div className="flex items-start gap-4 md:gap-6 flex-1 min-w-0">
-                  <div className="h-12 w-12 md:h-28 md:w-28 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center flex-shrink-0 shadow-xl">
-                    {currentTeam?.badgeId ? (
-                      <TeamBadge badgeId={currentTeam.badgeId} size="xl" className="text-white" />
-                    ) : (
-                      <Shield className="h-6 w-6 md:h-16 md:w-16 text-white" />
-                    )}
-                  </div>
-                  
-                  <div className="space-y-1 md:space-y-3 flex-1 min-w-0">
-                    <div className="space-y-0 md:space-y-1">
-                      <h1 className="text-xl md:text-6xl font-display font-bold text-white uppercase tracking-tighter leading-tight truncate">
-                        {currentTeam?.name || "Team"}
-                      </h1>
-                      <h2 className="text-xs md:text-2xl text-white/80 font-bold uppercase tracking-wide">
-                        {currentTeam?.sport || "Sport"} <span className="text-white/60">•</span> {currentTeam?.season || "Season 2024-2025"}
-                      </h2>
+          <div ref={heroBannerRef}>
+            {currentTeam && (
+              <TeamHeroCard
+                team={currentTeam}
+                wins={currentTeam.wins || 0}
+                losses={currentTeam.losses || 0}
+                ties={currentTeam.ties || 0}
+                rightSlot={
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="h-16 w-16 md:h-20 md:w-20 bg-white/10 backdrop-blur-md rounded-full border-2 border-white/30 flex items-center justify-center shadow-xl overflow-hidden">
+                      {user?.avatar ? (
+                        <img src={user.avatar} alt={user.name || "Supporter"} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xl md:text-2xl font-display font-bold text-white/60">
+                          {user?.name?.split(' ').map(n => n[0]).join('') || "?"}
+                        </span>
+                      )}
                     </div>
-                    
-                    <div className="flex flex-wrap items-center gap-2 md:gap-3 pt-1 md:pt-2">
-                      <div className="px-2 md:px-4 py-0.5 md:py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 flex items-center gap-2 md:gap-3">
-                        <span className="text-[10px] md:text-sm font-bold text-green-400">{currentTeam?.wins || 0}W</span>
-                        <span className="text-white/40">-</span>
-                        <span className="text-[10px] md:text-sm font-bold text-red-400">{currentTeam?.losses || 0}L</span>
-                        <span className="text-white/40">-</span>
-                        <span className="text-[10px] md:text-sm font-bold text-yellow-400">{currentTeam?.ties || 0}T</span>
-                      </div>
-                      <span className="px-2 md:px-3 py-0.5 md:py-1 backdrop-blur-sm rounded-lg border bg-accent/20 border-accent/30 text-accent text-[10px] md:text-sm font-bold uppercase tracking-wider">
-                        Supporter
-                      </span>
-                    </div>
+                    <p className="text-xs text-white/80 font-medium text-center max-w-[80px] truncate">{user?.name || "Supporter"}</p>
                   </div>
-                </div>
-                
-                <div className="flex flex-col items-center gap-2 md:gap-3 flex-shrink-0">
-                  <div className="h-16 w-16 md:h-32 md:w-32 bg-white/10 backdrop-blur-md rounded-full border-2 md:border-4 border-accent/50 flex items-center justify-center shadow-xl overflow-hidden">
-                    {user?.avatar ? (
-                      <img src={user.avatar} alt={user.name || "Supporter"} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xl md:text-4xl font-display font-bold text-white/60">
-                        {user?.name?.split(' ').map(n => n[0]).join('') || "?"}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[10px] md:text-sm text-white/80 font-bold uppercase tracking-wider text-center max-w-[80px] md:max-w-none truncate">{user?.name || "Supporter"}</p>
-                </div>
-              </div>
-            </div>
+                }
+                bottomSlot={
+                  <span className="px-3 py-1.5 backdrop-blur-sm rounded-lg border bg-white/20 border-white/30 text-white text-xs font-bold uppercase tracking-wider">
+                    Supporter
+                  </span>
+                }
+              />
+            )}
           </div>
         )}
 
