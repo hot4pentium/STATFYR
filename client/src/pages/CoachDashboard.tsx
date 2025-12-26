@@ -401,7 +401,7 @@ export default function CoachDashboard() {
 
   useEffect(() => {
     if (!user) {
-      setLocation("/auth/coach");
+      setLocation("/auth");
     }
   }, [user, setLocation]);
 
