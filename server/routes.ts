@@ -1339,6 +1339,86 @@ export async function registerRoutes(
     }
   });
 
+  // ============ PUBLIC ATHLETE PROFILE ============
+  
+  app.get("/api/athletes/:athleteId/public-profile", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      
+      // Get athlete user data
+      const athlete = await storage.getUser(athleteId);
+      if (!athlete || athlete.role !== 'athlete') {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
+      
+      // Get team membership (first team found)
+      const memberships = await storage.getUserTeamMemberships(athleteId);
+      const membership = memberships.length > 0 ? memberships[0] : null;
+      
+      // Get team info if membership exists
+      let membershipWithTeam = null;
+      if (membership) {
+        const team = await storage.getTeam(membership.teamId.toString());
+        membershipWithTeam = {
+          ...membership,
+          team: team ? { id: team.id, name: team.name, sport: team.sport } : null
+        };
+      }
+      
+      // Get athlete stats
+      let stats: any = { gamesPlayed: 0, stats: {}, gameHistory: [], hotStreak: false, streakLength: 0 };
+      if (membership) {
+        try {
+          stats = await storage.getAthleteStats(membership.teamId.toString(), athleteId);
+        } catch (e) {
+          // Stats might not exist, use defaults
+        }
+      }
+      
+      // Get athlete highlights (only public metadata - no video URLs)
+      let highlights: any[] = [];
+      if (membership) {
+        try {
+          const allHighlights = await storage.getTeamHighlightVideos(membership.teamId.toString());
+          highlights = allHighlights
+            .filter((h: any) => h.uploaderId === parseInt(athleteId))
+            .slice(0, 4)
+            .map((h: any) => ({
+              id: h.id,
+              title: h.title,
+              thumbnail: h.thumbnail,
+              // Intentionally omit videoUrl for public profile
+            }));
+        } catch (e) {
+          // Highlights might not exist
+        }
+      }
+      
+      // Get shoutouts
+      const shoutouts = await storage.getAthleteShoutouts(athleteId, 20);
+      const shoutoutCount = await storage.getAthleteShoutoutCount(athleteId);
+      
+      // Return public profile data (no private team info like roster, plays, chat)
+      res.json({
+        athlete: {
+          id: athlete.id,
+          username: athlete.username,
+          name: athlete.name,
+          avatar: athlete.avatar,
+          role: athlete.role
+        },
+        membership: membershipWithTeam,
+        stats,
+        highlights,
+        shoutouts,
+        shoutoutCount
+      });
+    } catch (error) {
+      console.error("Error getting public athlete profile:", error);
+      res.status(500).json({ error: "Failed to get athlete profile" });
+    }
+  });
+
   // ============ SHOUTOUTS ROUTES ============
   
   app.get("/api/games/:gameId/shoutouts", async (req, res) => {
