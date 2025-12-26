@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap, Sun, Moon, ChevronRight } from "lucide-react";
+import { useTheme } from "next-themes";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,6 +31,8 @@ export default function SupporterDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, logout } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [selectedCard, setSelectedCard] = useState<string | null>("schedule");
   const contentRef = useRef<HTMLDivElement>(null);
   const heroBannerRef = useRef<HTMLDivElement>(null);
@@ -43,6 +46,10 @@ export default function SupporterDashboard() {
   const [isUploadingAthleteAvatar, setIsUploadingAthleteAvatar] = useState(false);
   const queryClient = useQueryClient();
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data: managedAthletes = [], refetch: refetchManagedAthletes } = useQuery({
     queryKey: ["/api/users", user?.id, "managed-athletes"],
@@ -927,130 +934,135 @@ export default function SupporterDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
-      <OnboardingTour 
-        steps={supporterTourSteps} 
-        storageKey={`supporter-onboarding-completed-${user?.id}`}
-        welcomeModal={supporterWelcomeModal}
-      />
+    <>
       <DashboardBackground />
-      <header className="h-16 border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-10 px-4 md:px-8 flex items-center justify-between gap-4">
-        <h2 className="text-sm md:text-lg font-medium text-muted-foreground">
-          {currentTeam?.name || "STATFYR"} - {currentTeam?.season || "Season 2024-2025"}
-        </h2>
-        <div className="flex items-center gap-3">
-          {managedAthletes.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10 gap-2"
-                  data-testid="button-profile-switcher"
-                >
-                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
-                    {viewingAsAthlete ? (
-                      viewingAsAthlete.athlete.avatar ? (
-                        <img src={viewingAsAthlete.athlete.avatar} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <User className="h-3 w-3 text-primary" />
-                      )
-                    ) : (
-                      user?.avatar ? (
-                        <img src={user.avatar} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <User className="h-3 w-3 text-primary" />
-                      )
-                    )}
-                  </div>
-                  <span className="hidden sm:inline text-sm font-medium truncate max-w-[100px]">
-                    {viewingAsAthlete ? viewingAsAthlete.athlete.name : user?.name || "Profile"}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem 
-                  onClick={() => setViewingAsAthlete(null)}
-                  className={!viewingAsAthlete ? "bg-primary/10" : ""}
-                  data-testid="dropdown-item-my-profile"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
-                      {user?.avatar ? (
-                        <img src={user.avatar} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <User className="h-4 w-4 text-primary" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium">{user?.name || "My Profile"}</p>
-                      <p className="text-xs text-muted-foreground">Supporter</p>
-                    </div>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Managed Athletes</p>
-                {managedAthletes.map((managed) => (
-                  <DropdownMenuItem 
-                    key={managed.id}
-                    onClick={() => setViewingAsAthlete(managed)}
-                    className={viewingAsAthlete?.id === managed.id ? "bg-primary/10" : ""}
-                    data-testid={`dropdown-item-athlete-${managed.id}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center overflow-hidden">
-                        {managed.athlete.avatar ? (
-                          <img src={managed.athlete.avatar} alt="" className="w-full h-full object-cover" />
+      <div className="min-h-screen relative z-10">
+        {/* Header Bar */}
+        <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-white/10">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <img src="/logo.png" alt="STATFYR" className="h-8 w-8" />
+              <h1 className="text-lg font-display font-bold tracking-wide">STATF<span className="text-orange-500">Y</span>R</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              {managedAthletes.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="gap-2"
+                      data-testid="button-profile-switcher"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                        {viewingAsAthlete ? (
+                          viewingAsAthlete.athlete.avatar ? (
+                            <img src={viewingAsAthlete.athlete.avatar} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <User className="h-3 w-3 text-primary" />
+                          )
                         ) : (
-                          <User className="h-4 w-4 text-accent" />
+                          user?.avatar ? (
+                            <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <User className="h-3 w-3 text-primary" />
+                          )
                         )}
                       </div>
-                      <div>
-                        <p className="font-medium">{managed.athlete.name}</p>
-                        <p className="text-xs text-muted-foreground">Athlete</p>
+                      <span className="hidden sm:inline text-sm font-medium truncate max-w-[100px]">
+                        {viewingAsAthlete ? viewingAsAthlete.athlete.name : user?.name || "Profile"}
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem 
+                      onClick={() => setViewingAsAthlete(null)}
+                      className={!viewingAsAthlete ? "bg-primary/10" : ""}
+                      data-testid="dropdown-item-my-profile"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                          {user?.avatar ? (
+                            <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <User className="h-4 w-4 text-primary" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium">{user?.name || "My Profile"}</p>
+                          <p className="text-xs text-muted-foreground">Supporter</p>
+                        </div>
                       </div>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-          {updateAvailable && (
-            <Button
-              variant="outline"
-              size="icon"
-              className="border-amber-500 dark:border-amber-400 text-amber-500 dark:text-amber-400 hover:bg-amber-500/10 animate-pulse"
-              onClick={applyUpdate}
-              data-testid="button-pwa-update"
-              title="Update available - click to refresh"
-            >
-              <AlertCircle className="h-5 w-5" />
-            </Button>
-          )}
-          <ThemeToggle />
-          <Link href="/supporter/settings">
-            <Button 
-              variant="outline" 
-              size="icon"
-              className="border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10"
-              data-testid="button-settings"
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
-          </Link>
-          <Button 
-            variant="outline" 
-            size="icon"
-            className="border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10"
-            onClick={handleLogout}
-            data-testid="button-logout"
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
-        </div>
-      </header>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Managed Athletes</p>
+                    {managedAthletes.map((managed) => (
+                      <DropdownMenuItem 
+                        key={managed.id}
+                        onClick={() => setViewingAsAthlete(managed)}
+                        className={viewingAsAthlete?.id === managed.id ? "bg-primary/10" : ""}
+                        data-testid={`dropdown-item-athlete-${managed.id}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center overflow-hidden">
+                            {managed.athlete.avatar ? (
+                              <img src={managed.athlete.avatar} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="h-4 w-4 text-accent" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium">{managed.athlete.name}</p>
+                            <p className="text-xs text-muted-foreground">Athlete</p>
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              {updateAvailable && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={applyUpdate}
+                  className="text-amber-500 hover:text-amber-400 animate-pulse"
+                  title="Update available"
+                  data-testid="button-update-available"
+                >
+                  <AlertCircle className="h-5 w-5" />
+                </Button>
+              )}
+              {mounted && (
+                <button
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="p-2 rounded-lg hover:bg-white/10 transition"
+                  data-testid="button-theme-toggle"
+                >
+                  {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </button>
+              )}
+              <Link href="/supporter/settings">
+                <Button variant="ghost" size="icon" data-testid="button-settings">
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </Link>
+              <Button variant="ghost" size="icon" onClick={handleLogout} data-testid="button-logout">
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </header>
 
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-full px-4 md:px-8 py-8">
+        <OnboardingTour 
+          steps={supporterTourSteps} 
+          storageKey={`supporter-onboarding-completed-${user?.id}`}
+          welcomeModal={supporterWelcomeModal}
+        />
+
+        {/* Main Content */}
+        <main className="max-w-4xl mx-auto px-4 py-4 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {viewingAsAthlete && (
           <div className="flex items-center justify-between gap-4 p-3 bg-accent/20 border border-accent/30 rounded-lg" data-testid="viewing-as-athlete-banner">
             <div className="flex items-center gap-2">
@@ -1377,10 +1389,9 @@ export default function SupporterDashboard() {
             </div>
           </button>
         )}
+        </main>
 
-      </div>
-
-      {/* Selected Athlete HYPE Card Modal */}
+        {/* Selected Athlete HYPE Card Modal */}
       {selectedAthlete && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 pt-24" onClick={() => setSelectedAthlete(null)}>
           <div className="relative w-80" onClick={(e) => e.stopPropagation()}>
@@ -1650,6 +1661,7 @@ export default function SupporterDashboard() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

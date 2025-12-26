@@ -1,18 +1,19 @@
-import { Layout } from "@/components/layout/Layout";
+import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, Activity, Radio } from "lucide-react";
+import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Share2 } from "lucide-react";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
+import { useTheme } from "next-themes";
+import { usePWA } from "@/lib/pwaContext";
 import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, getTeamAggregateStats, getAdvancedTeamStats, getLiveSessionByEvent, createLiveSessionForEvent, startLiveSession, endLiveSession, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup, type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession } from "@/lib/api";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend } from "recharts";
 import { Flame, TrendingUp } from "lucide-react";
 import { TeamBadge } from "@/components/TeamBadge";
-import { TeamHeroCard } from "@/components/dashboard/TeamHeroCard";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { MoreVertical, UserCog, UserMinus, Hash, Award } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -34,8 +35,11 @@ import { SPORT_POSITIONS } from "@/lib/sportConstants";
 export default function CoachDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, setCurrentTeam, logout } = useUser();
+  const { updateAvailable, applyUpdate } = usePWA();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const queryClient = useQueryClient();
-  const [selectedCard, setSelectedCard] = useState<string | null>("events");
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
   const [rosterTab, setRosterTab] = useState<"all" | "athletes" | "coach" | "supporters">("all");
   const contentRef = useRef<HTMLDivElement>(null);
@@ -390,6 +394,10 @@ export default function CoachDashboard() {
     }
   };
 
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -1367,82 +1375,167 @@ export default function CoachDashboard() {
   };
 
   return (
-    <Layout>
-      <OnboardingTour 
-        steps={coachTourSteps} 
-        storageKey={`coach-onboarding-completed-${user?.id}`}
-        welcomeModal={coachWelcomeModal}
-      />
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
-        <div className="space-y-6">
-          {/* Hero Section - Card + Grid Layout */}
-          <div ref={heroBannerRef} className="flex flex-col lg:flex-row lg:items-start gap-6">
-            {/* Team Hype Card */}
-            {currentTeam && (
-              <div className="lg:w-72 lg:flex-shrink-0">
-                <TeamHeroCard
-                  team={currentTeam}
-                  wins={currentTeam.wins || 0}
-                  losses={currentTeam.losses || 0}
-                  ties={currentTeam.ties || 0}
-                  showCode={true}
-                />
-              </div>
-            )}
-
-            {/* Right Side - Grid + Content */}
-            <div className="flex-1 space-y-6">
-              {/* Quick Navigation - Colorful Grid Cards */}
-              <div className="grid grid-cols-3 gap-3 p-2 lg:max-w-[280px]">
-                {quickActions.map((action) => (
-                  <button
-                    key={action.id}
-                    onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
-                    className={`relative aspect-square rounded-xl transition-all duration-200 group ${
-                      selectedCard === action.id
-                        ? "ring-2 ring-white shadow-lg scale-105"
-                        : "hover:scale-105 hover:shadow-lg"
-                    }`}
-                    data-testid={`card-${action.id}`}
-                  >
-                    {/* Gradient Background */}
-                    <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${action.color} opacity-90`} />
-                    
-                    {/* Content */}
-                    <div className="relative h-full flex flex-col items-center justify-center gap-1.5 text-white">
-                      <action.icon className="h-6 w-6" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider">{action.name}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              {/* Expanded Content Container - Under the grid */}
-              {selectedCard && (
-                <div ref={contentRef} className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300">
-                  <button
-                    onClick={() => {
-                      setSelectedCard(null);
-                      setTimeout(() => {
-                        if (heroBannerRef.current) {
-                          heroBannerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                      }, 50);
-                    }}
-                    className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                  <h3 className="text-lg font-display font-bold uppercase tracking-wide mb-6">
-                    {quickActions.find(a => a.id === selectedCard)?.name}
-                  </h3>
-                  <div className="overflow-x-auto">
-                    {renderContent()}
-                  </div>
-                </div>
+    <>
+      <DashboardBackground />
+      <div className="min-h-screen relative z-10">
+        {/* Header Bar */}
+        <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-white/10">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <img src="/logo.png" alt="STATFYR" className="h-8 w-8" />
+              <h1 className="text-lg font-display font-bold tracking-wide">STATF<span className="text-orange-500">Y</span>R</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              {updateAvailable && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={applyUpdate}
+                  className="text-amber-500 hover:text-amber-400 animate-pulse"
+                  title="Update available"
+                  data-testid="button-update-available"
+                >
+                  <AlertCircle className="h-5 w-5" />
+                </Button>
               )}
+              {mounted && (
+                <button
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="p-2 rounded-lg hover:bg-white/10 transition"
+                  data-testid="button-theme-toggle"
+                >
+                  {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </button>
+              )}
+              <Link href="/settings">
+                <Button variant="ghost" size="icon" data-testid="button-settings">
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </Link>
+              <Button variant="ghost" size="icon" onClick={handleLogout} data-testid="button-logout">
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
           </div>
+        </header>
+
+        <OnboardingTour 
+          steps={coachTourSteps} 
+          storageKey={`coach-onboarding-completed-${user?.id}`}
+          welcomeModal={coachWelcomeModal}
+        />
+
+        {/* Main Content */}
+        <main className="max-w-4xl mx-auto px-4 py-4">
+          {/* Modern Team Profile Card */}
+          {currentTeam && (
+            <div className="relative rounded-3xl overflow-hidden mb-6 shadow-2xl" style={{ aspectRatio: "16/9" }}>
+              {/* Background Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400" />
+              <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+              
+              {/* Content */}
+              <div className="absolute inset-0 flex flex-col justify-between p-6">
+                {/* Top Row - Badge */}
+                <div className="flex items-start justify-between">
+                  <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-lg flex items-center gap-2">
+                    <Trophy className="h-4 w-4 text-orange-500" />
+                    <span className="text-sm font-bold text-slate-800">Coach</span>
+                  </div>
+                  <button
+                    onClick={copyTeamCode}
+                    className="bg-black/30 backdrop-blur-sm px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-black/40 transition"
+                    data-testid="button-copy-team-code"
+                  >
+                    {codeCopied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-white" />}
+                    <span className="text-sm font-mono text-white">{currentTeam.code}</span>
+                  </button>
+                </div>
+
+                {/* Bottom Row - Team Info */}
+                <div className="text-white">
+                  <h2 className="text-3xl md:text-4xl font-display font-bold mb-2 drop-shadow-lg">
+                    {currentTeam.name}
+                  </h2>
+                  <p className="text-white/80 text-sm mb-4 drop-shadow">
+                    {currentTeam.sport || "Team"} • {user?.name || user?.username}
+                  </p>
+
+                  {/* Quick Stats Row */}
+                  <div className="flex items-center gap-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{aggregateStats?.wins || (currentTeam as any).wins || 0}</div>
+                      <div className="text-xs text-white/70 uppercase tracking-wider">Wins</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{aggregateStats?.losses || (currentTeam as any).losses || 0}</div>
+                      <div className="text-xs text-white/70 uppercase tracking-wider">Losses</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{teamMembers.length}</div>
+                      <div className="text-xs text-white/70 uppercase tracking-wider">Members</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{teamEvents.length}</div>
+                      <div className="text-xs text-white/70 uppercase tracking-wider">Events</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation Cards Grid */}
+          <div ref={heroBannerRef} className="grid grid-cols-3 gap-3 mb-6">
+            {quickActions.map((action) => (
+              <button
+                key={action.id}
+                onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
+                className={`relative p-4 rounded-2xl transition-all duration-200 group ${
+                  selectedCard === action.id
+                    ? "ring-2 ring-primary shadow-lg scale-105"
+                    : "hover:scale-105 hover:shadow-lg"
+                }`}
+                data-testid={`card-${action.id}`}
+              >
+                {/* Gradient Background */}
+                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${action.color} opacity-90`} />
+                
+                {/* Content */}
+                <div className="relative flex flex-col items-center gap-2 text-white">
+                  <action.icon className="h-6 w-6" />
+                  <span className="text-xs font-bold uppercase tracking-wider">{action.name}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Expanded Content Container */}
+          {selectedCard && (
+            <div ref={contentRef} className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="flex items-center gap-3 mb-4">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSelectedCard(null)}
+                  className="gap-2"
+                  data-testid="button-back"
+                >
+                  <X className="h-4 w-4" />
+                  Close
+                </Button>
+                <h2 className="text-xl font-display font-bold uppercase tracking-wide text-primary">
+                  {quickActions.find(a => a.id === selectedCard)?.name}
+                </h2>
+              </div>
+
+              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                <CardContent className="p-6 overflow-x-auto">
+                  {renderContent()}
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Next Game Card - Prominent Game Day Live Controls */}
           {nextGame && (
@@ -1652,7 +1745,7 @@ export default function CoachDashboard() {
               </Card>
             </div>
           )}
-        </div>
+        </main>
       </div>
 
       {/* Event Add/Edit Modal */}
@@ -2184,7 +2277,7 @@ export default function CoachDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Layout>
+    </>
   );
 }
 
