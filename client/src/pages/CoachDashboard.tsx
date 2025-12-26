@@ -1398,7 +1398,7 @@ export default function CoachDashboard() {
                   <button
                     key={action.id}
                     onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
-                    className={`relative p-3 rounded-xl transition-all duration-200 group ${
+                    className={`relative aspect-square rounded-xl transition-all duration-200 group ${
                       selectedCard === action.id
                         ? "ring-2 ring-white shadow-lg scale-105"
                         : "hover:scale-105 hover:shadow-lg"
@@ -1409,8 +1409,8 @@ export default function CoachDashboard() {
                     <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${action.color} opacity-90`} />
                     
                     {/* Content */}
-                    <div className="relative flex flex-col items-center gap-1.5 text-white">
-                      <action.icon className="h-5 w-5" />
+                    <div className="relative h-full flex flex-col items-center justify-center gap-1.5 text-white">
+                      <action.icon className="h-6 w-6" />
                       <span className="text-[10px] font-bold uppercase tracking-wider">{action.name}</span>
                     </div>
                   </button>
