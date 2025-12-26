@@ -15,7 +15,6 @@ import EventsPage from "@/pages/EventsPage";
 import PlaybookPage from "@/pages/PlaybookPage";
 import StatsPage from "@/pages/StatsPage";
 import AthleteProfile from "@/pages/AthleteProfile";
-import AthleteDashboard from "@/pages/AthleteDashboard";
 import AthleteOnboarding from "@/pages/AthleteOnboarding";
 import CoachOnboarding from "@/pages/CoachOnboarding";
 import SupporterDashboard from "@/pages/SupporterDashboard";
@@ -46,7 +45,7 @@ function Router() {
       <Route path="/athlete/settings" component={AthleteSettings} />
       <Route path="/profile/me" component={AthleteProfile} />
       <Route path="/athlete/onboarding" component={AthleteOnboarding} />
-      <Route path="/athlete/dashboard" component={AthleteDashboard} />
+      <Route path="/athlete/dashboard" component={AthleteProfileNew} />
       <Route path="/coach/onboarding" component={CoachOnboarding} />
       <Route path="/supporter/onboarding" component={SupporterOnboarding} />
       <Route path="/supporter/dashboard" component={SupporterDashboard} />
@@ -56,7 +55,6 @@ function Router() {
       <Route path="/share/athlete/:id" component={ShareableHypeCard} />
       <Route path="/stattracker" component={StatTrackerPage} />
       <Route path="/stattracker/:gameId" component={StatTrackerPage} />
-      <Route path="/athlete/profile-new" component={AthleteProfileNew} />
       <Route component={NotFound} />
     </Switch>
   );
