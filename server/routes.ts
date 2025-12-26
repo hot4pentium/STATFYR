@@ -1419,6 +1419,102 @@ export async function registerRoutes(
     }
   });
 
+  // Get profile likes count and list
+  app.get("/api/athletes/:athleteId/profile-likes", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      const athlete = await storage.getUser(athleteId);
+      if (!athlete || athlete.role !== 'athlete') {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
+      
+      const likes = await storage.getProfileLikes(athleteId);
+      const count = await storage.getProfileLikeCount(athleteId);
+      res.json({ likes, count });
+    } catch (error) {
+      console.error("Error getting profile likes:", error);
+      res.status(500).json({ error: "Failed to get profile likes" });
+    }
+  });
+
+  // Add a like to athlete profile (public - no auth required)
+  app.post("/api/athletes/:athleteId/profile-likes", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      const { visitorName } = req.body;
+      
+      if (!visitorName || typeof visitorName !== 'string' || visitorName.trim().length === 0) {
+        return res.status(400).json({ error: "Visitor name is required" });
+      }
+      
+      const athlete = await storage.getUser(athleteId);
+      if (!athlete || athlete.role !== 'athlete') {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
+      
+      const like = await storage.createProfileLike({
+        athleteId,
+        visitorName: visitorName.trim()
+      });
+      
+      res.status(201).json(like);
+    } catch (error) {
+      console.error("Error creating profile like:", error);
+      res.status(500).json({ error: "Failed to add like" });
+    }
+  });
+
+  // Get profile comments
+  app.get("/api/athletes/:athleteId/profile-comments", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      const athlete = await storage.getUser(athleteId);
+      if (!athlete || athlete.role !== 'athlete') {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
+      
+      const comments = await storage.getProfileComments(athleteId);
+      res.json(comments);
+    } catch (error) {
+      console.error("Error getting profile comments:", error);
+      res.status(500).json({ error: "Failed to get profile comments" });
+    }
+  });
+
+  // Add a comment to athlete profile (public - no auth required)
+  app.post("/api/athletes/:athleteId/profile-comments", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      const { visitorName, message } = req.body;
+      
+      if (!visitorName || typeof visitorName !== 'string' || visitorName.trim().length === 0) {
+        return res.status(400).json({ error: "Visitor name is required" });
+      }
+      if (!message || typeof message !== 'string' || message.trim().length === 0) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+      if (message.length > 500) {
+        return res.status(400).json({ error: "Message too long (max 500 characters)" });
+      }
+      
+      const athlete = await storage.getUser(athleteId);
+      if (!athlete || athlete.role !== 'athlete') {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
+      
+      const comment = await storage.createProfileComment({
+        athleteId,
+        visitorName: visitorName.trim(),
+        message: message.trim()
+      });
+      
+      res.status(201).json(comment);
+    } catch (error) {
+      console.error("Error creating profile comment:", error);
+      res.status(500).json({ error: "Failed to add comment" });
+    }
+  });
+
   // ============ SHOUTOUTS ROUTES ============
   
   app.get("/api/games/:gameId/shoutouts", async (req, res) => {
