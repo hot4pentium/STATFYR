@@ -271,8 +271,8 @@ export default function ShareableHypeCard(props: any) {
             </Button>
           </Link>
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="STATFyR" className="h-6 w-6" />
-            <span className="text-sm font-display font-bold text-orange-500">STATFyR</span>
+            <img src="/logo.png" alt="STATFYR" className="h-6 w-6" />
+            <span className="text-sm font-display font-bold">STATF<span className="text-orange-500">Y</span>R</span>
           </div>
           <Button variant="ghost" size="icon" onClick={copyShareLink} data-testid="button-share">
             {copied ? <Check className="h-5 w-5 text-green-500" /> : <Share2 className="h-5 w-5" />}
@@ -581,8 +581,8 @@ export default function ShareableHypeCard(props: any) {
         <div className="text-center py-4">
           <p className="text-xs text-muted-foreground mb-2">Powered by</p>
           <div className="flex items-center justify-center gap-2">
-            <img src="/logo.png" alt="STATFyR" className="h-6 w-6" />
-            <span className="font-display font-bold text-orange-500">STATFyR</span>
+            <img src="/logo.png" alt="STATFYR" className="h-6 w-6" />
+            <span className="font-display font-bold">STATF<span className="text-orange-500">Y</span>R</span>
           </div>
         </div>
       </main>

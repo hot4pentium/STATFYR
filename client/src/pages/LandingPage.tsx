@@ -465,9 +465,9 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <div className="flex items-center justify-center gap-3 mb-6">
-              <img src={logoImage} alt="STATyR Logo" className="h-16 w-16" />
+              <img src={logoImage} alt="STATFYR Logo" className="h-16 w-16" />
               <h1 className="text-5xl md:text-7xl tracking-tight" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
-                STAT<span className="text-orange-500">y</span>R
+                STATF<span className="text-orange-500">Y</span>R
               </h1>
             </div>
           </motion.div>
@@ -590,7 +590,7 @@ export default function LandingPage() {
               Built for <span className="text-primary">Everyone</span> on the Team
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Whether you're calling the plays, making them, or cheering from the sidelines — STATFyR has you covered.
+              Whether you're calling the plays, making them, or cheering from the sidelines — STATFYR has you covered.
             </p>
           </motion.div>
 
@@ -660,7 +660,7 @@ export default function LandingPage() {
               Ready to <span className="text-primary">Ignite</span> Your Team?
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-12">
-              Join thousands of teams already using STATFyR to connect, compete, and celebrate together.
+              Join thousands of teams already using STATFYR to connect, compete, and celebrate together.
             </p>
           </motion.div>
           
@@ -689,11 +689,11 @@ export default function LandingPage() {
       <footer className="py-8 border-t border-white/10">
         <div className="container mx-auto px-6 text-center text-muted-foreground">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <img src={logoImage} alt="STATyR Logo" className="h-6 w-6" />
-            <span className="font-bold" style={{ fontFamily: "'Archivo Black', sans-serif" }}>STAT<span className="text-orange-500">y</span>R</span>
+            <img src={logoImage} alt="STATFYR Logo" className="h-6 w-6" />
+            <span className="font-bold" style={{ fontFamily: "'Archivo Black', sans-serif" }}>STATF<span className="text-orange-500">Y</span>R</span>
           </div>
           <p className="text-sm">
-            &copy; {new Date().getFullYear()} STATFyR. Fuel Your Team's Fire.
+            &copy; {new Date().getFullYear()} STATFYR. Fuel Your Team's Fire.
           </p>
         </div>
       </footer>

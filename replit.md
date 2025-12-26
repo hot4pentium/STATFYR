@@ -1,8 +1,8 @@
-# STATFyR - Sports Stats & Team Management
+# STATFYR - Sports Stats & Team Management
 
 ## Overview
 
-STATFyR is a comprehensive sports team management platform designed for coaches, athletes, and supporters. The application enables team roster management, event scheduling, performance statistics tracking, playbook design, and team communication. Built with a React frontend and Express backend, it uses PostgreSQL for data persistence and follows a role-based access pattern where coaches create teams, and athletes/supporters join via team codes.
+STATFYR is a comprehensive sports team management platform designed for coaches, athletes, and supporters. The application enables team roster management, event scheduling, performance statistics tracking, playbook design, and team communication. Built with a React frontend and Express backend, it uses PostgreSQL for data persistence and follows a role-based access pattern where coaches create teams, and athletes/supporters join via team codes.
 
 ## User Preferences
 
