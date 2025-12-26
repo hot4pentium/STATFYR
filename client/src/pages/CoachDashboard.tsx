@@ -1375,17 +1375,45 @@ export default function CoachDashboard() {
       />
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
         <div className="space-y-6">
-          {/* Hero Banner - Team Hype Card */}
-          <div ref={heroBannerRef}>
+          {/* Hero Section - Card + Grid Layout */}
+          <div ref={heroBannerRef} className="flex flex-col lg:flex-row lg:items-end gap-6">
+            {/* Team Hype Card */}
             {currentTeam && (
-              <TeamHeroCard
-                team={currentTeam}
-                wins={currentTeam.wins || 0}
-                losses={currentTeam.losses || 0}
-                ties={currentTeam.ties || 0}
-                showCode={true}
-              />
+              <div className="lg:w-80 lg:flex-shrink-0">
+                <TeamHeroCard
+                  team={currentTeam}
+                  wins={currentTeam.wins || 0}
+                  losses={currentTeam.losses || 0}
+                  ties={currentTeam.ties || 0}
+                  showCode={true}
+                />
+              </div>
             )}
+
+            {/* Quick Navigation - Colorful Grid Cards */}
+            <div className="flex-1 grid grid-cols-3 gap-3 lg:self-end">
+              {quickActions.map((action) => (
+                <button
+                  key={action.id}
+                  onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
+                  className={`relative p-4 rounded-2xl transition-all duration-200 group ${
+                    selectedCard === action.id
+                      ? "ring-2 ring-white shadow-lg scale-105"
+                      : "hover:scale-105 hover:shadow-lg"
+                  }`}
+                  data-testid={`card-${action.id}`}
+                >
+                  {/* Gradient Background */}
+                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${action.color} opacity-90`} />
+                  
+                  {/* Content */}
+                  <div className="relative flex flex-col items-center gap-2 text-white">
+                    <action.icon className="h-6 w-6" />
+                    <span className="text-xs font-bold uppercase tracking-wider">{action.name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Next Game Card - Prominent Game Day Live Controls */}
@@ -1459,31 +1487,6 @@ export default function CoachDashboard() {
               </CardContent>
             </Card>
           )}
-
-          {/* Quick Navigation - Colorful Grid Cards */}
-          <div className="grid grid-cols-3 gap-3">
-            {quickActions.map((action) => (
-              <button
-                key={action.id}
-                onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
-                className={`relative p-4 rounded-2xl transition-all duration-200 group ${
-                  selectedCard === action.id
-                    ? "ring-2 ring-white shadow-lg scale-105"
-                    : "hover:scale-105 hover:shadow-lg"
-                }`}
-                data-testid={`card-${action.id}`}
-              >
-                {/* Gradient Background */}
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${action.color} opacity-90`} />
-                
-                {/* Content */}
-                <div className="relative flex flex-col items-center gap-2 text-white">
-                  <action.icon className="h-6 w-6" />
-                  <span className="text-xs font-bold uppercase tracking-wider">{action.name}</span>
-                </div>
-              </button>
-            ))}
-          </div>
 
           {/* Expanded Content Container */}
           {selectedCard && (

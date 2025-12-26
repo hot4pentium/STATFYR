@@ -1267,32 +1267,61 @@ export default function SupporterDashboard() {
             </div>
           </div>
         ) : (
-          <div ref={heroBannerRef}>
+          /* Hero Section - Card + Grid Layout */
+          <div ref={heroBannerRef} className="flex flex-col lg:flex-row lg:items-end gap-6">
+            {/* Team Hype Card */}
             {currentTeam && (
-              <TeamHeroCard
-                team={currentTeam}
-                wins={currentTeam.wins || 0}
-                losses={currentTeam.losses || 0}
-                ties={currentTeam.ties || 0}
-                actionSlot={
-                  <div className="flex items-center justify-center gap-3 px-4 py-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30">
-                    <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
-                      {user?.avatar ? (
-                        <img src={user.avatar} alt={user.name || "Supporter"} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-sm font-bold text-white/80">
-                          {user?.name?.split(' ').map(n => n[0]).join('') || "?"}
-                        </span>
-                      )}
+              <div className="lg:w-80 lg:flex-shrink-0">
+                <TeamHeroCard
+                  team={currentTeam}
+                  wins={currentTeam.wins || 0}
+                  losses={currentTeam.losses || 0}
+                  ties={currentTeam.ties || 0}
+                  actionSlot={
+                    <div className="flex items-center justify-center gap-3 px-4 py-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30">
+                      <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
+                        {user?.avatar ? (
+                          <img src={user.avatar} alt={user.name || "Supporter"} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-sm font-bold text-white/80">
+                            {user?.name?.split(' ').map(n => n[0]).join('') || "?"}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-bold text-white">{user?.name || "Supporter"}</p>
+                        <p className="text-xs text-white/70 uppercase tracking-wider">Team Supporter</p>
+                      </div>
                     </div>
-                    <div className="text-left">
-                      <p className="text-sm font-bold text-white">{user?.name || "Supporter"}</p>
-                      <p className="text-xs text-white/70 uppercase tracking-wider">Team Supporter</p>
-                    </div>
-                  </div>
-                }
-              />
+                  }
+                />
+              </div>
             )}
+
+            {/* Quick Navigation - Colorful Grid Cards */}
+            <div className="flex-1 grid grid-cols-3 gap-3 lg:self-end">
+              {quickActions.map((action) => (
+                <button
+                  key={action.id}
+                  onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
+                  className={`relative p-4 rounded-2xl transition-all duration-200 group ${
+                    selectedCard === action.id
+                      ? "ring-2 ring-white shadow-lg scale-105"
+                      : "hover:scale-105 hover:shadow-lg"
+                  }`}
+                  data-testid={`card-${action.id}`}
+                >
+                  {/* Gradient Background */}
+                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${action.color} opacity-90`} />
+                  
+                  {/* Content */}
+                  <div className="relative flex flex-col items-center gap-2 text-white">
+                    <action.icon className="h-6 w-6" />
+                    <span className="text-xs font-bold uppercase tracking-wider">{action.name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -1320,31 +1349,6 @@ export default function SupporterDashboard() {
             </div>
           </button>
         )}
-
-        {/* Quick Navigation - Colorful Grid Cards */}
-        <div className="grid grid-cols-3 gap-3">
-          {quickActions.map((action) => (
-            <button
-              key={action.id}
-              onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
-              className={`relative p-4 rounded-2xl transition-all duration-200 group ${
-                selectedCard === action.id
-                  ? "ring-2 ring-white shadow-lg scale-105"
-                  : "hover:scale-105 hover:shadow-lg"
-              }`}
-              data-testid={`card-${action.id}`}
-            >
-              {/* Gradient Background */}
-              <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${action.color} opacity-90`} />
-              
-              {/* Content */}
-              <div className="relative flex flex-col items-center gap-2 text-white">
-                <action.icon className="h-6 w-6" />
-                <span className="text-xs font-bold uppercase tracking-wider">{action.name}</span>
-              </div>
-            </button>
-          ))}
-        </div>
 
         {selectedCard && (
           <div ref={contentRef} className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300">
