@@ -101,8 +101,31 @@ export default function AthleteProfileNew() {
     }
   };
 
+  const copyToClipboard = async (text: string): Promise<boolean> => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const result = document.execCommand("copy");
+      document.body.removeChild(textArea);
+      return result;
+    } catch {
+      return false;
+    }
+  };
+
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/share/athlete/${user?.id}`;
+    
     if (navigator.share) {
       try {
         await navigator.share({
@@ -110,13 +133,17 @@ export default function AthleteProfileNew() {
           text: `Check out my athlete profile on STATFyR!`,
           url: shareUrl,
         });
-      } catch (err) {
-        navigator.clipboard.writeText(shareUrl);
-        toast.success("Profile link copied!");
+        return;
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
       }
+    }
+    
+    const copied = await copyToClipboard(shareUrl);
+    if (copied) {
+      toast.success("Profile link copied to clipboard!");
     } else {
-      navigator.clipboard.writeText(shareUrl);
-      toast.success("Profile link copied!");
+      toast.error("Could not copy link. Try copying manually.");
     }
   };
 
