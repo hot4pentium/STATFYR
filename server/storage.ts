@@ -2,7 +2,7 @@ import {
   users, teams, teamMembers, events, highlightVideos, plays, managedAthletes,
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
-  liveEngagementSessions,
+  liveEngagementSessions, profileLikes, profileComments,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -22,7 +22,9 @@ import {
   type BadgeDefinition, type InsertBadgeDefinition,
   type SupporterBadge, type InsertSupporterBadge,
   type ThemeUnlock, type InsertThemeUnlock,
-  type LiveEngagementSession, type InsertLiveEngagementSession, type UpdateLiveEngagementSession
+  type LiveEngagementSession, type InsertLiveEngagementSession, type UpdateLiveEngagementSession,
+  type ProfileLike, type InsertProfileLike,
+  type ProfileComment, type InsertProfileComment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql } from "drizzle-orm";
@@ -154,6 +156,13 @@ export interface IStorage {
   getSessionTapCount(sessionId: string): Promise<number>;
   createSessionShoutout(data: { sessionId: string; supporterId: string; athleteId: string; message: string }): Promise<Shoutout>;
   createSessionTapEvent(data: { sessionId: string; supporterId: string; teamId: string; tapCount: number }): Promise<LiveTapEvent>;
+  
+  // Profile Likes and Comments (public interactions)
+  getProfileLikes(athleteId: string): Promise<ProfileLike[]>;
+  getProfileLikeCount(athleteId: string): Promise<number>;
+  createProfileLike(data: InsertProfileLike): Promise<ProfileLike>;
+  getProfileComments(athleteId: string): Promise<ProfileComment[]>;
+  createProfileComment(data: InsertProfileComment): Promise<ProfileComment>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1326,6 +1335,41 @@ export class DatabaseStorage implements IStorage {
       tapCount: data.tapCount,
     }).returning();
     return event;
+  }
+
+  // Profile Likes and Comments implementations
+  async getProfileLikes(athleteId: string): Promise<ProfileLike[]> {
+    return await db
+      .select()
+      .from(profileLikes)
+      .where(eq(profileLikes.athleteId, athleteId))
+      .orderBy(desc(profileLikes.createdAt));
+  }
+
+  async getProfileLikeCount(athleteId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(profileLikes)
+      .where(eq(profileLikes.athleteId, athleteId));
+    return Number(result?.count || 0);
+  }
+
+  async createProfileLike(data: InsertProfileLike): Promise<ProfileLike> {
+    const [like] = await db.insert(profileLikes).values(data).returning();
+    return like;
+  }
+
+  async getProfileComments(athleteId: string): Promise<ProfileComment[]> {
+    return await db
+      .select()
+      .from(profileComments)
+      .where(eq(profileComments.athleteId, athleteId))
+      .orderBy(desc(profileComments.createdAt));
+  }
+
+  async createProfileComment(data: InsertProfileComment): Promise<ProfileComment> {
+    const [comment] = await db.insert(profileComments).values(data).returning();
+    return comment;
   }
 }
 
