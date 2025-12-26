@@ -1287,24 +1287,22 @@ export default function SupporterDashboard() {
                 wins={currentTeam.wins || 0}
                 losses={currentTeam.losses || 0}
                 ties={currentTeam.ties || 0}
-                rightSlot={
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="h-16 w-16 md:h-20 md:w-20 bg-white/10 backdrop-blur-md rounded-full border-2 border-white/30 flex items-center justify-center shadow-xl overflow-hidden">
+                actionSlot={
+                  <div className="flex items-center justify-center gap-3 px-4 py-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30">
+                    <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
                       {user?.avatar ? (
                         <img src={user.avatar} alt={user.name || "Supporter"} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-xl md:text-2xl font-display font-bold text-white/60">
+                        <span className="text-sm font-bold text-white/80">
                           {user?.name?.split(' ').map(n => n[0]).join('') || "?"}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-white/80 font-medium text-center max-w-[80px] truncate">{user?.name || "Supporter"}</p>
+                    <div className="text-left">
+                      <p className="text-sm font-bold text-white">{user?.name || "Supporter"}</p>
+                      <p className="text-xs text-white/70 uppercase tracking-wider">Team Supporter</p>
+                    </div>
                   </div>
-                }
-                bottomSlot={
-                  <span className="px-3 py-1.5 backdrop-blur-sm rounded-lg border bg-white/20 border-white/30 text-white text-xs font-bold uppercase tracking-wider">
-                    Supporter
-                  </span>
                 }
               />
             )}

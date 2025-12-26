@@ -1395,7 +1395,7 @@ export default function CoachDashboard() {
       />
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
         <div className="space-y-6">
-          {/* Hero Banner */}
+          {/* Hero Banner - Team Hype Card */}
           <div ref={heroBannerRef}>
             {currentTeam && (
               <TeamHeroCard
@@ -1403,18 +1403,7 @@ export default function CoachDashboard() {
                 wins={currentTeam.wins || 0}
                 losses={currentTeam.losses || 0}
                 ties={currentTeam.ties || 0}
-                bottomSlot={
-                  currentTeam.code && (
-                    <button
-                      onClick={copyTeamCode}
-                      className="px-3 md:px-4 py-1.5 md:py-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30 flex items-center gap-2 hover:bg-white/30 transition-colors"
-                      data-testid="button-copy-team-code"
-                    >
-                      <span className="text-xs md:text-sm font-bold text-white uppercase tracking-wider font-mono">Code: {currentTeam.code}</span>
-                      {codeCopied ? <Check className="h-4 w-4 text-white" /> : <Copy className="h-4 w-4 text-white" />}
-                    </button>
-                  )
-                }
+                showCode={true}
               />
             )}
           </div>
