@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { withRetry } from "./db";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
@@ -1441,9 +1441,14 @@ export async function registerRoutes(
   app.post("/api/athletes/:athleteId/profile-likes", async (req, res) => {
     try {
       const athleteId = req.params.athleteId;
-      const { visitorName } = req.body;
       
-      if (!visitorName || typeof visitorName !== 'string' || visitorName.trim().length === 0) {
+      // Validate with Zod schema
+      const parsed = insertProfileLikeSchema.parse({
+        athleteId,
+        visitorName: req.body.visitorName,
+      });
+      
+      if (!parsed.visitorName || parsed.visitorName.trim().length === 0) {
         return res.status(400).json({ error: "Visitor name is required" });
       }
       
@@ -1453,13 +1458,16 @@ export async function registerRoutes(
       }
       
       const like = await storage.createProfileLike({
-        athleteId,
-        visitorName: visitorName.trim()
+        athleteId: parsed.athleteId,
+        visitorName: parsed.visitorName.trim()
       });
       
       res.status(201).json(like);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating profile like:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
       res.status(500).json({ error: "Failed to add like" });
     }
   });
@@ -1485,15 +1493,21 @@ export async function registerRoutes(
   app.post("/api/athletes/:athleteId/profile-comments", async (req, res) => {
     try {
       const athleteId = req.params.athleteId;
-      const { visitorName, message } = req.body;
       
-      if (!visitorName || typeof visitorName !== 'string' || visitorName.trim().length === 0) {
+      // Validate with Zod schema
+      const parsed = insertProfileCommentSchema.parse({
+        athleteId,
+        visitorName: req.body.visitorName,
+        message: req.body.message,
+      });
+      
+      if (!parsed.visitorName || parsed.visitorName.trim().length === 0) {
         return res.status(400).json({ error: "Visitor name is required" });
       }
-      if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      if (!parsed.message || parsed.message.trim().length === 0) {
         return res.status(400).json({ error: "Message is required" });
       }
-      if (message.length > 500) {
+      if (parsed.message.length > 500) {
         return res.status(400).json({ error: "Message too long (max 500 characters)" });
       }
       
@@ -1503,14 +1517,17 @@ export async function registerRoutes(
       }
       
       const comment = await storage.createProfileComment({
-        athleteId,
-        visitorName: visitorName.trim(),
-        message: message.trim()
+        athleteId: parsed.athleteId,
+        visitorName: parsed.visitorName.trim(),
+        message: parsed.message.trim()
       });
       
       res.status(201).json(comment);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating profile comment:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
       res.status(500).json({ error: "Failed to add comment" });
     }
   });

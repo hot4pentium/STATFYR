@@ -1,11 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 
 type Athlete = {
@@ -52,6 +54,21 @@ type Shoutout = {
   createdAt: string;
 };
 
+type ProfileLike = {
+  id: string;
+  athleteId: string;
+  visitorName: string;
+  createdAt: string;
+};
+
+type ProfileComment = {
+  id: string;
+  athleteId: string;
+  visitorName: string;
+  message: string;
+  createdAt: string;
+};
+
 async function getPublicAthleteProfile(athleteId: string): Promise<{
   athlete: Athlete;
   membership: TeamMember | null;
@@ -69,15 +86,114 @@ async function getPublicAthleteProfile(athleteId: string): Promise<{
   }
 }
 
+async function getProfileLikes(athleteId: string): Promise<{ likes: ProfileLike[]; count: number }> {
+  const res = await fetch(`/api/athletes/${athleteId}/profile-likes`);
+  if (!res.ok) throw new Error("Failed to fetch likes");
+  return res.json();
+}
+
+async function addProfileLike(athleteId: string, visitorName: string): Promise<ProfileLike> {
+  const res = await fetch(`/api/athletes/${athleteId}/profile-likes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ visitorName }),
+  });
+  if (!res.ok) throw new Error("Failed to add like");
+  return res.json();
+}
+
+async function getProfileComments(athleteId: string): Promise<ProfileComment[]> {
+  const res = await fetch(`/api/athletes/${athleteId}/profile-comments`);
+  if (!res.ok) throw new Error("Failed to fetch comments");
+  return res.json();
+}
+
+async function addProfileComment(athleteId: string, visitorName: string, message: string): Promise<ProfileComment> {
+  const res = await fetch(`/api/athletes/${athleteId}/profile-comments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ visitorName, message }),
+  });
+  if (!res.ok) throw new Error("Failed to add comment");
+  return res.json();
+}
+
 export default function ShareableHypeCard(props: any) {
   const athleteId = props.params?.id;
   const [copied, setCopied] = useState(false);
+  const [visitorName, setVisitorName] = useState("");
+  const [commentMessage, setCommentMessage] = useState("");
+  const [showCommentForm, setShowCommentForm] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Persist liked state in localStorage to prevent spam
+  const likeStorageKey = `profile-liked-${athleteId}`;
+  const [hasLiked, setHasLiked] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(likeStorageKey) === 'true';
+    }
+    return false;
+  });
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["/api/athletes", athleteId, "public-profile"],
     queryFn: () => getPublicAthleteProfile(athleteId),
     enabled: !!athleteId,
   });
+
+  const { data: likesData } = useQuery({
+    queryKey: ["/api/athletes", athleteId, "profile-likes"],
+    queryFn: () => getProfileLikes(athleteId),
+    enabled: !!athleteId,
+  });
+
+  const { data: comments = [] } = useQuery({
+    queryKey: ["/api/athletes", athleteId, "profile-comments"],
+    queryFn: () => getProfileComments(athleteId),
+    enabled: !!athleteId,
+  });
+
+  const likeMutation = useMutation({
+    mutationFn: (name: string) => addProfileLike(athleteId, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "profile-likes"] });
+      setHasLiked(true);
+      localStorage.setItem(likeStorageKey, 'true');
+      toast.success("Thanks for the love!");
+    },
+    onError: () => toast.error("Failed to add like"),
+  });
+
+  const commentMutation = useMutation({
+    mutationFn: ({ name, message }: { name: string; message: string }) => addProfileComment(athleteId, name, message),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "profile-comments"] });
+      setCommentMessage("");
+      setShowCommentForm(false);
+      toast.success("Comment added!");
+    },
+    onError: () => toast.error("Failed to add comment"),
+  });
+
+  const handleLike = () => {
+    if (!visitorName.trim()) {
+      toast.error("Please enter your name first");
+      return;
+    }
+    likeMutation.mutate(visitorName.trim());
+  };
+
+  const handleComment = () => {
+    if (!visitorName.trim()) {
+      toast.error("Please enter your name first");
+      return;
+    }
+    if (!commentMessage.trim()) {
+      toast.error("Please enter a message");
+      return;
+    }
+    commentMutation.mutate({ name: visitorName.trim(), message: commentMessage.trim() });
+  };
 
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/athlete/${athleteId}` : '';
 
@@ -345,6 +461,119 @@ export default function ShareableHypeCard(props: any) {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        )}
+
+        {/* Show Your Support Section */}
+        <div className="mb-6">
+          <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2">
+            <Heart className="h-5 w-5 text-pink-500" />
+            Show Your Support
+          </h3>
+          
+          <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+            <CardContent className="p-4 space-y-4">
+              {/* Visitor Name Input */}
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Enter your name"
+                  value={visitorName}
+                  onChange={(e) => setVisitorName(e.target.value)}
+                  className="flex-1 bg-background/50"
+                  data-testid="input-visitor-name"
+                />
+              </div>
+
+              {/* Like and Comment Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleLike}
+                  disabled={hasLiked || likeMutation.isPending}
+                  className={`flex-1 ${hasLiked ? 'bg-pink-500/20 text-pink-500' : 'bg-pink-500 hover:bg-pink-600 text-white'}`}
+                  data-testid="button-like-profile"
+                >
+                  <Heart className={`h-4 w-4 mr-2 ${hasLiked ? 'fill-pink-500' : ''}`} />
+                  {hasLiked ? 'Liked!' : 'Like'} ({likesData?.count || 0})
+                </Button>
+                <Button
+                  onClick={() => setShowCommentForm(!showCommentForm)}
+                  variant="outline"
+                  className="flex-1"
+                  data-testid="button-toggle-comment"
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Comment ({comments.length})
+                </Button>
+              </div>
+
+              {/* Comment Form */}
+              {showCommentForm && (
+                <div className="space-y-2 pt-2 border-t border-white/10">
+                  <Textarea
+                    placeholder="Leave an encouraging message..."
+                    value={commentMessage}
+                    onChange={(e) => setCommentMessage(e.target.value)}
+                    maxLength={500}
+                    className="bg-background/50 resize-none"
+                    rows={3}
+                    data-testid="input-comment-message"
+                  />
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">{commentMessage.length}/500</span>
+                    <Button
+                      onClick={handleComment}
+                      disabled={commentMutation.isPending || !commentMessage.trim()}
+                      size="sm"
+                      className="bg-primary"
+                      data-testid="button-submit-comment"
+                    >
+                      <Send className="h-4 w-4 mr-1" />
+                      Send
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Comments Section */}
+        {comments.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-primary" />
+              Messages ({comments.length})
+            </h3>
+            <div className="space-y-2">
+              {comments.slice(0, 10).map((comment) => (
+                <Card key={comment.id} className="bg-card/80 backdrop-blur-sm border-white/10">
+                  <CardContent className="p-3">
+                    <div className="flex items-start gap-3">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-bold text-primary">
+                          {comment.visitorName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-semibold">{comment.visitorName}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(comment.createdAt), 'MMM d')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{comment.message}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              {comments.length > 10 && (
+                <p className="text-center text-sm text-muted-foreground">
+                  + {comments.length - 10} more messages
+                </p>
+              )}
+            </div>
           </div>
         )}
 

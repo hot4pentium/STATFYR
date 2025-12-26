@@ -155,3 +155,19 @@ The database schema centers around four main entities:
 - **Database Tables**: `badge_definitions`, `supporter_badges` (earned), `theme_unlocks` (unlocked themes with isActive flag)
 - **Badge Display**: Hype Card quadrant shows shoutout count; Badges section shows tap totals, progress bar, earned badges, and theme selector
 - **Live Game Banner**: Supporter Dashboard shows pulsing "LIVE GAME NOW!" banner when active games exist
+
+### Shareable Athlete Profiles
+- **Purpose**: Public read-only athlete profile pages that can be shared with anyone
+- **Route**: `/share/athlete/:athleteId` for public access
+- **Profile Card**: Modern card design with athlete photo, badge level, rating, team info, and quick stats
+- **Stats Display**: Season statistics with top 6 stats shown in grid
+- **Highlights Preview**: Up to 4 video highlight thumbnails (no video URLs for security)
+- **Recent Cheers**: Shows shoutouts from supporters
+- **Social Sharing**: Twitter, WhatsApp, and copy link buttons
+- **Public Interactions**: Visitors can like and leave comments without logging in
+  - Likes require visitor name entry
+  - Comments require visitor name and message (max 500 chars)
+  - Like state persisted in localStorage to prevent spam
+  - API routes use Zod schema validation
+- **Database Tables**: `profile_likes` (athleteId, visitorName), `profile_comments` (athleteId, visitorName, message)
+- **API Endpoints**: GET/POST `/api/athletes/:athleteId/profile-likes`, GET/POST `/api/athletes/:athleteId/profile-comments`
