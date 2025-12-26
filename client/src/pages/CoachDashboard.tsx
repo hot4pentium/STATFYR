@@ -1376,10 +1376,10 @@ export default function CoachDashboard() {
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
         <div className="space-y-6">
           {/* Hero Section - Card + Grid Layout */}
-          <div ref={heroBannerRef} className="flex flex-col lg:flex-row lg:items-end gap-6">
+          <div ref={heroBannerRef} className="flex flex-col lg:flex-row lg:items-start gap-6">
             {/* Team Hype Card */}
             {currentTeam && (
-              <div className="lg:w-80 lg:flex-shrink-0">
+              <div className="lg:w-72 lg:flex-shrink-0">
                 <TeamHeroCard
                   team={currentTeam}
                   wins={currentTeam.wins || 0}
@@ -1390,29 +1390,57 @@ export default function CoachDashboard() {
               </div>
             )}
 
-            {/* Quick Navigation - Colorful Grid Cards */}
-            <div className="flex-1 grid grid-cols-3 gap-3 lg:self-end">
-              {quickActions.map((action) => (
-                <button
-                  key={action.id}
-                  onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
-                  className={`relative p-4 rounded-2xl transition-all duration-200 group ${
-                    selectedCard === action.id
-                      ? "ring-2 ring-white shadow-lg scale-105"
-                      : "hover:scale-105 hover:shadow-lg"
-                  }`}
-                  data-testid={`card-${action.id}`}
-                >
-                  {/* Gradient Background */}
-                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${action.color} opacity-90`} />
-                  
-                  {/* Content */}
-                  <div className="relative flex flex-col items-center gap-2 text-white">
-                    <action.icon className="h-6 w-6" />
-                    <span className="text-xs font-bold uppercase tracking-wider">{action.name}</span>
+            {/* Right Side - Grid + Content */}
+            <div className="flex-1 space-y-6">
+              {/* Quick Navigation - Colorful Grid Cards */}
+              <div className="grid grid-cols-3 gap-2">
+                {quickActions.map((action) => (
+                  <button
+                    key={action.id}
+                    onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
+                    className={`relative p-3 rounded-xl transition-all duration-200 group ${
+                      selectedCard === action.id
+                        ? "ring-2 ring-white shadow-lg scale-105"
+                        : "hover:scale-105 hover:shadow-lg"
+                    }`}
+                    data-testid={`card-${action.id}`}
+                  >
+                    {/* Gradient Background */}
+                    <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${action.color} opacity-90`} />
+                    
+                    {/* Content */}
+                    <div className="relative flex flex-col items-center gap-1.5 text-white">
+                      <action.icon className="h-5 w-5" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{action.name}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Expanded Content Container - Under the grid */}
+              {selectedCard && (
+                <div ref={contentRef} className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300">
+                  <button
+                    onClick={() => {
+                      setSelectedCard(null);
+                      setTimeout(() => {
+                        if (heroBannerRef.current) {
+                          heroBannerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                      }, 50);
+                    }}
+                    className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                  <h3 className="text-lg font-display font-bold uppercase tracking-wide mb-6">
+                    {quickActions.find(a => a.id === selectedCard)?.name}
+                  </h3>
+                  <div className="overflow-x-auto">
+                    {renderContent()}
                   </div>
-                </button>
-              ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -1486,32 +1514,6 @@ export default function CoachDashboard() {
                 </div>
               </CardContent>
             </Card>
-          )}
-
-          {/* Expanded Content Container */}
-          {selectedCard && (
-            <div ref={contentRef} className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300">
-              <button
-                onClick={() => {
-                  setSelectedCard(null);
-                  // Immediately scroll to hero banner when close button is clicked
-                  setTimeout(() => {
-                    if (heroBannerRef.current) {
-                      heroBannerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                  }, 50);
-                }}
-                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-              <h3 className="text-lg font-display font-bold uppercase tracking-wide mb-6">
-                {quickActions.find(a => a.id === selectedCard)?.name}
-              </h3>
-              <div className="overflow-x-auto">
-                {renderContent()}
-              </div>
-            </div>
           )}
 
           {/* Stats Grid */}
