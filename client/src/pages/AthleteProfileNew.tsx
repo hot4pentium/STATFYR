@@ -95,9 +95,9 @@ export default function AthleteProfileNew() {
 
   const handleCardClick = (cardId: string) => {
     if (activeSection === cardId) {
-      setLocation("/athlete/profile-new");
+      setLocation("/athlete/dashboard");
     } else {
-      setLocation(`/athlete/profile-new?section=${cardId}`);
+      setLocation(`/athlete/dashboard?section=${cardId}`);
     }
   };
 
