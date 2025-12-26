@@ -237,50 +237,37 @@ export default function SupporterDashboard() {
       name: "Schedule", 
       id: "schedule",
       icon: CalendarIcon, 
-      color: "from-blue-500/20 to-blue-600/20",
-      description: "Match dates"
+      color: "from-blue-500 to-cyan-500"
     },
     { 
       name: "Roster", 
       id: "roster",
       icon: Users, 
-      color: "from-purple-500/20 to-purple-600/20",
-      description: "Team squad"
+      color: "from-purple-500 to-pink-500"
     },
     { 
       name: "Highlights", 
       id: "highlights",
       icon: Video, 
-      color: "from-red-500/20 to-red-600/20",
-      description: "Team videos"
+      color: "from-rose-500 to-red-500"
     },
     { 
       name: "Stats", 
       id: "stats",
       icon: BarChart3, 
-      color: "from-orange-500/20 to-orange-600/20",
-      description: "Team stats"
-    },
-    { 
-      name: "Chat", 
-      id: "chat",
-      icon: MessageSquare, 
-      color: "from-pink-500/20 to-pink-600/20",
-      description: "Updates"
+      color: "from-amber-500 to-orange-500"
     },
     { 
       name: "Playbook", 
       id: "playbook",
       icon: BookOpen, 
-      color: "from-green-500/20 to-green-600/20",
-      description: "Team plays"
+      color: "from-green-500 to-emerald-500"
     },
     { 
       name: "Badges", 
       id: "badges",
       icon: Trophy, 
-      color: "from-amber-500/20 to-amber-600/20",
-      description: "Your rewards"
+      color: "from-yellow-400 to-amber-500"
     },
   ];
 
@@ -1334,26 +1321,26 @@ export default function SupporterDashboard() {
           </button>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
+        {/* Quick Navigation - Colorful Grid Cards */}
+        <div className="grid grid-cols-3 gap-3">
           {quickActions.map((action) => (
             <button
               key={action.id}
               onClick={() => setSelectedCard(selectedCard === action.id ? null : action.id)}
-              className={`h-full p-4 rounded-lg border transition-all duration-200 backdrop-blur-sm group text-left ${
+              className={`relative p-4 rounded-2xl transition-all duration-200 group ${
                 selectedCard === action.id
-                  ? "border-primary/50 bg-primary/10 shadow-lg shadow-primary/20"
-                  : `border-white/5 bg-gradient-to-br ${action.color} hover:border-white/20 hover:bg-white/5`
+                  ? "ring-2 ring-white shadow-lg scale-105"
+                  : "hover:scale-105 hover:shadow-lg"
               }`}
               data-testid={`card-${action.id}`}
             >
-              <div className="flex flex-col items-center text-center gap-2">
-                <div className="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                  <action.icon className="h-5 w-5 md:h-6 md:w-6 text-primary group-hover:scale-110 transition-transform" />
-                </div>
-                <div>
-                  <div className="font-bold text-sm md:text-base">{action.name}</div>
-                  <div className="text-[10px] md:text-xs text-muted-foreground">{action.description}</div>
-                </div>
+              {/* Gradient Background */}
+              <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${action.color} opacity-90`} />
+              
+              {/* Content */}
+              <div className="relative flex flex-col items-center gap-2 text-white">
+                <action.icon className="h-6 w-6" />
+                <span className="text-xs font-bold uppercase tracking-wider">{action.name}</span>
               </div>
             </button>
           ))}
