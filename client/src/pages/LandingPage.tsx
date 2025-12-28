@@ -257,7 +257,7 @@ export default function LandingPage() {
 
                 {/* Mobile Phone - Foreground Center */}
                 <div className="relative z-10">
-                  <div className="bg-white rounded-[3rem] p-3 shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-gray-200 max-w-[240px]">
+                  <div className="bg-white rounded-[3rem] p-3 shadow-[0_8px_40px_rgba(0,0,0,0.4),0_0_0_3px_rgba(0,0,0,0.8)] max-w-[240px]">
                     <div className="bg-gradient-to-b from-orange-50 to-white rounded-[2.5rem] overflow-hidden">
                       <div className="h-6 bg-gray-900 rounded-t-[2.5rem] flex items-center justify-center">
                         <div className="w-16 h-4 bg-gray-800 rounded-full" />
