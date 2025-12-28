@@ -62,6 +62,15 @@ export default function ChatPage() {
   const wsRef = useRef<WebSocket | null>(null);
 
   const isCoach = user?.role === "coach";
+  
+  const getDashboardPath = () => {
+    switch (user?.role) {
+      case "coach": return "/dashboard";
+      case "athlete": return "/athlete/dashboard";
+      case "supporter": return "/supporter/dashboard";
+      default: return "/";
+    }
+  };
 
   const handleEnableNotifications = async () => {
     setIsEnabling(true);
@@ -267,7 +276,7 @@ export default function ChatPage() {
                 {isEnabling ? "Enabling..." : "Enable Notifications"}
               </Button>
             )}
-            <Link href="/dashboard">
+            <Link href={getDashboardPath()}>
               <Button variant="ghost" className="w-full mt-2" data-testid="button-go-back">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Go Back
@@ -288,7 +297,7 @@ export default function ChatPage() {
             <p className="text-muted-foreground mb-6">
               Please join or select a team to access team chat.
             </p>
-            <Link href="/dashboard">
+            <Link href={getDashboardPath()}>
               <Button variant="ghost" className="w-full" data-testid="button-go-back">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Go Back
@@ -305,7 +314,7 @@ export default function ChatPage() {
       <div className="h-[calc(100vh-140px)] flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         <div className="flex items-center gap-3">
-          <Link href="/dashboard">
+          <Link href={getDashboardPath()}>
             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-5 w-5" />
             </Button>
