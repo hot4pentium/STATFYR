@@ -11,6 +11,7 @@ import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
 import CoachDashboard from "@/pages/CoachDashboard";
+import UnifiedDashboard from "@/pages/UnifiedDashboard";
 import RosterPage from "@/pages/RosterPage";
 import EventsPage from "@/pages/EventsPage";
 import PlaybookPage from "@/pages/PlaybookPage";
@@ -37,8 +38,9 @@ function Router() {
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/auth" component={AuthPage} />
-      <Route path="/dashboard" component={CoachDashboard} />
-      <Route path="/coach" component={CoachDashboard} />
+      <Route path="/dashboard" component={UnifiedDashboard} />
+      <Route path="/coach" component={UnifiedDashboard} />
+      <Route path="/coach/dashboard" component={UnifiedDashboard} />
       <Route path="/roster" component={RosterPage} />
       <Route path="/events" component={EventsPage} />
       <Route path="/playbook" component={PlaybookPage} />
@@ -48,15 +50,17 @@ function Router() {
       <Route path="/athlete/settings" component={AthleteSettings} />
       <Route path="/profile/me" component={AthleteProfile} />
       <Route path="/athlete/onboarding" component={AthleteOnboarding} />
-      <Route path="/athlete/dashboard" component={AthleteProfileNew} />
+      <Route path="/athlete/dashboard" component={UnifiedDashboard} />
+      <Route path="/athlete/profile" component={AthleteProfileNew} />
       <Route path="/coach/onboarding" component={CoachOnboarding} />
       <Route path="/supporter/onboarding" component={SupporterOnboarding} />
-      <Route path="/supporter/dashboard" component={SupporterDashboard} />
+      <Route path="/supporter/dashboard" component={UnifiedDashboard} />
       <Route path="/supporter/settings" component={SupporterSettings} />
       <Route path="/supporter/game/:gameId" component={SupporterGameLive} />
       <Route path="/supporter/live/:sessionId" component={SupporterSessionLive} />
       <Route path="/share/athlete/:id" component={ShareableHypeCard} />
       <Route path="/stattracker" component={StatTrackerPage} />
+      <Route path="/stat-tracker" component={StatTrackerPage} />
       <Route path="/stattracker/:gameId" component={StatTrackerPage} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/change-password" component={ChangePassword} />
