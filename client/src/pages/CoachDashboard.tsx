@@ -2301,6 +2301,16 @@ export default function CoachDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Floating Chat Button */}
+      <Link href="/chat">
+        <button
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 flex items-center justify-center transition-transform hover:scale-105 z-50"
+          data-testid="button-floating-chat"
+        >
+          <MessageSquare className="h-6 w-6" />
+        </button>
+      </Link>
     </>
   );
 }
