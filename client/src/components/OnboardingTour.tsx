@@ -109,12 +109,7 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: "spring", duration: 0.5 }}
-          >
+          <div className="animate-in fade-in zoom-in-95 duration-300">
             <Card className="w-full max-w-md bg-gradient-to-br from-card via-card to-orange-500/5 border-orange-500/30 shadow-2xl shadow-orange-500/20">
               <CardContent className="p-8 text-center">
                 <div className="mb-6">
@@ -161,7 +156,7 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </motion.div>
       </AnimatePresence>
     );
