@@ -1,10 +1,11 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import { requestNotificationPermission, onForegroundMessage } from './firebase';
 import { useUser } from './userContext';
 
 interface NotificationContextType {
   notificationsEnabled: boolean;
   hasUnread: boolean;
+  permissionDenied: boolean;
   enableNotifications: () => Promise<boolean>;
   clearUnread: () => void;
 }
@@ -15,12 +16,40 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useUser();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+  const hasPrompted = useRef(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
-      setNotificationsEnabled(Notification.permission === 'granted');
+      const permission = Notification.permission;
+      setNotificationsEnabled(permission === 'granted');
+      setPermissionDenied(permission === 'denied');
     }
   }, []);
+
+  useEffect(() => {
+    if (!user || hasPrompted.current) return;
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    
+    const permission = Notification.permission;
+    if (permission === 'default') {
+      hasPrompted.current = true;
+      const promptedKey = `notification-prompted-${user.id}`;
+      const alreadyPrompted = localStorage.getItem(promptedKey);
+      
+      if (!alreadyPrompted) {
+        localStorage.setItem(promptedKey, 'true');
+        setTimeout(async () => {
+          const token = await requestNotificationPermission(user.id);
+          if (token) {
+            setNotificationsEnabled(true);
+          } else {
+            setPermissionDenied(Notification.permission === 'denied');
+          }
+        }, 1500);
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!notificationsEnabled) return;
@@ -45,8 +74,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const token = await requestNotificationPermission(user.id);
     if (token) {
       setNotificationsEnabled(true);
+      setPermissionDenied(false);
       return true;
     }
+    setPermissionDenied(Notification.permission === 'denied');
     return false;
   }, [user]);
 
@@ -55,7 +86,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <NotificationContext.Provider value={{ notificationsEnabled, hasUnread, enableNotifications, clearUnread }}>
+    <NotificationContext.Provider value={{ notificationsEnabled, hasUnread, permissionDenied, enableNotifications, clearUnread }}>
       {children}
     </NotificationContext.Provider>
   );
