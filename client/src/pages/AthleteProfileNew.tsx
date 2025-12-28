@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
 import { useNotifications } from "@/lib/notificationContext";
 import { format } from "date-fns";
+import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 
 type SectionType = "schedule" | "roster" | "stats" | "highlights" | "playbook" | "chat" | null;
 
@@ -30,6 +31,12 @@ export default function AthleteProfileNew() {
   useEffect(() => {
     const params = new URLSearchParams(searchString);
     const section = params.get("section") as SectionType;
+    
+    if (section === "chat") {
+      setLocation("/chat");
+      return;
+    }
+    
     setActiveSection(section);
     
     if (section) {
@@ -37,7 +44,7 @@ export default function AthleteProfileNew() {
         contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
     }
-  }, [searchString]);
+  }, [searchString, setLocation]);
 
   const { data: teamMembers = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "members"],
@@ -96,6 +103,10 @@ export default function AthleteProfileNew() {
   };
 
   const handleCardClick = (cardId: string) => {
+    if (cardId === "chat") {
+      setLocation("/chat");
+      return;
+    }
     if (activeSection === cardId) {
       setLocation("/athlete/dashboard");
     } else {
@@ -178,8 +189,61 @@ export default function AthleteProfileNew() {
   const badge = getBadgeLevel();
   const rating = calculateRating();
 
+  const athleteWelcomeModal: WelcomeModal = {
+    title: "Welcome, Athlete!",
+    subtitle: `You're part of ${currentTeam?.name || "the team"}`,
+    description: "You're all set up and ready to go! Let us show you around so you can make the most of your dashboard.",
+    buttonText: "Let's Go!"
+  };
+
+  const athleteTourSteps: TourStep[] = [
+    {
+      target: '[data-testid="card-nav-roster"]',
+      title: "Your Teammates",
+      description: "See everyone on your team including coaches, athletes, and supporters.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-nav-stats"]',
+      title: "Track Your Progress",
+      description: "View your performance statistics and watch your improvement over time.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-nav-playbook"]',
+      title: "Study the Playbook",
+      description: "Your coaches design plays here. Check back often to review strategies!",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-nav-chat"]',
+      title: "Team Chat",
+      description: "Stay connected with your team through real-time messaging.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="button-share-profile"]',
+      title: "Share Your Profile",
+      description: "Share your athlete profile with family and friends to show off your achievements!",
+      position: "top"
+    },
+    {
+      target: '[data-testid="button-settings"]',
+      title: "Personalize Your Profile",
+      description: "Update your avatar and name in Settings to make your profile stand out!",
+      position: "bottom"
+    }
+  ];
+
   return (
     <>
+      {user?.id && (
+        <OnboardingTour 
+          steps={athleteTourSteps} 
+          storageKey={`athlete-profile-onboarding-${user.id}`}
+          welcomeModal={athleteWelcomeModal}
+        />
+      )}
       <DashboardBackground />
       <div className="min-h-screen relative z-10">
         {/* Header Bar */}
@@ -406,21 +470,24 @@ export default function AthleteProfileNew() {
             <div className="mb-6">
               <h3 className="text-lg font-display font-bold mb-3 text-primary">My Highlights</h3>
               <div className="grid grid-cols-2 gap-2">
-                {myHighlights.slice(0, 4).map((highlight: HighlightVideo) => (
-                  <div key={highlight.id} className="relative aspect-video rounded-xl overflow-hidden bg-black/20">
-                    {highlight.thumbnail ? (
-                      <img src={highlight.thumbnail} alt={highlight.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
-                        <Video className="h-8 w-8 text-muted-foreground" />
+                {myHighlights.slice(0, 4).map((highlight: HighlightVideo) => {
+                  const thumbnailSrc = highlight.thumbnailKey ?? undefined;
+                  return (
+                    <div key={highlight.id} className="relative aspect-video rounded-xl overflow-hidden bg-black/20">
+                      {thumbnailSrc ? (
+                        <img src={thumbnailSrc} alt={highlight.title ?? "Highlight"} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
+                          <Video className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute bottom-2 left-2 right-2">
+                        <p className="text-xs text-white font-medium truncate">{highlight.title}</p>
                       </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <p className="text-xs text-white font-medium truncate">{highlight.title}</p>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
