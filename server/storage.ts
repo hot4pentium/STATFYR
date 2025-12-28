@@ -2,7 +2,7 @@ import {
   users, teams, teamMembers, events, highlightVideos, plays, managedAthletes,
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
-  liveEngagementSessions, profileLikes, profileComments,
+  liveEngagementSessions, profileLikes, profileComments, fcmTokens,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -24,7 +24,8 @@ import {
   type ThemeUnlock, type InsertThemeUnlock,
   type LiveEngagementSession, type InsertLiveEngagementSession, type UpdateLiveEngagementSession,
   type ProfileLike, type InsertProfileLike,
-  type ProfileComment, type InsertProfileComment
+  type ProfileComment, type InsertProfileComment,
+  type FcmToken, type InsertFcmToken
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql } from "drizzle-orm";
@@ -117,7 +118,7 @@ export interface IStorage {
   
   // Shoutouts methods
   getGameShoutouts(gameId: string): Promise<(Shoutout & { supporter: User; athlete: User })[]>;
-  getAthleteShoutouts(athleteId: string, limit?: number): Promise<(Shoutout & { supporter: User; game: Game })[]>;
+  getAthleteShoutouts(athleteId: string, limit?: number): Promise<(Shoutout & { supporter: User; game?: Game })[]>;
   getAthleteShoutoutCount(athleteId: string): Promise<number>;
   createShoutout(data: InsertShoutout): Promise<Shoutout>;
   
@@ -1016,7 +1017,7 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async getAthleteShoutouts(athleteId: string, limit = 50): Promise<(Shoutout & { supporter: User; game: Game })[]> {
+  async getAthleteShoutouts(athleteId: string, limit = 50): Promise<(Shoutout & { supporter: User; game?: Game })[]> {
     const athleteShoutouts = await db
       .select()
       .from(shoutouts)
@@ -1024,11 +1025,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(shoutouts.createdAt))
       .limit(limit);
     
-    const result: (Shoutout & { supporter: User; game: Game })[] = [];
+    const result: (Shoutout & { supporter: User; game?: Game })[] = [];
     for (const shoutout of athleteShoutouts) {
       const supporter = await this.getUser(shoutout.supporterId);
-      const game = await this.getGame(shoutout.gameId);
-      if (supporter && game) {
+      const game = shoutout.gameId ? await this.getGame(shoutout.gameId) : undefined;
+      if (supporter) {
         result.push({ ...shoutout, supporter, game });
       }
     }
@@ -1370,6 +1371,64 @@ export class DatabaseStorage implements IStorage {
   async createProfileComment(data: InsertProfileComment): Promise<ProfileComment> {
     const [comment] = await db.insert(profileComments).values(data).returning();
     return comment;
+  }
+
+  // FCM Token methods
+  async saveFcmToken(userId: string, token: string, deviceInfo?: string): Promise<FcmToken> {
+    const existing = await db
+      .select()
+      .from(fcmTokens)
+      .where(and(eq(fcmTokens.userId, userId), eq(fcmTokens.token, token)))
+      .limit(1);
+    
+    if (existing.length > 0) {
+      const [updated] = await db
+        .update(fcmTokens)
+        .set({ updatedAt: new Date(), deviceInfo })
+        .where(eq(fcmTokens.id, existing[0].id))
+        .returning();
+      return updated;
+    }
+    
+    const [created] = await db.insert(fcmTokens).values({
+      userId,
+      token,
+      deviceInfo,
+    }).returning();
+    return created;
+  }
+
+  async getUserFcmTokens(userId: string): Promise<FcmToken[]> {
+    return await db
+      .select()
+      .from(fcmTokens)
+      .where(eq(fcmTokens.userId, userId));
+  }
+
+  async getTeamFcmTokens(teamId: string): Promise<FcmToken[]> {
+    const members = await db
+      .select({ userId: teamMembers.userId })
+      .from(teamMembers)
+      .where(eq(teamMembers.teamId, teamId));
+    
+    if (members.length === 0) return [];
+    
+    const userIds = members.map(m => m.userId);
+    const tokens: FcmToken[] = [];
+    
+    for (const userId of userIds) {
+      const userTokens = await db
+        .select()
+        .from(fcmTokens)
+        .where(eq(fcmTokens.userId, userId));
+      tokens.push(...userTokens);
+    }
+    
+    return tokens;
+  }
+
+  async deleteFcmToken(token: string): Promise<void> {
+    await db.delete(fcmTokens).where(eq(fcmTokens.token, token));
   }
 }
 

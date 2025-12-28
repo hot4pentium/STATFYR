@@ -2192,6 +2192,33 @@ export async function registerRoutes(
     }
   });
 
+  // FCM Token Routes
+  app.post("/api/fcm-tokens", async (req, res) => {
+    try {
+      const { userId, token, deviceInfo } = req.body;
+      
+      if (!userId || !token) {
+        return res.status(400).json({ error: "userId and token are required" });
+      }
+      
+      const saved = await storage.saveFcmToken(userId, token, deviceInfo);
+      res.json(saved);
+    } catch (error) {
+      console.error("Error saving FCM token:", error);
+      res.status(500).json({ error: "Failed to save FCM token" });
+    }
+  });
+
+  app.delete("/api/fcm-tokens/:token", async (req, res) => {
+    try {
+      await storage.deleteFcmToken(req.params.token);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting FCM token:", error);
+      res.status(500).json({ error: "Failed to delete FCM token" });
+    }
+  });
+
   return httpServer;
 }
 

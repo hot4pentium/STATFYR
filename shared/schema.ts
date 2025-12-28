@@ -761,3 +761,29 @@ export const insertProfileCommentSchema = createInsertSchema(profileComments).om
 
 export type InsertProfileComment = z.infer<typeof insertProfileCommentSchema>;
 export type ProfileComment = typeof profileComments.$inferSelect;
+
+// FCM Tokens - Firebase Cloud Messaging tokens for push notifications
+export const fcmTokens = pgTable("fcm_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  token: text("token").notNull(),
+  deviceInfo: text("device_info"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const fcmTokensRelations = relations(fcmTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [fcmTokens.userId],
+    references: [users.id],
+  }),
+}));
+
+export const insertFcmTokenSchema = createInsertSchema(fcmTokens).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertFcmToken = z.infer<typeof insertFcmTokenSchema>;
+export type FcmToken = typeof fcmTokens.$inferSelect;
