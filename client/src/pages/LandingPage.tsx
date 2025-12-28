@@ -138,21 +138,6 @@ export default function LandingPage() {
             </Button>
           </motion.div>
 
-          {/* PWA Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="inline-flex items-center gap-3 bg-white rounded-full px-6 py-3 shadow-[inset_0_2px_10px_rgba(0,0,0,0.06)] border border-gray-100"
-          >
-            <Smartphone className="h-5 w-5 text-orange-500" />
-            <span className="text-gray-700 font-medium">Works offline</span>
-            <span className="text-gray-300">|</span>
-            <span className="text-gray-700 font-medium">Add to Home Screen</span>
-            <span className="text-gray-300">|</span>
-            <span className="text-gray-700 font-medium">No App Store needed</span>
-          </motion.div>
-
           <motion.div 
             className="mt-16 flex justify-center gap-12"
             initial={{ opacity: 0 }}
