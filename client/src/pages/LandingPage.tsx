@@ -112,30 +112,23 @@ export default function LandingPage() {
             The complete team management app for <span className="text-orange-500 font-bold">coaches</span>, <span className="text-gray-900 font-bold">athletes</span>, and <span className="text-red-500 font-bold">supporters</span>.
           </motion.p>
           
-          <motion.div
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          >
-            <a 
-              href="#"
-              onClick={(e) => { e.preventDefault(); goToAuth(); }}
-              className="inline-flex items-center justify-center text-lg px-10 py-7 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-2xl shadow-lg shadow-orange-500/30 transition-colors duration-200 font-medium" 
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <button 
+              onClick={goToAuth}
+              className="text-lg px-10 py-7 gap-2 bg-orange-500 text-white rounded-2xl shadow-lg font-medium inline-flex items-center justify-center" 
               data-testid="button-get-started"
             >
               Get Started Free
               <ChevronRight className="h-5 w-5" />
-            </a>
-            <a 
-              href="#features"
-              onClick={(e) => { e.preventDefault(); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); }}
-              className="inline-flex items-center justify-center text-lg px-10 py-7 rounded-2xl border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium bg-white"
+            </button>
+            <button 
+              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+              className="text-lg px-10 py-7 rounded-2xl border-2 border-gray-200 text-gray-700 font-medium bg-white"
               data-testid="button-see-features"
             >
               Learn More
-            </a>
-          </motion.div>
+            </button>
+          </div>
 
           <motion.div 
             className="mt-16 flex justify-center gap-12"
