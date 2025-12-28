@@ -285,9 +285,6 @@ export default function LandingPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="absolute -bottom-3 -right-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl p-2 shadow-lg z-20">
-                    <Home className="h-5 w-5 text-white" />
-                  </div>
                 </div>
               </motion.div>
 
