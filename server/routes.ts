@@ -370,6 +370,44 @@ export async function registerRoutes(
     }
   });
 
+  // Admin routes
+  app.get("/api/admin/teams", async (req, res) => {
+    try {
+      const allTeams = await storage.getAllTeams();
+      const teamsWithMembers = await Promise.all(
+        allTeams.map(async (team) => {
+          const members = await storage.getTeamMembers(team.id);
+          const safeMembers = members.map(({ user, ...member }) => {
+            const { password, ...safeUser } = user;
+            return { ...member, user: safeUser };
+          });
+          const coach = await storage.getUser(team.coachId);
+          let safeCoach = null;
+          if (coach) {
+            const { password: _, ...rest } = coach;
+            safeCoach = rest;
+          }
+          return { ...team, members: safeMembers, coach: safeCoach };
+        })
+      );
+      res.json(teamsWithMembers);
+    } catch (error) {
+      console.error("Failed to get all teams:", error);
+      res.status(500).json({ error: "Failed to get all teams" });
+    }
+  });
+
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const safeUsers = allUsers.map(({ password, ...user }) => user);
+      res.json(safeUsers);
+    } catch (error) {
+      console.error("Failed to get all users:", error);
+      res.status(500).json({ error: "Failed to get all users" });
+    }
+  });
+
   app.get("/api/teams/:teamId/events", async (req, res) => {
     try {
       const events = await storage.getTeamEvents(req.params.teamId);

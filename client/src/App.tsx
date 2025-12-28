@@ -29,6 +29,7 @@ import StatTrackerPage from "@/pages/StatTrackerPage";
 import SupporterGameLive from "@/pages/SupporterGameLive";
 import SupporterSessionLive from "@/pages/SupporterSessionLive";
 import AthleteProfileNew from "@/pages/AthleteProfileNew";
+import AdminDashboard from "@/pages/AdminDashboard";
 
 function Router() {
   return (
@@ -56,6 +57,7 @@ function Router() {
       <Route path="/share/athlete/:id" component={ShareableHypeCard} />
       <Route path="/stattracker" component={StatTrackerPage} />
       <Route path="/stattracker/:gameId" component={StatTrackerPage} />
+      <Route path="/admin" component={AdminDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
