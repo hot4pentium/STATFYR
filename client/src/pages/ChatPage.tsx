@@ -5,10 +5,66 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Phone, Video, ArrowLeft } from "lucide-react";
+import { Send, Phone, Video, ArrowLeft, Bell, BellOff } from "lucide-react";
 import { Link } from "wouter";
+import { useNotifications } from "@/lib/notificationContext";
+import { useState } from "react";
 
 export default function ChatPage() {
+  const { notificationsEnabled, permissionDenied, enableNotifications } = useNotifications();
+  const [isEnabling, setIsEnabling] = useState(false);
+
+  const handleEnableNotifications = async () => {
+    setIsEnabling(true);
+    await enableNotifications();
+    setIsEnabling(false);
+  };
+
+  // Gate chat access behind notification permission
+  if (!notificationsEnabled) {
+    return (
+      <Layout>
+        <div className="h-[calc(100vh-140px)] flex items-center justify-center">
+          <Card className="w-full max-w-md text-center p-8">
+            <div className="mx-auto mb-6 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+              {permissionDenied ? (
+                <BellOff className="h-8 w-8 text-destructive" />
+              ) : (
+                <Bell className="h-8 w-8 text-primary" />
+              )}
+            </div>
+            <CardTitle className="text-2xl mb-4">
+              {permissionDenied ? "Notifications Blocked" : "Enable Notifications"}
+            </CardTitle>
+            <p className="text-muted-foreground mb-6">
+              {permissionDenied 
+                ? "You've blocked notifications for this site. To use chat, please enable notifications in your browser settings and refresh the page."
+                : "To participate in team chat, you need to enable notifications. This ensures you never miss important messages from your team."
+              }
+            </p>
+            {!permissionDenied && (
+              <Button 
+                onClick={handleEnableNotifications} 
+                disabled={isEnabling}
+                className="w-full"
+                data-testid="button-enable-notifications"
+              >
+                <Bell className="mr-2 h-4 w-4" />
+                {isEnabling ? "Enabling..." : "Enable Notifications"}
+              </Button>
+            )}
+            <Link href="/dashboard">
+              <Button variant="ghost" className="w-full mt-2" data-testid="button-go-back">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Go Back
+              </Button>
+            </Link>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="h-[calc(100vh-140px)] flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">

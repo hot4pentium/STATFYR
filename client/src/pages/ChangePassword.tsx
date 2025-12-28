@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/lib/userContext";
 import { useLocation } from "wouter";
 import { Lock } from "lucide-react";
+import { getUserTeams } from "@/lib/api";
 
 export default function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -14,7 +15,7 @@ export default function ChangePassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { user, setUser } = useUser();
+  const { user, updateUser, setCurrentTeam } = useUser();
   const [, setLocation] = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,14 +58,24 @@ export default function ChangePassword() {
       }
 
       const updatedUser = await res.json();
-      setUser(updatedUser);
+      updateUser(updatedUser);
+
+      // Fetch user's teams and set the first one as current (they may have been added by admin)
+      try {
+        const teams = await getUserTeams(updatedUser.id);
+        if (teams.length > 0) {
+          setCurrentTeam(teams[0]);
+        }
+      } catch (e) {
+        // Continue even if team fetch fails
+      }
 
       toast({
         title: "Password changed",
         description: "Your password has been updated successfully.",
       });
 
-      const redirectPath = user?.role === "coach" ? "/coach" : user?.role === "supporter" ? "/supporter/dashboard" : "/athlete/dashboard";
+      const redirectPath = updatedUser.role === "coach" ? "/coach" : updatedUser.role === "supporter" ? "/supporter/dashboard" : "/athlete/dashboard";
       setLocation(redirectPath);
     } catch (error) {
       toast({

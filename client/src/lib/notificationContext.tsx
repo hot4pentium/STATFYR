@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { requestNotificationPermission, onForegroundMessage } from './firebase';
 import { useUser } from './userContext';
 
@@ -17,7 +17,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
-  const hasPrompted = useRef(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -27,29 +26,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  useEffect(() => {
-    if (!user || hasPrompted.current) return;
-    if (typeof window === 'undefined' || !('Notification' in window)) return;
-    
-    const permission = Notification.permission;
-    if (permission === 'default') {
-      hasPrompted.current = true;
-      const promptedKey = `notification-prompted-${user.id}`;
-      const alreadyPrompted = localStorage.getItem(promptedKey);
-      
-      if (!alreadyPrompted) {
-        localStorage.setItem(promptedKey, 'true');
-        setTimeout(async () => {
-          const token = await requestNotificationPermission(user.id);
-          if (token) {
-            setNotificationsEnabled(true);
-          } else {
-            setPermissionDenied(Notification.permission === 'denied');
-          }
-        }, 1500);
-      }
-    }
-  }, [user]);
+  // Notification permission is now gated behind chat access
+  // Users will be prompted when they try to access chat
 
   useEffect(() => {
     if (!notificationsEnabled) return;
