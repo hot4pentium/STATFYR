@@ -784,21 +784,52 @@ export default function UnifiedDashboard() {
                     <AlertCircle className="h-3 w-3" /> Update
                   </Button>
                 )}
-                {!notificationsEnabled && (
-                  <Button size="icon" variant="ghost" onClick={enableNotifications}>
-                    <Bell className="h-5 w-5" />
-                  </Button>
-                )}
+                
+                {/* Theme Toggle */}
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  data-testid="button-theme-toggle"
+                >
+                  {mounted && theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </Button>
+                
+                {/* Notifications Bell */}
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="relative"
+                  onClick={() => {
+                    if (!notificationsEnabled) {
+                      enableNotifications();
+                    } else {
+                      clearUnread();
+                    }
+                  }}
+                  data-testid="button-notifications"
+                >
+                  <Bell className="h-5 w-5" />
+                  {hasUnread && (
+                    <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full animate-pulse" />
+                  )}
+                </Button>
+                
+                {/* Settings Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="ghost">
+                    <Button size="icon" variant="ghost" data-testid="button-settings-menu">
                       <Settings className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-                      {mounted && theme === "dark" ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
-                      {mounted && theme === "dark" ? "Light Mode" : "Dark Mode"}
+                    <DropdownMenuItem onClick={() => {
+                      const settingsPath = userRole === "coach" ? "/settings" : 
+                                           userRole === "athlete" ? "/athlete/settings" : 
+                                           "/supporter/settings";
+                      setLocation(settingsPath);
+                    }}>
+                      <Settings className="h-4 w-4 mr-2" /> Settings
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive">
