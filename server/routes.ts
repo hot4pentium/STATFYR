@@ -84,6 +84,42 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/auth/change-password", async (req, res) => {
+    try {
+      const { userId, currentPassword, newPassword } = req.body;
+      
+      if (!userId || !currentPassword || !newPassword) {
+        return res.status(400).json({ error: "All fields are required" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!passwordMatch) {
+        return res.status(401).json({ error: "Current password is incorrect" });
+      }
+      
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const updatedUser = await storage.updateUser(userId, {
+        password: hashedPassword,
+        mustChangePassword: false,
+      });
+      
+      if (!updatedUser) {
+        return res.status(500).json({ error: "Failed to update password" });
+      }
+      
+      const { password: _, ...safeUser } = updatedUser;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Failed to change password:", error);
+      res.status(500).json({ error: "Failed to change password" });
+    }
+  });
+
   app.get("/api/users/:id", async (req, res) => {
     try {
       const user = await storage.getUser(req.params.id);
@@ -464,6 +500,54 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Failed to remove team member:", error);
       res.status(500).json({ error: "Failed to remove team member" });
+    }
+  });
+
+  app.post("/api/admin/teams/:teamId/create-member", async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const { firstName, lastName, email, role } = req.body;
+      
+      if (!firstName || !lastName || !email || !role) {
+        return res.status(400).json({ error: "First name, last name, email, and role are required" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ error: "A user with this email already exists" });
+      }
+      
+      const username = email.split("@")[0] + "_" + Date.now().toString(36);
+      const tempPassword = "Welcome123!";
+      const hashedPassword = await bcrypt.hash(tempPassword, 10);
+      
+      const newUser = await storage.createUser({
+        username,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        email,
+        name: `${firstName} ${lastName}`,
+        role,
+        mustChangePassword: true,
+      });
+      
+      await storage.addTeamMember({
+        teamId,
+        userId: newUser.id,
+        role,
+      });
+      
+      const { password: _, ...safeUser } = newUser;
+      res.json({ user: safeUser, tempPassword });
+    } catch (error) {
+      console.error("Failed to create team member:", error);
+      res.status(500).json({ error: "Failed to create team member" });
     }
   });
 

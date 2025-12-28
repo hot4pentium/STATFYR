@@ -17,6 +17,7 @@ export const users = pgTable("users", {
   number: integer("number"),
   createdAt: timestamp("created_at").defaultNow(),
   lastAccessedAt: timestamp("last_accessed_at").defaultNow(),
+  mustChangePassword: boolean("must_change_password").notNull().default(false),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -327,6 +328,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   avatar: true,
   position: true,
   number: true,
+  mustChangePassword: true,
 });
 
 export const insertTeamSchema = createInsertSchema(teams).pick({

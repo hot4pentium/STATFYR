@@ -11,6 +11,9 @@ export interface User {
   avatar?: string | null;
   position?: string | null;
   number?: number | null;
+  createdAt?: string | null;
+  lastAccessedAt?: string | null;
+  mustChangePassword?: boolean;
 }
 
 export interface Team {

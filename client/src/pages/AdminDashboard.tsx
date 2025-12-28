@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 
 type TeamMember = {
@@ -111,14 +112,36 @@ async function addMember(teamId: string, userId: string, role: string): Promise<
   if (!res.ok) throw new Error("Failed to add member");
 }
 
+async function createMember(
+  teamId: string,
+  data: { firstName: string; lastName: string; email: string; role: string }
+): Promise<{ user: User; tempPassword: string }> {
+  const res = await fetch(`/api/admin/teams/${teamId}/create-member`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Failed to create member");
+  }
+  return res.json();
+}
+
 export default function AdminDashboard() {
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"teams" | "users">("teams");
   const [memberToRemove, setMemberToRemove] = useState<{ teamId: string; userId: string; name: string } | null>(null);
   const [addMemberDialog, setAddMemberDialog] = useState<{ teamId: string; teamName: string } | null>(null);
+  const [addMemberTab, setAddMemberTab] = useState<"existing" | "new">("existing");
   const [selectedUserId, setSelectedUserId] = useState("");
   const [selectedRole, setSelectedRole] = useState("athlete");
+  const [newMemberFirstName, setNewMemberFirstName] = useState("");
+  const [newMemberLastName, setNewMemberLastName] = useState("");
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newMemberRole, setNewMemberRole] = useState("athlete");
+  const [createdUserInfo, setCreatedUserInfo] = useState<{ name: string; tempPassword: string } | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -136,6 +159,7 @@ export default function AdminDashboard() {
     mutationFn: ({ teamId, userId }: { teamId: string; userId: string }) => removeMember(teamId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({ title: "Member removed", description: "The member has been removed from the team." });
       setMemberToRemove(null);
     },
@@ -149,14 +173,41 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/teams"] });
       toast({ title: "Member added", description: "The user has been added to the team." });
-      setAddMemberDialog(null);
-      setSelectedUserId("");
-      setSelectedRole("athlete");
+      resetAddMemberForm();
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to add member. They may already be on the team.", variant: "destructive" });
     },
   });
+
+  const createMemberMutation = useMutation({
+    mutationFn: ({ teamId, data }: { teamId: string; data: { firstName: string; lastName: string; email: string; role: string } }) =>
+      createMember(teamId, data),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setCreatedUserInfo({ name: `${newMemberFirstName} ${newMemberLastName}`, tempPassword: result.tempPassword });
+      setNewMemberFirstName("");
+      setNewMemberLastName("");
+      setNewMemberEmail("");
+      setNewMemberRole("athlete");
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message || "Failed to create member.", variant: "destructive" });
+    },
+  });
+
+  const resetAddMemberForm = () => {
+    setAddMemberDialog(null);
+    setAddMemberTab("existing");
+    setSelectedUserId("");
+    setSelectedRole("athlete");
+    setNewMemberFirstName("");
+    setNewMemberLastName("");
+    setNewMemberEmail("");
+    setNewMemberRole("athlete");
+    setCreatedUserInfo(null);
+  };
 
   const toggleTeamExpanded = (teamId: string) => {
     const newExpanded = new Set(expandedTeams);
@@ -476,64 +527,166 @@ export default function AdminDashboard() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={!!addMemberDialog} onOpenChange={() => setAddMemberDialog(null)}>
-        <DialogContent>
+      <Dialog open={!!addMemberDialog} onOpenChange={(open) => !open && resetAddMemberForm()}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add Member to {addMemberDialog?.teamName}</DialogTitle>
             <DialogDescription>
-              Select a user and their role to add them to the team.
+              Add an existing user or create a new one.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>User</Label>
-              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger data-testid="select-user">
-                  <SelectValue placeholder="Select a user..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {addMemberDialog && getAvailableUsersForTeam(addMemberDialog.teamId).map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name || user.username} ({user.email || user.username})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+          {createdUserInfo ? (
+            <div className="space-y-4 py-4">
+              <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-4">
+                <h4 className="font-semibold text-green-600 mb-2">Member Created Successfully!</h4>
+                <p className="text-sm mb-3">
+                  <strong>{createdUserInfo.name}</strong> has been added to the team.
+                </p>
+                <div className="bg-background rounded p-3 border">
+                  <p className="text-xs text-muted-foreground mb-1">Temporary Password:</p>
+                  <p className="font-mono text-lg font-bold">{createdUserInfo.tempPassword}</p>
+                </div>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Share this password with the user. They will be required to change it on first login.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button onClick={resetAddMemberForm} data-testid="button-done">
+                  Done
+                </Button>
+              </DialogFooter>
             </div>
-            <div className="space-y-2">
-              <Label>Role</Label>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger data-testid="select-role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="athlete">Athlete</SelectItem>
-                  <SelectItem value="supporter">Supporter</SelectItem>
-                  <SelectItem value="staff">Staff</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddMemberDialog(null)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (addMemberDialog && selectedUserId) {
-                  addMemberMutation.mutate({
-                    teamId: addMemberDialog.teamId,
-                    userId: selectedUserId,
-                    role: selectedRole,
-                  });
-                }
-              }}
-              disabled={!selectedUserId}
-              data-testid="button-confirm-add"
-            >
-              Add Member
-            </Button>
-          </DialogFooter>
+          ) : (
+            <>
+              <Tabs value={addMemberTab} onValueChange={(v) => setAddMemberTab(v as "existing" | "new")}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="existing">Existing User</TabsTrigger>
+                  <TabsTrigger value="new">New User</TabsTrigger>
+                </TabsList>
+                <TabsContent value="existing" className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label>User</Label>
+                    <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                      <SelectTrigger data-testid="select-user">
+                        <SelectValue placeholder="Select a user..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {addMemberDialog && getAvailableUsersForTeam(addMemberDialog.teamId).map((user) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.name || user.username} ({user.email || user.username})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Role</Label>
+                    <Select value={selectedRole} onValueChange={setSelectedRole}>
+                      <SelectTrigger data-testid="select-role">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="athlete">Athlete</SelectItem>
+                        <SelectItem value="supporter">Supporter</SelectItem>
+                        <SelectItem value="staff">Staff</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </TabsContent>
+                <TabsContent value="new" className="space-y-4 pt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>First Name</Label>
+                      <Input
+                        value={newMemberFirstName}
+                        onChange={(e) => setNewMemberFirstName(e.target.value)}
+                        placeholder="John"
+                        data-testid="input-first-name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Last Name</Label>
+                      <Input
+                        value={newMemberLastName}
+                        onChange={(e) => setNewMemberLastName(e.target.value)}
+                        placeholder="Doe"
+                        data-testid="input-last-name"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={newMemberEmail}
+                      onChange={(e) => setNewMemberEmail(e.target.value)}
+                      placeholder="john.doe@example.com"
+                      data-testid="input-email"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Role</Label>
+                    <Select value={newMemberRole} onValueChange={setNewMemberRole}>
+                      <SelectTrigger data-testid="select-new-role">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="athlete">Athlete</SelectItem>
+                        <SelectItem value="supporter">Supporter</SelectItem>
+                        <SelectItem value="staff">Staff</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    A temporary password will be generated. The user must change it on first login.
+                  </p>
+                </TabsContent>
+              </Tabs>
+              <DialogFooter className="mt-4">
+                <Button variant="outline" onClick={resetAddMemberForm}>
+                  Cancel
+                </Button>
+                {addMemberTab === "existing" ? (
+                  <Button
+                    onClick={() => {
+                      if (addMemberDialog && selectedUserId) {
+                        addMemberMutation.mutate({
+                          teamId: addMemberDialog.teamId,
+                          userId: selectedUserId,
+                          role: selectedRole,
+                        });
+                      }
+                    }}
+                    disabled={!selectedUserId || addMemberMutation.isPending}
+                    data-testid="button-confirm-add"
+                  >
+                    {addMemberMutation.isPending ? "Adding..." : "Add Member"}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      if (addMemberDialog && newMemberFirstName && newMemberLastName && newMemberEmail) {
+                        createMemberMutation.mutate({
+                          teamId: addMemberDialog.teamId,
+                          data: {
+                            firstName: newMemberFirstName,
+                            lastName: newMemberLastName,
+                            email: newMemberEmail,
+                            role: newMemberRole,
+                          },
+                        });
+                      }
+                    }}
+                    disabled={!newMemberFirstName || !newMemberLastName || !newMemberEmail || createMemberMutation.isPending}
+                    data-testid="button-create-member"
+                  >
+                    {createMemberMutation.isPending ? "Creating..." : "Create Member"}
+                  </Button>
+                )}
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

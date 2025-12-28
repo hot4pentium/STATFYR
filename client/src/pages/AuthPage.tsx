@@ -110,6 +110,12 @@ export default function AuthPage() {
       const user = await loginUser(loginData.email.trim(), loginData.password);
       setUser(user);
       
+      // Check if user must change password first
+      if (user.mustChangePassword) {
+        setLocation("/change-password");
+        return;
+      }
+      
       // Fetch user's teams and set the first one as current
       try {
         const teams = await getUserTeams(user.id);

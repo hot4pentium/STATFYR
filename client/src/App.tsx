@@ -30,6 +30,7 @@ import SupporterGameLive from "@/pages/SupporterGameLive";
 import SupporterSessionLive from "@/pages/SupporterSessionLive";
 import AthleteProfileNew from "@/pages/AthleteProfileNew";
 import AdminDashboard from "@/pages/AdminDashboard";
+import ChangePassword from "@/pages/ChangePassword";
 
 function Router() {
   return (
@@ -58,6 +59,7 @@ function Router() {
       <Route path="/stattracker" component={StatTrackerPage} />
       <Route path="/stattracker/:gameId" component={StatTrackerPage} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/change-password" component={ChangePassword} />
       <Route component={NotFound} />
     </Switch>
   );
