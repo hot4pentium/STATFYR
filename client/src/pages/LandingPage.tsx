@@ -228,7 +228,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Tablet - Background Right */}
-                <div className="absolute right-0 top-8 transform scale-[0.7] origin-top-right opacity-70">
+                <div className="absolute right-0 bottom-0 transform scale-[0.7] origin-bottom-right opacity-70">
                   <div className="bg-gray-800 rounded-[1.5rem] p-2 shadow-xl">
                     <div className="bg-gradient-to-b from-orange-50 to-white rounded-[1.2rem] w-[200px] h-[280px] overflow-hidden">
                       <div className="h-4 bg-gray-900 rounded-t-[1.2rem]" />
