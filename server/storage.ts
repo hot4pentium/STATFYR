@@ -56,7 +56,7 @@ export interface IStorage {
   createTeam(team: InsertTeam, coachId: string): Promise<Team>;
   updateTeam(id: string, data: Partial<{ name: string; sport: string; season: string; badgeId: string | null }>): Promise<Team | undefined>;
   
-  getTeamMembers(teamId: string): Promise<(TeamMember & { user: User })[]>;
+  getTeamMembers(teamId: string): Promise<(TeamMember & { user: Omit<User, 'password'> })[]>;
   getTeamMembership(teamId: string, userId: string): Promise<TeamMember | undefined>;
   getUserTeams(userId: string): Promise<Team[]>;
   getUserTeamMemberships(userId: string): Promise<TeamMember[]>;
@@ -260,17 +260,18 @@ export class DatabaseStorage implements IStorage {
     return team || undefined;
   }
 
-  async getTeamMembers(teamId: string): Promise<(TeamMember & { user: User })[]> {
+  async getTeamMembers(teamId: string): Promise<(TeamMember & { user: Omit<User, 'password'> })[]> {
     const members = await db
       .select()
       .from(teamMembers)
       .where(eq(teamMembers.teamId, teamId));
     
-    const result: (TeamMember & { user: User })[] = [];
+    const result: (TeamMember & { user: Omit<User, 'password'> })[] = [];
     for (const member of members) {
       const user = await this.getUser(member.userId);
       if (user) {
-        result.push({ ...member, user });
+        const { password, ...safeUser } = user;
+        result.push({ ...member, user: safeUser });
       }
     }
     return result;

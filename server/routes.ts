@@ -421,10 +421,6 @@ export async function registerRoutes(
       const teamsWithMembers = await Promise.all(
         allTeams.map(async (team) => {
           const members = await storage.getTeamMembers(team.id);
-          const safeMembers = members.map(({ user, ...member }) => {
-            const { password, ...safeUser } = user;
-            return { ...member, user: safeUser };
-          });
           let safeCoach = null;
           if (team.coachId) {
             const coach = await storage.getUser(team.coachId);
@@ -433,7 +429,7 @@ export async function registerRoutes(
               safeCoach = rest;
             }
           }
-          return { ...team, members: safeMembers, coach: safeCoach };
+          return { ...team, members, coach: safeCoach };
         })
       );
       res.json(teamsWithMembers);
