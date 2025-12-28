@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, ArrowLeft, Bell, BellOff, Hash } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Send, ArrowLeft, Bell, BellOff, Hash, Users, MessageSquare, Check } from "lucide-react";
 import { Link } from "wouter";
 import { useNotifications } from "@/lib/notificationContext";
 import { useUser } from "@/lib/userContext";
@@ -16,6 +17,15 @@ interface ChatUser {
   firstName: string;
   lastName: string;
   name: string;
+  avatar?: string | null;
+}
+
+interface TeamMember {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  role: string;
   avatar?: string | null;
 }
 
@@ -41,14 +51,38 @@ export default function ChatPage() {
   const [activeChannel, setActiveChannel] = useState("general");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
+  const [showMemberSelector, setShowMemberSelector] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+
+  const isCoach = user?.role === "coach";
 
   const handleEnableNotifications = async () => {
     setIsEnabling(true);
     await enableNotifications();
     setIsEnabling(false);
   };
+
+  // Fetch team members
+  useEffect(() => {
+    if (!currentTeam) return;
+    
+    const fetchMembers = async () => {
+      try {
+        const res = await fetch(`/api/teams/${currentTeam.id}/members`);
+        if (res.ok) {
+          const data = await res.json();
+          setTeamMembers(data.filter((m: TeamMember) => m.id !== user?.id));
+        }
+      } catch (error) {
+        console.error("Error fetching team members:", error);
+      }
+    };
+    
+    fetchMembers();
+  }, [currentTeam, user?.id]);
 
   // Fetch messages when channel or team changes
   useEffect(() => {
@@ -129,11 +163,18 @@ export default function ChatPage() {
         body: JSON.stringify({
           userId: user.id,
           content: newMessage.trim(),
+          recipients: selectedMembers.size > 0 ? Array.from(selectedMembers) : undefined,
         }),
       });
       
       if (res.ok) {
         setNewMessage("");
+        if (selectedMembers.size > 0) {
+          toast({
+            title: "Message sent",
+            description: `Sent to ${selectedMembers.size} member${selectedMembers.size > 1 ? "s" : ""}`,
+          });
+        }
       } else {
         toast({
           title: "Error",
@@ -164,6 +205,29 @@ export default function ChatPage() {
       .join("")
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const toggleMember = (memberId: string) => {
+    const newSelected = new Set(selectedMembers);
+    if (newSelected.has(memberId)) {
+      newSelected.delete(memberId);
+    } else {
+      newSelected.add(memberId);
+    }
+    setSelectedMembers(newSelected);
+  };
+
+  const selectAll = () => {
+    setSelectedMembers(new Set(teamMembers.map((m) => m.id)));
+  };
+
+  const selectCoachesStaff = () => {
+    const coaches = teamMembers.filter((m) => m.role === "coach" || m.role === "staff");
+    setSelectedMembers(new Set(coaches.map((m) => m.id)));
+  };
+
+  const clearSelection = () => {
+    setSelectedMembers(new Set());
   };
 
   // Gate chat access behind notification permission
@@ -248,6 +312,145 @@ export default function ChatPage() {
           </div>
         </div>
 
+        {/* Horizontal Coach Chat Card */}
+        {isCoach && (
+          <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 p-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <MessageSquare className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold uppercase text-sm">Quick Message</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedMembers.size > 0 
+                      ? `${selectedMembers.size} member${selectedMembers.size > 1 ? "s" : ""} selected`
+                      : "Select recipients below"
+                    }
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAll}
+                  className="border-primary/30 hover:bg-primary/10"
+                  data-testid="button-select-all"
+                >
+                  <Users className="h-4 w-4 mr-1" />
+                  All
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectCoachesStaff}
+                  className="border-primary/30 hover:bg-primary/10"
+                  data-testid="button-select-coaches"
+                >
+                  Coach/Staff
+                </Button>
+                {selectedMembers.size > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearSelection}
+                    className="text-muted-foreground"
+                    data-testid="button-clear-selection"
+                  >
+                    Clear
+                  </Button>
+                )}
+                <Button
+                  variant={showMemberSelector ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={() => setShowMemberSelector(!showMemberSelector)}
+                  className="border-primary/30"
+                  data-testid="button-toggle-members"
+                >
+                  <Users className="h-4 w-4 mr-1" />
+                  {showMemberSelector ? "Hide" : "Select Members"}
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Member Selector Panel */}
+        {(showMemberSelector || !isCoach) && (
+          <Card className="bg-card border-white/5 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-display font-bold uppercase text-sm flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Select Recipients
+              </h3>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAll}
+                  data-testid="button-select-all-panel"
+                >
+                  All
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectCoachesStaff}
+                  data-testid="button-select-coaches-panel"
+                >
+                  Coach/Staff
+                </Button>
+                {selectedMembers.size > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearSelection}
+                    data-testid="button-clear-panel"
+                  >
+                    Clear ({selectedMembers.size})
+                  </Button>
+                )}
+              </div>
+            </div>
+            <ScrollArea className="max-h-40">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                {teamMembers.map((member) => (
+                  <label
+                    key={member.id}
+                    className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                      selectedMembers.has(member.id)
+                        ? "bg-primary/10 border border-primary/30"
+                        : "bg-white/5 border border-transparent hover:bg-white/10"
+                    }`}
+                    data-testid={`member-select-${member.id}`}
+                  >
+                    <Checkbox
+                      checked={selectedMembers.has(member.id)}
+                      onCheckedChange={() => toggleMember(member.id)}
+                    />
+                    <Avatar className="h-6 w-6">
+                      {member.avatar && <AvatarImage src={member.avatar} />}
+                      <AvatarFallback className="text-xs">
+                        {getInitials(member.name || `${member.firstName} ${member.lastName}`)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {member.name || `${member.firstName} ${member.lastName}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground capitalize">{member.role}</p>
+                    </div>
+                    {selectedMembers.has(member.id) && (
+                      <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                    )}
+                  </label>
+                ))}
+              </div>
+            </ScrollArea>
+          </Card>
+        )}
+
         <div className="flex gap-6 flex-1 overflow-hidden">
           {/* Channels List */}
           <Card className="w-64 bg-card border-white/5 flex-col hidden md:flex">
@@ -282,8 +485,16 @@ export default function ChatPage() {
               <Hash className="h-5 w-5 text-muted-foreground" />
               <span className="font-display text-lg font-bold uppercase">{activeChannel}</span>
               
+              {/* Selected members indicator */}
+              {selectedMembers.size > 0 && (
+                <div className="ml-auto flex items-center gap-2 text-sm text-primary">
+                  <Users className="h-4 w-4" />
+                  <span>Sending to {selectedMembers.size} member{selectedMembers.size > 1 ? "s" : ""}</span>
+                </div>
+              )}
+              
               {/* Mobile channel selector */}
-              <div className="md:hidden ml-auto">
+              <div className={`md:hidden ${selectedMembers.size > 0 ? "" : "ml-auto"}`}>
                 <select
                   value={activeChannel}
                   onChange={(e) => setActiveChannel(e.target.value)}
@@ -351,7 +562,7 @@ export default function ChatPage() {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   className="bg-background/50 border-white/10 focus-visible:ring-primary"
-                  placeholder={`Message #${activeChannel}...`}
+                  placeholder={selectedMembers.size > 0 ? `Message ${selectedMembers.size} selected member${selectedMembers.size > 1 ? "s" : ""}...` : `Message #${activeChannel}...`}
                   disabled={isSending}
                   data-testid="input-message"
                 />
