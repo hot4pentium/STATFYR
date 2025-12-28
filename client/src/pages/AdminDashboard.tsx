@@ -2,11 +2,39 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, Shield, ChevronDown, ChevronUp, ArrowLeft, Search } from "lucide-react";
+import { Users, Shield, ChevronDown, ChevronUp, ArrowLeft, Search, Trash2, UserPlus } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { format } from "date-fns";
 
 type TeamMember = {
   id: string;
@@ -15,6 +43,7 @@ type TeamMember = {
   role: string;
   jerseyNumber: string | null;
   position: string | null;
+  joinedAt: string | null;
   user: {
     id: string;
     username: string;
@@ -22,6 +51,8 @@ type TeamMember = {
     email: string | null;
     avatar: string | null;
     role: string;
+    createdAt: string | null;
+    lastAccessedAt: string | null;
   };
 };
 
@@ -48,6 +79,8 @@ type User = {
   email: string | null;
   role: string;
   avatar: string | null;
+  createdAt: string | null;
+  lastAccessedAt: string | null;
 };
 
 async function getAdminTeams(): Promise<Team[]> {
@@ -62,10 +95,32 @@ async function getAdminUsers(): Promise<User[]> {
   return res.json();
 }
 
+async function removeMember(teamId: string, userId: string): Promise<void> {
+  const res = await fetch(`/api/admin/teams/${teamId}/members/${userId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to remove member");
+}
+
+async function addMember(teamId: string, userId: string, role: string): Promise<void> {
+  const res = await fetch(`/api/admin/teams/${teamId}/members`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, role }),
+  });
+  if (!res.ok) throw new Error("Failed to add member");
+}
+
 export default function AdminDashboard() {
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"teams" | "users">("teams");
+  const [memberToRemove, setMemberToRemove] = useState<{ teamId: string; userId: string; name: string } | null>(null);
+  const [addMemberDialog, setAddMemberDialog] = useState<{ teamId: string; teamName: string } | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState("");
+  const [selectedRole, setSelectedRole] = useState("athlete");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: teams = [], isLoading: teamsLoading } = useQuery({
     queryKey: ["/api/admin/teams"],
@@ -75,6 +130,32 @@ export default function AdminDashboard() {
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ["/api/admin/users"],
     queryFn: getAdminUsers,
+  });
+
+  const removeMemberMutation = useMutation({
+    mutationFn: ({ teamId, userId }: { teamId: string; userId: string }) => removeMember(teamId, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/teams"] });
+      toast({ title: "Member removed", description: "The member has been removed from the team." });
+      setMemberToRemove(null);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to remove member. They may be the team coach.", variant: "destructive" });
+    },
+  });
+
+  const addMemberMutation = useMutation({
+    mutationFn: ({ teamId, userId, role }: { teamId: string; userId: string; role: string }) => addMember(teamId, userId, role),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/teams"] });
+      toast({ title: "Member added", description: "The user has been added to the team." });
+      setAddMemberDialog(null);
+      setSelectedUserId("");
+      setSelectedRole("athlete");
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to add member. They may already be on the team.", variant: "destructive" });
+    },
   });
 
   const toggleTeamExpanded = (teamId: string) => {
@@ -115,6 +196,22 @@ export default function AdminDashboard() {
       default:
         return "bg-gray-500 text-white";
     }
+  };
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "Never";
+    try {
+      return format(new Date(dateStr), "MMM d, yyyy");
+    } catch {
+      return "Invalid date";
+    }
+  };
+
+  const getAvailableUsersForTeam = (teamId: string) => {
+    const team = teams.find((t) => t.id === teamId);
+    if (!team) return [];
+    const existingMemberIds = new Set(team.members.map((m) => m.userId));
+    return users.filter((u) => !existingMemberIds.has(u.id));
   };
 
   return (
@@ -219,9 +316,23 @@ export default function AdminDashboard() {
                   {expandedTeams.has(team.id) && (
                     <CardContent className="border-t">
                       <div className="pt-4 space-y-2">
-                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                          Team Members
-                        </h4>
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                            Team Members
+                          </h4>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAddMemberDialog({ teamId: team.id, teamName: team.name });
+                            }}
+                            data-testid={`button-add-member-${team.id}`}
+                          >
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            Add Member
+                          </Button>
+                        </div>
                         {team.members.length === 0 ? (
                           <p className="text-sm text-muted-foreground">No members yet</p>
                         ) : (
@@ -246,6 +357,9 @@ export default function AdminDashboard() {
                                     <div className="text-xs text-muted-foreground">
                                       {member.user.email || member.user.username}
                                     </div>
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      Signed up: {formatDate(member.user.createdAt)} | Last active: {formatDate(member.user.lastAccessedAt)}
+                                    </div>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -258,6 +372,24 @@ export default function AdminDashboard() {
                                   <Badge className={getRoleBadgeColor(member.role)}>
                                     {member.role}
                                   </Badge>
+                                  {member.userId !== team.coachId && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMemberToRemove({
+                                          teamId: team.id,
+                                          userId: member.userId,
+                                          name: member.user.name || member.user.username,
+                                        });
+                                      }}
+                                      data-testid={`button-remove-${member.userId}`}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             ))}
@@ -301,6 +433,9 @@ export default function AdminDashboard() {
                           <div className="text-sm text-muted-foreground">
                             {user.email || `@${user.username}`}
                           </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Signed up: {formatDate(user.createdAt)} | Last active: {formatDate(user.lastAccessedAt)}
+                          </div>
                         </div>
                       </div>
                       <Badge className={getRoleBadgeColor(user.role)}>{user.role}</Badge>
@@ -312,6 +447,95 @@ export default function AdminDashboard() {
           </Card>
         )}
       </main>
+
+      <AlertDialog open={!!memberToRemove} onOpenChange={() => setMemberToRemove(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {memberToRemove?.name} from this team? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (memberToRemove) {
+                  removeMemberMutation.mutate({
+                    teamId: memberToRemove.teamId,
+                    userId: memberToRemove.userId,
+                  });
+                }
+              }}
+              data-testid="button-confirm-remove"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={!!addMemberDialog} onOpenChange={() => setAddMemberDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Member to {addMemberDialog?.teamName}</DialogTitle>
+            <DialogDescription>
+              Select a user and their role to add them to the team.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>User</Label>
+              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                <SelectTrigger data-testid="select-user">
+                  <SelectValue placeholder="Select a user..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {addMemberDialog && getAvailableUsersForTeam(addMemberDialog.teamId).map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name || user.username} ({user.email || user.username})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger data-testid="select-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="athlete">Athlete</SelectItem>
+                  <SelectItem value="supporter">Supporter</SelectItem>
+                  <SelectItem value="staff">Staff</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddMemberDialog(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (addMemberDialog && selectedUserId) {
+                  addMemberMutation.mutate({
+                    teamId: addMemberDialog.teamId,
+                    userId: selectedUserId,
+                    role: selectedRole,
+                  });
+                }
+              }}
+              disabled={!selectedUserId}
+              data-testid="button-confirm-add"
+            >
+              Add Member
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

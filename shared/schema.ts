@@ -15,6 +15,8 @@ export const users = pgTable("users", {
   avatar: text("avatar"),
   position: text("position"),
   number: integer("number"),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastAccessedAt: timestamp("last_accessed_at").defaultNow(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

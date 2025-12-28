@@ -73,7 +73,11 @@ export async function registerRoutes(
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
-      const { password: _, ...safeUser } = user;
+      // Update last accessed time and get updated user
+      const updatedUser = await storage.updateUser(user.id, { lastAccessedAt: new Date() });
+      const userToReturn = updatedUser || user;
+      
+      const { password: _, ...safeUser } = userToReturn;
       res.json(safeUser);
     } catch (error) {
       res.status(500).json({ error: "Login failed" });
@@ -381,11 +385,13 @@ export async function registerRoutes(
             const { password, ...safeUser } = user;
             return { ...member, user: safeUser };
           });
-          const coach = await storage.getUser(team.coachId);
           let safeCoach = null;
-          if (coach) {
-            const { password: _, ...rest } = coach;
-            safeCoach = rest;
+          if (team.coachId) {
+            const coach = await storage.getUser(team.coachId);
+            if (coach) {
+              const { password: _, ...rest } = coach;
+              safeCoach = rest;
+            }
           }
           return { ...team, members: safeMembers, coach: safeCoach };
         })
@@ -405,6 +411,59 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Failed to get all users:", error);
       res.status(500).json({ error: "Failed to get all users" });
+    }
+  });
+
+  app.post("/api/admin/teams/:teamId/members", async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const { userId, role } = req.body;
+      
+      if (!userId || !role) {
+        return res.status(400).json({ error: "userId and role are required" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      
+      const existingMember = await storage.getTeamMembership(teamId, userId);
+      if (existingMember) {
+        return res.status(400).json({ error: "User is already a member of this team" });
+      }
+      
+      const member = await storage.addTeamMember({
+        teamId,
+        userId,
+        role,
+      });
+      
+      res.json(member);
+    } catch (error) {
+      console.error("Failed to add team member:", error);
+      res.status(500).json({ error: "Failed to add team member" });
+    }
+  });
+
+  app.delete("/api/admin/teams/:teamId/members/:userId", async (req, res) => {
+    try {
+      const { teamId, userId } = req.params;
+      
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      
+      if (team.coachId === userId) {
+        return res.status(400).json({ error: "Cannot remove the team coach" });
+      }
+      
+      await storage.removeTeamMember(teamId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to remove team member:", error);
+      res.status(500).json({ error: "Failed to remove team member" });
     }
   });
 
