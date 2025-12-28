@@ -777,7 +777,12 @@ export default function UnifiedDashboard() {
           <div className="relative z-10 px-4 pt-6 pb-8">
             {/* Top Bar */}
             <div className="flex items-center justify-between mb-6">
-              <TeamBadge badgeId={currentTeam?.badgeId} size="sm" fallbackInitials={currentTeam?.name?.substring(0, 2)} />
+              <div className="flex items-center gap-2">
+                <TeamBadge badgeId={currentTeam?.badgeId} size="sm" fallbackInitials={currentTeam?.name?.substring(0, 2)} />
+                <span className="font-display font-bold text-lg tracking-wide text-white">
+                  STATF<span className="text-primary">Y</span>R
+                </span>
+              </div>
               <div className="flex items-center gap-2">
                 {updateAvailable && (
                   <Button size="sm" variant="outline" onClick={applyUpdate} className="gap-1 text-xs">
