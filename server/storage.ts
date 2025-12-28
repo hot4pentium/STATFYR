@@ -2,7 +2,7 @@ import {
   users, teams, teamMembers, events, highlightVideos, plays, managedAthletes,
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
-  liveEngagementSessions, profileLikes, profileComments, fcmTokens,
+  liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -25,7 +25,8 @@ import {
   type LiveEngagementSession, type InsertLiveEngagementSession, type UpdateLiveEngagementSession,
   type ProfileLike, type InsertProfileLike,
   type ProfileComment, type InsertProfileComment,
-  type FcmToken, type InsertFcmToken
+  type FcmToken, type InsertFcmToken,
+  type ChatMessage, type InsertChatMessage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql } from "drizzle-orm";
@@ -166,6 +167,10 @@ export interface IStorage {
   createProfileLike(data: InsertProfileLike): Promise<ProfileLike>;
   getProfileComments(athleteId: string): Promise<ProfileComment[]>;
   createProfileComment(data: InsertProfileComment): Promise<ProfileComment>;
+  
+  // Chat methods
+  getTeamChatMessages(teamId: string, channel: string, limit?: number): Promise<(ChatMessage & { user: Omit<User, 'password'> })[]>;
+  createChatMessage(data: InsertChatMessage): Promise<ChatMessage>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1439,6 +1444,32 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFcmToken(token: string): Promise<void> {
     await db.delete(fcmTokens).where(eq(fcmTokens.token, token));
+  }
+
+  // Chat methods
+  async getTeamChatMessages(teamId: string, channel: string, limit: number = 50): Promise<(ChatMessage & { user: Omit<User, 'password'> })[]> {
+    const messages = await db
+      .select()
+      .from(chatMessages)
+      .where(and(eq(chatMessages.teamId, teamId), eq(chatMessages.channel, channel)))
+      .orderBy(desc(chatMessages.createdAt))
+      .limit(limit);
+    
+    const result: (ChatMessage & { user: Omit<User, 'password'> })[] = [];
+    for (const message of messages) {
+      const [user] = await db.select().from(users).where(eq(users.id, message.userId));
+      if (user) {
+        const { password, ...safeUser } = user;
+        result.push({ ...message, user: safeUser });
+      }
+    }
+    
+    return result.reverse();
+  }
+
+  async createChatMessage(data: InsertChatMessage): Promise<ChatMessage> {
+    const [message] = await db.insert(chatMessages).values(data).returning();
+    return message;
   }
 }
 

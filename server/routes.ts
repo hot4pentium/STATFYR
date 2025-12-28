@@ -2,12 +2,16 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { withRetry } from "./db";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
 import path from "path";
 import bcrypt from "bcrypt";
+import { WebSocketServer, WebSocket } from "ws";
+
+// Store connected WebSocket clients by team
+const teamClients = new Map<string, Set<WebSocket>>();
 
 const SALT_ROUNDS = 10;
 
@@ -2398,6 +2402,133 @@ export async function registerRoutes(
       console.error("Error deleting FCM token:", error);
       res.status(500).json({ error: "Failed to delete FCM token" });
     }
+  });
+
+  // Chat API routes
+  app.get("/api/teams/:teamId/chat/:channel", async (req, res) => {
+    try {
+      const { teamId, channel } = req.params;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const messages = await storage.getTeamChatMessages(teamId, channel, limit);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching chat messages:", error);
+      res.status(500).json({ error: "Failed to fetch chat messages" });
+    }
+  });
+
+  const ALLOWED_CHANNELS = ["general", "announcements", "tactics"];
+  const MAX_MESSAGE_LENGTH = 2000;
+
+  app.post("/api/teams/:teamId/chat/:channel", async (req, res) => {
+    try {
+      const { teamId, channel } = req.params;
+      const { userId, content } = req.body;
+      
+      // Validate channel
+      if (!ALLOWED_CHANNELS.includes(channel)) {
+        return res.status(400).json({ error: "Invalid channel" });
+      }
+      
+      if (!userId || !content) {
+        return res.status(400).json({ error: "userId and content are required" });
+      }
+      
+      // Validate content length
+      if (typeof content !== "string" || content.length > MAX_MESSAGE_LENGTH) {
+        return res.status(400).json({ error: `Message must be ${MAX_MESSAGE_LENGTH} characters or less` });
+      }
+      
+      // Verify user is a member of the team
+      const membership = await storage.getTeamMembership(teamId, userId);
+      if (!membership) {
+        return res.status(403).json({ error: "User is not a member of this team" });
+      }
+      
+      const message = await storage.createChatMessage({
+        teamId,
+        userId,
+        content: content.trim(),
+        channel,
+      });
+      
+      // Get the user info to include in the broadcast (sanitized - no password)
+      const user = await storage.getUser(userId);
+      const safeUser = user ? {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        name: user.name,
+        avatar: user.avatar,
+      } : null;
+      const messageWithUser = { ...message, user: safeUser };
+      
+      // Broadcast to all connected clients for this team
+      const clients = teamClients.get(teamId);
+      if (clients) {
+        const broadcast = JSON.stringify({ type: "new_message", data: messageWithUser });
+        clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(broadcast);
+          }
+        });
+      }
+      
+      res.json(messageWithUser);
+    } catch (error) {
+      console.error("Error sending chat message:", error);
+      res.status(500).json({ error: "Failed to send chat message" });
+    }
+  });
+
+  // Set up WebSocket server for real-time chat
+  const wss = new WebSocketServer({ server: httpServer, path: "/ws/chat" });
+  
+  wss.on("connection", async (ws, req) => {
+    const url = new URL(req.url || "", `http://${req.headers.host}`);
+    const teamId = url.searchParams.get("teamId");
+    const userId = url.searchParams.get("userId");
+    
+    if (!teamId) {
+      ws.close(1008, "teamId is required");
+      return;
+    }
+    
+    // Verify user is a member of the team (if userId provided)
+    if (userId) {
+      try {
+        const membership = await storage.getTeamMembership(teamId, userId);
+        if (!membership) {
+          ws.close(1008, "User is not a member of this team");
+          return;
+        }
+      } catch (error) {
+        console.error("Error verifying team membership:", error);
+      }
+    }
+    
+    // Add client to team's client set
+    if (!teamClients.has(teamId)) {
+      teamClients.set(teamId, new Set());
+    }
+    teamClients.get(teamId)!.add(ws);
+    
+    console.log(`WebSocket client connected to team ${teamId}`);
+    
+    ws.on("close", () => {
+      const clients = teamClients.get(teamId);
+      if (clients) {
+        clients.delete(ws);
+        if (clients.size === 0) {
+          teamClients.delete(teamId);
+        }
+      }
+      console.log(`WebSocket client disconnected from team ${teamId}`);
+    });
+    
+    ws.on("error", (error) => {
+      console.error("WebSocket error:", error);
+    });
   });
 
   return httpServer;

@@ -596,6 +596,27 @@ export const liveTapTotalsRelations = relations(liveTapTotals, ({ one }) => ({
   }),
 }));
 
+// Chat Messages - team chat messages
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  channel: text("channel").notNull().default("general"), // general, announcements, etc.
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+  team: one(teams, {
+    fields: [chatMessages.teamId],
+    references: [teams.id],
+  }),
+  user: one(users, {
+    fields: [chatMessages.userId],
+    references: [users.id],
+  }),
+}));
+
 // Badge Definitions - defines badge tiers and their requirements
 export const badgeDefinitions = pgTable("badge_definitions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -791,3 +812,12 @@ export const insertFcmTokenSchema = createInsertSchema(fcmTokens).omit({
 
 export type InsertFcmToken = z.infer<typeof insertFcmTokenSchema>;
 export type FcmToken = typeof fcmTokens.$inferSelect;
+
+// Chat Message schemas
+export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
