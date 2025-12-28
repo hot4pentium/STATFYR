@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap, Sun, Moon, ChevronRight } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap, Sun, Moon, ChevronRight, Bell } from "lucide-react";
 import { useTheme } from "next-themes";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { usePWA } from "@/lib/pwaContext";
+import { useNotifications } from "@/lib/notificationContext";
 import { TeamBadge } from "@/components/TeamBadge";
 import { TeamHeroCard } from "@/components/dashboard/TeamHeroCard";
 
@@ -31,6 +32,7 @@ export default function SupporterDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, logout } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
+  const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [selectedCard, setSelectedCard] = useState<string | null>("schedule");
@@ -1034,6 +1036,28 @@ export default function SupporterDashboard() {
                   <AlertCircle className="h-5 w-5" />
                 </Button>
               )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={async () => {
+                  if (notificationsEnabled) {
+                    clearUnread();
+                    setLocation("/chat");
+                  } else {
+                    const success = await enableNotifications();
+                    if (success) {
+                      toast.success("Notifications enabled!");
+                    } else {
+                      toast.error("Could not enable notifications");
+                    }
+                  }
+                }}
+                className={hasUnread ? "text-green-500 hover:text-green-400" : ""}
+                title={notificationsEnabled ? (hasUnread ? "New messages" : "Notifications enabled") : "Enable notifications"}
+                data-testid="button-notifications"
+              >
+                <Bell className="h-5 w-5" />
+              </Button>
               {mounted && (
                 <button
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Star, Flame, Zap, Share2, MessageCircle } from "lucide-react";
+import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Star, Flame, Zap, Share2, MessageCircle, Bell } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -11,6 +11,7 @@ import { useUser } from "@/lib/userContext";
 import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getAthleteStats, getAthleteShoutoutCount, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
+import { useNotifications } from "@/lib/notificationContext";
 import { format } from "date-fns";
 
 type SectionType = "schedule" | "roster" | "stats" | "highlights" | "playbook" | "chat" | null;
@@ -20,6 +21,7 @@ export default function AthleteProfileNew() {
   const searchString = useSearch();
   const { user, currentTeam, logout } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
+  const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>(null);
@@ -200,6 +202,28 @@ export default function AthleteProfileNew() {
                   <AlertCircle className="h-5 w-5" />
                 </Button>
               )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={async () => {
+                  if (notificationsEnabled) {
+                    clearUnread();
+                    setLocation("/chat");
+                  } else {
+                    const success = await enableNotifications();
+                    if (success) {
+                      toast.success("Notifications enabled!");
+                    } else {
+                      toast.error("Could not enable notifications");
+                    }
+                  }
+                }}
+                className={hasUnread ? "text-green-500 hover:text-green-400" : ""}
+                title={notificationsEnabled ? (hasUnread ? "New messages" : "Notifications enabled") : "Enable notifications"}
+                data-testid="button-notifications"
+              >
+                <Bell className="h-5 w-5" />
+              </Button>
               {mounted && (
                 <button
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

@@ -130,6 +130,18 @@ The database schema centers around four main entities:
 - **Update Flow**: Service worker detects new version → PWAContext tracks state → Click button to refresh
 - **Check Interval**: Every 60 seconds the service worker checks for updates
 
+### Push Notifications (Firebase Cloud Messaging)
+- **Firebase Setup**: FCM configured via VITE_ prefixed environment variables for client-side access
+- **Service Worker**: `client/public/firebase-messaging-sw.js` handles background push messages
+- **Token Storage**: FCM tokens stored per user in `fcm_tokens` database table
+- **Notification Context**: `client/src/lib/notificationContext.tsx` provides `notificationsEnabled`, `hasUnread`, `enableNotifications`, and `clearUnread`
+- **Header Bell Icon**: Bell icon in all dashboard headers allows enabling notifications anytime
+  - Click to enable: If notifications not enabled, prompts user to grant permission
+  - Green bell: Turns green when unread messages exist
+  - Click when enabled: Clears unread state and navigates to chat
+- **Foreground Messages**: Uses `onMessage` callback to show browser notifications and set unread state
+- **API Endpoints**: `POST /api/fcm-tokens` to store tokens, `DELETE /api/fcm-tokens/:token` to remove
+
 ### Live Engagement Sessions (Game Day Live)
 - **Purpose**: Allow supporters to cheer for athletes during live games through shoutouts and taps, independent from StatTracker
 - **Session-Based**: Live engagement is tied to calendar events via `live_engagement_sessions` table, not to StatTracker games

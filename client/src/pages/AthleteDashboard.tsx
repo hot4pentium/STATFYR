@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2, Bell } from "lucide-react";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import { useUser } from "@/lib/userContext";
 import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount, type TeamMember, type Event, type HighlightVideo, type Play, type Shoutout } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
+import { useNotifications } from "@/lib/notificationContext";
 import { format, isSameDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -27,6 +28,7 @@ export default function AthleteDashboard() {
   const searchString = useSearch();
   const { user, currentTeam, logout } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
+  const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>("schedule");
@@ -276,6 +278,28 @@ export default function AthleteDashboard() {
                   <AlertCircle className="h-5 w-5" />
                 </Button>
               )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={async () => {
+                  if (notificationsEnabled) {
+                    clearUnread();
+                    setLocation("/chat");
+                  } else {
+                    const success = await enableNotifications();
+                    if (success) {
+                      toast.success("Notifications enabled!");
+                    } else {
+                      toast.error("Could not enable notifications");
+                    }
+                  }
+                }}
+                className={hasUnread ? "text-green-500 hover:text-green-400" : ""}
+                title={notificationsEnabled ? (hasUnread ? "New messages" : "Notifications enabled") : "Enable notifications"}
+                data-testid="button-notifications"
+              >
+                <Bell className="h-5 w-5" />
+              </Button>
               {mounted && (
                 <button
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

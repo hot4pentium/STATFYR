@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
 import { UserProvider } from "./lib/userContext";
 import { PWAProvider } from "./lib/pwaContext";
+import { NotificationProvider } from "./lib/notificationContext";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
@@ -66,10 +67,12 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <UserProvider>
           <PWAProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
+            <NotificationProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Router />
+              </TooltipProvider>
+            </NotificationProvider>
           </PWAProvider>
         </UserProvider>
       </QueryClientProvider>

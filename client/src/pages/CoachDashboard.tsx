@@ -1,7 +1,7 @@
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Share2 } from "lucide-react";
+import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Share2, Bell } from "lucide-react";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +10,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
 import { useTheme } from "next-themes";
 import { usePWA } from "@/lib/pwaContext";
+import { useNotifications } from "@/lib/notificationContext";
 import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, getTeamAggregateStats, getAdvancedTeamStats, getLiveSessionByEvent, createLiveSessionForEvent, startLiveSession, endLiveSession, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup, type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession } from "@/lib/api";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend } from "recharts";
 import { Flame, TrendingUp } from "lucide-react";
@@ -36,6 +37,7 @@ export default function CoachDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, setCurrentTeam, logout } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
+  const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const queryClient = useQueryClient();
@@ -1398,6 +1400,28 @@ export default function CoachDashboard() {
                   <AlertCircle className="h-5 w-5" />
                 </Button>
               )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={async () => {
+                  if (notificationsEnabled) {
+                    clearUnread();
+                    setLocation("/chat");
+                  } else {
+                    const success = await enableNotifications();
+                    if (success) {
+                      toast.success("Notifications enabled!");
+                    } else {
+                      toast.error("Could not enable notifications");
+                    }
+                  }
+                }}
+                className={hasUnread ? "text-green-500 hover:text-green-400" : ""}
+                title={notificationsEnabled ? (hasUnread ? "New messages" : "Notifications enabled") : "Enable notifications"}
+                data-testid="button-notifications"
+              >
+                <Bell className="h-5 w-5" />
+              </Button>
               {mounted && (
                 <button
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
