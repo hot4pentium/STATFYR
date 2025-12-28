@@ -179,6 +179,29 @@ export default function UnifiedDashboard() {
     refetchInterval: 5000,
   });
 
+  const { data: athleteStats } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "athletes", user?.id, "stats", "hype"],
+    queryFn: () => currentTeam && user ? getAthleteStats(currentTeam.id, user.id) : Promise.resolve(null),
+    enabled: !!currentTeam && !!user && userRole === "athlete",
+  });
+
+  const { data: athleteShoutoutCount = 0 } = useQuery({
+    queryKey: ["/api/athletes", user?.id, "shoutouts", "count"],
+    queryFn: () => user ? getAthleteShoutoutCount(user.id) : Promise.resolve(0),
+    enabled: !!user && userRole === "athlete",
+  });
+
+  const { data: managedAthletes = [] } = useQuery({
+    queryKey: ["/api/supporters", user?.id, "managed-athletes"],
+    queryFn: () => user ? getManagedAthletes(user.id) : Promise.resolve([]),
+    enabled: !!user && userRole === "supporter",
+  });
+
+  const userMembership = useMemo(() => {
+    if (!user || !teamMembers) return null;
+    return teamMembers.find((m: TeamMember) => m.userId === user.id) || null;
+  }, [user, teamMembers]);
+
   const athletes = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "athlete"), [teamMembers]);
   const coaches = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "coach"), [teamMembers]);
   const supporters = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "supporter"), [teamMembers]);
@@ -870,6 +893,77 @@ export default function UnifiedDashboard() {
               <p className="text-white/60 text-sm">{getRoleLabel()}</p>
             </div>
           </div>
+        </div>
+
+        {/* Hype Card Section */}
+        <div className="px-4 -mt-4 mb-6">
+          <Card 
+            className="bg-gradient-to-r from-card via-card to-primary/10 border-primary/20 overflow-hidden cursor-pointer hover:border-primary/40 transition-all"
+            onClick={() => {
+              if (userRole === "athlete" && user) {
+                setLocation(`/share/athlete/${user.id}`);
+              } else if (userRole === "coach" && currentTeam) {
+                setLocation("/roster");
+              }
+            }}
+            data-testid="card-hype"
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16 border-2 border-primary/30 shrink-0">
+                  <AvatarImage src={user.avatar || undefined} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-orange-600 text-xl font-bold text-white">
+                    {getUserDisplayName().charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display font-bold text-lg truncate">{getUserDisplayName()}</h3>
+                    {userRole === "athlete" && athleteStats?.hotStreak && (
+                      <Badge variant="secondary" className="gap-1 shrink-0">
+                        <Flame className="h-3 w-3 text-orange-500" />
+                        {athleteStats.streakLength}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {currentTeam?.name || "No team"} {userMembership?.position ? `• ${userMembership.position}` : ""} {userMembership?.jerseyNumber ? `#${userMembership.jerseyNumber}` : ""}
+                  </p>
+                  <div className="flex items-center gap-3 mt-2">
+                    {userRole === "athlete" && athleteStats && (
+                      <>
+                        <div className="flex items-center gap-1 text-xs">
+                          <Trophy className="h-3 w-3 text-primary" />
+                          <span>{athleteStats.gamesPlayed} games</span>
+                        </div>
+                        {athleteShoutoutCount > 0 && (
+                          <div className="flex items-center gap-1 text-xs">
+                            <Heart className="h-3 w-3 text-red-500" />
+                            <span>{athleteShoutoutCount} cheers</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {userRole === "coach" && teamMembers && (
+                      <div className="flex items-center gap-1 text-xs">
+                        <Users className="h-3 w-3 text-primary" />
+                        <span>{teamMembers.filter((m: TeamMember) => m.role === "athlete").length} athletes</span>
+                      </div>
+                    )}
+                    {userRole === "supporter" && managedAthletes && (
+                      <div className="flex items-center gap-1 text-xs">
+                        <Star className="h-3 w-3 text-primary" />
+                        <span>{managedAthletes.length} athletes</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="shrink-0">
+                  <Share2 className="h-5 w-5 text-muted-foreground" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Quick Access Section */}
