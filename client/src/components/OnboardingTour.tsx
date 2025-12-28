@@ -173,16 +173,21 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
   const position = step.position || "bottom";
 
   const getTooltipPosition = () => {
-    if (!targetRect) {
-      return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
-    }
-
-    const padding = 12;
-    const isMobile = window.innerWidth < 640;
-    const tooltipWidth = isMobile ? Math.min(280, window.innerWidth - padding * 2) : 320;
-    const tooltipHeight = 180;
+    const padding = 16;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
+    const isMobile = viewportWidth < 480;
+    const tooltipWidth = isMobile ? Math.min(280, viewportWidth - padding * 2) : 320;
+    const tooltipHeight = 200;
+
+    if (!targetRect) {
+      return { 
+        top: "50%", 
+        left: "50%", 
+        transform: "translate(-50%, -50%)",
+        width: `${tooltipWidth}px`,
+      };
+    }
 
     const clampLeft = (left: number) => Math.max(padding, Math.min(left, viewportWidth - tooltipWidth - padding));
     const clampTop = (top: number) => Math.max(padding, Math.min(top, viewportHeight - tooltipHeight - padding));
@@ -190,52 +195,60 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
     let top: number;
     let left: number;
 
-    switch (position) {
-      case "top":
+    if (isMobile) {
+      top = targetRect.bottom + padding;
+      if (top + tooltipHeight > viewportHeight - padding) {
         top = targetRect.top - tooltipHeight - padding;
-        left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
-        if (top < padding) {
-          top = targetRect.bottom + padding;
-        }
-        break;
-      case "bottom":
-        top = targetRect.bottom + padding;
-        left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
-        if (top + tooltipHeight > viewportHeight - padding) {
+      }
+      left = (viewportWidth - tooltipWidth) / 2;
+    } else {
+      switch (position) {
+        case "top":
           top = targetRect.top - tooltipHeight - padding;
-        }
-        break;
-      case "left":
-        top = targetRect.top + targetRect.height / 2 - tooltipHeight / 2;
-        left = targetRect.left - tooltipWidth - padding;
-        if (left < padding) {
-          left = targetRect.right + padding;
-          if (left + tooltipWidth > viewportWidth - padding) {
+          left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+          if (top < padding) {
             top = targetRect.bottom + padding;
-            left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
           }
-        }
-        break;
-      case "right":
-        top = targetRect.top + targetRect.height / 2 - tooltipHeight / 2;
-        left = targetRect.right + padding;
-        if (left + tooltipWidth > viewportWidth - padding) {
+          break;
+        case "bottom":
+          top = targetRect.bottom + padding;
+          left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+          if (top + tooltipHeight > viewportHeight - padding) {
+            top = targetRect.top - tooltipHeight - padding;
+          }
+          break;
+        case "left":
+          top = targetRect.top + targetRect.height / 2 - tooltipHeight / 2;
           left = targetRect.left - tooltipWidth - padding;
           if (left < padding) {
-            top = targetRect.bottom + padding;
-            left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+            left = targetRect.right + padding;
+            if (left + tooltipWidth > viewportWidth - padding) {
+              top = targetRect.bottom + padding;
+              left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+            }
           }
-        }
-        break;
-      default:
-        top = targetRect.bottom + padding;
-        left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+          break;
+        case "right":
+          top = targetRect.top + targetRect.height / 2 - tooltipHeight / 2;
+          left = targetRect.right + padding;
+          if (left + tooltipWidth > viewportWidth - padding) {
+            left = targetRect.left - tooltipWidth - padding;
+            if (left < padding) {
+              top = targetRect.bottom + padding;
+              left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+            }
+          }
+          break;
+        default:
+          top = targetRect.bottom + padding;
+          left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
+      }
     }
 
     return {
       top: `${clampTop(top)}px`,
       left: `${clampLeft(left)}px`,
-      width: isMobile ? `${tooltipWidth}px` : undefined,
+      width: `${tooltipWidth}px`,
     };
   };
 
@@ -268,7 +281,7 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
           )}
 
           <motion.div
-            className="fixed z-[102] w-80 max-w-[calc(100vw-24px)]"
+            className="fixed z-[102]"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
