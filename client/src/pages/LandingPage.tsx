@@ -118,24 +118,23 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            <Button 
-              size="lg" 
-              className="text-lg px-10 py-7 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-2xl shadow-lg shadow-orange-500/30 transition-all duration-300 ease-out" 
-              onClick={goToAuth} 
+            <a 
+              href="#"
+              onClick={(e) => { e.preventDefault(); goToAuth(); }}
+              className="inline-flex items-center justify-center text-lg px-10 py-7 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-2xl shadow-lg shadow-orange-500/30 transition-colors duration-200 font-medium" 
               data-testid="button-get-started"
             >
               Get Started Free
               <ChevronRight className="h-5 w-5" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="text-lg px-10 py-7 rounded-2xl border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-300 ease-out"
-              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+            </a>
+            <a 
+              href="#features"
+              onClick={(e) => { e.preventDefault(); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); }}
+              className="inline-flex items-center justify-center text-lg px-10 py-7 rounded-2xl border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium bg-white"
               data-testid="button-see-features"
             >
               Learn More
-            </Button>
+            </a>
           </motion.div>
 
           <motion.div 
