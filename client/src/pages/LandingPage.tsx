@@ -120,7 +120,7 @@ export default function LandingPage() {
           >
             <Button 
               size="lg" 
-              className="text-lg px-10 py-7 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-2xl shadow-lg shadow-orange-500/30" 
+              className="text-lg px-10 py-7 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-2xl shadow-lg shadow-orange-500/30 transition-all duration-300 ease-out" 
               onClick={goToAuth} 
               data-testid="button-get-started"
             >
@@ -130,7 +130,7 @@ export default function LandingPage() {
             <Button 
               size="lg" 
               variant="outline" 
-              className="text-lg px-10 py-7 rounded-2xl border-2 border-gray-200 text-gray-700 hover:bg-gray-50"
+              className="text-lg px-10 py-7 rounded-2xl border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-300 ease-out"
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
               data-testid="button-see-features"
             >
