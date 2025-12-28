@@ -73,7 +73,7 @@ const quickAccessCards: QuickAccessCard[] = [
 
 const roleConfig: Record<UserRole, { title: string; tagline: string }> = {
   coach: { title: "Coach Dashboard", tagline: "Full team access made quick and easy." },
-  athlete: { title: "Athlete Dashboard", tagline: "Your performance hub awaits." },
+  athlete: { title: "Athlete Dashboard", tagline: "View HYPE Card" },
   supporter: { title: "Supporter Dashboard", tagline: "Cheer on your favorite athletes." },
 };
 
