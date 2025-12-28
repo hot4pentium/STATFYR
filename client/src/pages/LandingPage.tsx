@@ -193,43 +193,101 @@ export default function LandingPage() {
 
           <div className="max-w-4xl mx-auto">
             <div className="grid md:grid-cols-2 gap-8 items-center">
-              {/* Phone Mockup */}
+              {/* Device Mockups - Mobile in front, Tablet and PC in back */}
               <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="relative"
+                className="relative h-[450px] flex items-center justify-center"
               >
-                <div className="bg-white rounded-[3rem] p-3 shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-200 max-w-[280px] mx-auto">
-                  <div className="bg-gradient-to-b from-orange-50 to-white rounded-[2.5rem] overflow-hidden">
-                    <div className="h-6 bg-gray-900 rounded-t-[2.5rem] flex items-center justify-center">
-                      <div className="w-20 h-4 bg-gray-800 rounded-full" />
-                    </div>
-                    <div className="p-4 min-h-[400px]">
-                      <div className="flex items-center gap-3 mb-6">
-                        <img src={logoImage} alt="STATFYR" className="h-12 w-12" />
-                        <div>
-                          <div className="font-bold text-gray-900">STATFYR</div>
-                          <div className="text-xs text-gray-500">Team Management</div>
+                {/* PC Monitor - Background Left */}
+                <div className="absolute left-0 top-0 transform scale-[0.6] origin-top-left opacity-60">
+                  <div className="bg-gray-800 rounded-2xl p-2 shadow-xl">
+                    <div className="bg-gradient-to-b from-orange-50 to-white rounded-xl w-[280px] h-[180px] overflow-hidden">
+                      <div className="h-4 bg-gray-200 flex items-center px-2 gap-1">
+                        <div className="w-2 h-2 rounded-full bg-red-400" />
+                        <div className="w-2 h-2 rounded-full bg-yellow-400" />
+                        <div className="w-2 h-2 rounded-full bg-green-400" />
+                      </div>
+                      <div className="p-3">
+                        <div className="flex items-center gap-2 mb-3">
+                          <img src={logoImage} alt="STATFYR" className="h-6 w-6" />
+                          <span className="text-xs font-bold text-gray-900">STATFYR</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="bg-blue-100 rounded p-2 h-16" />
+                          <div className="bg-orange-100 rounded p-2 h-16" />
+                          <div className="bg-green-100 rounded p-2 h-16" />
                         </div>
                       </div>
-                      <div className="space-y-3">
-                        <div className="bg-white rounded-2xl p-4 shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
-                          <div className="text-xs text-orange-500 font-medium mb-1">NEXT GAME</div>
-                          <div className="font-bold text-gray-900">vs Eagles</div>
-                          <div className="text-sm text-gray-500">Tomorrow, 6:00 PM</div>
+                    </div>
+                    <div className="h-3 bg-gray-700 rounded-b-lg mt-1" />
+                  </div>
+                  <div className="w-16 h-12 bg-gray-700 mx-auto rounded-b-lg" />
+                  <div className="w-24 h-2 bg-gray-600 mx-auto rounded-full" />
+                </div>
+
+                {/* Tablet - Background Right */}
+                <div className="absolute right-0 top-8 transform scale-[0.7] origin-top-right opacity-70">
+                  <div className="bg-gray-800 rounded-[1.5rem] p-2 shadow-xl">
+                    <div className="bg-gradient-to-b from-orange-50 to-white rounded-[1.2rem] w-[200px] h-[280px] overflow-hidden">
+                      <div className="h-4 bg-gray-900 rounded-t-[1.2rem]" />
+                      <div className="p-3">
+                        <div className="flex items-center gap-2 mb-3">
+                          <img src={logoImage} alt="STATFYR" className="h-8 w-8" />
+                          <div>
+                            <div className="text-xs font-bold text-gray-900">STATFYR</div>
+                            <div className="text-[8px] text-gray-500">Dashboard</div>
+                          </div>
                         </div>
-                        <div className="bg-white rounded-2xl p-4 shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
-                          <div className="text-xs text-green-500 font-medium mb-1">TEAM RECORD</div>
-                          <div className="font-bold text-gray-900">8-2</div>
-                          <div className="text-sm text-gray-500">Season 2024</div>
+                        <div className="space-y-2">
+                          <div className="bg-white rounded-lg p-2 shadow-sm">
+                            <div className="text-[8px] text-orange-500 font-medium">ROSTER</div>
+                            <div className="text-[10px] font-bold text-gray-900">15 Players</div>
+                          </div>
+                          <div className="bg-white rounded-lg p-2 shadow-sm">
+                            <div className="text-[8px] text-blue-500 font-medium">SCHEDULE</div>
+                            <div className="text-[10px] font-bold text-gray-900">8 Games</div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="absolute -bottom-4 -right-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-3 shadow-lg">
-                  <Home className="h-6 w-6 text-white" />
+
+                {/* Mobile Phone - Foreground Center */}
+                <div className="relative z-10">
+                  <div className="bg-white rounded-[3rem] p-3 shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-gray-200 max-w-[240px]">
+                    <div className="bg-gradient-to-b from-orange-50 to-white rounded-[2.5rem] overflow-hidden">
+                      <div className="h-6 bg-gray-900 rounded-t-[2.5rem] flex items-center justify-center">
+                        <div className="w-16 h-4 bg-gray-800 rounded-full" />
+                      </div>
+                      <div className="p-4 min-h-[340px]">
+                        <div className="flex items-center gap-3 mb-5">
+                          <img src={logoImage} alt="STATFYR" className="h-10 w-10" />
+                          <div>
+                            <div className="font-bold text-gray-900 text-sm">STATFYR</div>
+                            <div className="text-[10px] text-gray-500">Team Management</div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="bg-white rounded-xl p-3 shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
+                            <div className="text-[10px] text-orange-500 font-medium mb-1">NEXT GAME</div>
+                            <div className="font-bold text-gray-900 text-sm">vs Eagles</div>
+                            <div className="text-xs text-gray-500">Tomorrow, 6:00 PM</div>
+                          </div>
+                          <div className="bg-white rounded-xl p-3 shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
+                            <div className="text-[10px] text-green-500 font-medium mb-1">TEAM RECORD</div>
+                            <div className="font-bold text-gray-900 text-sm">8-2</div>
+                            <div className="text-xs text-gray-500">Season 2024</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-3 -right-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl p-2 shadow-lg z-20">
+                    <Home className="h-5 w-5 text-white" />
+                  </div>
                 </div>
               </motion.div>
 
