@@ -8,7 +8,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useTheme } from "next-themes";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getAthleteStats, getAthleteShoutoutCount, type TeamMember, type Event, type HighlightVideo } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getAthleteStats, getAthleteShoutoutCount, getTeamPlays, type TeamMember, type Event, type HighlightVideo, type Play } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
 import { useNotifications } from "@/lib/notificationContext";
@@ -75,6 +75,12 @@ export default function AthleteProfileNew() {
     queryKey: ["/api/teams", currentTeam?.id, "athletes", user?.id, "stats"],
     queryFn: () => currentTeam && user ? getAthleteStats(currentTeam.id, user.id) : Promise.resolve({ gamesPlayed: 0, stats: {}, gameHistory: [], hotStreak: false, streakLength: 0 }),
     enabled: !!currentTeam && !!user,
+  });
+
+  const { data: teamPlays = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "plays"],
+    queryFn: () => currentTeam ? getTeamPlays(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam && activeSection === "playbook",
   });
 
   const currentMembership = teamMembers.find((m: TeamMember) => m.userId === user?.id);
@@ -499,7 +505,7 @@ export default function AthleteProfileNew() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => setLocation("/athlete/profile-new")}
+                  onClick={() => setLocation("/athlete/dashboard")}
                   className="gap-2"
                   data-testid="button-back"
                 >
@@ -511,12 +517,180 @@ export default function AthleteProfileNew() {
                 </h2>
               </div>
 
-              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                <CardContent className="p-6 text-center text-muted-foreground">
-                  <p>This section will show the {activeSection} content.</p>
-                  <p className="text-sm mt-2">Full implementation coming soon!</p>
-                </CardContent>
-              </Card>
+              {/* Roster Section */}
+              {activeSection === "roster" && (
+                <div className="space-y-3">
+                  {teamMembers.length === 0 ? (
+                    <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                      <CardContent className="p-6 text-center text-muted-foreground">
+                        <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>No team members yet</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    teamMembers.map((member: TeamMember) => (
+                      <Card key={member.id} className="bg-card/80 backdrop-blur-sm border-white/10">
+                        <CardContent className="p-4 flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-lg font-bold">
+                            {member.user?.name?.charAt(0) || member.user?.firstName?.charAt(0) || "?"}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium">{member.user?.name || `${member.user?.firstName} ${member.user?.lastName}`}</p>
+                            <p className="text-sm text-muted-foreground capitalize">{member.role}</p>
+                          </div>
+                          {member.jerseyNumber && (
+                            <Badge className="bg-primary/20 text-primary">#{member.jerseyNumber}</Badge>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Schedule Section */}
+              {activeSection === "schedule" && (
+                <div className="space-y-3">
+                  {teamEvents.length === 0 ? (
+                    <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                      <CardContent className="p-6 text-center text-muted-foreground">
+                        <CalendarIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>No upcoming events</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    teamEvents.map((event: Event) => (
+                      <Card key={event.id} className="bg-card/80 backdrop-blur-sm border-white/10">
+                        <CardContent className="p-4 flex items-center gap-3">
+                          <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex flex-col items-center justify-center">
+                            <span className="text-xs text-muted-foreground uppercase">
+                              {format(new Date(event.date), "MMM")}
+                            </span>
+                            <span className="text-xl font-display font-bold">
+                              {format(new Date(event.date), "d")}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold truncate">{event.title}</p>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {format(new Date(event.date), "h:mm a")}
+                              {event.location && (
+                                <>
+                                  <span className="mx-1">•</span>
+                                  <MapPin className="h-3 w-3" />
+                                  <span className="truncate">{event.location}</span>
+                                </>
+                              )}
+                            </p>
+                          </div>
+                          <Badge variant={event.type === "Game" ? "default" : "secondary"} className="text-xs">
+                            {event.type}
+                          </Badge>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Stats Section */}
+              {activeSection === "stats" && (
+                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                  <CardContent className="p-6">
+                    <div className="text-center mb-6">
+                      <p className="text-4xl font-display font-bold text-primary">{myStats?.gamesPlayed || 0}</p>
+                      <p className="text-sm text-muted-foreground">Games Played</p>
+                    </div>
+                    {myStats?.stats && Object.keys(myStats.stats).length > 0 ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        {Object.entries(myStats.stats).map(([key, value]) => {
+                          const statValue = typeof value === "object" && value !== null && "total" in value 
+                            ? (value as { total: number }).total 
+                            : value;
+                          return (
+                            <div key={key} className="text-center p-3 rounded-lg bg-white/5">
+                              <p className="text-2xl font-bold">{String(statValue)}</p>
+                              <p className="text-xs text-muted-foreground capitalize">{key.replace(/_/g, " ")}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-center text-muted-foreground">No stats recorded yet. Play some games to see your statistics!</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Playbook Section */}
+              {activeSection === "playbook" && (
+                <div className="space-y-3">
+                  {teamPlays.length === 0 ? (
+                    <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                      <CardContent className="p-6 text-center text-muted-foreground">
+                        <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>No plays in the playbook yet</p>
+                        <p className="text-sm mt-1">Your coach will add plays here</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    teamPlays.map((play: Play) => (
+                      <Card key={play.id} className="bg-card/80 backdrop-blur-sm border-white/10">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center">
+                              <BookOpen className="h-5 w-5 text-orange-500" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-bold">{play.name}</p>
+                              <p className="text-xs text-muted-foreground capitalize">{play.category || "Uncategorized"}</p>
+                            </div>
+                          </div>
+                          {play.description && (
+                            <p className="text-sm text-muted-foreground">{play.description}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Highlights Section */}
+              {activeSection === "highlights" && (
+                <div className="space-y-4">
+                  {teamHighlights.length === 0 ? (
+                    <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                      <CardContent className="p-6 text-center text-muted-foreground">
+                        <Video className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>No highlights yet</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-3">
+                      {teamHighlights.map((highlight: HighlightVideo) => {
+                        const thumbnailSrc = highlight.thumbnailKey ?? undefined;
+                        return (
+                          <div key={highlight.id} className="relative aspect-video rounded-xl overflow-hidden bg-black/20">
+                            {thumbnailSrc ? (
+                              <img src={thumbnailSrc} alt={highlight.title ?? "Highlight"} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
+                                <Video className="h-8 w-8 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                            <div className="absolute bottom-2 left-2 right-2">
+                              <p className="text-xs text-white font-medium truncate">{highlight.title}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </main>
