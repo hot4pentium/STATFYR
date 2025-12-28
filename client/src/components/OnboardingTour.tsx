@@ -102,63 +102,51 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
 
   if (showWelcome && welcomeModal) {
     return (
-      <AnimatePresence>
-        <motion.div
-          className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <div className="animate-in fade-in zoom-in-95 duration-300">
-            <Card className="w-full max-w-md bg-gradient-to-br from-card via-card to-orange-500/5 border-orange-500/30 shadow-2xl shadow-orange-500/20">
-              <CardContent className="p-8 text-center">
-                <div className="mb-6">
-                  {welcomeModal.icon || (
-                    <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 flex items-center justify-center border-2 border-orange-500/40">
-                      <Sparkles className="h-10 w-10 text-orange-500" />
-                    </div>
-                  )}
+      <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-gradient-to-br from-card via-card to-orange-500/5 border-orange-500/30 shadow-2xl shadow-orange-500/20">
+          <CardContent className="p-8 text-center">
+            <div className="mb-6">
+              {welcomeModal.icon || (
+                <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 flex items-center justify-center border-2 border-orange-500/40">
+                  <Sparkles className="h-10 w-10 text-orange-500" />
                 </div>
-                
-                <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-orange-500 bg-clip-text text-transparent">
-                  {welcomeModal.title}
-                </h2>
-                
-                {welcomeModal.subtitle && (
-                  <p className="text-lg text-orange-500 font-medium mb-4">
-                    {welcomeModal.subtitle}
-                  </p>
-                )}
-                
-                <p className="text-muted-foreground mb-8 leading-relaxed">
-                  {welcomeModal.description}
-                </p>
-                
-                <div className="flex flex-col gap-3">
-                  <Button
-                    size="lg"
-                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold"
-                    onClick={handleStartTour}
-                    data-testid="button-start-tour"
-                  >
-                    {welcomeModal.buttonText || "Show Me Around"}
-                    <ChevronRight className="ml-2 h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-foreground"
-                    onClick={handleComplete}
-                    data-testid="button-skip-welcome"
-                  >
-                    I'll explore on my own
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+              )}
+            </div>
+            
+            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-orange-500 bg-clip-text text-transparent">
+              {welcomeModal.title}
+            </h2>
+            
+            {welcomeModal.subtitle && (
+              <p className="text-lg text-orange-500 font-medium mb-4">
+                {welcomeModal.subtitle}
+              </p>
+            )}
+            
+            <p className="text-muted-foreground mb-8 leading-relaxed">
+              {welcomeModal.description}
+            </p>
+            
+            <div className="flex flex-col gap-3">
+              <button
+                className="w-full py-3 px-6 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold text-lg flex items-center justify-center"
+                onClick={handleStartTour}
+                data-testid="button-start-tour"
+              >
+                {welcomeModal.buttonText || "Show Me Around"}
+                <ChevronRight className="ml-2 h-5 w-5" />
+              </button>
+              <button
+                className="py-2 px-4 text-sm text-muted-foreground hover:text-foreground"
+                onClick={handleComplete}
+                data-testid="button-skip-welcome"
+              >
+                I'll explore on my own
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
