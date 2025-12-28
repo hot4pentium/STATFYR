@@ -22,11 +22,15 @@ interface ChatUser {
 
 interface TeamMember {
   id: string;
-  name: string;
-  firstName: string;
-  lastName: string;
+  userId: string;
   role: string;
-  avatar?: string | null;
+  user: {
+    id: string;
+    name: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string | null;
+  };
 }
 
 interface ChatMessage {
@@ -74,7 +78,7 @@ export default function ChatPage() {
         const res = await fetch(`/api/teams/${currentTeam.id}/members`);
         if (res.ok) {
           const data = await res.json();
-          setTeamMembers(data.filter((m: TeamMember) => m.id !== user?.id));
+          setTeamMembers(data.filter((m: TeamMember) => m.userId !== user?.id));
         }
       } catch (error) {
         console.error("Error fetching team members:", error);
@@ -218,12 +222,12 @@ export default function ChatPage() {
   };
 
   const selectAll = () => {
-    setSelectedMembers(new Set(teamMembers.map((m) => m.id)));
+    setSelectedMembers(new Set(teamMembers.map((m) => m.userId)));
   };
 
   const selectCoachesStaff = () => {
     const coaches = teamMembers.filter((m) => m.role === "coach" || m.role === "staff");
-    setSelectedMembers(new Set(coaches.map((m) => m.id)));
+    setSelectedMembers(new Set(coaches.map((m) => m.userId)));
   };
 
   const clearSelection = () => {
@@ -417,31 +421,31 @@ export default function ChatPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                 {teamMembers.map((member) => (
                   <label
-                    key={member.id}
+                    key={member.userId}
                     className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
-                      selectedMembers.has(member.id)
+                      selectedMembers.has(member.userId)
                         ? "bg-primary/10 border border-primary/30"
                         : "bg-white/5 border border-transparent hover:bg-white/10"
                     }`}
-                    data-testid={`member-select-${member.id}`}
+                    data-testid={`member-select-${member.userId}`}
                   >
                     <Checkbox
-                      checked={selectedMembers.has(member.id)}
-                      onCheckedChange={() => toggleMember(member.id)}
+                      checked={selectedMembers.has(member.userId)}
+                      onCheckedChange={() => toggleMember(member.userId)}
                     />
                     <Avatar className="h-6 w-6">
-                      {member.avatar && <AvatarImage src={member.avatar} />}
+                      {member.user.avatar && <AvatarImage src={member.user.avatar} />}
                       <AvatarFallback className="text-xs">
-                        {getInitials(member.name || `${member.firstName} ${member.lastName}`)}
+                        {getInitials(member.user.name || `${member.user.firstName} ${member.user.lastName}`)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
-                        {member.name || `${member.firstName} ${member.lastName}`}
+                        {member.user.name || `${member.user.firstName} ${member.user.lastName}`}
                       </p>
                       <p className="text-xs text-muted-foreground capitalize">{member.role}</p>
                     </div>
-                    {selectedMembers.has(member.id) && (
+                    {selectedMembers.has(member.userId) && (
                       <Check className="h-4 w-4 text-primary flex-shrink-0" />
                     )}
                   </label>
