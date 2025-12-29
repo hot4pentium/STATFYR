@@ -559,7 +559,7 @@ export default function ShareableHypeCard(props: any) {
                   <p className="text-xs text-white/60">{membership?.team?.name || "Athlete Stats"}</p>
                 </div>
 
-                <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-2">
+                <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-2 mb-4">
                   {/* Quadrant 1: Season Stats */}
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex flex-col">
                     <div className="flex items-center gap-1.5 mb-2">
