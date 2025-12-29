@@ -32,6 +32,7 @@ import SupporterSessionLive from "@/pages/SupporterSessionLive";
 import AthleteProfileNew from "@/pages/AthleteProfileNew";
 import AdminDashboard from "@/pages/AdminDashboard";
 import ChangePassword from "@/pages/ChangePassword";
+import HypeManager from "@/pages/HypeManager";
 
 function Router() {
   return (
@@ -64,6 +65,7 @@ function Router() {
       <Route path="/stattracker/:gameId" component={StatTrackerPage} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/change-password" component={ChangePassword} />
+      <Route path="/athlete/hype" component={HypeManager} />
       <Route component={NotFound} />
     </Switch>
   );

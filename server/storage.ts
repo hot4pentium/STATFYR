@@ -2,7 +2,7 @@ import {
   users, teams, teamMembers, events, highlightVideos, plays, managedAthletes,
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
-  liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers,
+  liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -27,7 +27,8 @@ import {
   type ProfileComment, type InsertProfileComment,
   type FcmToken, type InsertFcmToken,
   type ChatMessage, type InsertChatMessage,
-  type AthleteFollower, type InsertAthleteFollower
+  type AthleteFollower, type InsertAthleteFollower,
+  type HypePost, type InsertHypePost
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql } from "drizzle-orm";
@@ -179,6 +180,12 @@ export interface IStorage {
   createAthleteFollower(data: InsertAthleteFollower): Promise<AthleteFollower>;
   deleteAthleteFollower(athleteId: string, fcmToken: string): Promise<void>;
   getAthleteFollowerByToken(athleteId: string, fcmToken: string): Promise<AthleteFollower | undefined>;
+  
+  // HYPE Post methods
+  getAthleteHypePosts(athleteId: string): Promise<(HypePost & { highlight?: HighlightVideo })[]>;
+  getHypePost(id: string): Promise<(HypePost & { athlete: User; highlight?: HighlightVideo }) | undefined>;
+  createHypePost(data: InsertHypePost): Promise<HypePost>;
+  deleteHypePost(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1533,6 +1540,51 @@ export class DatabaseStorage implements IStorage {
         eq(athleteFollowers.fcmToken, fcmToken)
       ));
     return follower || undefined;
+  }
+
+  // HYPE Post methods
+  async getAthleteHypePosts(athleteId: string): Promise<(HypePost & { highlight?: HighlightVideo })[]> {
+    const posts = await db
+      .select()
+      .from(hypePosts)
+      .where(eq(hypePosts.athleteId, athleteId))
+      .orderBy(desc(hypePosts.createdAt));
+    
+    const result: (HypePost & { highlight?: HighlightVideo })[] = [];
+    for (const post of posts) {
+      let highlight: HighlightVideo | undefined;
+      if (post.highlightId) {
+        const [h] = await db.select().from(highlightVideos).where(eq(highlightVideos.id, post.highlightId));
+        highlight = h || undefined;
+      }
+      result.push({ ...post, highlight });
+    }
+    return result;
+  }
+
+  async getHypePost(id: string): Promise<(HypePost & { athlete: User; highlight?: HighlightVideo }) | undefined> {
+    const [post] = await db.select().from(hypePosts).where(eq(hypePosts.id, id));
+    if (!post) return undefined;
+    
+    const athlete = await this.getUser(post.athleteId);
+    if (!athlete) return undefined;
+    
+    let highlight: HighlightVideo | undefined;
+    if (post.highlightId) {
+      const [h] = await db.select().from(highlightVideos).where(eq(highlightVideos.id, post.highlightId));
+      highlight = h || undefined;
+    }
+    
+    return { ...post, athlete, highlight };
+  }
+
+  async createHypePost(data: InsertHypePost): Promise<HypePost> {
+    const [post] = await db.insert(hypePosts).values(data).returning();
+    return post;
+  }
+
+  async deleteHypePost(id: string): Promise<void> {
+    await db.delete(hypePosts).where(eq(hypePosts.id, id));
   }
 }
 

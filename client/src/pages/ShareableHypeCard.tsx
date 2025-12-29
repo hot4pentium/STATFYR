@@ -11,6 +11,30 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { requestFollowerNotificationPermission } from "@/lib/firebase";
 
+import clutchImg from "@assets/clutch_1766970267487.png";
+import dominationImg from "@assets/domination_1766970267487.png";
+import gamechangerImg from "@assets/gamechanger_1766970267487.png";
+import highlightImg from "@assets/highlight_1766970267487.png";
+import hustleImg from "@assets/hustle_1766970267487.png";
+import lockedinImg from "@assets/lockedin_1766970267487.png";
+import milestoneImg from "@assets/milestone_1766970267487.png";
+import nextlevelImg from "@assets/nextlevel_1766970267487.png";
+import unstoppableImg from "@assets/unstoppable_1766970267487.png";
+import victoryImg from "@assets/victory_1766970267487.png";
+
+const HYPE_TEMPLATE_IMAGES: Record<string, string> = {
+  clutch: clutchImg,
+  domination: dominationImg,
+  gamechanger: gamechangerImg,
+  highlight: highlightImg,
+  hustle: hustleImg,
+  lockedin: lockedinImg,
+  milestone: milestoneImg,
+  nextlevel: nextlevelImg,
+  unstoppable: unstoppableImg,
+  victory: victoryImg,
+};
+
 type Athlete = {
   id: number;
   username: string;
@@ -70,6 +94,20 @@ type ProfileComment = {
   createdAt: string;
 };
 
+type HypePost = {
+  id: string;
+  athleteId: string;
+  templateImage: string;
+  message: string;
+  highlightId: string | null;
+  createdAt: string;
+  highlight?: {
+    id: string;
+    title: string | null;
+    publicUrl: string | null;
+  };
+};
+
 async function getPublicAthleteProfile(athleteId: string): Promise<{
   athlete: Athlete;
   membership: TeamMember | null;
@@ -122,6 +160,12 @@ async function addProfileComment(athleteId: string, visitorName: string, message
 async function getFollowerCount(athleteId: string): Promise<{ count: number }> {
   const res = await fetch(`/api/athletes/${athleteId}/followers/count`);
   if (!res.ok) throw new Error("Failed to fetch follower count");
+  return res.json();
+}
+
+async function getHypePosts(athleteId: string): Promise<HypePost[]> {
+  const res = await fetch(`/api/athletes/${athleteId}/hype-posts`);
+  if (!res.ok) throw new Error("Failed to fetch HYPE posts");
   return res.json();
 }
 
@@ -206,6 +250,12 @@ export default function ShareableHypeCard(props: any) {
   const { data: followerData } = useQuery({
     queryKey: ["/api/athletes", athleteId, "followers", "count"],
     queryFn: () => getFollowerCount(athleteId),
+    enabled: !!athleteId,
+  });
+
+  const { data: hypePosts = [] } = useQuery({
+    queryKey: ["/api/athletes", athleteId, "hype-posts"],
+    queryFn: () => getHypePosts(athleteId),
     enabled: !!athleteId,
   });
 
@@ -667,6 +717,52 @@ export default function ShareableHypeCard(props: any) {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-2 left-2 right-2">
                     <p className="text-xs text-white font-medium truncate">{highlight.title}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* HYPE Posts */}
+        {hypePosts.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2">
+              <Flame className="h-5 w-5 text-orange-500" />
+              Latest HYPE
+            </h3>
+            <div className="space-y-3">
+              {hypePosts.slice(0, 5).map((post) => (
+                <div 
+                  key={post.id}
+                  className="bg-card/80 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden"
+                  data-testid={`hype-post-${post.id}`}
+                >
+                  <div className="flex gap-3 p-3">
+                    <img
+                      src={HYPE_TEMPLATE_IMAGES[post.templateImage] || clutchImg}
+                      alt="HYPE template"
+                      className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground line-clamp-2">{post.message}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {format(new Date(post.createdAt), "MMM d, yyyy")}
+                      </p>
+                      {post.highlight && post.highlight.publicUrl && (
+                        <div className="mt-2">
+                          <a
+                            href={post.highlight.publicUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-orange-500 hover:text-orange-400"
+                          >
+                            <Video className="h-3 w-3" />
+                            Watch highlight
+                          </a>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

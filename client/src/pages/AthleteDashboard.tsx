@@ -888,6 +888,18 @@ export default function AthleteDashboard() {
                         Share your HYPE card to get followers!
                       </p>
                     )}
+                    
+                    {/* HYPE Manager Link */}
+                    <Link href="/athlete/hype">
+                      <Button
+                        variant="outline"
+                        className="w-full border-orange-500/50 text-orange-500 hover:bg-orange-500/10"
+                        data-testid="button-hype-manager"
+                      >
+                        <Flame className="h-4 w-4 mr-2" />
+                        Open HYPE Manager
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               )}

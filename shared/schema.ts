@@ -845,3 +845,32 @@ export const insertAthleteFollowerSchema = createInsertSchema(athleteFollowers).
 
 export type InsertAthleteFollower = z.infer<typeof insertAthleteFollowerSchema>;
 export type AthleteFollower = typeof athleteFollowers.$inferSelect;
+
+// HYPE Posts - athletes create HYPE posts with template images
+export const hypePosts = pgTable("hype_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  athleteId: varchar("athlete_id").notNull().references(() => users.id),
+  templateImage: text("template_image").notNull(), // template name: clutch, domination, etc.
+  message: text("message").notNull(), // athlete's custom message
+  highlightId: varchar("highlight_id").references(() => highlightVideos.id), // optional attached highlight
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const hypePostsRelations = relations(hypePosts, ({ one }) => ({
+  athlete: one(users, {
+    fields: [hypePosts.athleteId],
+    references: [users.id],
+  }),
+  highlight: one(highlightVideos, {
+    fields: [hypePosts.highlightId],
+    references: [highlightVideos.id],
+  }),
+}));
+
+export const insertHypePostSchema = createInsertSchema(hypePosts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertHypePost = z.infer<typeof insertHypePostSchema>;
+export type HypePost = typeof hypePosts.$inferSelect;

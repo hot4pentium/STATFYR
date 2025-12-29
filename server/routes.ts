@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { withRetry } from "./db";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema, insertAthleteFollowerSchema } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema, insertAthleteFollowerSchema, insertHypePostSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
@@ -1868,6 +1868,110 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error sending FYR notification:", error);
       res.status(500).json({ error: "Failed to send FYR notification" });
+    }
+  });
+
+  // ============ HYPE POSTS ROUTES ============
+  
+  // Get all HYPE posts for an athlete
+  app.get("/api/athletes/:athleteId/hype-posts", async (req, res) => {
+    try {
+      const posts = await storage.getAthleteHypePosts(req.params.athleteId);
+      res.json(posts);
+    } catch (error) {
+      console.error("Error getting athlete HYPE posts:", error);
+      res.status(500).json({ error: "Failed to get HYPE posts" });
+    }
+  });
+  
+  // Get a single HYPE post
+  app.get("/api/hype-posts/:id", async (req, res) => {
+    try {
+      const post = await storage.getHypePost(req.params.id);
+      if (!post) {
+        return res.status(404).json({ error: "HYPE post not found" });
+      }
+      res.json(post);
+    } catch (error) {
+      console.error("Error getting HYPE post:", error);
+      res.status(500).json({ error: "Failed to get HYPE post" });
+    }
+  });
+  
+  // Create a HYPE post
+  app.post("/api/hype-posts", async (req, res) => {
+    try {
+      const parsed = insertHypePostSchema.parse(req.body);
+      
+      // Verify the athlete exists
+      const athlete = await storage.getUser(parsed.athleteId);
+      if (!athlete) {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
+      
+      const post = await storage.createHypePost(parsed);
+      
+      // Send push notification to followers
+      const followers = await storage.getAthleteFollowers(parsed.athleteId);
+      if (followers.length > 0) {
+        const tokens = followers.map(f => f.fcmToken);
+        
+        const athleteName = athlete.firstName && athlete.lastName
+          ? `${athlete.firstName} ${athlete.lastName}`
+          : athlete.name || athlete.username;
+        
+        const baseUrl = process.env.REPLIT_DOMAINS 
+          ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
+          : process.env.REPLIT_DEV_DOMAIN 
+            ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+            : '';
+        
+        const hypeCardUrl = `${baseUrl}/share/athlete/${parsed.athleteId}`;
+        
+        try {
+          const result = await sendPushNotification(
+            tokens,
+            `New HYPE from ${athleteName}!`,
+            parsed.message.length > 60 ? parsed.message.substring(0, 57) + '...' : parsed.message,
+            { athleteId: parsed.athleteId, hypePostId: post.id, type: 'hype_post' },
+            hypeCardUrl
+          );
+          
+          // Clean up invalid tokens
+          if (result.invalidTokens.length > 0) {
+            for (const token of result.invalidTokens) {
+              await storage.deleteAthleteFollower(parsed.athleteId, token);
+            }
+          }
+        } catch (notificationError) {
+          console.error("Error sending HYPE post notification:", notificationError);
+          // Don't fail the request if notification fails
+        }
+      }
+      
+      res.json(post);
+    } catch (error: any) {
+      console.error("Error creating HYPE post:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create HYPE post" });
+    }
+  });
+  
+  // Delete a HYPE post
+  app.delete("/api/hype-posts/:id", async (req, res) => {
+    try {
+      const post = await storage.getHypePost(req.params.id);
+      if (!post) {
+        return res.status(404).json({ error: "HYPE post not found" });
+      }
+      
+      await storage.deleteHypePost(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting HYPE post:", error);
+      res.status(500).json({ error: "Failed to delete HYPE post" });
     }
   });
 
