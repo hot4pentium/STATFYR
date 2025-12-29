@@ -461,7 +461,7 @@ export default function ShareableHypeCard(props: any) {
         {/* Flip Card Container - 30% smaller */}
         <div className="flex justify-center mb-6">
           <div 
-            className="relative cursor-pointer w-[70%]" 
+            className="relative cursor-pointer w-[60%]" 
             style={{ aspectRatio: "3/4", perspective: "1000px" }}
             onClick={() => setIsFlipped(!isFlipped)}
             data-testid="flip-card"
@@ -649,6 +649,7 @@ export default function ShareableHypeCard(props: any) {
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
 
