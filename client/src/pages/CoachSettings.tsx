@@ -76,7 +76,7 @@ export default function CoachSettings() {
   }, [currentTeam]);
 
   const teamCode = currentTeam?.code || "";
-  const appVersion = "1.0.0";
+  const appVersion = "1.0.1";
 
   const handleSaveProfile = async () => {
     if (!user) return;

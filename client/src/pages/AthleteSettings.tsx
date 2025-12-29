@@ -19,7 +19,7 @@ export default function AthleteSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
 
-  const appVersion = "1.0.0";
+  const appVersion = "1.0.1";
 
   useEffect(() => {
     if (contextUser) {
