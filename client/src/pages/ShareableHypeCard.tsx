@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, RotateCw, Bell, BellOff, Users } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
@@ -435,7 +436,9 @@ export default function ShareableHypeCard(props: any) {
   const topStats = Object.entries(stats.stats || {}).slice(0, 6);
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <DashboardBackground />
+      <div className="relative z-10 min-h-screen">
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
@@ -971,6 +974,7 @@ export default function ShareableHypeCard(props: any) {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   );
 }
