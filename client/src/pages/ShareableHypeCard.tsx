@@ -868,18 +868,6 @@ export default function ShareableHypeCard(props: any) {
           
           <Card className="bg-card/80 backdrop-blur-sm border-white/10">
             <CardContent className="p-4 space-y-4">
-              {/* Visitor Name Input */}
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Enter your name"
-                  value={visitorName}
-                  onChange={(e) => setVisitorName(e.target.value)}
-                  className="flex-1 bg-background/50"
-                  data-testid="input-visitor-name"
-                />
-              </div>
-
               {/* Like and Comment Buttons */}
               <div className="flex gap-2">
                 <Button
