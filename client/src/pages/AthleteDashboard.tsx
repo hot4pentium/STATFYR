@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2, Bell } from "lucide-react";
+import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2, Bell, Share2, Flame, ExternalLink, Copy } from "lucide-react";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
@@ -34,6 +34,8 @@ export default function AthleteDashboard() {
   const [activeSection, setActiveSection] = useState<SectionType>("schedule");
   const [hypeCardFlipped, setHypeCardFlipped] = useState(false);
   const [hypeCardTab, setHypeCardTab] = useState<HypeCardTab>("events");
+  const [isFyring, setIsFyring] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const queryClient = useQueryClient();
   const heroRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -117,6 +119,62 @@ export default function AthleteDashboard() {
     enabled: !!user && activeSection === "hype-card",
     refetchInterval: 30000,
   });
+
+  const { data: followerData } = useQuery({
+    queryKey: ["/api/athletes", user?.id, "followers", "count"],
+    queryFn: async () => {
+      if (!user) return { count: 0 };
+      const res = await fetch(`/api/athletes/${user.id}/followers/count`);
+      if (!res.ok) return { count: 0 };
+      return res.json();
+    },
+    enabled: !!user && activeSection === "hype-card",
+    refetchInterval: 30000,
+  });
+
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/athlete/${user?.id}` : '';
+
+  const copyShareLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+    toast.success("Link copied!");
+  };
+
+  const handleFYR = async () => {
+    if (!user?.id) return;
+    
+    setIsFyring(true);
+    try {
+      const res = await fetch(`/api/athletes/${user.id}/fyr`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `${user.name || user.username} just sent a FYR!`,
+          body: "Check out their HYPE card now!",
+        }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send FYR");
+      }
+      
+      // Refresh follower count after sending FYR
+      queryClient.invalidateQueries({ queryKey: ["/api/athletes", user.id, "followers", "count"] });
+      
+      if (data.notificationsSent > 0) {
+        toast.success(`FYR sent to ${data.notificationsSent} follower${data.notificationsSent > 1 ? 's' : ''}!`);
+      } else {
+        toast.info("No followers to notify yet. Share your HYPE card link!");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send FYR");
+    } finally {
+      setIsFyring(false);
+    }
+  };
 
   const { data: teamPlays = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "plays"],
@@ -764,6 +822,72 @@ export default function AthleteDashboard() {
                         </div>
                       </div>
                     </div>
+                  </div>
+                  
+                  {/* FYR Actions */}
+                  <div className="mt-6 w-full max-w-md space-y-4">
+                    {/* Followers Count */}
+                    <div className="flex items-center justify-center gap-2 text-sm">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-semibold text-primary">{followerData?.count || 0}</span>
+                      <span className="text-muted-foreground">follower{(followerData?.count || 0) !== 1 ? 's' : ''}</span>
+                    </div>
+
+                    {/* Share Link */}
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={copyShareLink}
+                        variant="outline"
+                        className="flex-1"
+                        data-testid="button-copy-hype-link"
+                      >
+                        {linkCopied ? (
+                          <>
+                            <Copy className="h-4 w-4 mr-2 text-green-500" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Share2 className="h-4 w-4 mr-2" />
+                            Share HYPE Card
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => window.open(shareUrl, '_blank')}
+                        data-testid="button-view-hype-card"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* FYR Button */}
+                    <Button
+                      onClick={handleFYR}
+                      disabled={isFyring || (followerData?.count || 0) === 0}
+                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold text-lg py-6"
+                      data-testid="button-fyr"
+                    >
+                      {isFyring ? (
+                        <>
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Flame className="h-5 w-5 mr-2" />
+                          FYR! Notify Followers
+                        </>
+                      )}
+                    </Button>
+                    
+                    {(followerData?.count || 0) === 0 && (
+                      <p className="text-xs text-muted-foreground text-center">
+                        Share your HYPE card to get followers!
+                      </p>
+                    )}
                   </div>
                 </div>
               )}

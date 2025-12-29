@@ -249,14 +249,25 @@ export default function ShareableHypeCard(props: any) {
         return;
       }
       
-      await followAthlete(athleteId, token, visitorName.trim());
+      const res = await fetch(`/api/athletes/${athleteId}/followers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fcmToken: token, followerName: visitorName.trim() }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to follow athlete");
+      }
+      
       setFollowerFcmToken(token);
       setIsFollowing(true);
       localStorage.setItem(fcmTokenStorageKey, token);
       queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "followers", "count"] });
       toast.success("You're now following this athlete!");
-    } catch (error) {
-      toast.error("Failed to follow athlete");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to follow athlete");
     } finally {
       setIsFollowLoading(false);
     }
@@ -267,13 +278,22 @@ export default function ShareableHypeCard(props: any) {
     
     setIsFollowLoading(true);
     try {
-      await unfollowAthlete(athleteId, followerFcmToken);
+      const res = await fetch(`/api/athletes/${athleteId}/followers?token=${encodeURIComponent(followerFcmToken)}`, {
+        method: "DELETE",
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to unfollow");
+      }
+      
       setIsFollowing(false);
       localStorage.removeItem(fcmTokenStorageKey);
       queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "followers", "count"] });
       toast.success("Unfollowed");
-    } catch (error) {
-      toast.error("Failed to unfollow");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to unfollow");
     } finally {
       setIsFollowLoading(false);
     }
