@@ -1,18 +1,29 @@
 import { useUser } from "@/lib/userContext";
 import { Button } from "@/components/ui/button";
-import { Eye, XCircle } from "lucide-react";
+import { Eye, XCircle, Loader2 } from "lucide-react";
+import { adminStopImpersonation } from "@/lib/api";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function ImpersonationBanner() {
-  const { user, isImpersonating, originalAdmin, setUser, setImpersonating, setOriginalAdmin, logout } = useUser();
+  const { user, isImpersonating, originalAdmin, setUser, setImpersonating, setOriginalAdmin } = useUser();
+  const [isExiting, setIsExiting] = useState(false);
 
   if (!isImpersonating || !originalAdmin) {
     return null;
   }
 
-  const handleExitImpersonation = () => {
+  const handleExitImpersonation = async () => {
+    setIsExiting(true);
+    try {
+      await adminStopImpersonation(originalAdmin.id);
+    } catch (error) {
+      console.error("Failed to end impersonation session on server:", error);
+    }
     setUser(originalAdmin);
     setImpersonating(false);
     setOriginalAdmin(null);
+    toast.success("Returned to your admin account");
     window.location.href = "/super-admin";
   };
 
@@ -29,10 +40,15 @@ export default function ImpersonationBanner() {
           size="sm"
           variant="outline"
           onClick={handleExitImpersonation}
+          disabled={isExiting}
           className="bg-white/90 hover:bg-white text-black border-black/20"
           data-testid="button-exit-impersonation"
         >
-          <XCircle className="h-4 w-4 mr-1" />
+          {isExiting ? (
+            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+          ) : (
+            <XCircle className="h-4 w-4 mr-1" />
+          )}
           Exit View Mode
         </Button>
       </div>
