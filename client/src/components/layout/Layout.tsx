@@ -2,11 +2,12 @@ import { ThemeToggle } from "./ThemeToggle";
 import { DashboardBackground } from "./DashboardBackground";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, AlertCircle } from "lucide-react";
+import { Settings, LogOut, AlertCircle, Bell } from "lucide-react";
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useUser } from "@/lib/userContext";
 import { usePWA } from "@/lib/pwaContext";
+import logoImage from "@assets/red_logo-removebg-preview_1766535816909.png";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -38,9 +39,12 @@ export function Layout({ children }: LayoutProps) {
       <DashboardBackground />
       <main className="flex-1 h-screen overflow-hidden flex flex-col">
         <header className="h-16 border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-10 px-4 md:px-8 flex items-center justify-between gap-4">
-          <h2 className="text-sm md:text-lg font-medium text-muted-foreground">
-            {currentTeam?.name || "STATFYR"} - {currentTeam?.season || "Season 2024-2025"}
-          </h2>
+          <div className="flex items-center gap-3">
+            <img src={logoImage} alt="STATFYR" className="h-8 w-8" />
+            <span className="text-lg md:text-xl font-display font-bold text-slate-900 dark:text-white">
+              STATF<span className="text-orange-500">Y</span>R
+            </span>
+          </div>
           <div className="flex items-center gap-3">
             {updateAvailable && (
               <Button
