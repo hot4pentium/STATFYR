@@ -1031,7 +1031,7 @@ export default function UnifiedDashboard() {
                   <Button 
                     variant="outline" 
                     className="flex-1 gap-2"
-                    onClick={() => setLocation(`/athletes/${selectedManagedAthlete.athleteId}`)}
+                    onClick={() => setLocation(`/share/athlete/${selectedManagedAthlete.athleteId}`)}
                     data-testid="button-view-hype-card"
                   >
                     <Flame className="h-4 w-4 text-orange-500" />
@@ -1071,8 +1071,7 @@ export default function UnifiedDashboard() {
                   .map((highlight) => (
                     <div
                       key={highlight.id}
-                      className="aspect-video rounded-lg overflow-hidden bg-muted/30 relative group cursor-pointer"
-                      onClick={() => setLocation(`/highlights/${highlight.id}`)}
+                      className="aspect-video rounded-lg overflow-hidden bg-muted/30 relative group"
                     >
                       {highlight.thumbnailKey ? (
                         <img src={highlight.publicUrl || ""} alt={highlight.title || ""} className="w-full h-full object-cover" />
