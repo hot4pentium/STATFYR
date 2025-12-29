@@ -32,7 +32,7 @@ import {
   Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, 
   Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Share2, Bell,
   ArrowLeft, MapPin, Clock, Utensils, Coffee, MoreVertical, UserCog, UserMinus, 
-  Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone
+  Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink
 } from "lucide-react";
 
 import {
@@ -944,6 +944,33 @@ export default function UnifiedDashboard() {
               </Card>
             ))}
           </div>
+
+          {/* HYPE Portal Card - Athletes Only */}
+          {userRole === "athlete" && (
+            <Card 
+              onClick={() => setLocation("/athlete/hype-portal")}
+              className="mt-4 bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
+              data-testid="card-hype-portal"
+            >
+              <CardContent className="p-4 sm:p-5 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300">
+                  <Flame className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-display font-bold text-lg uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
+                    HYPE Portal
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Share your HYPE card, post updates, and fire up your followers
+                  </p>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 text-orange-500/70 group-hover:text-orange-500 transition-colors">
+                  <span className="text-sm font-medium">Enter</span>
+                  <ExternalLink className="h-4 w-4" />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Content Area */}
           {renderContent()}
