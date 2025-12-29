@@ -18,6 +18,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
   lastAccessedAt: timestamp("last_accessed_at").defaultNow(),
   mustChangePassword: boolean("must_change_password").notNull().default(false),
+  isSuperAdmin: boolean("is_super_admin").notNull().default(false),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -329,6 +330,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   position: true,
   number: true,
   mustChangePassword: true,
+  isSuperAdmin: true,
 });
 
 export const insertTeamSchema = createInsertSchema(teams).pick({
@@ -874,3 +876,33 @@ export const insertHypePostSchema = createInsertSchema(hypePosts).omit({
 
 export type InsertHypePost = z.infer<typeof insertHypePostSchema>;
 export type HypePost = typeof hypePosts.$inferSelect;
+
+// Super Admin Impersonation Sessions - track when admins view as users
+export const impersonationSessions = pgTable("impersonation_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminId: varchar("admin_id").notNull().references(() => users.id),
+  targetUserId: varchar("target_user_id").notNull().references(() => users.id),
+  expiresAt: timestamp("expires_at").notNull(),
+  endedAt: timestamp("ended_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const impersonationSessionsRelations = relations(impersonationSessions, ({ one }) => ({
+  admin: one(users, {
+    fields: [impersonationSessions.adminId],
+    references: [users.id],
+  }),
+  targetUser: one(users, {
+    fields: [impersonationSessions.targetUserId],
+    references: [users.id],
+  }),
+}));
+
+export const insertImpersonationSessionSchema = createInsertSchema(impersonationSessions).omit({
+  id: true,
+  createdAt: true,
+  endedAt: true,
+});
+
+export type InsertImpersonationSession = z.infer<typeof insertImpersonationSessionSchema>;
+export type ImpersonationSession = typeof impersonationSessions.$inferSelect;
