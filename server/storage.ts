@@ -84,7 +84,7 @@ export interface IStorage {
   updatePlay(id: string, data: UpdatePlay): Promise<Play | undefined>;
   deletePlay(id: string): Promise<void>;
   
-  getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete: User })[]>;
+  getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete: User; team?: Team })[]>;
   createManagedAthlete(data: InsertManagedAthlete): Promise<ManagedAthlete>;
   deleteManagedAthlete(id: string): Promise<void>;
   supporterManagesAthlete(supporterId: string, athleteId: string): Promise<boolean>;
@@ -476,17 +476,30 @@ export class DatabaseStorage implements IStorage {
     await db.delete(plays).where(eq(plays.id, id));
   }
 
-  async getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete: User })[]> {
+  async getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete: User; team?: Team })[]> {
     const managed = await db
       .select()
       .from(managedAthletes)
       .where(eq(managedAthletes.supporterId, supporterId));
     
-    const result: (ManagedAthlete & { athlete: User })[] = [];
+    const result: (ManagedAthlete & { athlete: User; team?: Team })[] = [];
     for (const m of managed) {
       const athlete = await this.getUser(m.athleteId);
       if (athlete) {
-        result.push({ ...m, athlete });
+        // Get the athlete's team through team membership
+        const membership = await db
+          .select()
+          .from(teamMembers)
+          .where(eq(teamMembers.userId, m.athleteId))
+          .limit(1);
+        
+        let team: Team | undefined;
+        if (membership.length > 0) {
+          const [t] = await db.select().from(teams).where(eq(teams.id, membership[0].teamId));
+          team = t;
+        }
+        
+        result.push({ ...m, athlete, team });
       }
     }
     return result;

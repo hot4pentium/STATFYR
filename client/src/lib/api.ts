@@ -295,6 +295,7 @@ export interface ManagedAthlete {
   athleteId: string;
   createdAt?: string | null;
   athlete: User;
+  team?: Team;
 }
 
 export async function getManagedAthletes(supporterId: string): Promise<ManagedAthlete[]> {

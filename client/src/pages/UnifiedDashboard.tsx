@@ -43,7 +43,7 @@ import {
   startLiveSession, endLiveSession, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount,
   getManagedAthletes, getSupporterBadges, getAllBadges, getSupporterTapTotal, getActiveLiveSessions,
   type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup,
-  type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession
+  type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession, type ManagedAthlete
 } from "@/lib/api";
 import { SPORT_POSITIONS } from "@/lib/sportConstants";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend } from "recharts";
@@ -105,6 +105,7 @@ export default function UnifiedDashboard() {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [memberEditForm, setMemberEditForm] = useState({ jerseyNumber: "", position: "" });
   const [deletingMember, setDeletingMember] = useState<TeamMember | null>(null);
+  const [selectedManagedAthleteId, setSelectedManagedAthleteId] = useState<string | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -212,6 +213,32 @@ export default function UnifiedDashboard() {
     const now = new Date();
     return teamEvents.filter((e: Event) => new Date(e.date) >= now).slice(0, 5);
   }, [teamEvents]);
+
+  // Auto-select first managed athlete for supporters
+  useEffect(() => {
+    if (userRole === "supporter" && managedAthletes.length > 0 && !selectedManagedAthleteId) {
+      const firstAthlete = managedAthletes[0];
+      setSelectedManagedAthleteId(firstAthlete.id);
+      if (firstAthlete.team && !currentTeam) {
+        setCurrentTeam(firstAthlete.team);
+      }
+    }
+  }, [userRole, managedAthletes, selectedManagedAthleteId, currentTeam, setCurrentTeam]);
+
+  // Get the currently selected managed athlete
+  const selectedManagedAthlete = useMemo(() => {
+    if (!selectedManagedAthleteId) return null;
+    return managedAthletes.find((ma: ManagedAthlete) => ma.id === selectedManagedAthleteId) || null;
+  }, [managedAthletes, selectedManagedAthleteId]);
+
+  // Handle managed athlete selection change
+  const handleManagedAthleteChange = (athleteId: string) => {
+    setSelectedManagedAthleteId(athleteId);
+    const athlete = managedAthletes.find((ma: ManagedAthlete) => ma.id === athleteId);
+    if (athlete?.team) {
+      setCurrentTeam(athlete.team);
+    }
+  };
 
   const createEventMutation = useMutation({
     mutationFn: (data: { type: string; date: string; location?: string; details?: string; opponent?: string }) => {
@@ -918,6 +945,29 @@ export default function UnifiedDashboard() {
               <p className="text-primary font-semibold">{userRole === "coach" ? `Coach ${getUserDisplayName()}` : getUserDisplayName()}</p>
               <p className="text-white/60 text-sm">{getRoleLabel()}</p>
             </div>
+
+            {/* Managed Athlete Selector - Supporters Only */}
+            {userRole === "supporter" && managedAthletes.length > 0 && (
+              <div className="mt-4">
+                <Label className="text-white/60 text-xs uppercase tracking-wide mb-2 block">Viewing Athlete</Label>
+                <Select 
+                  value={selectedManagedAthleteId || ""} 
+                  onValueChange={handleManagedAthleteChange}
+                >
+                  <SelectTrigger className="w-full bg-white/10 border-white/20 text-white" data-testid="select-managed-athlete">
+                    <SelectValue placeholder="Select an athlete" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {managedAthletes.map((ma: ManagedAthlete) => (
+                      <SelectItem key={ma.id} value={ma.id} data-testid={`athlete-option-${ma.id}`}>
+                        {ma.athlete.firstName} {ma.athlete.lastName}
+                        {ma.team && <span className="text-muted-foreground ml-2">({ma.team.name})</span>}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </div>
 
