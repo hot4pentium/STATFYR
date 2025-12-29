@@ -6,7 +6,7 @@ import { usePWA } from "@/lib/pwaContext";
 import { useNotifications } from "@/lib/notificationContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { format, isSameDay, startOfMonth } from "date-fns";
+import { format } from "date-fns";
 
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
@@ -102,8 +101,6 @@ export default function UnifiedDashboard() {
     location: "", details: "", opponent: "", drinksAthleteId: "", snacksAthleteId: ""
   });
   const [deleteConfirmEvent, setDeleteConfirmEvent] = useState<Event | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(new Date()));
 
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [memberEditForm, setMemberEditForm] = useState({ jerseyNumber: "", position: "" });
@@ -215,11 +212,6 @@ export default function UnifiedDashboard() {
     const now = new Date();
     return teamEvents.filter((e: Event) => new Date(e.date) >= now).slice(0, 5);
   }, [teamEvents]);
-
-  const eventsOnDate = useMemo(() => {
-    if (!selectedDate) return [];
-    return teamEvents.filter((e: Event) => isSameDay(new Date(e.date), selectedDate));
-  }, [teamEvents, selectedDate]);
 
   const createEventMutation = useMutation({
     mutationFn: (data: { type: string; date: string; location?: string; details?: string; opponent?: string }) => {
@@ -588,79 +580,59 @@ export default function UnifiedDashboard() {
 
         {selectedCard === "schedule" && (
           <div className="space-y-4">
-            {userRole === "coach" && (
-              <Button onClick={() => { resetEventForm(); setIsEventModalOpen(true); }} className="gap-2">
-                <Plus className="h-4 w-4" /> Add Event
-              </Button>
-            )}
-            <Card className="bg-card/80 backdrop-blur-sm border-white/10 overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex justify-center">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    month={calendarMonth}
-                    onMonthChange={setCalendarMonth}
-                    modifiers={{
-                      hasEvent: teamEvents.map((e: Event) => new Date(e.date))
-                    }}
-                    modifiersClassNames={{
-                      hasEvent: "bg-primary/30 text-primary font-bold"
-                    }}
-                    className="rounded-md w-full max-w-sm"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-            <div className="space-y-3">
+            <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                {selectedDate ? format(selectedDate, "MMMM d, yyyy") : "Upcoming Events"}
+                Upcoming Events
               </h3>
-              <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
-                {(selectedDate ? eventsOnDate : [...upcomingEvents].sort((a, b) => {
-                  if (a.type === "Game" && b.type !== "Game") return -1;
-                  if (a.type !== "Game" && b.type === "Game") return 1;
-                  return new Date(a.date).getTime() - new Date(b.date).getTime();
-                })).map((event) => (
-                  <Card 
-                    key={event.id} 
-                    className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all min-w-[200px] max-w-[220px] flex-shrink-0 snap-start"
-                  >
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant={event.type === "Game" ? "default" : "outline"} className="text-xs">
-                          {event.type}
-                        </Badge>
-                        {event.type === "Game" && <Trophy className="h-3 w-3 text-primary" />}
-                      </div>
-                      <p className="font-semibold text-sm truncate">{event.title}</p>
-                      <p className="text-xs text-muted-foreground">{format(new Date(event.date), "MMM d, h:mm a")}</p>
-                      {event.location && (
-                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 truncate">
-                          <MapPin className="h-3 w-3" /> {event.location}
-                        </p>
-                      )}
-                      {userRole === "coach" && (
-                        <div className="flex gap-1 mt-2">
-                          <Button size="sm" variant="ghost" className="h-6 px-2" onClick={() => { setEditingEvent(event); populateEventForm(event); setIsEventModalOpen(true); }}>
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="ghost" className="h-6 px-2 text-destructive" onClick={() => setDeleteConfirmEvent(event)}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              {(selectedDate ? eventsOnDate : upcomingEvents).length === 0 && (
-                <p className="text-sm text-muted-foreground py-4 text-center">
-                  {selectedDate ? "No events on this date" : "No upcoming events"}
-                </p>
+              {userRole === "coach" && (
+                <Button onClick={() => { resetEventForm(); setIsEventModalOpen(true); }} size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" /> Add Event
+                </Button>
               )}
             </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+              {[...upcomingEvents].sort((a, b) => {
+                if (a.type === "Game" && b.type !== "Game") return -1;
+                if (a.type !== "Game" && b.type === "Game") return 1;
+                return new Date(a.date).getTime() - new Date(b.date).getTime();
+              }).map((event) => (
+                <Card 
+                  key={event.id} 
+                  className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all min-w-[200px] max-w-[220px] flex-shrink-0 snap-start"
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant={event.type === "Game" ? "default" : "outline"} className="text-xs">
+                        {event.type}
+                      </Badge>
+                      {event.type === "Game" && <Trophy className="h-3 w-3 text-primary" />}
+                    </div>
+                    <p className="font-semibold text-sm truncate">{event.title}</p>
+                    <p className="text-xs text-muted-foreground">{format(new Date(event.date), "MMM d, h:mm a")}</p>
+                    {event.location && (
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 truncate">
+                        <MapPin className="h-3 w-3" /> {event.location}
+                      </p>
+                    )}
+                    {userRole === "coach" && (
+                      <div className="flex gap-1 mt-2">
+                        <Button size="sm" variant="ghost" className="h-6 px-2" onClick={() => { setEditingEvent(event); populateEventForm(event); setIsEventModalOpen(true); }}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-6 px-2 text-destructive" onClick={() => setDeleteConfirmEvent(event)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            {upcomingEvents.length === 0 && (
+              <p className="text-sm text-muted-foreground py-4 text-center">
+                No upcoming events
+              </p>
+            )}
           </div>
         )}
 
