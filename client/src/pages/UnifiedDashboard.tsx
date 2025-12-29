@@ -32,7 +32,7 @@ import {
   Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, 
   Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Share2, Bell,
   ArrowLeft, MapPin, Clock, Utensils, Coffee, MoreVertical, UserCog, UserMinus, 
-  Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink
+  Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User
 } from "lucide-react";
 
 import {
@@ -42,7 +42,7 @@ import {
   getTeamAggregateStats, getAdvancedTeamStats, getLiveSessionByEvent, createLiveSessionForEvent,
   startLiveSession, endLiveSession, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount,
   getManagedAthletes, getSupporterBadges, getAllBadges, getSupporterTapTotal, getActiveLiveSessions,
-  type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup,
+  type Team, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup,
   type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession, type ManagedAthlete
 } from "@/lib/api";
 import { SPORT_POSITIONS } from "@/lib/sportConstants";
@@ -1054,7 +1054,7 @@ export default function UnifiedDashboard() {
                 <CardContent className="p-4 text-center">
                   <Video className="h-6 w-6 mx-auto mb-2 text-purple-400" />
                   <p className="text-sm text-muted-foreground">Highlights</p>
-                  <p className="text-lg font-bold">{teamHighlights.filter(h => h.uploadedBy === selectedManagedAthlete.athleteId).length}</p>
+                  <p className="text-lg font-bold">{teamHighlights.filter(h => h.uploaderId === selectedManagedAthlete.athleteId).length}</p>
                 </CardContent>
               </Card>
             </div>
@@ -1066,7 +1066,7 @@ export default function UnifiedDashboard() {
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {teamHighlights
-                  .filter(h => h.uploadedBy === selectedManagedAthlete.athleteId)
+                  .filter(h => h.uploaderId === selectedManagedAthlete.athleteId)
                   .slice(0, 6)
                   .map((highlight) => (
                     <div
@@ -1074,8 +1074,8 @@ export default function UnifiedDashboard() {
                       className="aspect-video rounded-lg overflow-hidden bg-muted/30 relative group cursor-pointer"
                       onClick={() => setLocation(`/highlights/${highlight.id}`)}
                     >
-                      {highlight.thumbnailUrl ? (
-                        <img src={highlight.thumbnailUrl} alt={highlight.title} className="w-full h-full object-cover" />
+                      {highlight.thumbnailKey ? (
+                        <img src={highlight.publicUrl || ""} alt={highlight.title || ""} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Video className="h-8 w-8 text-muted-foreground/50" />
@@ -1088,7 +1088,7 @@ export default function UnifiedDashboard() {
                     </div>
                   ))}
               </div>
-              {teamHighlights.filter(h => h.uploadedBy === selectedManagedAthlete.athleteId).length === 0 && (
+              {teamHighlights.filter(h => h.uploaderId === selectedManagedAthlete.athleteId).length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">No highlights yet</p>
               )}
             </div>
