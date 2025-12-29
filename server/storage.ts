@@ -3,6 +3,7 @@ import {
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
   liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
+  impersonationSessions,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -28,10 +29,11 @@ import {
   type FcmToken, type InsertFcmToken,
   type ChatMessage, type InsertChatMessage,
   type AthleteFollower, type InsertAthleteFollower,
-  type HypePost, type InsertHypePost
+  type HypePost, type InsertHypePost,
+  type ImpersonationSession, type InsertImpersonationSession
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, gte, sql } from "drizzle-orm";
+import { eq, and, desc, gte, sql, or, ilike } from "drizzle-orm";
 
 function generateTeamCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -186,6 +188,18 @@ export interface IStorage {
   getHypePost(id: string): Promise<(HypePost & { athlete: User; highlight?: HighlightVideo }) | undefined>;
   createHypePost(data: InsertHypePost): Promise<HypePost>;
   deleteHypePost(id: string): Promise<void>;
+  
+  // Super Admin methods
+  searchUsers(query: string): Promise<Omit<User, 'password'>[]>;
+  getUserWithTeams(userId: string): Promise<{ user: Omit<User, 'password'>; teams: (TeamMember & { team: Team })[] } | undefined>;
+  adminUpdateTeamMember(memberId: string, data: UpdateTeamMember): Promise<TeamMember | undefined>;
+  adminRemoveTeamMember(memberId: string): Promise<void>;
+  adminAddTeamMember(data: InsertTeamMember): Promise<TeamMember>;
+  
+  // Impersonation session methods
+  createImpersonationSession(data: InsertImpersonationSession): Promise<ImpersonationSession>;
+  getActiveImpersonationSession(adminId: string): Promise<ImpersonationSession | undefined>;
+  endImpersonationSession(sessionId: string): Promise<ImpersonationSession | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1598,6 +1612,111 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHypePost(id: string): Promise<void> {
     await db.delete(hypePosts).where(eq(hypePosts.id, id));
+  }
+
+  // Super Admin methods
+  async searchUsers(query: string): Promise<Omit<User, 'password'>[]> {
+    const searchPattern = `%${query}%`;
+    const results = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        role: users.role,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        name: users.name,
+        avatar: users.avatar,
+        position: users.position,
+        number: users.number,
+        createdAt: users.createdAt,
+        lastAccessedAt: users.lastAccessedAt,
+        mustChangePassword: users.mustChangePassword,
+        isSuperAdmin: users.isSuperAdmin,
+      })
+      .from(users)
+      .where(
+        or(
+          ilike(users.email, searchPattern),
+          ilike(users.firstName, searchPattern),
+          ilike(users.lastName, searchPattern),
+          ilike(users.name, searchPattern),
+          ilike(users.username, searchPattern)
+        )
+      )
+      .limit(50);
+    return results;
+  }
+
+  async getUserWithTeams(userId: string): Promise<{ user: Omit<User, 'password'>; teams: (TeamMember & { team: Team })[] } | undefined> {
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+
+    const memberships = await db
+      .select()
+      .from(teamMembers)
+      .where(eq(teamMembers.userId, userId));
+
+    const teamsWithInfo: (TeamMember & { team: Team })[] = [];
+    for (const membership of memberships) {
+      const [team] = await db.select().from(teams).where(eq(teams.id, membership.teamId));
+      if (team) {
+        teamsWithInfo.push({ ...membership, team });
+      }
+    }
+
+    const { password, ...userWithoutPassword } = user;
+    return { user: userWithoutPassword, teams: teamsWithInfo };
+  }
+
+  async adminUpdateTeamMember(memberId: string, data: UpdateTeamMember): Promise<TeamMember | undefined> {
+    const [updated] = await db
+      .update(teamMembers)
+      .set(data)
+      .where(eq(teamMembers.id, memberId))
+      .returning();
+    return updated || undefined;
+  }
+
+  async adminRemoveTeamMember(memberId: string): Promise<void> {
+    await db.delete(teamMembers).where(eq(teamMembers.id, memberId));
+  }
+
+  async adminAddTeamMember(data: InsertTeamMember): Promise<TeamMember> {
+    const [member] = await db.insert(teamMembers).values(data).returning();
+    return member;
+  }
+
+  // Impersonation session methods
+  async createImpersonationSession(data: InsertImpersonationSession): Promise<ImpersonationSession> {
+    const [session] = await db.insert(impersonationSessions).values(data).returning();
+    return session;
+  }
+
+  async getActiveImpersonationSession(adminId: string): Promise<ImpersonationSession | undefined> {
+    const now = new Date();
+    const [session] = await db
+      .select()
+      .from(impersonationSessions)
+      .where(
+        and(
+          eq(impersonationSessions.adminId, adminId),
+          gte(impersonationSessions.expiresAt, now),
+          sql`${impersonationSessions.endedAt} IS NULL`
+        )
+      )
+      .orderBy(desc(impersonationSessions.createdAt))
+      .limit(1);
+    return session || undefined;
+  }
+
+  async endImpersonationSession(sessionId: string): Promise<ImpersonationSession | undefined> {
+    const [session] = await db
+      .update(impersonationSessions)
+      .set({ endedAt: new Date() })
+      .where(eq(impersonationSessions.id, sessionId))
+      .returning();
+    return session || undefined;
   }
 }
 
