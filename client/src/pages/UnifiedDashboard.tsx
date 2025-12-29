@@ -107,7 +107,6 @@ export default function UnifiedDashboard() {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [memberEditForm, setMemberEditForm] = useState({ jerseyNumber: "", position: "" });
   const [deletingMember, setDeletingMember] = useState<TeamMember | null>(null);
-  const [showHypeCard, setShowHypeCard] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -886,7 +885,7 @@ export default function UnifiedDashboard() {
                   <p 
                     className="text-lg mt-2 text-primary cursor-pointer hover:underline"
                     style={{ fontFamily: "'Permanent Marker', cursive" }}
-                    onClick={() => setShowHypeCard(true)}
+                    onClick={() => user && setLocation(`/share/athlete/${user.id}`)}
                     data-testid="button-view-hype-card"
                   >
                     {roleConfig[userRole].tagline}
@@ -1119,78 +1118,6 @@ export default function UnifiedDashboard() {
                 </Button>
               </DialogFooter>
             )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Hype Card Modal */}
-        <Dialog open={showHypeCard} onOpenChange={setShowHypeCard}>
-          <DialogContent className="max-w-sm p-0 overflow-hidden bg-gradient-to-b from-primary/20 to-background border-primary/30">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2 z-10 bg-black/30 hover:bg-black/50 text-white rounded-full"
-              onClick={() => setShowHypeCard(false)}
-              data-testid="button-close-hype-card"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-            <div className="p-6 text-center">
-              <Avatar className="h-24 w-24 mx-auto border-4 border-primary/50 mb-4">
-                <AvatarImage src={user?.avatar || undefined} />
-                <AvatarFallback className="bg-gradient-to-br from-primary to-orange-600 text-3xl font-bold text-white">
-                  {getUserDisplayName().charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <h2 className="text-2xl font-display font-bold uppercase">{getUserDisplayName()}</h2>
-              <p className="text-muted-foreground">
-                {currentTeam?.name || "No team"} {userMembership?.position ? `| ${userMembership.position}` : ""} {userMembership?.jerseyNumber ? `#${userMembership.jerseyNumber}` : ""}
-              </p>
-              
-              <div className="grid grid-cols-3 gap-4 mt-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">{athleteStats?.gamesPlayed || 0}</div>
-                  <div className="text-xs text-muted-foreground">Games</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary flex items-center justify-center gap-1">
-                    {athleteStats?.hotStreak && <Flame className="h-5 w-5 text-orange-500" />}
-                    {athleteStats?.streakLength || 0}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Streak</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">{athleteShoutoutCount || 0}</div>
-                  <div className="text-xs text-muted-foreground">Cheers</div>
-                </div>
-              </div>
-
-              <div className="mt-6 flex justify-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-1"
-                  onClick={() => {
-                    if (user) {
-                      const shareUrl = `${window.location.origin}/share/athlete/${user.id}`;
-                      navigator.clipboard.writeText(shareUrl);
-                      toast.success("Profile link copied!");
-                    }
-                  }}
-                >
-                  <Share2 className="h-4 w-4" /> Share
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="gap-1"
-                  onClick={() => {
-                    setShowHypeCard(false);
-                    if (user) setLocation(`/share/athlete/${user.id}`);
-                  }}
-                >
-                  <ChevronRight className="h-4 w-4" /> Full Profile
-                </Button>
-              </div>
-            </div>
           </DialogContent>
         </Dialog>
       </div>

@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User } from "lucide-react";
+import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -120,6 +120,7 @@ async function addProfileComment(athleteId: string, visitorName: string, message
 
 export default function ShareableHypeCard(props: any) {
   const athleteId = props.params?.id;
+  const [, setLocation] = useLocation();
   const [copied, setCopied] = useState(false);
   const [visitorName, setVisitorName] = useState("");
   const [commentMessage, setCommentMessage] = useState("");
@@ -265,11 +266,14 @@ export default function ShareableHypeCard(props: any) {
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-white/10">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/">
-            <Button variant="ghost" size="icon" data-testid="button-home">
-              <Home className="h-5 w-5" />
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setLocation('/dashboard')}
+            data-testid="button-close-hype-card"
+          >
+            <X className="h-5 w-5" />
+          </Button>
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="STATFYR" className="h-6 w-6" />
             <span className="text-sm font-display font-bold">STATF<span className="text-orange-500">Y</span>R</span>
