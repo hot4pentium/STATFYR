@@ -446,15 +446,16 @@ export default function ShareableHypeCard(props: any) {
             variant="ghost" 
             size="icon" 
             onClick={() => setLocation('/dashboard')}
+            className="text-foreground"
             data-testid="button-close-hype-card"
           >
             <X className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="STATFYR" className="h-6 w-6" />
-            <span className="text-sm font-display font-bold text-foreground">STATF<span className="text-orange-500">Y</span>R</span>
+            <span className="text-sm font-display font-bold text-slate-900 dark:text-white">STATF<span className="text-orange-500">Y</span>R</span>
           </div>
-          <Button variant="ghost" size="icon" onClick={copyShareLink} data-testid="button-share">
+          <Button variant="ghost" size="icon" onClick={copyShareLink} className="text-foreground" data-testid="button-share">
             {copied ? <Check className="h-5 w-5 text-green-500" /> : <Share2 className="h-5 w-5" />}
           </Button>
         </div>
