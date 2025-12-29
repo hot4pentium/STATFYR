@@ -504,13 +504,6 @@ export default function ShareableHypeCard(props: any) {
                 </div>
               </div>
 
-              <div className="absolute top-4 left-4">
-                <div className={`${badge.color} px-3 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5`}>
-                  <badge.icon className="h-4 w-4 text-white" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">{badge.name}</span>
-                </div>
-              </div>
-
               <div className="absolute top-4 right-4">
                 <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
                   <span className="text-lg font-bold text-slate-800">{rating}</span>
