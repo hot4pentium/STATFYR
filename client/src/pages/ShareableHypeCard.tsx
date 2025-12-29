@@ -580,7 +580,7 @@ export default function ShareableHypeCard(props: any) {
                 data-testid="detail-grid"
               >
                 {/* Events Card */}
-                <Card className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/30 overflow-hidden">
+                <Card className="bg-gradient-to-br from-blue-900/80 to-blue-800/70 border-blue-500/40 overflow-hidden">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Calendar className="h-5 w-5 text-blue-400" />
@@ -611,7 +611,7 @@ export default function ShareableHypeCard(props: any) {
                 </Card>
 
                 {/* Highlights Card */}
-                <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-500/30 overflow-hidden">
+                <Card className="bg-gradient-to-br from-purple-900/80 to-purple-800/70 border-purple-500/40 overflow-hidden">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Video className="h-5 w-5 text-purple-400" />
@@ -638,7 +638,7 @@ export default function ShareableHypeCard(props: any) {
                 </Card>
 
                 {/* Stats Card */}
-                <Card className="bg-gradient-to-br from-green-500/20 to-green-600/10 border-green-500/30 overflow-hidden">
+                <Card className="bg-gradient-to-br from-green-900/80 to-green-800/70 border-green-500/40 overflow-hidden">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <TrendingUp className="h-5 w-5 text-green-400" />
@@ -665,7 +665,7 @@ export default function ShareableHypeCard(props: any) {
                 </Card>
 
                 {/* HYPES Card */}
-                <Card className="bg-gradient-to-br from-orange-500/20 to-red-500/10 border-orange-500/30 overflow-hidden">
+                <Card className="bg-gradient-to-br from-orange-900/80 to-red-800/70 border-orange-500/40 overflow-hidden">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Flame className="h-5 w-5 text-orange-400" />
