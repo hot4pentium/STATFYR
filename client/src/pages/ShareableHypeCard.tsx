@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X } from "lucide-react";
+import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, RotateCw } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -125,6 +125,7 @@ export default function ShareableHypeCard(props: any) {
   const [visitorName, setVisitorName] = useState("");
   const [commentMessage, setCommentMessage] = useState("");
   const [showCommentForm, setShowCommentForm] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
   const queryClient = useQueryClient();
 
   // Persist liked state in localStorage to prevent spam
@@ -285,100 +286,223 @@ export default function ShareableHypeCard(props: any) {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-4">
-        {/* Modern Profile Card */}
-        <div className="relative rounded-3xl overflow-hidden mb-6 shadow-2xl" style={{ aspectRatio: "3/4" }}>
-          {/* Background Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-b from-teal-600 via-teal-500 to-teal-400" />
-          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-          
-          {/* Profile Image */}
-          <div className="absolute inset-0 flex flex-col">
-            <div className="relative flex-1 flex items-end justify-center overflow-hidden">
-              {athlete.avatar ? (
-                <img 
-                  src={athlete.avatar} 
-                  alt={athlete.name || ""} 
-                  className="absolute inset-0 w-full h-full object-cover object-top"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-[120px] font-display font-bold text-white/30">
-                    {(athlete.name || athlete.username || "A").charAt(0).toUpperCase()}
-                  </span>
+        {/* Flip Card Container */}
+        <div 
+          className="relative mb-6 cursor-pointer" 
+          style={{ aspectRatio: "3/4", perspective: "1000px" }}
+          onClick={() => setIsFlipped(!isFlipped)}
+          data-testid="flip-card"
+        >
+          <div 
+            className="relative w-full h-full transition-transform duration-700"
+            style={{ 
+              transformStyle: "preserve-3d",
+              transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)"
+            }}
+          >
+            {/* FRONT FACE */}
+            <div 
+              className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl"
+              style={{ backfaceVisibility: "hidden" }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-teal-600 via-teal-500 to-teal-400" />
+              <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+              
+              <div className="absolute inset-0 flex flex-col">
+                <div className="relative flex-1 flex items-end justify-center overflow-hidden">
+                  {athlete.avatar ? (
+                    <img 
+                      src={athlete.avatar} 
+                      alt={athlete.name || ""} 
+                      className="absolute inset-0 w-full h-full object-cover object-top"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-[120px] font-display font-bold text-white/30">
+                        {(athlete.name || athlete.username || "A").charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-rose-200/50 via-rose-100/30 to-transparent" />
                 </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-rose-200/50 via-rose-100/30 to-transparent" />
-            </div>
-          </div>
-
-          {/* Badge Ribbon */}
-          <div className="absolute top-4 left-4">
-            <div className={`${badge.color} px-3 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5`}>
-              <badge.icon className="h-4 w-4 text-white" />
-              <span className="text-xs font-bold text-white uppercase tracking-wider">{badge.name}</span>
-            </div>
-          </div>
-
-          {/* Rating */}
-          <div className="absolute top-4 right-4">
-            <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
-              <span className="text-lg font-bold text-slate-800">{rating}</span>
-              <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-            </div>
-          </div>
-
-          {/* Info Section */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-            <h2 className="text-3xl font-display font-bold mb-1 drop-shadow-lg">
-              {athlete.name || athlete.username}
-            </h2>
-            <p className="text-white/80 text-sm mb-4 drop-shadow">
-              {membership?.position || "Athlete"} {membership?.team ? `• ${membership.team.name}` : ""}
-            </p>
-
-            {/* Quick Stats */}
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex-1 text-center border-r border-white/20">
-                <div className="text-2xl font-bold">{stats.gamesPlayed}</div>
-                <div className="text-xs text-white/70 uppercase tracking-wider">Games</div>
               </div>
-              <div className="flex-1 text-center border-r border-white/20">
-                <div className="text-2xl font-bold">{membership?.jerseyNumber || "—"}</div>
-                <div className="text-xs text-white/70 uppercase tracking-wider">Jersey</div>
+
+              <div className="absolute top-4 left-4">
+                <div className={`${badge.color} px-3 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5`}>
+                  <badge.icon className="h-4 w-4 text-white" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">{badge.name}</span>
+                </div>
               </div>
-              <div className="flex-1 text-center">
-                <div className="text-2xl font-bold">{shoutoutCount}</div>
-                <div className="text-xs text-white/70 uppercase tracking-wider">Cheers</div>
+
+              <div className="absolute top-4 right-4">
+                <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                  <span className="text-lg font-bold text-slate-800">{rating}</span>
+                  <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                </div>
+              </div>
+
+              <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                <h2 className="text-3xl font-display font-bold mb-1 drop-shadow-lg">
+                  {athlete.name || athlete.username}
+                </h2>
+                <p className="text-white/80 text-sm mb-4 drop-shadow">
+                  {membership?.position || "Athlete"} {membership?.team ? `• ${membership.team.name}` : ""}
+                </p>
+
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex-1 text-center border-r border-white/20">
+                    <div className="text-2xl font-bold">{stats.gamesPlayed}</div>
+                    <div className="text-xs text-white/70 uppercase tracking-wider">Games</div>
+                  </div>
+                  <div className="flex-1 text-center border-r border-white/20">
+                    <div className="text-2xl font-bold">{membership?.jerseyNumber || "—"}</div>
+                    <div className="text-xs text-white/70 uppercase tracking-wider">Jersey</div>
+                  </div>
+                  <div className="flex-1 text-center">
+                    <div className="text-2xl font-bold">{shoutoutCount}</div>
+                    <div className="text-xs text-white/70 uppercase tracking-wider">Cheers</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center gap-2 text-white/60 text-xs">
+                  <RotateCw className="h-3 w-3" />
+                  <span>Tap to flip</span>
+                </div>
               </div>
             </div>
 
-            {/* Share Buttons */}
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => shareToSocial('twitter')}
-                className="flex-1 bg-white/20 hover:bg-white/30 text-white rounded-full text-sm"
-                data-testid="button-share-twitter"
-              >
-                Twitter
-              </Button>
-              <Button 
-                onClick={() => shareToSocial('whatsapp')}
-                className="flex-1 bg-white/20 hover:bg-white/30 text-white rounded-full text-sm"
-                data-testid="button-share-whatsapp"
-              >
-                WhatsApp
-              </Button>
-              <Button 
-                onClick={copyShareLink}
-                className="flex-1 bg-white text-slate-800 hover:bg-white/90 rounded-full text-sm font-bold"
-                data-testid="button-copy-link"
-              >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4 mr-1" />}
-                {copied ? "Copied!" : "Copy"}
-              </Button>
+            {/* BACK FACE - Quadrants */}
+            <div 
+              className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl"
+              style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+              <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+              
+              <div className="absolute inset-0 p-4 flex flex-col">
+                <div className="text-center mb-3">
+                  <h3 className="text-lg font-display font-bold text-white uppercase tracking-wider">
+                    {athlete.name || athlete.username}
+                  </h3>
+                  <p className="text-xs text-white/60">{membership?.team?.name || "Athlete Stats"}</p>
+                </div>
+
+                <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-2">
+                  {/* Quadrant 1: Season Stats */}
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex flex-col">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <TrendingUp className="h-4 w-4 text-primary" />
+                      <span className="text-xs font-bold text-white uppercase">Stats</span>
+                    </div>
+                    <div className="flex-1 space-y-1 overflow-hidden">
+                      {topStats.slice(0, 4).map(([statName, value]) => (
+                        <div key={statName} className="flex justify-between items-center">
+                          <span className="text-[10px] text-white/70 truncate">{statName}</span>
+                          <span className="text-sm font-bold text-primary">{value}</span>
+                        </div>
+                      ))}
+                      {topStats.length === 0 && (
+                        <p className="text-[10px] text-white/50">No stats yet</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Quadrant 2: Performance */}
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex flex-col">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Trophy className="h-4 w-4 text-amber-500" />
+                      <span className="text-xs font-bold text-white uppercase">Performance</span>
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center items-center gap-2">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-white">{stats.gamesPlayed}</div>
+                        <div className="text-[10px] text-white/60 uppercase">Games Played</div>
+                      </div>
+                      {stats.hotStreak && (
+                        <div className="flex items-center gap-1 bg-orange-500/20 px-2 py-1 rounded-full">
+                          <Flame className="h-3 w-3 text-orange-500" />
+                          <span className="text-[10px] text-orange-400 font-bold">{stats.streakLength} Game Streak</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Quadrant 3: Highlights */}
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex flex-col">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Video className="h-4 w-4 text-blue-400" />
+                      <span className="text-xs font-bold text-white uppercase">Highlights</span>
+                    </div>
+                    <div className="flex-1 grid grid-cols-2 gap-1">
+                      {highlights.slice(0, 4).map((highlight) => (
+                        <div key={highlight.id} className="relative aspect-video rounded overflow-hidden bg-black/30">
+                          {highlight.thumbnail ? (
+                            <img src={highlight.thumbnail} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Video className="h-3 w-3 text-white/30" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {highlights.length === 0 && (
+                        <p className="col-span-2 text-[10px] text-white/50 text-center">No highlights</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Quadrant 4: Fan Love */}
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex flex-col">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Heart className="h-4 w-4 text-pink-500" />
+                      <span className="text-xs font-bold text-white uppercase">Fan Love</span>
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center items-center">
+                      <div className="text-3xl font-bold text-pink-400">{shoutoutCount}</div>
+                      <div className="text-[10px] text-white/60 uppercase mb-2">Total Cheers</div>
+                      <div className="flex flex-wrap gap-1 justify-center">
+                        {shoutouts.slice(0, 6).map((shoutout, i) => (
+                          <span key={i} className="text-lg">{shoutout.emoji}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center gap-2 text-white/60 text-xs mt-3">
+                  <RotateCw className="h-3 w-3" />
+                  <span>Tap to flip back</span>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* Share Buttons (outside flip card) */}
+        <div className="flex gap-2 mb-6">
+          <Button 
+            onClick={(e) => { e.stopPropagation(); shareToSocial('twitter'); }}
+            className="flex-1 bg-primary/20 hover:bg-primary/30 text-primary rounded-full text-sm"
+            data-testid="button-share-twitter"
+          >
+            Twitter
+          </Button>
+          <Button 
+            onClick={(e) => { e.stopPropagation(); shareToSocial('whatsapp'); }}
+            className="flex-1 bg-primary/20 hover:bg-primary/30 text-primary rounded-full text-sm"
+            data-testid="button-share-whatsapp"
+          >
+            WhatsApp
+          </Button>
+          <Button 
+            onClick={(e) => { e.stopPropagation(); copyShareLink(); }}
+            className="flex-1 bg-primary text-white hover:bg-primary/90 rounded-full text-sm font-bold"
+            data-testid="button-copy-link"
+          >
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4 mr-1" />}
+            {copied ? "Copied!" : "Copy"}
+          </Button>
         </div>
 
         {/* Season Stats */}
