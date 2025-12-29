@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { requestFollowerNotificationPermission } from "@/lib/firebase";
 
+import logoImage from "@assets/red_logo-removebg-preview_1766535816909.png";
 import clutchImg from "@assets/clutch_1766970267487.png";
 import dominationImg from "@assets/domination_1766970267487.png";
 import gamechangerImg from "@assets/gamechanger_1766970267487.png";
@@ -452,7 +453,7 @@ export default function ShareableHypeCard(props: any) {
             <X className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="STATFYR" className="h-6 w-6" />
+            <img src={logoImage} alt="STATFYR" className="h-6 w-6" />
             <span className="text-sm font-display font-bold text-slate-900 dark:text-white">STATF<span className="text-orange-500">Y</span>R</span>
           </div>
           <Button variant="ghost" size="icon" onClick={copyShareLink} className="text-foreground" data-testid="button-share">
