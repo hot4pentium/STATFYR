@@ -909,11 +909,6 @@ export default function ShareableHypeCard(props: any) {
 
         {/* Show Your Support Section */}
         <div className="mb-6">
-          <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2">
-            <Heart className="h-5 w-5 text-pink-500" />
-            Show Your Support
-          </h3>
-          
           <Card className="bg-card/80 backdrop-blur-sm border-white/10">
             <CardContent className="p-4 space-y-4">
               {/* Like and Comment Buttons */}
