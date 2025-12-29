@@ -437,7 +437,7 @@ export default function ShareableHypeCard(props: any) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-white/10">
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <Button 
             variant="ghost" 
@@ -449,7 +449,7 @@ export default function ShareableHypeCard(props: any) {
           </Button>
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="STATFYR" className="h-6 w-6" />
-            <span className="text-sm font-display font-bold">STATF<span className="text-orange-500">Y</span>R</span>
+            <span className="text-sm font-display font-bold text-foreground">STATF<span className="text-orange-500">Y</span>R</span>
           </div>
           <Button variant="ghost" size="icon" onClick={copyShareLink} data-testid="button-share">
             {copied ? <Check className="h-5 w-5 text-green-500" /> : <Share2 className="h-5 w-5" />}
