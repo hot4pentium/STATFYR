@@ -8,6 +8,7 @@ import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient 
 import { spawn } from "child_process";
 import path from "path";
 import bcrypt from "bcrypt";
+import { sendPushNotification } from "./firebaseAdmin";
 import { WebSocketServer, WebSocket } from "ws";
 
 // Store connected WebSocket clients by team
@@ -1795,6 +1796,78 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error unfollowing athlete:", error);
       res.status(500).json({ error: "Failed to unfollow athlete" });
+    }
+  });
+
+  // FYR - Send push notification to all athlete followers
+  app.post("/api/athletes/:athleteId/fyr", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      const userId = req.query.userId as string;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const athlete = await storage.getUser(athleteId);
+      if (!athlete || athlete.role !== 'athlete') {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
+      
+      if (athleteId !== userId) {
+        return res.status(403).json({ error: "You can only FYR your own HYPE card" });
+      }
+      
+      const followers = await storage.getAthleteFollowers(athleteId);
+      
+      if (followers.length === 0) {
+        return res.json({ 
+          success: true, 
+          message: "No followers to notify",
+          successCount: 0,
+          failureCount: 0 
+        });
+      }
+      
+      const tokens = followers.map(f => f.fcmToken);
+      const athleteName = athlete.firstName && athlete.lastName 
+        ? `${athlete.firstName} ${athlete.lastName}` 
+        : athlete.name || athlete.username;
+      
+      const baseUrl = process.env.REPLIT_DOMAINS 
+        ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
+        : process.env.REPLIT_DEV_DOMAIN 
+          ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+          : '';
+      
+      const hypeCardUrl = `${baseUrl}/athlete/${athleteId}`;
+      
+      const result = await sendPushNotification(
+        tokens,
+        `${athleteName} just FYR'd!`,
+        `Check out ${athleteName}'s latest HYPE card updates!`,
+        { athleteId, type: 'fyr' },
+        hypeCardUrl
+      );
+      
+      if (result.invalidTokens.length > 0) {
+        for (const token of result.invalidTokens) {
+          await storage.deleteAthleteFollower(athleteId, token);
+        }
+      }
+      
+      const remainingCount = await storage.getAthleteFollowerCount(athleteId);
+      
+      res.json({
+        success: result.success,
+        successCount: result.successCount,
+        failureCount: result.failureCount,
+        invalidTokensRemoved: result.invalidTokens.length,
+        remainingFollowers: remainingCount
+      });
+    } catch (error) {
+      console.error("Error sending FYR notification:", error);
+      res.status(500).json({ error: "Failed to send FYR notification" });
     }
   });
 
