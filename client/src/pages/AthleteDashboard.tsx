@@ -18,6 +18,7 @@ import { format, isSameDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { VideoUploader } from "@/components/VideoUploader";
+import logoImage from "@assets/red_logo-removebg-preview_1766535816909.png";
 
 type SectionType = "schedule" | "roster" | "stats" | "highlights" | "playbook" | "hype-card" | null;
 
@@ -320,7 +321,7 @@ export default function AthleteDashboard() {
         <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-white/10">
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="STATFYR" className="h-8 w-8" />
+              <img src={logoImage} alt="STATFYR" className="h-8 w-8" />
               <h1 className="text-lg font-display font-bold tracking-wide">STATF<span className="text-orange-500">Y</span>R</h1>
             </div>
             <div className="flex items-center gap-2">
