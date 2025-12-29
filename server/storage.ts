@@ -2,7 +2,7 @@ import {
   users, teams, teamMembers, events, highlightVideos, plays, managedAthletes,
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
-  liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages,
+  liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -26,7 +26,8 @@ import {
   type ProfileLike, type InsertProfileLike,
   type ProfileComment, type InsertProfileComment,
   type FcmToken, type InsertFcmToken,
-  type ChatMessage, type InsertChatMessage
+  type ChatMessage, type InsertChatMessage,
+  type AthleteFollower, type InsertAthleteFollower
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql } from "drizzle-orm";
@@ -171,6 +172,13 @@ export interface IStorage {
   // Chat methods
   getTeamChatMessages(teamId: string, channel: string, limit?: number): Promise<(ChatMessage & { user: Omit<User, 'password'> })[]>;
   createChatMessage(data: InsertChatMessage): Promise<ChatMessage>;
+  
+  // Athlete Follower methods
+  getAthleteFollowers(athleteId: string): Promise<AthleteFollower[]>;
+  getAthleteFollowerCount(athleteId: string): Promise<number>;
+  createAthleteFollower(data: InsertAthleteFollower): Promise<AthleteFollower>;
+  deleteAthleteFollower(athleteId: string, fcmToken: string): Promise<void>;
+  getAthleteFollowerByToken(athleteId: string, fcmToken: string): Promise<AthleteFollower | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1471,6 +1479,60 @@ export class DatabaseStorage implements IStorage {
   async createChatMessage(data: InsertChatMessage): Promise<ChatMessage> {
     const [message] = await db.insert(chatMessages).values(data).returning();
     return message;
+  }
+
+  // Athlete Follower methods
+  async getAthleteFollowers(athleteId: string): Promise<AthleteFollower[]> {
+    return await db
+      .select()
+      .from(athleteFollowers)
+      .where(eq(athleteFollowers.athleteId, athleteId))
+      .orderBy(desc(athleteFollowers.createdAt));
+  }
+
+  async getAthleteFollowerCount(athleteId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(athleteFollowers)
+      .where(eq(athleteFollowers.athleteId, athleteId));
+    return result[0]?.count || 0;
+  }
+
+  async createAthleteFollower(data: InsertAthleteFollower): Promise<AthleteFollower> {
+    const existing = await db
+      .select()
+      .from(athleteFollowers)
+      .where(and(
+        eq(athleteFollowers.athleteId, data.athleteId),
+        eq(athleteFollowers.fcmToken, data.fcmToken)
+      ));
+    
+    if (existing.length > 0) {
+      return existing[0];
+    }
+    
+    const [follower] = await db.insert(athleteFollowers).values(data).returning();
+    return follower;
+  }
+
+  async deleteAthleteFollower(athleteId: string, fcmToken: string): Promise<void> {
+    await db
+      .delete(athleteFollowers)
+      .where(and(
+        eq(athleteFollowers.athleteId, athleteId),
+        eq(athleteFollowers.fcmToken, fcmToken)
+      ));
+  }
+
+  async getAthleteFollowerByToken(athleteId: string, fcmToken: string): Promise<AthleteFollower | undefined> {
+    const [follower] = await db
+      .select()
+      .from(athleteFollowers)
+      .where(and(
+        eq(athleteFollowers.athleteId, athleteId),
+        eq(athleteFollowers.fcmToken, fcmToken)
+      ));
+    return follower || undefined;
   }
 }
 

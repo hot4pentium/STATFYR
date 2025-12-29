@@ -821,3 +821,27 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
 
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
+
+// Athlete Followers - for anonymous fans who follow athletes via push notifications
+export const athleteFollowers = pgTable("athlete_followers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  athleteId: varchar("athlete_id").notNull().references(() => users.id),
+  fcmToken: text("fcm_token").notNull(),
+  followerName: text("follower_name").notNull().default("Anonymous"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const athleteFollowersRelations = relations(athleteFollowers, ({ one }) => ({
+  athlete: one(users, {
+    fields: [athleteFollowers.athleteId],
+    references: [users.id],
+  }),
+}));
+
+export const insertAthleteFollowerSchema = createInsertSchema(athleteFollowers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAthleteFollower = z.infer<typeof insertAthleteFollowerSchema>;
+export type AthleteFollower = typeof athleteFollowers.$inferSelect;
