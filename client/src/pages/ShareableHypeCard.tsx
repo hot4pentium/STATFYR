@@ -4,12 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
-import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, RotateCw, Bell, BellOff, Users } from "lucide-react";
+import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
 import { requestFollowerNotificationPermission } from "@/lib/firebase";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
@@ -110,6 +111,22 @@ type HypePost = {
   };
 };
 
+type TeamEvent = {
+  id: string;
+  teamId: string;
+  title: string;
+  type: string;
+  date: string;
+  location: string | null;
+  details: string | null;
+};
+
+async function getTeamEvents(teamId: string): Promise<TeamEvent[]> {
+  const res = await fetch(`/api/teams/${teamId}/events`);
+  if (!res.ok) return [];
+  return res.json();
+}
+
 async function getPublicAthleteProfile(athleteId: string): Promise<{
   athlete: Athlete;
   membership: TeamMember | null;
@@ -202,7 +219,7 @@ export default function ShareableHypeCard(props: any) {
   const [visitorName, setVisitorName] = useState("");
   const [commentMessage, setCommentMessage] = useState("");
   const [showCommentForm, setShowCommentForm] = useState(false);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerFcmToken, setFollowerFcmToken] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -260,6 +277,23 @@ export default function ShareableHypeCard(props: any) {
     queryFn: () => getHypePosts(athleteId),
     enabled: !!athleteId,
   });
+
+  // Fetch team events for the upcoming games section
+  const teamId = profile?.membership?.team?.id;
+  const { data: teamEvents = [] } = useQuery({
+    queryKey: ["/api/teams", teamId, "events"],
+    queryFn: () => getTeamEvents(String(teamId)),
+    enabled: !!teamId,
+  });
+
+  // Get upcoming events (next 3 future events)
+  const upcomingEvents = useMemo(() => {
+    const now = new Date();
+    return teamEvents
+      .filter((e: TeamEvent) => new Date(e.date) >= now)
+      .sort((a: TeamEvent, b: TeamEvent) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 3);
+  }, [teamEvents]);
 
   const likeMutation = useMutation({
     mutationFn: (name: string) => addProfileLike(athleteId, name),
@@ -463,26 +497,16 @@ export default function ShareableHypeCard(props: any) {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-4">
-        {/* Flip Card Container - 30% smaller */}
-        <div className="flex justify-center mb-6">
+        {/* HYPE Card with Sliding Detail Grid */}
+        <div className="relative mb-6">
+          {/* Main HYPE Card */}
           <div 
-            className="relative cursor-pointer w-[60%]" 
-            style={{ aspectRatio: "3/4", perspective: "1000px" }}
-            onClick={() => setIsFlipped(!isFlipped)}
-            data-testid="flip-card"
+            className="relative cursor-pointer mx-auto w-[65%]" 
+            style={{ aspectRatio: "3/4" }}
+            onClick={() => setIsDetailOpen(!isDetailOpen)}
+            data-testid="hype-card"
           >
-          <div 
-            className="relative w-full h-full transition-transform duration-700"
-            style={{ 
-              transformStyle: "preserve-3d",
-              transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)"
-            }}
-          >
-            {/* FRONT FACE */}
-            <div 
-              className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl"
-              style={{ backfaceVisibility: "hidden" }}
-            >
+            <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-b from-teal-600 via-teal-500 to-teal-400" />
               <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
               
@@ -537,121 +561,145 @@ export default function ShareableHypeCard(props: any) {
                 </div>
 
                 <div className="flex items-center justify-center gap-2 text-white/60 text-xs">
-                  <RotateCw className="h-3 w-3" />
-                  <span>Tap to flip</span>
+                  <ChevronUp className={`h-3 w-3 transition-transform duration-300 ${isDetailOpen ? 'rotate-180' : ''}`} />
+                  <span>{isDetailOpen ? 'Tap to close' : 'Tap to explore'}</span>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* BACK FACE - Quadrants */}
-            <div 
-              className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl"
-              style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-              <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-              
-              <div className="absolute inset-0 p-4 flex flex-col">
-                <div className="text-center mb-3">
-                  <h3 className="text-lg font-display font-bold text-white uppercase tracking-wider" style={{ textShadow: '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 -2px 0 #000, 0 2px 0 #000, -2px 0 0 #000, 2px 0 0 #000' }}>
-                    {athlete.name || athlete.username}
-                  </h3>
-                  <p className="text-xs text-white/60">{membership?.team?.name || "Athlete Stats"}</p>
-                </div>
-
-                <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-2 mb-4">
-                  {/* Quadrant 1: Season Stats */}
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex flex-col">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <TrendingUp className="h-4 w-4 text-primary" />
-                      <span className="text-xs font-bold text-white uppercase">Stats</span>
+          {/* Sliding Detail Grid */}
+          <AnimatePresence>
+            {isDetailOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="mt-4 grid grid-cols-2 gap-3"
+                data-testid="detail-grid"
+              >
+                {/* Events Card */}
+                <Card className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/30 overflow-hidden">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Calendar className="h-5 w-5 text-blue-400" />
+                      <span className="text-sm font-bold text-white uppercase">Upcoming</span>
                     </div>
-                    <div className="flex-1 space-y-1 overflow-hidden">
-                      {topStats.slice(0, 4).map(([statName, value]) => (
-                        <div key={statName} className="flex justify-between items-center">
-                          <span className="text-[10px] text-white/70 truncate">{statName}</span>
-                          <span className="text-sm font-bold text-primary">{value}</span>
-                        </div>
-                      ))}
-                      {topStats.length === 0 && (
-                        <p className="text-[10px] text-white/50">No stats yet</p>
+                    <div className="space-y-2">
+                      {upcomingEvents.length > 0 ? (
+                        upcomingEvents.map((event: TeamEvent) => (
+                          <div key={event.id} className="bg-white/5 rounded-lg p-2">
+                            <div className="text-xs font-semibold text-white truncate">{event.title}</div>
+                            <div className="flex items-center gap-1 text-[10px] text-white/60 mt-1">
+                              <Clock className="h-3 w-3" />
+                              {format(new Date(event.date), "MMM d")}
+                            </div>
+                            {event.location && (
+                              <div className="flex items-center gap-1 text-[10px] text-white/60">
+                                <MapPin className="h-3 w-3" />
+                                <span className="truncate">{event.location}</span>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-white/50 text-center py-2">No upcoming events</p>
                       )}
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  {/* Quadrant 2: Performance */}
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex flex-col">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Trophy className="h-4 w-4 text-amber-500" />
-                      <span className="text-xs font-bold text-white uppercase">Performance</span>
+                {/* Highlights Card */}
+                <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-500/30 overflow-hidden">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Video className="h-5 w-5 text-purple-400" />
+                      <span className="text-sm font-bold text-white uppercase">Highlights</span>
+                      <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0">{highlights.length}</Badge>
                     </div>
-                    <div className="flex-1 flex flex-col justify-center items-center gap-2">
-                      <div className="text-center">
-                        <div className="text-3xl font-bold text-white">{stats.gamesPlayed}</div>
-                        <div className="text-[10px] text-white/60 uppercase">Games Played</div>
-                      </div>
-                      {stats.hotStreak && (
-                        <div className="flex items-center gap-1 bg-orange-500/20 px-2 py-1 rounded-full">
-                          <Flame className="h-3 w-3 text-orange-500" />
-                          <span className="text-[10px] text-orange-400 font-bold">{stats.streakLength} Game Streak</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Quadrant 3: Highlights */}
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex flex-col">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Video className="h-4 w-4 text-blue-400" />
-                      <span className="text-xs font-bold text-white uppercase">Highlights</span>
-                    </div>
-                    <div className="flex-1 grid grid-cols-2 gap-1">
+                    <div className="grid grid-cols-2 gap-1.5">
                       {highlights.slice(0, 4).map((highlight) => (
-                        <div key={highlight.id} className="relative aspect-video rounded overflow-hidden bg-black/30">
+                        <div key={highlight.id} className="relative aspect-video rounded-lg overflow-hidden bg-black/30">
                           {highlight.thumbnail ? (
                             <img src={highlight.thumbnail} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Video className="h-3 w-3 text-white/30" />
+                              <Video className="h-4 w-4 text-white/30" />
                             </div>
                           )}
                         </div>
                       ))}
                       {highlights.length === 0 && (
-                        <p className="col-span-2 text-[10px] text-white/50 text-center">No highlights</p>
+                        <p className="col-span-2 text-xs text-white/50 text-center py-4">No highlights yet</p>
                       )}
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  {/* Quadrant 4: Fan Love */}
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex flex-col">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Heart className="h-4 w-4 text-pink-500" />
-                      <span className="text-xs font-bold text-white uppercase">Fan Love</span>
+                {/* Stats Card */}
+                <Card className="bg-gradient-to-br from-green-500/20 to-green-600/10 border-green-500/30 overflow-hidden">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <TrendingUp className="h-5 w-5 text-green-400" />
+                      <span className="text-sm font-bold text-white uppercase">Stats</span>
                     </div>
-                    <div className="flex-1 flex flex-col justify-center items-center">
-                      <div className="text-3xl font-bold text-pink-400">{shoutoutCount}</div>
-                      <div className="text-[10px] text-white/60 uppercase mb-2">Total Cheers</div>
-                      <div className="flex flex-wrap gap-1 justify-center">
-                        {shoutouts.slice(0, 6).map((shoutout, i) => (
-                          <span key={i} className="text-lg">{shoutout.emoji}</span>
-                        ))}
-                      </div>
+                    <div className="space-y-2">
+                      {topStats.slice(0, 4).map(([statName, value]) => (
+                        <div key={statName} className="flex justify-between items-center bg-white/5 rounded-lg px-2 py-1.5">
+                          <span className="text-xs text-white/70 truncate">{statName}</span>
+                          <span className="text-sm font-bold text-green-400">{value}</span>
+                        </div>
+                      ))}
+                      {topStats.length === 0 && (
+                        <p className="text-xs text-white/50 text-center py-4">No stats yet</p>
+                      )}
+                      {stats.hotStreak && (
+                        <div className="flex items-center justify-center gap-1 bg-orange-500/20 px-2 py-1.5 rounded-full mt-2">
+                          <Flame className="h-3 w-3 text-orange-500" />
+                          <span className="text-xs text-orange-400 font-bold">{stats.streakLength} Game Streak!</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
 
-                <div className="flex items-center justify-center gap-2 text-white/60 text-xs mt-3">
-                  <RotateCw className="h-3 w-3" />
-                  <span>Tap to flip back</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          </div>
+                {/* HYPES Card */}
+                <Card className="bg-gradient-to-br from-orange-500/20 to-red-500/10 border-orange-500/30 overflow-hidden">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Flame className="h-5 w-5 text-orange-400" />
+                      <span className="text-sm font-bold text-white uppercase">HYPES</span>
+                      <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0">{hypePosts.length}</Badge>
+                    </div>
+                    <div className="space-y-2">
+                      {hypePosts.slice(0, 2).map((post: HypePost) => (
+                        <div key={post.id} className="flex gap-2 bg-white/5 rounded-lg p-2">
+                          <img
+                            src={HYPE_TEMPLATE_IMAGES[post.templateImage] || clutchImg}
+                            alt=""
+                            className="w-10 h-10 rounded object-cover flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-white line-clamp-2">{post.message}</p>
+                            <p className="text-[10px] text-white/50 mt-0.5">
+                              {format(new Date(post.createdAt), "MMM d")}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                      {hypePosts.length === 0 && (
+                        <p className="text-xs text-white/50 text-center py-4">No HYPE posts yet</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Share Buttons (outside flip card) */}
+        {/* Share Buttons */}
         <div className="flex gap-2 mb-6">
           <Button 
             onClick={(e) => { e.stopPropagation(); shareToSocial('twitter'); }}
