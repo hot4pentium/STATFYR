@@ -8,6 +8,10 @@ interface UserContextType {
   updateUser: (user: User) => void;
   setCurrentTeam: (team: Team | null) => void;
   logout: () => void;
+  isImpersonating: boolean;
+  setImpersonating: (impersonating: boolean) => void;
+  originalAdmin: User | null;
+  setOriginalAdmin: (admin: User | null) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -22,6 +26,33 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem("currentTeam");
     return stored ? JSON.parse(stored) : null;
   });
+
+  const [isImpersonating, setIsImpersonating] = useState<boolean>(() => {
+    return localStorage.getItem("isImpersonating") === "true";
+  });
+
+  const [originalAdmin, setOriginalAdminState] = useState<User | null>(() => {
+    const stored = localStorage.getItem("originalAdmin");
+    return stored ? JSON.parse(stored) : null;
+  });
+
+  const setImpersonating = (impersonating: boolean) => {
+    setIsImpersonating(impersonating);
+    if (impersonating) {
+      localStorage.setItem("isImpersonating", "true");
+    } else {
+      localStorage.removeItem("isImpersonating");
+    }
+  };
+
+  const setOriginalAdmin = (admin: User | null) => {
+    setOriginalAdminState(admin);
+    if (admin) {
+      localStorage.setItem("originalAdmin", JSON.stringify(admin));
+    } else {
+      localStorage.removeItem("originalAdmin");
+    }
+  };
 
   const setUser = (newUser: User | null) => {
     // Always clear currentTeam when setting a user (fresh login clears stale team data)
@@ -54,12 +85,27 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUser(null);
     setCurrentTeam(null);
+    setImpersonating(false);
+    setOriginalAdmin(null);
     localStorage.removeItem("user");
     localStorage.removeItem("currentTeam");
+    localStorage.removeItem("isImpersonating");
+    localStorage.removeItem("originalAdmin");
   };
 
   return (
-    <UserContext.Provider value={{ user, currentTeam, setUser, updateUser, setCurrentTeam, logout }}>
+    <UserContext.Provider value={{ 
+      user, 
+      currentTeam, 
+      setUser, 
+      updateUser, 
+      setCurrentTeam, 
+      logout, 
+      isImpersonating, 
+      setImpersonating, 
+      originalAdmin, 
+      setOriginalAdmin 
+    }}>
       {children}
     </UserContext.Provider>
   );

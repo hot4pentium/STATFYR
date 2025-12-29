@@ -33,6 +33,7 @@ import AthleteProfileNew from "@/pages/AthleteProfileNew";
 import AdminDashboard from "@/pages/AdminDashboard";
 import ChangePassword from "@/pages/ChangePassword";
 import HypeManager from "@/pages/HypeManager";
+import SuperAdminPanel from "@/pages/SuperAdminPanel";
 
 function Router() {
   return (
@@ -64,6 +65,7 @@ function Router() {
       <Route path="/stat-tracker" component={StatTrackerPage} />
       <Route path="/stattracker/:gameId" component={StatTrackerPage} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/super-admin" component={SuperAdminPanel} />
       <Route path="/change-password" component={ChangePassword} />
       <Route path="/athlete/hype-portal" component={HypeManager} />
       <Route component={NotFound} />

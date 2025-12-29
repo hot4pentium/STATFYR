@@ -14,6 +14,7 @@ export interface User {
   createdAt?: string | null;
   lastAccessedAt?: string | null;
   mustChangePassword?: boolean;
+  isSuperAdmin?: boolean;
 }
 
 export interface Team {
@@ -872,5 +873,103 @@ export async function createLiveSessionForEvent(eventId: string, teamId: string,
     scheduledStart: scheduledStart.toISOString(),
     scheduledEnd: scheduledEnd?.toISOString() || null,
   });
+  return res.json();
+}
+
+// ============ SUPER ADMIN API ============
+
+export interface AdminUser {
+  id: string;
+  username: string;
+  role: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  name: string;
+  avatar?: string | null;
+  position?: string | null;
+  number?: number | null;
+  createdAt?: string | null;
+  lastAccessedAt?: string | null;
+  mustChangePassword?: boolean;
+  isSuperAdmin?: boolean;
+}
+
+export interface AdminTeamMember {
+  id: string;
+  teamId: string;
+  userId: string;
+  role: string;
+  jerseyNumber?: string | null;
+  position?: string | null;
+  joinedAt?: string | null;
+  team: Team;
+}
+
+export interface ImpersonationSession {
+  id: string;
+  adminId: string;
+  targetUserId: string;
+  expiresAt: string;
+  endedAt?: string | null;
+  createdAt?: string | null;
+}
+
+export async function adminSearchUsers(query: string, requesterId: string): Promise<AdminUser[]> {
+  const res = await fetch(`/api/admin/users/search?q=${encodeURIComponent(query)}&requesterId=${requesterId}`);
+  if (!res.ok) {
+    if (res.status === 403) throw new Error("Super admin access required");
+    throw new Error("Search failed");
+  }
+  return res.json();
+}
+
+export async function adminGetUserWithTeams(userId: string, requesterId: string): Promise<{ user: AdminUser; teams: AdminTeamMember[] }> {
+  const res = await fetch(`/api/admin/users/${userId}?requesterId=${requesterId}`);
+  if (!res.ok) {
+    if (res.status === 403) throw new Error("Super admin access required");
+    throw new Error("Failed to get user");
+  }
+  return res.json();
+}
+
+export async function adminUpdateTeamMember(memberId: string, data: { role?: string; jerseyNumber?: string | null; position?: string | null }, requesterId: string): Promise<TeamMember> {
+  const res = await apiRequest("PATCH", `/api/admin/team-members/${memberId}?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
+export async function adminRemoveTeamMember(memberId: string, requesterId: string): Promise<void> {
+  await apiRequest("DELETE", `/api/admin/team-members/${memberId}?requesterId=${requesterId}`, {});
+}
+
+export async function adminAddTeamMember(data: { teamId: string; userId: string; role?: string; requesterId: string }): Promise<TeamMember> {
+  const res = await apiRequest("POST", `/api/admin/team-members?requesterId=${data.requesterId}`, data);
+  return res.json();
+}
+
+export async function adminGetAllTeams(requesterId: string): Promise<Team[]> {
+  const res = await fetch(`/api/admin/teams?requesterId=${requesterId}`);
+  if (!res.ok) {
+    if (res.status === 403) throw new Error("Super admin access required");
+    throw new Error("Failed to get teams");
+  }
+  return res.json();
+}
+
+export async function adminStartImpersonation(targetUserId: string, requesterId: string): Promise<{ session: ImpersonationSession; targetUser: AdminUser }> {
+  const res = await apiRequest("POST", `/api/admin/impersonate?requesterId=${requesterId}`, { targetUserId, requesterId });
+  return res.json();
+}
+
+export async function adminStopImpersonation(requesterId: string): Promise<void> {
+  await apiRequest("POST", `/api/admin/impersonate/stop?requesterId=${requesterId}`, { requesterId });
+}
+
+export async function adminGetCurrentImpersonation(requesterId: string): Promise<{ session: ImpersonationSession | null; targetUser?: AdminUser }> {
+  const res = await fetch(`/api/admin/impersonate/current?requesterId=${requesterId}`);
+  if (!res.ok) {
+    if (res.status === 403) throw new Error("Super admin access required");
+    throw new Error("Failed to get impersonation session");
+  }
   return res.json();
 }
