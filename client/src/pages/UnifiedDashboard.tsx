@@ -106,6 +106,8 @@ export default function UnifiedDashboard() {
   const [memberEditForm, setMemberEditForm] = useState({ jerseyNumber: "", position: "" });
   const [deletingMember, setDeletingMember] = useState<TeamMember | null>(null);
   const [selectedManagedAthleteId, setSelectedManagedAthleteId] = useState<string | null>(null);
+  const [supporterViewMode, setSupporterViewMode] = useState<"supporter" | "athlete">("supporter");
+  const [supporterOriginalTeam, setSupporterOriginalTeam] = useState<Team | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -214,29 +216,43 @@ export default function UnifiedDashboard() {
     return teamEvents.filter((e: Event) => new Date(e.date) >= now).slice(0, 5);
   }, [teamEvents]);
 
-  // Auto-select first managed athlete for supporters
-  useEffect(() => {
-    if (userRole === "supporter" && managedAthletes.length > 0 && !selectedManagedAthleteId) {
-      const firstAthlete = managedAthletes[0];
-      setSelectedManagedAthleteId(firstAthlete.id);
-      if (firstAthlete.team && !currentTeam) {
-        setCurrentTeam(firstAthlete.team);
-      }
-    }
-  }, [userRole, managedAthletes, selectedManagedAthleteId, currentTeam, setCurrentTeam]);
-
   // Get the currently selected managed athlete
   const selectedManagedAthlete = useMemo(() => {
     if (!selectedManagedAthleteId) return null;
     return managedAthletes.find((ma: ManagedAthlete) => ma.id === selectedManagedAthleteId) || null;
   }, [managedAthletes, selectedManagedAthleteId]);
 
-  // Handle managed athlete selection change
-  const handleManagedAthleteChange = (athleteId: string) => {
-    setSelectedManagedAthleteId(athleteId);
-    const athlete = managedAthletes.find((ma: ManagedAthlete) => ma.id === athleteId);
-    if (athlete?.team) {
-      setCurrentTeam(athlete.team);
+  // Initialize supporter's team context from first managed athlete
+  useEffect(() => {
+    if (userRole === "supporter" && managedAthletes.length > 0 && !currentTeam && !supporterOriginalTeam) {
+      const firstAthleteWithTeam = managedAthletes.find((ma: ManagedAthlete) => ma.team);
+      if (firstAthleteWithTeam?.team) {
+        setCurrentTeam(firstAthleteWithTeam.team);
+        setSupporterOriginalTeam(firstAthleteWithTeam.team);
+      }
+    }
+  }, [userRole, managedAthletes, currentTeam, supporterOriginalTeam, setCurrentTeam]);
+
+  // Handle view selection change for supporters
+  const handleSupporterViewChange = (value: string) => {
+    if (value === "my-dashboard") {
+      setSupporterViewMode("supporter");
+      setSelectedManagedAthleteId(null);
+      // Restore original team context if we had one
+      if (supporterOriginalTeam) {
+        setCurrentTeam(supporterOriginalTeam);
+      }
+    } else {
+      // Save current team before switching to athlete view
+      if (supporterViewMode === "supporter" && currentTeam) {
+        setSupporterOriginalTeam(currentTeam);
+      }
+      setSupporterViewMode("athlete");
+      setSelectedManagedAthleteId(value);
+      const athlete = managedAthletes.find((ma: ManagedAthlete) => ma.id === value);
+      if (athlete?.team) {
+        setCurrentTeam(athlete.team);
+      }
     }
   };
 
@@ -946,18 +962,27 @@ export default function UnifiedDashboard() {
               <p className="text-white/60 text-sm">{getRoleLabel()}</p>
             </div>
 
-            {/* Managed Athlete Selector - Supporters Only */}
+            {/* View Selector - Supporters Only */}
             {userRole === "supporter" && managedAthletes.length > 0 && (
               <div className="mt-4">
-                <Label className="text-white/60 text-xs uppercase tracking-wide mb-2 block">Viewing Athlete</Label>
+                <Label className="text-white/60 text-xs uppercase tracking-wide mb-2 block">
+                  {supporterViewMode === "supporter" ? "My Dashboard" : "Viewing Athlete Profile"}
+                </Label>
                 <Select 
-                  value={selectedManagedAthleteId || ""} 
-                  onValueChange={handleManagedAthleteChange}
+                  value={supporterViewMode === "supporter" ? "my-dashboard" : (selectedManagedAthleteId || "")} 
+                  onValueChange={handleSupporterViewChange}
                 >
-                  <SelectTrigger className="w-full bg-white/10 border-white/20 text-white" data-testid="select-managed-athlete">
-                    <SelectValue placeholder="Select an athlete" />
+                  <SelectTrigger className="w-full bg-white/10 border-white/20 text-white" data-testid="select-supporter-view">
+                    <SelectValue placeholder="Select view" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="my-dashboard" data-testid="option-my-dashboard">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        <span>My Dashboard</span>
+                      </div>
+                    </SelectItem>
+                    <div className="h-px bg-border my-1" />
                     {managedAthletes.map((ma: ManagedAthlete) => (
                       <SelectItem key={ma.id} value={ma.id} data-testid={`athlete-option-${ma.id}`}>
                         {ma.athlete.firstName} {ma.athlete.lastName}
@@ -971,75 +996,174 @@ export default function UnifiedDashboard() {
           </div>
         </div>
 
-        {/* Quick Access Section */}
-        <div className="px-4 pb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
-            {currentTeam?.code && userRole === "coach" && (
-              <Badge 
-                variant="outline" 
-                className="gap-1 cursor-pointer hover:bg-primary/10 font-mono"
-                onClick={handleCopyCode}
-                data-testid="badge-team-code"
-              >
-                Team Code: {currentTeam.code}
-                {codeCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+        {/* Main Content - switches based on supporter view mode */}
+        {userRole === "supporter" && supporterViewMode === "athlete" && selectedManagedAthlete ? (
+          /* Athlete Profile View for Supporters */
+          <div className="px-4 pb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-xl font-display font-bold uppercase tracking-wide">
+                {selectedManagedAthlete.athlete.firstName}'s Profile
+              </h2>
+              <Badge variant="outline" className="text-xs">
+                {selectedManagedAthlete.team?.name || "Team"}
               </Badge>
-            )}
-          </div>
+            </div>
 
-          {/* Cards Grid */}
-          <div className="grid grid-cols-2 gap-3">
-            {visibleCards.map((card) => (
-              <Card
-                key={card.id}
-                className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""}`}
-                onClick={() => handleCardClick(card.id)}
-                data-testid={`card-${card.id}`}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <card.icon className={`h-6 w-6 ${card.color} shrink-0`} />
-                    <div className="min-w-0">
-                      <p className="font-semibold">{card.name}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{card.description}</p>
-                    </div>
+            {/* Athlete HYPE Card Preview */}
+            <Card className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/40 mb-6">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-2xl font-bold text-white">
+                    {selectedManagedAthlete.athlete.firstName?.[0]}{selectedManagedAthlete.athlete.lastName?.[0]}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* HYPE Portal Card - Athletes Only */}
-          {userRole === "athlete" && (
-            <Card 
-              onClick={() => setLocation("/athlete/hype-portal")}
-              className="mt-4 bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
-              data-testid="card-hype-portal"
-            >
-              <CardContent className="p-4 sm:p-5 flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300">
-                  <Flame className="h-6 w-6 text-white" />
+                  <div>
+                    <h3 className="text-lg font-bold">
+                      {selectedManagedAthlete.athlete.firstName} {selectedManagedAthlete.athlete.lastName}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">Athlete</p>
+                    {selectedManagedAthlete.team && (
+                      <p className="text-sm text-primary">{selectedManagedAthlete.team.name}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display font-bold text-lg uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
-                    HYPE Portal
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Share your HYPE card, post updates, and fire up your followers
-                  </p>
-                </div>
-                <div className="hidden sm:flex items-center gap-2 text-orange-500/70 group-hover:text-orange-500 transition-colors">
-                  <span className="text-sm font-medium">Enter</span>
-                  <ExternalLink className="h-4 w-4" />
+                
+                <div className="mt-4 flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 gap-2"
+                    onClick={() => setLocation(`/athletes/${selectedManagedAthlete.athleteId}`)}
+                    data-testid="button-view-hype-card"
+                  >
+                    <Flame className="h-4 w-4 text-orange-500" />
+                    View HYPE Card
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-          )}
 
-          {/* Content Area */}
-          {renderContent()}
-        </div>
+            {/* Quick Stats for Managed Athlete */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                <CardContent className="p-4 text-center">
+                  <BarChart3 className="h-6 w-6 mx-auto mb-2 text-blue-400" />
+                  <p className="text-sm text-muted-foreground">Stats</p>
+                  <p className="text-lg font-bold">View</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                <CardContent className="p-4 text-center">
+                  <Video className="h-6 w-6 mx-auto mb-2 text-purple-400" />
+                  <p className="text-sm text-muted-foreground">Highlights</p>
+                  <p className="text-lg font-bold">{teamHighlights.filter(h => h.uploadedBy === selectedManagedAthlete.athleteId).length}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Athlete's Highlights */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+                {selectedManagedAthlete.athlete.firstName}'s Highlights
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {teamHighlights
+                  .filter(h => h.uploadedBy === selectedManagedAthlete.athleteId)
+                  .slice(0, 6)
+                  .map((highlight) => (
+                    <div
+                      key={highlight.id}
+                      className="aspect-video rounded-lg overflow-hidden bg-muted/30 relative group cursor-pointer"
+                      onClick={() => setLocation(`/highlights/${highlight.id}`)}
+                    >
+                      {highlight.thumbnailUrl ? (
+                        <img src={highlight.thumbnailUrl} alt={highlight.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Video className="h-8 w-8 text-muted-foreground/50" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                      <div className="absolute bottom-2 left-2 right-2">
+                        <p className="text-xs text-white font-medium truncate">{highlight.title}</p>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+              {teamHighlights.filter(h => h.uploadedBy === selectedManagedAthlete.athleteId).length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">No highlights yet</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* Normal Dashboard View - Quick Access Section */
+          <div className="px-4 pb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
+              {currentTeam?.code && userRole === "coach" && (
+                <Badge 
+                  variant="outline" 
+                  className="gap-1 cursor-pointer hover:bg-primary/10 font-mono"
+                  onClick={handleCopyCode}
+                  data-testid="badge-team-code"
+                >
+                  Team Code: {currentTeam.code}
+                  {codeCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                </Badge>
+              )}
+            </div>
+
+            {/* Cards Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              {visibleCards.map((card) => (
+                <Card
+                  key={card.id}
+                  className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""}`}
+                  onClick={() => handleCardClick(card.id)}
+                  data-testid={`card-${card.id}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <card.icon className={`h-6 w-6 ${card.color} shrink-0`} />
+                      <div className="min-w-0">
+                        <p className="font-semibold">{card.name}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{card.description}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* HYPE Portal Card - Athletes Only */}
+            {userRole === "athlete" && (
+              <Card 
+                onClick={() => setLocation("/athlete/hype-portal")}
+                className="mt-4 bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
+                data-testid="card-hype-portal"
+              >
+                <CardContent className="p-4 sm:p-5 flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <Flame className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-display font-bold text-lg uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
+                      HYPE Portal
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Share your HYPE card, post updates, and fire up your followers
+                    </p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-2 text-orange-500/70 group-hover:text-orange-500 transition-colors">
+                    <span className="text-sm font-medium">Enter</span>
+                    <ExternalLink className="h-4 w-4" />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Content Area */}
+            {renderContent()}
+          </div>
+        )}
 
         {/* Event Modal */}
         <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
