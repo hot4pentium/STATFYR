@@ -2789,6 +2789,190 @@ export async function registerRoutes(
     });
   });
 
+  // ============ SUPER ADMIN ROUTES ============
+  
+  // Middleware to check if user is super admin
+  async function requireSuperAdmin(req: any, res: any, next: any) {
+    const requesterId = req.query.requesterId as string || req.body.requesterId;
+    if (!requesterId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+    const user = await storage.getUser(requesterId);
+    if (!user || !user.isSuperAdmin) {
+      return res.status(403).json({ error: "Super admin access required" });
+    }
+    req.adminUser = user;
+    next();
+  }
+
+  // Search users by email or name
+  app.get("/api/admin/users/search", requireSuperAdmin, async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      if (!query || query.length < 2) {
+        return res.status(400).json({ error: "Search query must be at least 2 characters" });
+      }
+      const users = await storage.searchUsers(query);
+      res.json(users);
+    } catch (error) {
+      console.error("Admin user search failed:", error);
+      res.status(500).json({ error: "Search failed" });
+    }
+  });
+
+  // Get user with their team memberships
+  app.get("/api/admin/users/:userId", requireSuperAdmin, async (req, res) => {
+    try {
+      const result = await storage.getUserWithTeams(req.params.userId);
+      if (!result) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json(result);
+    } catch (error) {
+      console.error("Admin get user failed:", error);
+      res.status(500).json({ error: "Failed to get user" });
+    }
+  });
+
+  // Update a team member (role, jersey number, position)
+  app.patch("/api/admin/team-members/:memberId", requireSuperAdmin, async (req, res) => {
+    try {
+      const parsed = updateTeamMemberSchema.parse(req.body);
+      const updated = await storage.adminUpdateTeamMember(req.params.memberId, parsed);
+      if (!updated) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Admin update team member failed:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update team member" });
+    }
+  });
+
+  // Remove a team member
+  app.delete("/api/admin/team-members/:memberId", requireSuperAdmin, async (req, res) => {
+    try {
+      await storage.adminRemoveTeamMember(req.params.memberId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Admin remove team member failed:", error);
+      res.status(500).json({ error: "Failed to remove team member" });
+    }
+  });
+
+  // Add a user to a team
+  app.post("/api/admin/team-members", requireSuperAdmin, async (req, res) => {
+    try {
+      const { teamId, userId, role } = req.body;
+      if (!teamId || !userId) {
+        return res.status(400).json({ error: "teamId and userId are required" });
+      }
+      
+      // Check if already a member
+      const existing = await storage.getTeamMembership(teamId, userId);
+      if (existing) {
+        return res.status(400).json({ error: "User is already a team member" });
+      }
+      
+      const member = await storage.adminAddTeamMember({
+        teamId,
+        userId,
+        role: role || "athlete",
+      });
+      res.json(member);
+    } catch (error) {
+      console.error("Admin add team member failed:", error);
+      res.status(500).json({ error: "Failed to add team member" });
+    }
+  });
+
+  // Start impersonation session
+  app.post("/api/admin/impersonate", requireSuperAdmin, async (req, res) => {
+    try {
+      const { targetUserId } = req.body;
+      const adminUser = (req as any).adminUser;
+      
+      if (!targetUserId) {
+        return res.status(400).json({ error: "targetUserId is required" });
+      }
+      
+      // Get target user
+      const targetUser = await storage.getUser(targetUserId);
+      if (!targetUser) {
+        return res.status(404).json({ error: "Target user not found" });
+      }
+      
+      // Create session (expires in 1 hour)
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+      const session = await storage.createImpersonationSession({
+        adminId: adminUser.id,
+        targetUserId,
+        expiresAt,
+      });
+      
+      const { password, ...safeTargetUser } = targetUser;
+      res.json({ session, targetUser: safeTargetUser });
+    } catch (error) {
+      console.error("Start impersonation failed:", error);
+      res.status(500).json({ error: "Failed to start impersonation" });
+    }
+  });
+
+  // End impersonation session
+  app.post("/api/admin/impersonate/stop", requireSuperAdmin, async (req, res) => {
+    try {
+      const adminUser = (req as any).adminUser;
+      
+      const activeSession = await storage.getActiveImpersonationSession(adminUser.id);
+      if (!activeSession) {
+        return res.status(404).json({ error: "No active impersonation session" });
+      }
+      
+      await storage.endImpersonationSession(activeSession.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("End impersonation failed:", error);
+      res.status(500).json({ error: "Failed to end impersonation" });
+    }
+  });
+
+  // Get current impersonation session (if any)
+  app.get("/api/admin/impersonate/current", requireSuperAdmin, async (req, res) => {
+    try {
+      const adminUser = (req as any).adminUser;
+      
+      const activeSession = await storage.getActiveImpersonationSession(adminUser.id);
+      if (!activeSession) {
+        return res.json({ session: null });
+      }
+      
+      const targetUser = await storage.getUser(activeSession.targetUserId);
+      if (!targetUser) {
+        return res.json({ session: null });
+      }
+      
+      const { password, ...safeTargetUser } = targetUser;
+      res.json({ session: activeSession, targetUser: safeTargetUser });
+    } catch (error) {
+      console.error("Get impersonation session failed:", error);
+      res.status(500).json({ error: "Failed to get impersonation session" });
+    }
+  });
+
+  // Get all teams (for admin panel)
+  app.get("/api/admin/teams", requireSuperAdmin, async (req, res) => {
+    try {
+      const allTeams = await storage.getAllTeams();
+      res.json(allTeams);
+    } catch (error) {
+      console.error("Admin get teams failed:", error);
+      res.status(500).json({ error: "Failed to get teams" });
+    }
+  });
+
   return httpServer;
 }
 
