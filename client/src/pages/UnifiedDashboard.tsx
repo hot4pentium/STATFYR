@@ -313,6 +313,25 @@ export default function UnifiedDashboard() {
     setEditingEvent(null);
   };
 
+  const populateEventForm = (event: Event) => {
+    const d = new Date(event.date);
+    const h = d.getHours();
+    const hour = String(h % 12 || 12).padStart(2, "0");
+    const ampm = h >= 12 ? "PM" : "AM";
+    setEventForm({
+      type: event.type,
+      date: format(d, "yyyy-MM-dd"),
+      hour,
+      minute: String(d.getMinutes()).padStart(2, "0"),
+      ampm,
+      location: event.location || "",
+      details: event.details || "",
+      opponent: event.opponent || "",
+      drinksAthleteId: "",
+      snacksAthleteId: ""
+    });
+  };
+
   const handleCopyCode = () => {
     if (currentTeam?.code) {
       navigator.clipboard.writeText(currentTeam.code);
@@ -574,36 +593,71 @@ export default function UnifiedDashboard() {
                 <Plus className="h-4 w-4" /> Add Event
               </Button>
             )}
-            <div className="grid md:grid-cols-2 gap-4">
-              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                <CardContent className="p-4">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    month={calendarMonth}
-                    onMonthChange={setCalendarMonth}
-                    modifiers={{
-                      hasEvent: teamEvents.map((e: Event) => new Date(e.date))
-                    }}
-                    modifiersClassNames={{
-                      hasEvent: "bg-primary/30 text-primary font-bold"
-                    }}
-                    className="rounded-md"
-                  />
-                </CardContent>
-              </Card>
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                  {selectedDate ? format(selectedDate, "MMMM d, yyyy") : "Upcoming Events"}
-                </h3>
-                {(selectedDate ? eventsOnDate : upcomingEvents).map(renderEventCard)}
-                {(selectedDate ? eventsOnDate : upcomingEvents).length === 0 && (
-                  <p className="text-sm text-muted-foreground py-4 text-center">
-                    {selectedDate ? "No events on this date" : "No upcoming events"}
-                  </p>
-                )}
+            <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+              <CardContent className="p-4 flex justify-center">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  month={calendarMonth}
+                  onMonthChange={setCalendarMonth}
+                  modifiers={{
+                    hasEvent: teamEvents.map((e: Event) => new Date(e.date))
+                  }}
+                  modifiersClassNames={{
+                    hasEvent: "bg-primary/30 text-primary font-bold"
+                  }}
+                  className="rounded-md w-full max-w-sm"
+                />
+              </CardContent>
+            </Card>
+            <div className="space-y-3">
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+                {selectedDate ? format(selectedDate, "MMMM d, yyyy") : "Upcoming Events"}
+              </h3>
+              <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+                {(selectedDate ? eventsOnDate : [...upcomingEvents].sort((a, b) => {
+                  if (a.type === "Game" && b.type !== "Game") return -1;
+                  if (a.type !== "Game" && b.type === "Game") return 1;
+                  return new Date(a.date).getTime() - new Date(b.date).getTime();
+                })).map((event) => (
+                  <Card 
+                    key={event.id} 
+                    className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all min-w-[200px] max-w-[220px] flex-shrink-0 snap-start"
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant={event.type === "Game" ? "default" : "outline"} className="text-xs">
+                          {event.type}
+                        </Badge>
+                        {event.type === "Game" && <Trophy className="h-3 w-3 text-primary" />}
+                      </div>
+                      <p className="font-semibold text-sm truncate">{event.title}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(event.date), "MMM d, h:mm a")}</p>
+                      {event.location && (
+                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 truncate">
+                          <MapPin className="h-3 w-3" /> {event.location}
+                        </p>
+                      )}
+                      {userRole === "coach" && (
+                        <div className="flex gap-1 mt-2">
+                          <Button size="sm" variant="ghost" className="h-6 px-2" onClick={() => { setEditingEvent(event); populateEventForm(event); setIsEventModalOpen(true); }}>
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-6 px-2 text-destructive" onClick={() => setDeleteConfirmEvent(event)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
+              {(selectedDate ? eventsOnDate : upcomingEvents).length === 0 && (
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  {selectedDate ? "No events on this date" : "No upcoming events"}
+                </p>
+              )}
             </div>
           </div>
         )}
