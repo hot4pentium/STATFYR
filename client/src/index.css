@@ -6,6 +6,7 @@
 @theme inline {
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Oswald', sans-serif;
+  --font-marker: 'Permanent Marker', cursive;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

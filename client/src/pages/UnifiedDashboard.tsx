@@ -881,7 +881,10 @@ export default function UnifiedDashboard() {
                   {roleConfig[userRole].title}
                 </h1>
                 <p className="text-white/80 text-sm">Welcome, {userRole === "coach" ? "Coach" : getUserDisplayName()}!</p>
-                <p className="text-lg text-white/90 mt-2 font-light">
+                <p 
+                  className={`text-lg mt-2 ${userRole === "athlete" ? "font-marker text-primary" : "text-white/90 font-light"}`}
+                  style={userRole === "athlete" ? { fontFamily: "'Permanent Marker', cursive" } : undefined}
+                >
                   {roleConfig[userRole].tagline}
                 </p>
               </div>
