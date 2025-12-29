@@ -103,7 +103,7 @@ export default function UnifiedDashboard() {
   const [deleteConfirmEvent, setDeleteConfirmEvent] = useState<Event | null>(null);
 
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
-  const [memberEditForm, setMemberEditForm] = useState({ jerseyNumber: "", position: "" });
+  const [memberEditForm, setMemberEditForm] = useState({ jerseyNumber: "", position: "", role: "" });
   const [deletingMember, setDeletingMember] = useState<TeamMember | null>(null);
   const [selectedManagedAthleteId, setSelectedManagedAthleteId] = useState<string | null>(null);
   const [supporterViewMode, setSupporterViewMode] = useState<"supporter" | "athlete">("supporter");
@@ -118,11 +118,6 @@ export default function UnifiedDashboard() {
     return "supporter";
   }, [user]);
 
-  const visibleCards = useMemo(() => 
-    quickAccessCards.filter(card => card.roles.includes(userRole)),
-    [userRole]
-  );
-
   const { data: coachTeams } = useQuery({
     queryKey: ["/api/coach", user?.id, "teams"],
     queryFn: () => user ? getCoachTeams(user.id) : Promise.resolve([]),
@@ -135,6 +130,26 @@ export default function UnifiedDashboard() {
     enabled: !!currentTeam,
     refetchInterval: 5000,
   });
+
+  // Get the user's membership on the current team
+  const currentMembership = useMemo(() => {
+    if (!user || !currentTeam) return null;
+    return teamMembers.find((m: TeamMember) => m.userId === user.id);
+  }, [user, currentTeam, teamMembers]);
+
+  // Check if user is staff on the current team (gets coach-level access except settings)
+  const isStaff = currentMembership?.role === "staff";
+
+  // Effective role for feature access - staff get coach-level access
+  const effectiveRole: UserRole = useMemo(() => {
+    if (isStaff) return "coach"; // Staff get coach-level feature access
+    return userRole;
+  }, [isStaff, userRole]);
+
+  const visibleCards = useMemo(() => 
+    quickAccessCards.filter(card => card.roles.includes(effectiveRole)),
+    [effectiveRole]
+  );
 
   const { data: teamEvents = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "events"],
@@ -164,7 +179,7 @@ export default function UnifiedDashboard() {
   const { data: advancedStats } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "stats", "advanced"],
     queryFn: () => currentTeam ? getAdvancedTeamStats(currentTeam.id) : Promise.resolve({ gameHistory: [], athletePerformance: [], ratios: {} }),
-    enabled: !!currentTeam && selectedCard === "stats" && userRole === "coach",
+    enabled: !!currentTeam && selectedCard === "stats" && (userRole === "coach" || isStaff),
   });
 
   const { data: myStats } = useQuery({
@@ -314,7 +329,7 @@ export default function UnifiedDashboard() {
   });
 
   const updateMemberMutation = useMutation({
-    mutationFn: ({ memberId, data }: { memberId: string; data: { jerseyNumber?: string; position?: string } }) => {
+    mutationFn: ({ memberId, data }: { memberId: string; data: { jerseyNumber?: string; position?: string; role?: string } }) => {
       if (!currentTeam || !user) throw new Error("No team selected");
       const member = teamMembers.find((m: TeamMember) => m.id === memberId);
       if (!member?.userId) throw new Error("Member not found");
@@ -403,6 +418,7 @@ export default function UnifiedDashboard() {
 
   const getRoleLabel = () => {
     if (userRole === "coach") return `Head Coach${currentTeam ? ` - ${currentTeam.name}` : ""}`;
+    if (isStaff) return `Staff${currentTeam ? ` - ${currentTeam.name}` : ""}`;
     if (userRole === "athlete") return currentTeam ? currentTeam.name : "Athlete";
     return currentTeam ? `Supporting ${currentTeam.name}` : "Supporter";
   };
@@ -426,7 +442,7 @@ export default function UnifiedDashboard() {
         {member.jerseyNumber && (
           <Badge className="bg-primary/20 text-primary">#{member.jerseyNumber}</Badge>
         )}
-        {userRole === "coach" && member.role !== "coach" && (
+        {(userRole === "coach" || isStaff) && member.role !== "coach" && member.role !== "staff" && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -436,7 +452,11 @@ export default function UnifiedDashboard() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => {
                 setEditingMember(member);
-                setMemberEditForm({ jerseyNumber: member.jerseyNumber || "", position: member.position || "" });
+                setMemberEditForm({ 
+                  jerseyNumber: member.jerseyNumber || "", 
+                  position: member.position || "",
+                  role: member.role || "athlete"
+                });
               }}>
                 <Pencil className="h-4 w-4 mr-2" /> Edit
               </DropdownMenuItem>
@@ -474,7 +494,7 @@ export default function UnifiedDashboard() {
         <Badge variant={event.type === "Game" ? "default" : "secondary"} className="shrink-0">
           {event.type}
         </Badge>
-        {userRole === "coach" && (
+        {(userRole === "coach" || isStaff) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
@@ -561,7 +581,7 @@ export default function UnifiedDashboard() {
       <div className="absolute bottom-2 left-2 right-2">
         <p className="text-xs text-white font-medium truncate">{highlight.title}</p>
       </div>
-      {userRole === "coach" && (
+      {(userRole === "coach" || isStaff) && (
         <Button
           variant="destructive"
           size="icon"
@@ -627,7 +647,7 @@ export default function UnifiedDashboard() {
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
                 Upcoming Events
               </h3>
-              {userRole === "coach" && (
+              {(userRole === "coach" || isStaff) && (
                 <Button onClick={() => { resetEventForm(); setIsEventModalOpen(true); }} size="sm" className="gap-2">
                   <Plus className="h-4 w-4" /> Add Event
                 </Button>
@@ -657,7 +677,7 @@ export default function UnifiedDashboard() {
                         <MapPin className="h-3 w-3" /> {event.location}
                       </p>
                     )}
-                    {userRole === "coach" && (
+                    {(userRole === "coach" || isStaff) && (
                       <div className="flex gap-1 mt-2">
                         <Button size="sm" variant="ghost" className="h-6 px-2" onClick={() => { setEditingEvent(event); populateEventForm(event); setIsEventModalOpen(true); }}>
                           <Pencil className="h-3 w-3" />
@@ -681,7 +701,7 @@ export default function UnifiedDashboard() {
 
         {(selectedCard === "playmaker" || selectedCard === "playbook") && (
           <div className="space-y-4">
-            {userRole === "coach" && selectedCard === "playmaker" && (
+            {(userRole === "coach" || isStaff) && selectedCard === "playmaker" && (
               <Card className="bg-card/80 backdrop-blur-sm border-white/10">
                 <CardHeader>
                   <CardTitle className="text-lg">Create New Play</CardTitle>
@@ -736,7 +756,7 @@ export default function UnifiedDashboard() {
                 })}
               </div>
             )}
-            {(userRole === "coach" || userRole === "supporter") && aggregateStats && (
+            {(userRole === "coach" || userRole === "supporter" || isStaff) && aggregateStats && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Card className="bg-card/80 backdrop-blur-sm border-white/10">
                   <CardContent className="p-4 text-center">
@@ -771,7 +791,7 @@ export default function UnifiedDashboard() {
 
         {selectedCard === "highlights" && (
           <div className="space-y-4">
-            {userRole === "coach" && currentTeam && user && (
+            {(userRole === "coach" || isStaff) && currentTeam && user && (
               <VideoUploader teamId={currentTeam.id} userId={user.id} onUploadComplete={() => refetchHighlights()} />
             )}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -952,13 +972,13 @@ export default function UnifiedDashboard() {
                 <h1 className="text-2xl font-display font-bold text-primary uppercase tracking-wide">
                   {roleConfig[userRole].title}
                 </h1>
-                <p className="text-white/80 text-sm">Welcome, {userRole === "coach" ? "Coach" : getUserDisplayName()}!</p>
+                <p className="text-white/80 text-sm">Welcome, {userRole === "coach" ? "Coach" : isStaff ? "Staff" : getUserDisplayName()}!</p>
               </div>
             </div>
 
             {/* User Info */}
             <div className="mt-4">
-              <p className="text-primary font-semibold">{userRole === "coach" ? `Coach ${getUserDisplayName()}` : getUserDisplayName()}</p>
+              <p className="text-primary font-semibold">{userRole === "coach" ? `Coach ${getUserDisplayName()}` : isStaff ? `Staff ${getUserDisplayName()}` : getUserDisplayName()}</p>
               <p className="text-white/60 text-sm">{getRoleLabel()}</p>
             </div>
 
@@ -1274,25 +1294,61 @@ export default function UnifiedDashboard() {
               <DialogTitle>Edit Team Member</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              {/* Role selection - coaches can promote/demote to staff */}
               <div>
-                <Label>Jersey Number</Label>
-                <Input value={memberEditForm.jerseyNumber} onChange={(e) => setMemberEditForm({ ...memberEditForm, jerseyNumber: e.target.value })} placeholder="e.g., 23" />
-              </div>
-              <div>
-                <Label>Position</Label>
-                <Select value={memberEditForm.position} onValueChange={(v) => setMemberEditForm({ ...memberEditForm, position: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select position" /></SelectTrigger>
+                <Label>Role</Label>
+                <Select value={memberEditForm.role} onValueChange={(v) => setMemberEditForm({ ...memberEditForm, role: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select role" /></SelectTrigger>
                   <SelectContent>
-                    {(SPORT_POSITIONS[currentTeam?.sport as keyof typeof SPORT_POSITIONS] || SPORT_POSITIONS.Soccer).map((pos) => (
-                      <SelectItem key={pos} value={pos}>{pos}</SelectItem>
-                    ))}
+                    <SelectItem value="athlete">Athlete</SelectItem>
+                    <SelectItem value="staff">Staff</SelectItem>
+                    <SelectItem value="supporter">Supporter</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Staff members have access to all coach features except team settings.
+                </p>
               </div>
+
+              {/* Only show jersey/position for athletes - not for supporters */}
+              {memberEditForm.role !== "supporter" && (
+                <>
+                  <div>
+                    <Label>Jersey Number</Label>
+                    <Input value={memberEditForm.jerseyNumber} onChange={(e) => setMemberEditForm({ ...memberEditForm, jerseyNumber: e.target.value })} placeholder="e.g., 23" />
+                  </div>
+                  <div>
+                    <Label>Position</Label>
+                    <Select value={memberEditForm.position} onValueChange={(v) => setMemberEditForm({ ...memberEditForm, position: v })}>
+                      <SelectTrigger><SelectValue placeholder="Select position" /></SelectTrigger>
+                      <SelectContent>
+                        {(SPORT_POSITIONS[currentTeam?.sport as keyof typeof SPORT_POSITIONS] || SPORT_POSITIONS.Soccer).map((pos) => (
+                          <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditingMember(null)}>Cancel</Button>
-              <Button onClick={() => editingMember && updateMemberMutation.mutate({ memberId: editingMember.id, data: memberEditForm })}>Save</Button>
+              <Button onClick={() => {
+                if (!editingMember) return;
+                const updateData: { jerseyNumber?: string; position?: string; role?: string } = {
+                  role: memberEditForm.role
+                };
+                // Only include jersey/position for non-supporters
+                if (memberEditForm.role !== "supporter") {
+                  updateData.jerseyNumber = memberEditForm.jerseyNumber;
+                  updateData.position = memberEditForm.position;
+                } else {
+                  // Clear jersey/position for supporters
+                  updateData.jerseyNumber = "";
+                  updateData.position = "";
+                }
+                updateMemberMutation.mutate({ memberId: editingMember.id, data: updateData });
+              }}>Save</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -1326,7 +1382,7 @@ export default function UnifiedDashboard() {
                 <img src={expandedPlay.thumbnailData} alt={expandedPlay.name} className="w-full h-auto" />
               </div>
             )}
-            {userRole === "coach" && (
+            {(userRole === "coach" || isStaff) && (
               <DialogFooter>
                 <Button variant="destructive" onClick={() => { deletePlayMutation.mutate(expandedPlay!.id); setExpandedPlay(null); }}>
                   <Trash2 className="h-4 w-4 mr-2" /> Delete Play

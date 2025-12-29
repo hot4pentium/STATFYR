@@ -27,9 +27,10 @@ Preferred communication style: Simple, everyday language.
 Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 
 ### Role-Based Access
-- **Coaches**: Full dashboard access (roster, events, playbook, stats, chat).
-- **Athletes**: Personal profile, team schedule, stats view, team chat.
-- **Supporters**: Read-only view of team schedule, roster, updates. Includes features for managed athletes.
+- **Coaches**: Full dashboard access (roster, events, playbook, stats, chat, team settings). Can promote/demote team members to staff role.
+- **Staff**: Coach-level access to all features except team settings. Can manage roster, events, playbook, highlights, and stats. Cannot edit coaches or other staff members.
+- **Athletes**: Personal profile, team schedule, stats view, team chat. Require jersey number and position assignment.
+- **Supporters**: Read-only view of team schedule, roster, updates. Do NOT require jersey number or position. Includes features for managed athletes.
 
 ### Core Features
 - **Video Highlights System**: Upload, transcoding (FFmpeg to H.264/AAC MP4), and storage (Replit App Storage) of team video highlights.
