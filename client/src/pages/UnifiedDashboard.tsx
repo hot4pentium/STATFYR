@@ -881,9 +881,6 @@ export default function UnifiedDashboard() {
                   {roleConfig[userRole].title}
                 </h1>
                 <p className="text-white/80 text-sm">Welcome, {userRole === "coach" ? "Coach" : getUserDisplayName()}!</p>
-                <p className="text-lg text-white/90 mt-2 font-light">
-                  {roleConfig[userRole].tagline}
-                </p>
               </div>
             </div>
 
