@@ -465,7 +465,7 @@ export default function ShareableHypeCard(props: any) {
               </div>
 
               <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                <h2 className="text-3xl font-display font-bold mb-1 drop-shadow-lg">
+                <h2 className="text-3xl font-display font-bold mb-1 drop-shadow-lg" style={{ textShadow: '2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000' }}>
                   {athlete.name || athlete.username}
                 </h2>
                 <p className="text-white/80 text-sm mb-4 drop-shadow">
@@ -504,7 +504,7 @@ export default function ShareableHypeCard(props: any) {
               
               <div className="absolute inset-0 p-4 flex flex-col">
                 <div className="text-center mb-3">
-                  <h3 className="text-lg font-display font-bold text-white uppercase tracking-wider">
+                  <h3 className="text-lg font-display font-bold text-white uppercase tracking-wider" style={{ textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000' }}>
                     {athlete.name || athlete.username}
                   </h3>
                   <p className="text-xs text-white/60">{membership?.team?.name || "Athlete Stats"}</p>
