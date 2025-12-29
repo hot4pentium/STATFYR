@@ -65,7 +65,7 @@ function Router() {
       <Route path="/stattracker/:gameId" component={StatTrackerPage} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/change-password" component={ChangePassword} />
-      <Route path="/athlete/hype" component={HypeManager} />
+      <Route path="/athlete/hype-portal" component={HypeManager} />
       <Route component={NotFound} />
     </Switch>
   );

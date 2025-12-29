@@ -226,7 +226,7 @@ export default function HypeManager() {
                 Back
               </Button>
             </Link>
-            <h1 className="text-2xl font-bold" data-testid="text-page-title">HYPE Manager</h1>
+            <h1 className="text-2xl font-bold" data-testid="text-page-title">HYPE Portal</h1>
             <div className="w-20" />
           </div>
 

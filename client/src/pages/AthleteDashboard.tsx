@@ -458,6 +458,33 @@ export default function AthleteDashboard() {
             </div>
           </div>
 
+          {/* HYPE Portal Card - Full Width Horizontal */}
+          <div className="mb-6">
+            <Card 
+              onClick={() => setLocation("/athlete/hype-portal")}
+              className="bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
+              data-testid="card-hype-portal"
+            >
+              <CardContent className="p-4 sm:p-6 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300">
+                  <Flame className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-display font-bold text-lg sm:text-xl uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
+                    HYPE Portal
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Share your HYPE card, post updates, and fire up your followers
+                  </p>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 text-orange-500/70 group-hover:text-orange-500 transition-colors">
+                  <span className="text-sm font-medium">Enter</span>
+                  <ExternalLink className="h-4 w-4" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Section Content */}
           {activeSection && (
             <div ref={contentRef} className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -889,15 +916,15 @@ export default function AthleteDashboard() {
                       </p>
                     )}
                     
-                    {/* HYPE Manager Link */}
-                    <Link href="/athlete/hype">
+                    {/* HYPE Portal Link */}
+                    <Link href="/athlete/hype-portal">
                       <Button
                         variant="outline"
                         className="w-full border-orange-500/50 text-orange-500 hover:bg-orange-500/10"
-                        data-testid="button-hype-manager"
+                        data-testid="button-hype-portal"
                       >
                         <Flame className="h-4 w-4 mr-2" />
-                        Open HYPE Manager
+                        Open HYPE Portal
                       </Button>
                     </Link>
                   </div>
