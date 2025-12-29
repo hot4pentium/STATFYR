@@ -593,22 +593,24 @@ export default function UnifiedDashboard() {
                 <Plus className="h-4 w-4" /> Add Event
               </Button>
             )}
-            <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-              <CardContent className="p-4 flex justify-center">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  month={calendarMonth}
-                  onMonthChange={setCalendarMonth}
-                  modifiers={{
-                    hasEvent: teamEvents.map((e: Event) => new Date(e.date))
-                  }}
-                  modifiersClassNames={{
-                    hasEvent: "bg-primary/30 text-primary font-bold"
-                  }}
-                  className="rounded-md w-full max-w-sm"
-                />
+            <Card className="bg-card/80 backdrop-blur-sm border-white/10 overflow-hidden">
+              <CardContent className="p-4">
+                <div className="flex justify-center">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    month={calendarMonth}
+                    onMonthChange={setCalendarMonth}
+                    modifiers={{
+                      hasEvent: teamEvents.map((e: Event) => new Date(e.date))
+                    }}
+                    modifiersClassNames={{
+                      hasEvent: "bg-primary/30 text-primary font-bold"
+                    }}
+                    className="rounded-md w-full max-w-sm"
+                  />
+                </div>
               </CardContent>
             </Card>
             <div className="space-y-3">
