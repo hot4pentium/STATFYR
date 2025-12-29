@@ -109,4 +109,36 @@ export function onForegroundMessage(callback: (payload: any) => void) {
   });
 }
 
+export async function requestFollowerNotificationPermission(): Promise<string | null> {
+  if (!messaging) {
+    console.log('Firebase messaging not available');
+    return null;
+  }
+
+  try {
+    await registerFirebaseServiceWorker();
+    
+    const permission = await Notification.requestPermission();
+    
+    if (permission === 'granted') {
+      const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+      const swRegistration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
+      
+      const token = await getToken(messaging, { 
+        vapidKey,
+        serviceWorkerRegistration: swRegistration 
+      });
+      console.log('FCM Token obtained for follower');
+      
+      return token;
+    } else {
+      console.log('Notification permission denied');
+      return null;
+    }
+  } catch (error) {
+    console.error('Error getting FCM token:', error);
+    return null;
+  }
+}
+
 export { messaging, firebaseConfig };

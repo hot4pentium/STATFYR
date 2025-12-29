@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, RotateCw } from "lucide-react";
+import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, RotateCw, Bell, BellOff, Users } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { requestFollowerNotificationPermission } from "@/lib/firebase";
 
 type Athlete = {
   id: number;
@@ -118,6 +119,36 @@ async function addProfileComment(athleteId: string, visitorName: string, message
   return res.json();
 }
 
+async function getFollowerCount(athleteId: string): Promise<{ count: number }> {
+  const res = await fetch(`/api/athletes/${athleteId}/followers/count`);
+  if (!res.ok) throw new Error("Failed to fetch follower count");
+  return res.json();
+}
+
+async function checkFollowStatus(athleteId: string, token: string): Promise<{ isFollowing: boolean }> {
+  const res = await fetch(`/api/athletes/${athleteId}/followers/check?token=${encodeURIComponent(token)}`);
+  if (!res.ok) throw new Error("Failed to check follow status");
+  return res.json();
+}
+
+async function followAthlete(athleteId: string, fcmToken: string, followerName: string): Promise<{ follower: any; count: number }> {
+  const res = await fetch(`/api/athletes/${athleteId}/followers`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fcmToken, followerName }),
+  });
+  if (!res.ok) throw new Error("Failed to follow athlete");
+  return res.json();
+}
+
+async function unfollowAthlete(athleteId: string, token: string): Promise<{ success: boolean; count: number }> {
+  const res = await fetch(`/api/athletes/${athleteId}/followers?token=${encodeURIComponent(token)}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to unfollow athlete");
+  return res.json();
+}
+
 export default function ShareableHypeCard(props: any) {
   const athleteId = props.params?.id;
   const [, setLocation] = useLocation();
@@ -126,16 +157,33 @@ export default function ShareableHypeCard(props: any) {
   const [commentMessage, setCommentMessage] = useState("");
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerFcmToken, setFollowerFcmToken] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   // Persist liked state in localStorage to prevent spam
   const likeStorageKey = `profile-liked-${athleteId}`;
+  const fcmTokenStorageKey = `follower-fcm-token-${athleteId}`;
+  
   const [hasLiked, setHasLiked] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem(likeStorageKey) === 'true';
     }
     return false;
   });
+
+  // Load stored FCM token on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && athleteId) {
+      const storedToken = localStorage.getItem(fcmTokenStorageKey);
+      if (storedToken) {
+        setFollowerFcmToken(storedToken);
+        checkFollowStatus(athleteId, storedToken).then(({ isFollowing }) => {
+          setIsFollowing(isFollowing);
+        }).catch(() => {});
+      }
+    }
+  }, [athleteId]);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["/api/athletes", athleteId, "public-profile"],
@@ -152,6 +200,12 @@ export default function ShareableHypeCard(props: any) {
   const { data: comments = [] } = useQuery({
     queryKey: ["/api/athletes", athleteId, "profile-comments"],
     queryFn: () => getProfileComments(athleteId),
+    enabled: !!athleteId,
+  });
+
+  const { data: followerData } = useQuery({
+    queryKey: ["/api/athletes", athleteId, "followers", "count"],
+    queryFn: () => getFollowerCount(athleteId),
     enabled: !!athleteId,
   });
 
@@ -176,6 +230,54 @@ export default function ShareableHypeCard(props: any) {
     },
     onError: () => toast.error("Failed to add comment"),
   });
+
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
+
+  const handleFollow = async () => {
+    if (!visitorName.trim()) {
+      toast.error("Please enter your name first");
+      return;
+    }
+    
+    setIsFollowLoading(true);
+    try {
+      const token = await requestFollowerNotificationPermission();
+      
+      if (!token) {
+        toast.error("Please allow notifications to follow this athlete");
+        setIsFollowLoading(false);
+        return;
+      }
+      
+      await followAthlete(athleteId, token, visitorName.trim());
+      setFollowerFcmToken(token);
+      setIsFollowing(true);
+      localStorage.setItem(fcmTokenStorageKey, token);
+      queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "followers", "count"] });
+      toast.success("You're now following this athlete!");
+    } catch (error) {
+      toast.error("Failed to follow athlete");
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    if (!followerFcmToken) return;
+    
+    setIsFollowLoading(true);
+    try {
+      await unfollowAthlete(athleteId, followerFcmToken);
+      setIsFollowing(false);
+      localStorage.removeItem(fcmTokenStorageKey);
+      queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "followers", "count"] });
+      toast.success("Unfollowed");
+    } catch (error) {
+      toast.error("Failed to unfollow");
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
 
   const handleLike = () => {
     if (!visitorName.trim()) {
@@ -591,6 +693,55 @@ export default function ShareableHypeCard(props: any) {
             </Card>
           </div>
         )}
+
+        {/* Follow Me Section */}
+        <div className="mb-6">
+          <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2">
+            <Bell className="h-5 w-5 text-orange-500" />
+            Follow Me
+            <Badge variant="secondary" className="ml-auto text-xs">
+              <Users className="h-3 w-3 mr-1" />
+              {followerData?.count || 0} followers
+            </Badge>
+          </h3>
+          
+          <Card className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-orange-500/30">
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                Get notified when {athlete.name || athlete.username} shares updates!
+              </p>
+              
+              {!isFollowing ? (
+                <Button
+                  onClick={handleFollow}
+                  disabled={isFollowLoading}
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                  data-testid="button-follow-athlete"
+                >
+                  <Bell className="h-4 w-4 mr-2" />
+                  {isFollowLoading ? 'Setting up...' : 'Follow & Get Notified'}
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <div className="flex-1 flex items-center justify-center gap-2 bg-green-500/20 text-green-600 rounded-lg py-2 px-4">
+                    <Bell className="h-4 w-4 fill-current" />
+                    <span className="text-sm font-medium">Following!</span>
+                  </div>
+                  <Button
+                    onClick={handleUnfollow}
+                    disabled={isFollowLoading}
+                    variant="outline"
+                    size="sm"
+                    className="text-muted-foreground hover:text-destructive"
+                    data-testid="button-unfollow-athlete"
+                  >
+                    <BellOff className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Show Your Support Section */}
         <div className="mb-6">
