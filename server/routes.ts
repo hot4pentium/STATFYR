@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { withRetry } from "./db";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema, insertAthleteFollowerSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
@@ -1710,6 +1710,91 @@ export async function registerRoutes(
         return res.status(400).json({ error: error.errors });
       }
       res.status(500).json({ error: "Failed to add comment" });
+    }
+  });
+
+  // ============ ATHLETE FOLLOWERS ROUTES ============
+
+  // Get follower count for an athlete
+  app.get("/api/athletes/:athleteId/followers/count", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      const count = await storage.getAthleteFollowerCount(athleteId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error getting follower count:", error);
+      res.status(500).json({ error: "Failed to get follower count" });
+    }
+  });
+
+  // Check if a token is following an athlete
+  app.get("/api/athletes/:athleteId/followers/check", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      const fcmToken = req.query.token as string;
+      
+      if (!fcmToken) {
+        return res.json({ isFollowing: false });
+      }
+      
+      const follower = await storage.getAthleteFollowerByToken(athleteId, fcmToken);
+      res.json({ isFollowing: !!follower });
+    } catch (error) {
+      console.error("Error checking follower status:", error);
+      res.status(500).json({ error: "Failed to check follower status" });
+    }
+  });
+
+  // Follow an athlete (public - no auth required)
+  app.post("/api/athletes/:athleteId/followers", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      
+      const athlete = await storage.getUser(athleteId);
+      if (!athlete || athlete.role !== 'athlete') {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
+      
+      const parsed = insertAthleteFollowerSchema.parse({
+        athleteId,
+        fcmToken: req.body.fcmToken,
+        followerName: req.body.followerName || "Anonymous",
+      });
+      
+      if (!parsed.fcmToken) {
+        return res.status(400).json({ error: "FCM token is required" });
+      }
+      
+      const follower = await storage.createAthleteFollower(parsed);
+      const count = await storage.getAthleteFollowerCount(athleteId);
+      
+      res.status(201).json({ follower, count });
+    } catch (error: any) {
+      console.error("Error following athlete:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to follow athlete" });
+    }
+  });
+
+  // Unfollow an athlete
+  app.delete("/api/athletes/:athleteId/followers", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      const fcmToken = req.query.token as string;
+      
+      if (!fcmToken) {
+        return res.status(400).json({ error: "FCM token is required" });
+      }
+      
+      await storage.deleteAthleteFollower(athleteId, fcmToken);
+      const count = await storage.getAthleteFollowerCount(athleteId);
+      
+      res.json({ success: true, count });
+    } catch (error) {
+      console.error("Error unfollowing athlete:", error);
+      res.status(500).json({ error: "Failed to unfollow athlete" });
     }
   });
 
