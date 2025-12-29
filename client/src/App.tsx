@@ -34,6 +34,7 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import ChangePassword from "@/pages/ChangePassword";
 import HypeManager from "@/pages/HypeManager";
 import SuperAdminPanel from "@/pages/SuperAdminPanel";
+import ImpersonationBanner from "@/components/ImpersonationBanner";
 
 function Router() {
   return (
@@ -81,6 +82,7 @@ function App() {
           <PWAProvider>
             <NotificationProvider>
               <TooltipProvider>
+                <ImpersonationBanner />
                 <Toaster />
                 <Router />
               </TooltipProvider>
