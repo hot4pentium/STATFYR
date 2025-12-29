@@ -881,20 +881,9 @@ export default function UnifiedDashboard() {
                   {roleConfig[userRole].title}
                 </h1>
                 <p className="text-white/80 text-sm">Welcome, {userRole === "coach" ? "Coach" : getUserDisplayName()}!</p>
-                {userRole === "athlete" ? (
-                  <p 
-                    className="text-lg mt-2 text-primary cursor-pointer hover:underline"
-                    style={{ fontFamily: "'Permanent Marker', cursive" }}
-                    onClick={() => user && setLocation(`/share/athlete/${user.id}`)}
-                    data-testid="button-view-hype-card"
-                  >
-                    {roleConfig[userRole].tagline}
-                  </p>
-                ) : (
-                  <p className="text-lg text-white/90 mt-2 font-light">
-                    {roleConfig[userRole].tagline}
-                  </p>
-                )}
+                <p className="text-lg text-white/90 mt-2 font-light">
+                  {roleConfig[userRole].tagline}
+                </p>
               </div>
             </div>
 

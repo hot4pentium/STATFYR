@@ -458,13 +458,14 @@ export default function ShareableHypeCard(props: any) {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-4">
-        {/* Flip Card Container */}
-        <div 
-          className="relative mb-6 cursor-pointer" 
-          style={{ aspectRatio: "3/4", perspective: "1000px" }}
-          onClick={() => setIsFlipped(!isFlipped)}
-          data-testid="flip-card"
-        >
+        {/* Flip Card Container - 30% smaller */}
+        <div className="flex justify-center mb-6">
+          <div 
+            className="relative cursor-pointer w-[70%]" 
+            style={{ aspectRatio: "3/4", perspective: "1000px" }}
+            onClick={() => setIsFlipped(!isFlipped)}
+            data-testid="flip-card"
+          >
           <div 
             className="relative w-full h-full transition-transform duration-700"
             style={{ 
