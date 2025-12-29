@@ -12,7 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { requestFollowerNotificationPermission } from "@/lib/firebase";
 
-import logoImage from "@assets/red_logo-removebg-preview_1766535816909.png";
+import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 import clutchImg from "@assets/clutch_1766970267487.png";
 import dominationImg from "@assets/domination_1766970267487.png";
 import gamechangerImg from "@assets/gamechanger_1766970267487.png";

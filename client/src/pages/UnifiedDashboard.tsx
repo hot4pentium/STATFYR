@@ -26,6 +26,7 @@ import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/O
 import { VideoUploader } from "@/components/VideoUploader";
 import { PlaybookCanvas } from "@/components/PlaybookCanvas";
 import { TeamBadge } from "@/components/TeamBadge";
+import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
 import {
   Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, 
@@ -73,7 +74,7 @@ const quickAccessCards: QuickAccessCard[] = [
 
 const roleConfig: Record<UserRole, { title: string; tagline: string }> = {
   coach: { title: "Coach Dashboard", tagline: "Full team access made quick and easy." },
-  athlete: { title: "Athlete Dashboard", tagline: "View HYPE Card" },
+  athlete: { title: "Athlete Dashboard", tagline: "Track your performance and shine." },
   supporter: { title: "Supporter Dashboard", tagline: "Cheer on your favorite athletes." },
 };
 
@@ -801,9 +802,9 @@ export default function UnifiedDashboard() {
             {/* Top Bar */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <TeamBadge badgeId={currentTeam?.badgeId} size="sm" fallbackInitials={currentTeam?.name?.substring(0, 2)} />
-                <span className="font-display font-bold text-lg tracking-wide text-white">
-                  STATF<span className="text-primary">Y</span>R
+                <img src={logoImage} alt="STATFYR" className="h-8 w-8" />
+                <span className="font-display font-bold text-lg tracking-wide text-slate-900 dark:text-white">
+                  STATF<span className="text-orange-500">Y</span>R
                 </span>
               </div>
               <div className="flex items-center gap-2">

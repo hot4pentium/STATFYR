@@ -18,7 +18,7 @@ import { format, isSameDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { VideoUploader } from "@/components/VideoUploader";
-import logoImage from "@assets/red_logo-removebg-preview_1766535816909.png";
+import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
 type SectionType = "schedule" | "roster" | "stats" | "highlights" | "playbook" | "hype-card" | null;
 

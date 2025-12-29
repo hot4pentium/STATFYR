@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useUser } from "@/lib/userContext";
 import { usePWA } from "@/lib/pwaContext";
-import logoImage from "@assets/red_logo-removebg-preview_1766535816909.png";
+import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
 interface LayoutProps {
   children: React.ReactNode;
