@@ -346,6 +346,7 @@ export default function ShareableHypeCard(props: any) {
   };
 
   const handleFollowSubmit = async () => {
+    alert("DEBUG 1: handleFollowSubmit called");
     setFollowError(null);
     
     if (!followFormName.trim()) {
@@ -354,16 +355,15 @@ export default function ShareableHypeCard(props: any) {
     }
     
     setIsFollowLoading(true);
-    console.log('[Follow] Starting follow process...');
+    alert("DEBUG 2: About to request notification permission");
     
     try {
-      console.log('[Follow] Requesting notification permission...');
       let result;
       try {
         result = await requestFollowerNotificationPermission();
-        console.log('[Follow] Permission result:', result);
+        alert("DEBUG 3: Permission result: " + JSON.stringify(result));
       } catch (permError: any) {
-        console.error('[Follow] Permission error:', permError);
+        alert("DEBUG 3-ERROR: " + (permError.message || String(permError)));
         const errorMsg = permError.message || "Failed to set up notifications. Please try again.";
         setFollowError(errorMsg);
         toast.error(errorMsg);
@@ -373,7 +373,7 @@ export default function ShareableHypeCard(props: any) {
       
       if (!result || !result.token) {
         const errorMsg = result?.error || "Please allow notifications to follow this athlete";
-        console.log('[Follow] No token, error:', errorMsg);
+        alert("DEBUG 4: No token, error: " + errorMsg);
         setFollowError(errorMsg);
         toast.error(errorMsg);
         setIsFollowLoading(false);
