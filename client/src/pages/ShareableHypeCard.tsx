@@ -396,6 +396,7 @@ export default function ShareableHypeCard(props: any) {
       console.error('[Follow] Error:', error);
       const errorMsg = error.message || "Failed to follow athlete";
       setFollowError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsFollowLoading(false);
     }
