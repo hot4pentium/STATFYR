@@ -345,10 +345,10 @@ export default function ShareableHypeCard(props: any) {
     
     setIsFollowLoading(true);
     try {
-      const token = await requestFollowerNotificationPermission();
+      const result = await requestFollowerNotificationPermission();
       
-      if (!token) {
-        toast.error("Please allow notifications to follow this athlete");
+      if (!result.token) {
+        toast.error(result.error || "Please allow notifications to follow this athlete");
         setIsFollowLoading(false);
         return;
       }
@@ -356,7 +356,7 @@ export default function ShareableHypeCard(props: any) {
       const res = await fetch(`/api/athletes/${athleteId}/followers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fcmToken: token, followerName: visitorName.trim() }),
+        body: JSON.stringify({ fcmToken: result.token, followerName: visitorName.trim() }),
       });
       
       const data = await res.json();
@@ -365,9 +365,9 @@ export default function ShareableHypeCard(props: any) {
         throw new Error(data.error || "Failed to follow athlete");
       }
       
-      setFollowerFcmToken(token);
+      setFollowerFcmToken(result.token);
       setIsFollowing(true);
-      localStorage.setItem(fcmTokenStorageKey, token);
+      localStorage.setItem(fcmTokenStorageKey, result.token);
       queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "followers", "count"] });
       toast.success("You're now following this athlete!");
     } catch (error: any) {

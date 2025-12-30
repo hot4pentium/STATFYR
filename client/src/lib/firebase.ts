@@ -109,10 +109,10 @@ export function onForegroundMessage(callback: (payload: any) => void) {
   });
 }
 
-export async function requestFollowerNotificationPermission(): Promise<string | null> {
+export async function requestFollowerNotificationPermission(): Promise<{ token: string | null; error?: string }> {
   if (!messaging) {
     console.log('Firebase messaging not available');
-    return null;
+    return { token: null, error: 'Push notifications are not available on this device' };
   }
 
   try {
@@ -130,14 +130,17 @@ export async function requestFollowerNotificationPermission(): Promise<string | 
       });
       console.log('FCM Token obtained for follower');
       
-      return token;
-    } else {
+      return { token };
+    } else if (permission === 'denied') {
       console.log('Notification permission denied');
-      return null;
+      return { token: null, error: 'Notifications are blocked. Please enable them in your browser settings.' };
+    } else {
+      console.log('Notification permission dismissed');
+      return { token: null, error: 'Please allow notifications when prompted to follow this athlete' };
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting FCM token:', error);
-    return null;
+    return { token: null, error: error.message || 'Failed to set up notifications' };
   }
 }
 
