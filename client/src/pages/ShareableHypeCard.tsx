@@ -346,14 +346,17 @@ export default function ShareableHypeCard(props: any) {
   };
 
   const handleFollowSubmit = async () => {
-    alert("DEBUG 1: handleFollowSubmit called");
+    alert("DEBUG 1: handleFollowSubmit called, followFormName=" + followFormName);
     setFollowError(null);
+    alert("DEBUG 1.5: After setFollowError(null)");
     
     if (!followFormName.trim()) {
+      alert("DEBUG 1.6: Name is empty, returning");
       setFollowError("Please enter your name");
       return;
     }
     
+    alert("DEBUG 1.7: Name is valid, about to set loading");
     setIsFollowLoading(true);
     alert("DEBUG 2: About to request notification permission");
     
