@@ -26,6 +26,7 @@ import milestoneImg from "@assets/milestone_1766970267487.png";
 import nextlevelImg from "@assets/nextlevel_1766970267487.png";
 import unstoppableImg from "@assets/unstoppable_1766970267487.png";
 import victoryImg from "@assets/victory_1766970267487.png";
+import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
 const HYPE_TEMPLATES = [
   { id: "clutch", name: "Clutch Performance", image: clutchImg },
@@ -234,7 +235,7 @@ export default function HypeManager() {
             <Card className="bg-gradient-to-br from-zinc-900 to-zinc-800 border-zinc-700">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg text-white flex items-center gap-2">
-                  <Flame className="h-5 w-5 text-orange-500" />
+                  <img src={logoImage} alt="STATFYR" className="h-5 w-5 object-contain" />
                   Your HYPE Card
                 </CardTitle>
               </CardHeader>
