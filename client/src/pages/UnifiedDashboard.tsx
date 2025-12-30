@@ -987,27 +987,27 @@ export default function UnifiedDashboard() {
                 <h1 className="text-2xl font-display font-bold text-primary uppercase tracking-wide">
                   {roleConfig[userRole].title}
                 </h1>
-                <p className="text-white/80 text-sm">Welcome, {userRole === "coach" ? "Coach" : isStaff ? "Staff" : getUserDisplayName()}!</p>
+                <p className="text-slate-600 dark:text-white/80 text-sm">Welcome, {userRole === "coach" ? "Coach" : isStaff ? "Staff" : getUserDisplayName()}!</p>
               </div>
             </div>
 
             {/* User Info */}
             <div className="mt-4">
               <p className="text-primary font-semibold">{userRole === "coach" ? `Coach ${getUserDisplayName()}` : isStaff ? `Staff ${getUserDisplayName()}` : getUserDisplayName()}</p>
-              <p className="text-white/60 text-sm">{getRoleLabel()}</p>
+              <p className="text-slate-500 dark:text-white/60 text-sm">{getRoleLabel()}</p>
             </div>
 
             {/* View Selector - Supporters Only */}
             {userRole === "supporter" && managedAthletes.length > 0 && (
               <div className="mt-4 bg-[#5e5a5a00]">
-                <Label className="text-white/60 text-xs uppercase tracking-wide mb-2 block">
+                <Label className="text-slate-500 dark:text-white/60 text-xs uppercase tracking-wide mb-2 block">
                   {supporterViewMode === "supporter" ? "My Dashboard" : "Viewing Athlete Profile"}
                 </Label>
                 <Select 
                   value={supporterViewMode === "supporter" ? "my-dashboard" : (selectedManagedAthleteId || "")} 
                   onValueChange={handleSupporterViewChange}
                 >
-                  <SelectTrigger className="w-full bg-white/10 border-white/20 text-white" data-testid="select-supporter-view">
+                  <SelectTrigger className="w-full bg-slate-100 dark:bg-white/10 border-slate-300 dark:border-white/20 text-slate-900 dark:text-white" data-testid="select-supporter-view">
                     <SelectValue placeholder="Select view" />
                   </SelectTrigger>
                   <SelectContent>
