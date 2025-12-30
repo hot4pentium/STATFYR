@@ -3058,7 +3058,9 @@ export async function registerRoutes(
   // Get all teams with members (for admin panel)
   app.get("/api/admin/teams", requireSuperAdmin, async (req, res) => {
     try {
+      console.log("[Admin] Fetching all teams...");
       const allTeams = await storage.getAllTeams();
+      console.log("[Admin] Found", allTeams.length, "teams:", allTeams.map(t => t.name));
       const teamsWithMembers = await Promise.all(
         allTeams.map(async (team) => {
           const members = await storage.getTeamMembers(team.id);
@@ -3073,6 +3075,7 @@ export async function registerRoutes(
           return { ...team, members, coach: safeCoach, memberCount: members.length };
         })
       );
+      console.log("[Admin] Returning", teamsWithMembers.length, "teams with members");
       res.json(teamsWithMembers);
     } catch (error) {
       console.error("Admin get teams failed:", error);
