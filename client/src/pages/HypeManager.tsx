@@ -292,7 +292,7 @@ export default function HypeManager() {
             <Card className="bg-gradient-to-br from-orange-900/50 to-zinc-900 border-orange-700/50">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg text-white flex items-center gap-2">
-                  <Flame className="h-5 w-5 text-orange-500" />
+                  <img src={logoImage} alt="STATFYR" className="h-5 w-5 object-contain" />
                   FYR IT OUT!
                 </CardTitle>
               </CardHeader>
