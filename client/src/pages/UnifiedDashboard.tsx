@@ -1235,8 +1235,8 @@ export default function UnifiedDashboard() {
                 data-testid="card-hype-portal"
               >
                 <CardContent className="p-4 sm:p-5 flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <Flame className="h-6 w-6 text-white" />
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <img src={logoImage} alt="STATFYR" className="h-8 w-8 object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-display font-bold text-lg uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
