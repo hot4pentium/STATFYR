@@ -7,6 +7,7 @@ import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
 import path from "path";
+import fs from "fs";
 import bcrypt from "bcrypt";
 import { sendPushNotification } from "./firebaseAdmin";
 import { WebSocketServer, WebSocket } from "ws";
@@ -1528,29 +1529,37 @@ export async function registerRoutes(
     try {
       const athleteId = req.params.athleteId;
       
-      // Get athlete data
-      const athlete = await storage.getUser(athleteId);
-      if (!athlete) {
-        return res.status(404).json({ error: "Athlete not found" });
-      }
-      
-      // Get team info for sport
-      const memberships = await storage.getUserTeamMemberships(athleteId);
-      const membership = memberships.length > 0 ? memberships[0] : null;
+      // Default values in case athlete lookup fails
+      let athleteName = "Athlete";
       let teamName = "";
-      if (membership) {
-        const team = await storage.getTeam(membership.teamId.toString());
-        teamName = team?.name || "";
+      let athleteAvatar: string | null = null;
+      
+      // Try to get athlete data (but still serve manifest if not found)
+      try {
+        const athlete = await storage.getUser(athleteId);
+        if (athlete) {
+          athleteName = athlete.name || athlete.username;
+          athleteAvatar = athlete.avatar;
+          
+          // Get team info for sport
+          const memberships = await storage.getUserTeamMemberships(athleteId);
+          const membership = memberships.length > 0 ? memberships[0] : null;
+          if (membership) {
+            const team = await storage.getTeam(membership.teamId.toString());
+            teamName = team?.name || "";
+          }
+        }
+      } catch (e) {
+        console.log("Could not fetch athlete for manifest:", e);
       }
       
-      const athleteName = athlete.name || athlete.username;
       const appName = `${athleteName} HYPE`;
       const shortName = athleteName.substring(0, 12);
       const description = teamName 
         ? `Follow ${athleteName} from ${teamName} - Get updates and show your support!`
         : `Follow ${athleteName} - Get updates and show your support!`;
       
-      // Build the manifest
+      // Build the manifest - always serve a valid manifest for PWA install
       const manifest = {
         name: appName,
         short_name: shortName,
@@ -1563,13 +1572,13 @@ export async function registerRoutes(
         background_color: "#0a0a0a",
         icons: [
           {
-            src: athlete.avatar || "/icon-192.png",
+            src: athleteAvatar || "/icon-192.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "any maskable"
           },
           {
-            src: athlete.avatar || "/icon-512.png",
+            src: athleteAvatar || "/icon-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any maskable"
@@ -3059,6 +3068,77 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Admin get teams failed:", error);
       res.status(500).json({ error: "Failed to get teams" });
+    }
+  });
+
+  // Serve shareable HYPE card pages with athlete-specific manifest for PWA install
+  app.get("/share/athlete/:athleteId", async (req, res, next) => {
+    try {
+      const athleteId = req.params.athleteId;
+      
+      // Determine HTML template path based on environment
+      // Use process.cwd() for base path since __dirname isn't available in ES modules
+      let htmlPath: string;
+      if (process.env.NODE_ENV === "production") {
+        // In production, the server runs from dist/ and static files are in dist/public/
+        htmlPath = path.resolve(process.cwd(), "dist", "public", "index.html");
+      } else {
+        // In development, read from the source client folder
+        htmlPath = path.resolve(process.cwd(), "client", "index.html");
+      }
+      
+      // Read and modify HTML
+      let html = fs.readFileSync(htmlPath, "utf-8");
+      
+      // Try to get athlete data for meta tags (but still serve even if not found)
+      let athleteName = "Athlete";
+      try {
+        const athlete = await storage.getUser(athleteId);
+        if (athlete) {
+          athleteName = athlete.name || athlete.username;
+        }
+      } catch (e) {
+        console.log("Could not fetch athlete for meta tags:", e);
+      }
+      
+      // Always inject athlete-specific manifest (most important for PWA install)
+      // Use specific regex to target manifest link with /manifest.json href
+      html = html.replace(
+        /<link\s+rel=["']manifest["']\s+href=["']\/manifest\.json["']\s*\/?>/i,
+        `<link rel="manifest" href="/api/athletes/${athleteId}/manifest.json" />`
+      );
+      
+      // Update apple-mobile-web-app-title (handle both tag styles)
+      html = html.replace(
+        /<meta\s+name=["']apple-mobile-web-app-title["']\s+content=["'][^"']*["']\s*\/?>/i,
+        `<meta name="apple-mobile-web-app-title" content="${athleteName} HYPE" />`
+      );
+      
+      // Update page title
+      html = html.replace(
+        /<title>[^<]*<\/title>/i,
+        `<title>${athleteName} HYPE Card - STATFYR</title>`
+      );
+      
+      // Update OG title
+      html = html.replace(
+        /<meta\s+property=["']og:title["']\s+content=["'][^"']*["']\s*\/?>/i,
+        `<meta property="og:title" content="${athleteName} HYPE Card" />`
+      );
+      
+      // Update Twitter title
+      html = html.replace(
+        /<meta\s+name=["']twitter:title["']\s+content=["'][^"']*["']\s*\/?>/i,
+        `<meta name="twitter:title" content="${athleteName} HYPE Card" />`
+      );
+      
+      // Serve the modified HTML directly
+      // In production, this serves the built HTML
+      // In development, this bypasses Vite but ensures correct manifest
+      res.status(200).set({ "Content-Type": "text/html" }).end(html);
+    } catch (error) {
+      console.error("Error serving HYPE card HTML:", error);
+      next(error);
     }
   });
 
