@@ -255,6 +255,9 @@ export default function UnifiedDashboard() {
 
   // Handle view selection change for supporters
   const handleSupporterViewChange = (value: string) => {
+    // Clear selected card when switching views to prevent accessing restricted content
+    setSelectedCard(null);
+    
     if (value === "my-dashboard") {
       setSupporterViewMode("supporter");
       setSelectedManagedAthleteId(null);
