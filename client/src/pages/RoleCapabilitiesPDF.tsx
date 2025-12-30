@@ -81,7 +81,7 @@ const roleData: RoleData[] = [
       { feature: "Playbook", access: "View plays" },
       { feature: "StatTracker", access: "NO ACCESS" },
       { feature: "Stats", access: "NO ACCESS (own dashboard)" },
-      { feature: "Highlights", access: "View only" },
+      { feature: "Highlights", access: "View & upload" },
       { feature: "Team Chat", access: "Full access" },
       { feature: "Team Settings", access: "NO ACCESS" },
       { feature: "Team Code", access: "NO ACCESS" },

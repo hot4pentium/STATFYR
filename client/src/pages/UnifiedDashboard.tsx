@@ -794,7 +794,7 @@ export default function UnifiedDashboard() {
         )}
         {selectedCard === "highlights" && (
           <div className="space-y-4">
-            {(userRole === "coach" || isStaff || userRole === "athlete" || (userRole === "supporter" && supporterViewMode === "athlete")) && currentTeam && user && (
+            {currentTeam && user && (
               <VideoUploader teamId={currentTeam.id} userId={user.id} onUploadComplete={() => refetchHighlights()} />
             )}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
