@@ -1,5 +1,62 @@
 import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage, type Messaging } from 'firebase/messaging';
+import { getMessaging, getToken, onMessage, isSupported, type Messaging } from 'firebase/messaging';
+
+// Platform detection helpers
+export function isIOS(): boolean {
+  if (typeof window === 'undefined') return false;
+  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || '';
+  return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
+}
+
+export function isSafari(): boolean {
+  if (typeof window === 'undefined') return false;
+  const userAgent = navigator.userAgent;
+  return /^((?!chrome|android).)*safari/i.test(userAgent);
+}
+
+export function isStandalonePWA(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         (window.navigator as any).standalone === true;
+}
+
+export function getPushNotificationStatus(): { 
+  supported: boolean; 
+  reason?: string; 
+  instructions?: string;
+} {
+  if (typeof window === 'undefined') {
+    return { supported: false, reason: 'Not in browser environment' };
+  }
+
+  // Check if Notification API exists
+  if (!('Notification' in window)) {
+    if (isIOS()) {
+      return { 
+        supported: false, 
+        reason: 'iOS requires this app to be installed',
+        instructions: 'Tap the Share button, then "Add to Home Screen". Open the app from your home screen to enable notifications.'
+      };
+    }
+    return { supported: false, reason: 'Notifications are not supported in this browser' };
+  }
+
+  // iOS Safari in browser (not PWA)
+  if (isIOS() && !isStandalonePWA()) {
+    return { 
+      supported: false, 
+      reason: 'iOS requires this app to be installed',
+      instructions: 'Tap the Share button, then "Add to Home Screen". Open the app from your home screen to enable notifications.'
+    };
+  }
+
+  // Check service worker support
+  if (!('serviceWorker' in navigator)) {
+    return { supported: false, reason: 'Service workers are not supported in this browser' };
+  }
+
+  return { supported: true };
+}
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -109,9 +166,28 @@ export function onForegroundMessage(callback: (payload: any) => void) {
   });
 }
 
-export async function requestFollowerNotificationPermission(): Promise<{ token: string | null; error?: string }> {
+export async function requestFollowerNotificationPermission(): Promise<{ token: string | null; error?: string; instructions?: string }> {
+  // First check platform support
+  const platformStatus = getPushNotificationStatus();
+  if (!platformStatus.supported) {
+    console.log('Platform does not support push:', platformStatus.reason);
+    return { 
+      token: null, 
+      error: platformStatus.reason,
+      instructions: platformStatus.instructions
+    };
+  }
+
   if (!messaging) {
     console.log('Firebase messaging not available');
+    // Check if it's Safari which has limited FCM support
+    if (isSafari() && !isIOS()) {
+      return { 
+        token: null, 
+        error: 'Safari has limited notification support',
+        instructions: 'For the best experience, try using Chrome, Firefox, or Edge browser.'
+      };
+    }
     return { token: null, error: 'Push notifications are not available on this device' };
   }
 
@@ -133,7 +209,18 @@ export async function requestFollowerNotificationPermission(): Promise<{ token: 
       return { token };
     } else if (permission === 'denied') {
       console.log('Notification permission denied');
-      return { token: null, error: 'Notifications are blocked. Please enable them in your browser settings.' };
+      if (isIOS()) {
+        return { 
+          token: null, 
+          error: 'Notifications are blocked',
+          instructions: 'Go to Settings > Notifications > find this app and enable notifications.'
+        };
+      }
+      return { 
+        token: null, 
+        error: 'Notifications are blocked',
+        instructions: 'Click the lock icon in your browser address bar and enable notifications for this site.'
+      };
     } else {
       console.log('Notification permission dismissed');
       return { token: null, error: 'Please allow notifications when prompted to follow this athlete' };

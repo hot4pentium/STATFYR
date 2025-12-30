@@ -337,16 +337,19 @@ export default function ShareableHypeCard(props: any) {
 
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [followError, setFollowError] = useState<string | null>(null);
+  const [followInstructions, setFollowInstructions] = useState<string | null>(null);
   const [showFollowForm, setShowFollowForm] = useState(false);
   const [followFormName, setFollowFormName] = useState("");
 
   const handleFollowClick = () => {
     setFollowError(null);
+    setFollowInstructions(null);
     setShowFollowForm(true);
   };
 
   const handleFollowSubmit = async () => {
     setFollowError(null);
+    setFollowInstructions(null);
     
     if (!followFormName.trim()) {
       setFollowError("Please enter your name");
@@ -356,7 +359,7 @@ export default function ShareableHypeCard(props: any) {
     setIsFollowLoading(true);
     
     try {
-      let result: { token?: string | null; error?: string } | undefined;
+      let result: { token?: string | null; error?: string; instructions?: string } | undefined;
       try {
         result = await requestFollowerNotificationPermission();
       } catch (permError: any) {
@@ -368,11 +371,11 @@ export default function ShareableHypeCard(props: any) {
       }
       
       if (!result || !result.token) {
-        let errorMsg = result?.error || "Please allow notifications to follow this athlete";
-        if (errorMsg.includes("blocked")) {
-          errorMsg = "Notifications are blocked. Please enable them in your browser settings and try again.";
-        }
+        const errorMsg = result?.error || "Please allow notifications to follow this athlete";
         setFollowError(errorMsg);
+        if (result?.instructions) {
+          setFollowInstructions(result.instructions);
+        }
         toast.error(errorMsg);
         setIsFollowLoading(false);
         return;
@@ -952,8 +955,11 @@ export default function ShareableHypeCard(props: any) {
                     autoFocus
                   />
                   {followError && (
-                    <div className="p-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm">
-                      {followError}
+                    <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg space-y-2">
+                      <p className="text-red-400 text-sm font-medium">{followError}</p>
+                      {followInstructions && (
+                        <p className="text-amber-400 text-xs">{followInstructions}</p>
+                      )}
                     </div>
                   )}
                   <div className="flex gap-2">
@@ -972,6 +978,7 @@ export default function ShareableHypeCard(props: any) {
                       onClick={() => {
                         setShowFollowForm(false);
                         setFollowError(null);
+                        setFollowInstructions(null);
                         setFollowFormName("");
                       }}
                       variant="outline"
