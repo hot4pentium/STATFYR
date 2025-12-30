@@ -1235,7 +1235,7 @@ export default function UnifiedDashboard() {
                 data-testid="card-hype-portal"
               >
                 <CardContent className="p-4 sm:p-5 flex items-center gap-4">
-                  <div className="p-2 rounded-xl from-orange-500 to-red-500 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300 bg-[#bab3b300]">
+                  <div className="p-2 rounded-xl from-orange-500 to-red-500 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300 bg-[#a8a2a000]">
                     <img src={logoImage} alt="STATFYR" className="h-8 w-8 object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">
