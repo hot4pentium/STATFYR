@@ -1863,25 +1863,33 @@ export async function registerRoutes(
   // FYR - Send push notification to all athlete followers
   app.post("/api/athletes/:athleteId/fyr", async (req, res) => {
     try {
+      console.log("[FYR API] Request received");
       const athleteId = req.params.athleteId;
       const userId = req.query.userId as string;
+      console.log("[FYR API] athleteId:", athleteId, "userId:", userId);
       
       if (!userId) {
+        console.log("[FYR API] No userId provided");
         return res.status(401).json({ error: "Authentication required" });
       }
       
       const athlete = await storage.getUser(athleteId);
       if (!athlete || athlete.role !== 'athlete') {
+        console.log("[FYR API] Athlete not found or wrong role");
         return res.status(404).json({ error: "Athlete not found" });
       }
+      console.log("[FYR API] Athlete found:", athlete.username);
       
       if (athleteId !== userId) {
+        console.log("[FYR API] User mismatch");
         return res.status(403).json({ error: "You can only FYR your own HYPE card" });
       }
       
       const followers = await storage.getAthleteFollowers(athleteId);
+      console.log("[FYR API] Found", followers.length, "followers");
       
       if (followers.length === 0) {
+        console.log("[FYR API] No followers, returning early");
         return res.json({ 
           success: true, 
           message: "No followers to notify",
@@ -1891,6 +1899,8 @@ export async function registerRoutes(
       }
       
       const tokens = followers.map(f => f.fcmToken);
+      console.log("[FYR API] Token count:", tokens.length);
+      
       const athleteName = athlete.firstName && athlete.lastName 
         ? `${athlete.firstName} ${athlete.lastName}` 
         : athlete.name || athlete.username;
@@ -1901,7 +1911,8 @@ export async function registerRoutes(
           ? `https://${process.env.REPLIT_DEV_DOMAIN}`
           : '';
       
-      const hypeCardUrl = `${baseUrl}/athlete/${athleteId}`;
+      const hypeCardUrl = `${baseUrl}/share/athlete/${athleteId}`;
+      console.log("[FYR API] Sending notification to:", hypeCardUrl);
       
       const result = await sendPushNotification(
         tokens,
@@ -1910,8 +1921,10 @@ export async function registerRoutes(
         { athleteId, type: 'fyr' },
         hypeCardUrl
       );
+      console.log("[FYR API] Push result:", JSON.stringify(result));
       
       if (result.invalidTokens.length > 0) {
+        console.log("[FYR API] Cleaning up", result.invalidTokens.length, "invalid tokens");
         for (const token of result.invalidTokens) {
           await storage.deleteAthleteFollower(athleteId, token);
         }
@@ -1919,15 +1932,17 @@ export async function registerRoutes(
       
       const remainingCount = await storage.getAthleteFollowerCount(athleteId);
       
-      res.json({
+      const response = {
         success: result.success,
         successCount: result.successCount,
         failureCount: result.failureCount,
         invalidTokensRemoved: result.invalidTokens.length,
         remainingFollowers: remainingCount
-      });
+      };
+      console.log("[FYR API] Sending response:", JSON.stringify(response));
+      res.json(response);
     } catch (error) {
-      console.error("Error sending FYR notification:", error);
+      console.error("[FYR API] Error:", error);
       res.status(500).json({ error: "Failed to send FYR notification" });
     }
   });

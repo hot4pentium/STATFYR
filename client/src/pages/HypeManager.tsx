@@ -143,11 +143,16 @@ export default function HypeManager() {
   });
 
   const handleFYR = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log("[FYR] No user ID");
+      toast.error("Please log in first");
+      return;
+    }
 
+    console.log("[FYR] Starting FYR request for user:", user.id);
     setIsFyring(true);
     try {
-      const res = await fetch(`/api/athletes/${user.id}/fyr`, {
+      const res = await fetch(`/api/athletes/${user.id}/fyr?userId=${user.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -156,7 +161,9 @@ export default function HypeManager() {
         }),
       });
 
+      console.log("[FYR] Response status:", res.status);
       const data = await res.json();
+      console.log("[FYR] Response data:", JSON.stringify(data));
 
       if (!res.ok) {
         throw new Error(data.error || "Failed to send FYR");
@@ -165,13 +172,17 @@ export default function HypeManager() {
       queryClient.invalidateQueries({ queryKey: ["/api/athletes", user.id, "followers", "count"] });
 
       if (data.successCount > 0) {
+        console.log("[FYR] Success! Sent to", data.successCount, "followers");
         toast.success(`FYR sent to ${data.successCount} follower${data.successCount > 1 ? "s" : ""}!`);
       } else if (data.failureCount > 0) {
+        console.log("[FYR] Failure count:", data.failureCount);
         toast.error(`Failed to send notifications. ${data.failureCount} failed.`);
       } else {
+        console.log("[FYR] No followers found");
         toast.info("No followers to notify yet. Share your HYPE card link!");
       }
     } catch (error: any) {
+      console.error("[FYR] Error:", error);
       toast.error(error.message || "Failed to send FYR");
     } finally {
       setIsFyring(false);
