@@ -28,7 +28,11 @@ export function PWAProvider({ children }: PWAProviderProps) {
     let intervalId: ReturnType<typeof setInterval> | null = null;
 
     const handleControllerChange = () => {
-      window.location.reload();
+      // Only reload if the main service worker changed, not the Firebase messaging worker
+      const controller = navigator.serviceWorker.controller;
+      if (controller && controller.scriptURL.includes('service-worker.js')) {
+        window.location.reload();
+      }
     };
 
     const registerSW = async () => {
