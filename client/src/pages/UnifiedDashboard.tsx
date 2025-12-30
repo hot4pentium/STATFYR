@@ -146,10 +146,15 @@ export default function UnifiedDashboard() {
     return userRole;
   }, [isStaff, userRole]);
 
-  const visibleCards = useMemo(() => 
-    quickAccessCards.filter(card => card.roles.includes(effectiveRole)),
-    [effectiveRole]
-  );
+  const visibleCards = useMemo(() => {
+    // When supporter is viewing a managed athlete's profile, show athlete-appropriate cards
+    // but exclude coach-only tools like playmaker and stattracker
+    if (userRole === "supporter" && supporterViewMode === "athlete") {
+      const allowedCardIds = ["roster", "schedule", "playbook", "stats", "highlights"];
+      return quickAccessCards.filter(card => allowedCardIds.includes(card.id));
+    }
+    return quickAccessCards.filter(card => card.roles.includes(effectiveRole));
+  }, [effectiveRole, userRole, supporterViewMode]);
 
   const { data: teamEvents = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "events"],
