@@ -34,6 +34,7 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import ChangePassword from "@/pages/ChangePassword";
 import HypeManager from "@/pages/HypeManager";
 import SuperAdminPanel from "@/pages/SuperAdminPanel";
+import RoleCapabilitiesPDF from "@/pages/RoleCapabilitiesPDF";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
 
 function Router() {
@@ -69,6 +70,7 @@ function Router() {
       <Route path="/super-admin" component={SuperAdminPanel} />
       <Route path="/change-password" component={ChangePassword} />
       <Route path="/athlete/hype-portal" component={HypeManager} />
+      <Route path="/role-capabilities" component={RoleCapabilitiesPDF} />
       <Route component={NotFound} />
     </Switch>
   );
