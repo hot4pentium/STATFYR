@@ -1091,8 +1091,36 @@ export default function UnifiedDashboard() {
                 </CardContent>
               </Card>
             </div>
+            {/* Quick Access Cards Grid for Managed Athlete */}
+            <div className="mb-6">
+              <h3 className="text-xl font-display font-bold uppercase tracking-wide mb-4">Quick Access</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {visibleCards.map((card) => (
+                  <Card
+                    key={card.id}
+                    className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""}`}
+                    onClick={() => handleCardClick(card.id)}
+                    data-testid={`card-${card.id}`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <card.icon className={`h-6 w-6 ${card.color} shrink-0`} />
+                        <div className="min-w-0">
+                          <p className="font-semibold">{card.name}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-2">{card.description}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Content Area */}
+            {renderContent()}
+
             {/* Athlete's Highlights */}
-            <div className="space-y-4">
+            <div className="space-y-4 mt-6">
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
                 {selectedManagedAthlete.athlete.firstName}'s Highlights
               </h3>
