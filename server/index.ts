@@ -72,6 +72,57 @@ app.use((req, res, next) => {
     throw err;
   });
 
+  // Middleware to inject athlete-specific manifest for shareable HYPE cards
+  // This intercepts HTML responses for /share/athlete/:id routes and rewrites the manifest link
+  app.use((req, res, next) => {
+    const shareMatch = req.path.match(/^\/share\/athlete\/([^/?]+)/);
+    if (!shareMatch) {
+      return next();
+    }
+    
+    const athleteId = shareMatch[1];
+    const originalEnd = res.end.bind(res);
+    const chunks: Buffer[] = [];
+    
+    // Override write to capture response chunks
+    const originalWrite = res.write.bind(res);
+    res.write = function(chunk: any, ...args: any[]): boolean {
+      if (chunk) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+      return true; // Don't actually write yet
+    } as any;
+    
+    // Override end to process and send the complete response
+    res.end = function(chunk?: any, ...args: any[]): Response {
+      if (chunk) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+      
+      // Check if this is HTML content
+      const contentType = res.getHeader('Content-Type');
+      if (contentType && typeof contentType === 'string' && contentType.includes('text/html')) {
+        let html = Buffer.concat(chunks).toString('utf-8');
+        
+        // Inject athlete-specific manifest
+        html = html.replace(
+          /<link\s+rel=["']manifest["']\s+href=["']\/manifest\.json["']\s*\/?>/i,
+          `<link rel="manifest" href="/api/athletes/${athleteId}/manifest.json" />`
+        );
+        
+        // Update content-length header
+        res.setHeader('Content-Length', Buffer.byteLength(html));
+        return originalEnd(html) as Response;
+      }
+      
+      // For non-HTML responses, send as-is
+      const body = Buffer.concat(chunks);
+      return originalEnd(body) as Response;
+    } as any;
+    
+    next();
+  });
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
