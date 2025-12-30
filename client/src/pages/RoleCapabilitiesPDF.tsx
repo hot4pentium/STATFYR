@@ -82,7 +82,7 @@ const roleData: RoleData[] = [
       { feature: "StatTracker", access: "NO ACCESS" },
       { feature: "Stats", access: "NO ACCESS (own dashboard)" },
       { feature: "Highlights", access: "View only" },
-      { feature: "Team Chat", access: "NO ACCESS" },
+      { feature: "Team Chat", access: "Full access" },
       { feature: "Team Settings", access: "NO ACCESS" },
       { feature: "Team Code", access: "NO ACCESS" },
       { feature: "Game Day Live", access: "Send shoutouts & taps" },

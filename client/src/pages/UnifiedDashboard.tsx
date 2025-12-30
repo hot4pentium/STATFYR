@@ -68,7 +68,7 @@ const quickAccessCards: QuickAccessCard[] = [
   { id: "stattracker", name: "StatTracker", description: "Live game stat tracking.", icon: Activity, color: "text-orange-500", roles: ["coach"] },
   { id: "highlights", name: "Highlights", description: "Team video highlights.", icon: Video, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
   { id: "gamedaylive", name: "Game Day Live", description: "Live engagement sessions.", icon: Radio, color: "text-orange-500", roles: ["supporter"] },
-  { id: "chat", name: "Team Chat", description: "Message your team.", icon: MessageSquare, color: "text-orange-500", roles: ["coach", "athlete"] },
+  { id: "chat", name: "Team Chat", description: "Message your team.", icon: MessageSquare, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
 ];
 
 const roleConfig: Record<UserRole, { title: string; tagline: string }> = {
