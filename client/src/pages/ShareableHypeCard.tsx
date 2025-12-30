@@ -358,11 +358,21 @@ export default function ShareableHypeCard(props: any) {
     
     try {
       console.log('[Follow] Requesting notification permission...');
-      const result = await requestFollowerNotificationPermission();
-      console.log('[Follow] Permission result:', result);
+      let result;
+      try {
+        result = await requestFollowerNotificationPermission();
+        console.log('[Follow] Permission result:', result);
+      } catch (permError: any) {
+        console.error('[Follow] Permission error:', permError);
+        const errorMsg = permError.message || "Failed to set up notifications. Please try again.";
+        setFollowError(errorMsg);
+        toast.error(errorMsg);
+        setIsFollowLoading(false);
+        return;
+      }
       
-      if (!result.token) {
-        const errorMsg = result.error || "Please allow notifications to follow this athlete";
+      if (!result || !result.token) {
+        const errorMsg = result?.error || "Please allow notifications to follow this athlete";
         console.log('[Follow] No token, error:', errorMsg);
         setFollowError(errorMsg);
         toast.error(errorMsg);
@@ -950,6 +960,7 @@ export default function ShareableHypeCard(props: any) {
                   )}
                   <div className="flex gap-2">
                     <Button
+                      type="button"
                       onClick={handleFollowSubmit}
                       disabled={isFollowLoading || !followFormName.trim()}
                       className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white disabled:opacity-50"
@@ -959,6 +970,7 @@ export default function ShareableHypeCard(props: any) {
                       {isFollowLoading ? 'Setting up...' : 'Get Notified'}
                     </Button>
                     <Button
+                      type="button"
                       onClick={() => {
                         setShowFollowForm(false);
                         setFollowError(null);
