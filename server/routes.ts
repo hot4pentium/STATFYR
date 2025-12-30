@@ -430,41 +430,7 @@ export async function registerRoutes(
     }
   });
 
-  // Admin routes
-  app.get("/api/admin/teams", async (req, res) => {
-    try {
-      const allTeams = await storage.getAllTeams();
-      const teamsWithMembers = await Promise.all(
-        allTeams.map(async (team) => {
-          const members = await storage.getTeamMembers(team.id);
-          let safeCoach = null;
-          if (team.coachId) {
-            const coach = await storage.getUser(team.coachId);
-            if (coach) {
-              const { password: _, ...rest } = coach;
-              safeCoach = rest;
-            }
-          }
-          return { ...team, members, coach: safeCoach };
-        })
-      );
-      res.json(teamsWithMembers);
-    } catch (error) {
-      console.error("Failed to get all teams:", error);
-      res.status(500).json({ error: "Failed to get all teams" });
-    }
-  });
-
-  app.get("/api/admin/users", async (req, res) => {
-    try {
-      const allUsers = await storage.getAllUsers();
-      const safeUsers = allUsers.map(({ password, ...user }) => user);
-      res.json(safeUsers);
-    } catch (error) {
-      console.error("Failed to get all users:", error);
-      res.status(500).json({ error: "Failed to get all users" });
-    }
-  });
+  // Admin routes - note: /api/admin/teams and /api/admin/users are defined later with requireSuperAdmin
 
   app.post("/api/admin/teams/:teamId/members", async (req, res) => {
     try {
@@ -3096,13 +3062,33 @@ export async function registerRoutes(
       const teamsWithMembers = await Promise.all(
         allTeams.map(async (team) => {
           const members = await storage.getTeamMembers(team.id);
-          return { ...team, members, memberCount: members.length };
+          let safeCoach = null;
+          if (team.coachId) {
+            const coach = await storage.getUser(team.coachId);
+            if (coach) {
+              const { password: _, ...rest } = coach;
+              safeCoach = rest;
+            }
+          }
+          return { ...team, members, coach: safeCoach, memberCount: members.length };
         })
       );
       res.json(teamsWithMembers);
     } catch (error) {
       console.error("Admin get teams failed:", error);
       res.status(500).json({ error: "Failed to get teams" });
+    }
+  });
+
+  // Get all users (for admin panel)
+  app.get("/api/admin/users", requireSuperAdmin, async (req, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const safeUsers = allUsers.map(({ password, ...user }) => user);
+      res.json(safeUsers);
+    } catch (error) {
+      console.error("Admin get users failed:", error);
+      res.status(500).json({ error: "Failed to get users" });
     }
   });
 
