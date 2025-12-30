@@ -107,8 +107,30 @@ async function registerFirebaseServiceWorker() {
   if (!('serviceWorker' in navigator)) return null;
   
   try {
-    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    // Check if already registered
+    let registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
     
+    if (!registration) {
+      console.log('[FCM] Registering new service worker...');
+      registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    } else {
+      console.log('[FCM] Service worker already registered');
+    }
+    
+    // Wait for service worker to be ready
+    if (registration.installing) {
+      console.log('[FCM] Waiting for service worker to install...');
+      await new Promise<void>((resolve) => {
+        const worker = registration!.installing!;
+        worker.addEventListener('statechange', () => {
+          if (worker.state === 'activated') {
+            resolve();
+          }
+        });
+      });
+    }
+    
+    // Send config to active worker
     if (registration.active) {
       registration.active.postMessage({
         type: 'FIREBASE_CONFIG',
@@ -116,23 +138,9 @@ async function registerFirebaseServiceWorker() {
       });
     }
     
-    registration.addEventListener('updatefound', () => {
-      const newWorker = registration.installing;
-      if (newWorker) {
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'activated') {
-            newWorker.postMessage({
-              type: 'FIREBASE_CONFIG',
-              config: firebaseConfig,
-            });
-          }
-        });
-      }
-    });
-    
     return registration;
   } catch (error) {
-    console.error('Firebase SW registration failed:', error);
+    console.error('[FCM] SW registration failed:', error);
     return null;
   }
 }

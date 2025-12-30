@@ -45,10 +45,12 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-self.addEventListener('install', () => {
-  self.skipWaiting();
+self.addEventListener('install', (event) => {
+  console.log('[FCM SW] Installing...');
+  // Don't skip waiting - let the user control when the new SW takes over
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  console.log('[FCM SW] Activated');
+  // Don't claim clients aggressively - prevents potential reload issues
 });
