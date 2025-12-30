@@ -871,8 +871,11 @@ export default function ShareableHypeCard(props: any) {
           
           <Card className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-orange-500/30">
             <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground mb-2">
                 Get notified when {athlete.name || athlete.username} shares updates!
+              </p>
+              <p className="text-xs text-muted-foreground/70 mb-4">
+                You'll need to allow notifications when prompted to receive HYPE updates.
               </p>
               
               {!isFollowing ? (
