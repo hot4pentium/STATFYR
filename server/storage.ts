@@ -1588,13 +1588,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAthleteFollower(data: InsertAthleteFollower): Promise<AthleteFollower> {
-    const existing = await db
-      .select()
-      .from(athleteFollowers)
-      .where(and(
-        eq(athleteFollowers.athleteId, data.athleteId),
-        eq(athleteFollowers.fcmToken, data.fcmToken)
-      ));
+    // Check for existing follower by FCM token or Web Push endpoint
+    let existing: AthleteFollower[] = [];
+    if (data.fcmToken) {
+      existing = await db
+        .select()
+        .from(athleteFollowers)
+        .where(and(
+          eq(athleteFollowers.athleteId, data.athleteId),
+          eq(athleteFollowers.fcmToken, data.fcmToken)
+        ));
+    } else if (data.pushEndpoint) {
+      existing = await db
+        .select()
+        .from(athleteFollowers)
+        .where(and(
+          eq(athleteFollowers.athleteId, data.athleteId),
+          eq(athleteFollowers.pushEndpoint, data.pushEndpoint)
+        ));
+    }
     
     if (existing.length > 0) {
       return existing[0];
@@ -1604,22 +1616,30 @@ export class DatabaseStorage implements IStorage {
     return follower;
   }
 
-  async deleteAthleteFollower(athleteId: string, fcmToken: string): Promise<void> {
+  async deleteAthleteFollower(athleteId: string, tokenOrEndpoint: string): Promise<void> {
+    // Try to delete by FCM token or by push endpoint
     await db
       .delete(athleteFollowers)
       .where(and(
         eq(athleteFollowers.athleteId, athleteId),
-        eq(athleteFollowers.fcmToken, fcmToken)
+        or(
+          eq(athleteFollowers.fcmToken, tokenOrEndpoint),
+          eq(athleteFollowers.pushEndpoint, tokenOrEndpoint)
+        )
       ));
   }
 
-  async getAthleteFollowerByToken(athleteId: string, fcmToken: string): Promise<AthleteFollower | undefined> {
+  async getAthleteFollowerByToken(athleteId: string, tokenOrEndpoint: string): Promise<AthleteFollower | undefined> {
+    // Try to find by FCM token or by push endpoint
     const [follower] = await db
       .select()
       .from(athleteFollowers)
       .where(and(
         eq(athleteFollowers.athleteId, athleteId),
-        eq(athleteFollowers.fcmToken, fcmToken)
+        or(
+          eq(athleteFollowers.fcmToken, tokenOrEndpoint),
+          eq(athleteFollowers.pushEndpoint, tokenOrEndpoint)
+        )
       ));
     return follower || undefined;
   }

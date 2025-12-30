@@ -828,8 +828,13 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export const athleteFollowers = pgTable("athlete_followers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   athleteId: varchar("athlete_id").notNull().references(() => users.id),
-  fcmToken: text("fcm_token").notNull(),
+  fcmToken: text("fcm_token"), // FCM token for Android/desktop (nullable for web push)
   followerName: text("follower_name").notNull().default("Anonymous"),
+  // Web Push fields for iOS Safari PWA support
+  pushEndpoint: text("push_endpoint"),
+  pushP256dh: text("push_p256dh"),
+  pushAuth: text("push_auth"),
+  isWebPush: boolean("is_web_push").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

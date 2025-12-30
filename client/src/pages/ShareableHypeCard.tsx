@@ -517,7 +517,7 @@ export default function ShareableHypeCard(props: any) {
     
     try {
       setFollowStep("Requesting notification permission...");
-      let result: { token?: string | null; error?: string; instructions?: string } | undefined;
+      let result: { token?: string | null; subscription?: PushSubscription; error?: string; instructions?: string } | undefined;
       try {
         result = await requestFollowerNotificationPermission();
       } catch (permError: any) {
@@ -529,7 +529,8 @@ export default function ShareableHypeCard(props: any) {
         return;
       }
       
-      if (!result || !result.token) {
+      // Check if we got either a token (FCM) or subscription (Web Push for iOS)
+      if (!result || (!result.token && !result.subscription)) {
         const errorMsg = result?.error || "Please allow notifications to follow this athlete";
         setFollowError(errorMsg);
         setFollowStep("");
@@ -541,12 +542,31 @@ export default function ShareableHypeCard(props: any) {
         return;
       }
       
-      setFollowStep("Got token! Registering with server...");
-      console.log('[Follow] Got token, registering follower...');
+      setFollowStep("Got permission! Registering with server...");
+      console.log('[Follow] Registering follower...', result.token ? 'FCM' : 'WebPush');
+      
+      // Build request body based on subscription type
+      let requestBody: any = { followerName: followFormName.trim() };
+      let storageKey: string;
+      
+      if (result.subscription) {
+        // Web Push subscription (iOS)
+        const subJson = result.subscription.toJSON();
+        requestBody.subscription = {
+          endpoint: subJson.endpoint,
+          keys: subJson.keys,
+        };
+        storageKey = result.subscription.endpoint;
+      } else {
+        // FCM token (Android/desktop)
+        requestBody.fcmToken = result.token;
+        storageKey = result.token!;
+      }
+      
       const res = await fetch(`/api/athletes/${athleteId}/followers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fcmToken: result.token, followerName: followFormName.trim() }),
+        body: JSON.stringify(requestBody),
       });
       
       setFollowStep("Waiting for server response...");
@@ -558,11 +578,11 @@ export default function ShareableHypeCard(props: any) {
       }
       
       setFollowStep("Success!");
-      setFollowerFcmToken(result.token);
+      setFollowerFcmToken(storageKey);
       setIsFollowing(true);
       setShowFollowForm(false);
       setVisitorName(followFormName.trim());
-      localStorage.setItem(fcmTokenStorageKey, result.token);
+      localStorage.setItem(fcmTokenStorageKey, storageKey);
       localStorage.setItem(visitorNameStorageKey, followFormName.trim());
       queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "followers", "count"] });
       toast.success("You're now following this athlete!");

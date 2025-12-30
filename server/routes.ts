@@ -10,6 +10,7 @@ import path from "path";
 import fs from "fs";
 import bcrypt from "bcrypt";
 import { sendPushNotification, getFirebaseAdmin, getFirebaseAdminStatus } from "./firebaseAdmin";
+import { sendWebPushToMany, WebPushSubscription, initWebPush } from "./webPush";
 import { WebSocketServer, WebSocket } from "ws";
 
 // Store connected WebSocket clients by team
@@ -1812,6 +1813,7 @@ export async function registerRoutes(
   });
 
   // Follow an athlete (public - no auth required)
+  // Supports both FCM tokens (Android/desktop) and Web Push subscriptions (iOS)
   app.post("/api/athletes/:athleteId/followers", async (req, res) => {
     try {
       const athleteId = req.params.athleteId;
@@ -1825,21 +1827,39 @@ export async function registerRoutes(
       }
       console.log("[Follow] Found athlete:", athlete.username);
       
-      const parsed = insertAthleteFollowerSchema.parse({
-        athleteId,
-        fcmToken: req.body.fcmToken,
-        followerName: req.body.followerName || "Anonymous",
-      });
-      console.log("[Follow] Parsed data successfully");
+      const { fcmToken, followerName, subscription } = req.body;
       
-      if (!parsed.fcmToken) {
-        console.log("[Follow] FCM token is missing");
-        return res.status(400).json({ error: "FCM token is required" });
+      // Handle Web Push subscription (iOS)
+      if (subscription && subscription.endpoint) {
+        console.log("[Follow] Web Push subscription detected (iOS)");
+        const follower = await storage.createAthleteFollower({
+          athleteId,
+          followerName: followerName || "Anonymous",
+          fcmToken: null,
+          pushEndpoint: subscription.endpoint,
+          pushP256dh: subscription.keys?.p256dh,
+          pushAuth: subscription.keys?.auth,
+          isWebPush: true,
+        });
+        const count = await storage.getAthleteFollowerCount(athleteId);
+        console.log("[Follow] Created Web Push follower, total count:", count);
+        return res.status(201).json({ follower, count });
       }
       
-      const follower = await storage.createAthleteFollower(parsed);
+      // Handle FCM token (Android/desktop)
+      if (!fcmToken) {
+        console.log("[Follow] Neither FCM token nor Web Push subscription provided");
+        return res.status(400).json({ error: "FCM token or Web Push subscription required" });
+      }
+      
+      const follower = await storage.createAthleteFollower({
+        athleteId,
+        fcmToken,
+        followerName: followerName || "Anonymous",
+        isWebPush: false,
+      });
       const count = await storage.getAthleteFollowerCount(athleteId);
-      console.log("[Follow] Created follower, total count:", count);
+      console.log("[Follow] Created FCM follower, total count:", count);
       
       res.status(201).json({ follower, count });
     } catch (error: any) {
@@ -1938,8 +1958,11 @@ export async function registerRoutes(
         });
       }
       
-      const tokens = followers.map(f => f.fcmToken);
-      console.log("[FYR API] Token count:", tokens.length);
+      // Separate FCM and Web Push subscribers
+      const fcmFollowers = followers.filter(f => !f.isWebPush && f.fcmToken);
+      const webPushFollowers = followers.filter(f => f.isWebPush && f.pushEndpoint && f.pushP256dh && f.pushAuth);
+      
+      console.log("[FYR API] FCM followers:", fcmFollowers.length, "Web Push followers:", webPushFollowers.length);
       
       const athleteName = athlete.firstName && athlete.lastName 
         ? `${athlete.firstName} ${athlete.lastName}` 
@@ -1952,31 +1975,56 @@ export async function registerRoutes(
           : '';
       
       const hypeCardUrl = `${baseUrl}/share/athlete/${athleteId}`;
+      const title = `${athleteName} just FYR'd!`;
+      const body = `Check out ${athleteName}'s latest HYPE card updates!`;
       console.log("[FYR API] Sending notification to:", hypeCardUrl);
       
-      const result = await sendPushNotification(
-        tokens,
-        `${athleteName} just FYR'd!`,
-        `Check out ${athleteName}'s latest HYPE card updates!`,
-        { athleteId, type: 'fyr' },
-        hypeCardUrl
-      );
-      console.log("[FYR API] Push result:", JSON.stringify(result));
+      let fcmResult = { success: true, successCount: 0, failureCount: 0, invalidTokens: [] as string[] };
+      let webPushResult = { successCount: 0, failureCount: 0, invalidSubscriptions: [] as WebPushSubscription[] };
       
-      if (result.invalidTokens.length > 0) {
-        console.log("[FYR API] Cleaning up", result.invalidTokens.length, "invalid tokens");
-        for (const token of result.invalidTokens) {
-          await storage.deleteAthleteFollower(athleteId, token);
+      // Send FCM notifications
+      if (fcmFollowers.length > 0) {
+        const tokens = fcmFollowers.map(f => f.fcmToken!);
+        fcmResult = await sendPushNotification(tokens, title, body, { athleteId, type: 'fyr' }, hypeCardUrl);
+        console.log("[FYR API] FCM result:", JSON.stringify(fcmResult));
+        
+        // Clean up invalid FCM tokens
+        if (fcmResult.invalidTokens.length > 0) {
+          console.log("[FYR API] Cleaning up", fcmResult.invalidTokens.length, "invalid FCM tokens");
+          for (const token of fcmResult.invalidTokens) {
+            await storage.deleteAthleteFollower(athleteId, token);
+          }
+        }
+      }
+      
+      // Send Web Push notifications (for iOS)
+      if (webPushFollowers.length > 0) {
+        const subscriptions: WebPushSubscription[] = webPushFollowers.map(f => ({
+          endpoint: f.pushEndpoint!,
+          keys: { p256dh: f.pushP256dh!, auth: f.pushAuth! }
+        }));
+        webPushResult = await sendWebPushToMany(subscriptions, title, body, { athleteId, type: 'fyr' }, hypeCardUrl);
+        console.log("[FYR API] Web Push result:", JSON.stringify(webPushResult));
+        
+        // Clean up invalid Web Push subscriptions
+        if (webPushResult.invalidSubscriptions.length > 0) {
+          console.log("[FYR API] Cleaning up", webPushResult.invalidSubscriptions.length, "invalid Web Push subscriptions");
+          for (const sub of webPushResult.invalidSubscriptions) {
+            const follower = webPushFollowers.find(f => f.pushEndpoint === sub.endpoint);
+            if (follower) {
+              await storage.deleteAthleteFollower(athleteId, follower.pushEndpoint!);
+            }
+          }
         }
       }
       
       const remainingCount = await storage.getAthleteFollowerCount(athleteId);
       
       const response = {
-        success: result.success,
-        successCount: result.successCount,
-        failureCount: result.failureCount,
-        invalidTokensRemoved: result.invalidTokens.length,
+        success: fcmResult.success || webPushResult.successCount > 0,
+        successCount: fcmResult.successCount + webPushResult.successCount,
+        failureCount: fcmResult.failureCount + webPushResult.failureCount,
+        invalidTokensRemoved: fcmResult.invalidTokens.length + webPushResult.invalidSubscriptions.length,
         remainingFollowers: remainingCount
       };
       console.log("[FYR API] Sending response:", JSON.stringify(response));
@@ -2037,8 +2085,10 @@ export async function registerRoutes(
       console.log('[HYPE] Found', followers.length, 'followers');
       
       if (followers.length > 0) {
-        const tokens = followers.map(f => f.fcmToken);
-        console.log('[HYPE] Preparing to send notifications to', tokens.length, 'tokens');
+        // Separate FCM and Web Push subscribers
+        const fcmFollowers = followers.filter(f => !f.isWebPush && f.fcmToken);
+        const webPushFollowers = followers.filter(f => f.isWebPush && f.pushEndpoint && f.pushP256dh && f.pushAuth);
+        console.log('[HYPE] FCM followers:', fcmFollowers.length, 'Web Push followers:', webPushFollowers.length);
         
         const athleteName = athlete.firstName && athlete.lastName
           ? `${athlete.firstName} ${athlete.lastName}`
@@ -2051,28 +2101,46 @@ export async function registerRoutes(
             : '';
         
         const hypeCardUrl = `${baseUrl}/share/athlete/${parsed.athleteId}`;
+        const title = `New HYPE from ${athleteName}!`;
+        const body = parsed.message.length > 60 ? parsed.message.substring(0, 57) + '...' : parsed.message;
         console.log('[HYPE] Notification URL:', hypeCardUrl);
         
         try {
-          const result = await sendPushNotification(
-            tokens,
-            `New HYPE from ${athleteName}!`,
-            parsed.message.length > 60 ? parsed.message.substring(0, 57) + '...' : parsed.message,
-            { athleteId: parsed.athleteId, hypePostId: post.id, type: 'hype_post' },
-            hypeCardUrl
-          );
-          console.log('[HYPE] Notification result:', JSON.stringify(result));
+          // Send FCM notifications
+          if (fcmFollowers.length > 0) {
+            const tokens = fcmFollowers.map(f => f.fcmToken!);
+            const result = await sendPushNotification(tokens, title, body, { athleteId: parsed.athleteId, hypePostId: post.id, type: 'hype_post' }, hypeCardUrl);
+            console.log('[HYPE] FCM result:', JSON.stringify(result));
+            
+            if (result.invalidTokens.length > 0) {
+              console.log('[HYPE] Cleaning up', result.invalidTokens.length, 'invalid FCM tokens');
+              for (const token of result.invalidTokens) {
+                await storage.deleteAthleteFollower(parsed.athleteId, token);
+              }
+            }
+          }
           
-          // Clean up invalid tokens
-          if (result.invalidTokens.length > 0) {
-            console.log('[HYPE] Cleaning up', result.invalidTokens.length, 'invalid tokens');
-            for (const token of result.invalidTokens) {
-              await storage.deleteAthleteFollower(parsed.athleteId, token);
+          // Send Web Push notifications (for iOS)
+          if (webPushFollowers.length > 0) {
+            const subscriptions: WebPushSubscription[] = webPushFollowers.map(f => ({
+              endpoint: f.pushEndpoint!,
+              keys: { p256dh: f.pushP256dh!, auth: f.pushAuth! }
+            }));
+            const webPushResult = await sendWebPushToMany(subscriptions, title, body, { athleteId: parsed.athleteId, hypePostId: post.id, type: 'hype_post' }, hypeCardUrl);
+            console.log('[HYPE] Web Push result:', JSON.stringify(webPushResult));
+            
+            if (webPushResult.invalidSubscriptions.length > 0) {
+              console.log('[HYPE] Cleaning up', webPushResult.invalidSubscriptions.length, 'invalid Web Push subscriptions');
+              for (const sub of webPushResult.invalidSubscriptions) {
+                const follower = webPushFollowers.find(f => f.pushEndpoint === sub.endpoint);
+                if (follower) {
+                  await storage.deleteAthleteFollower(parsed.athleteId, follower.pushEndpoint!);
+                }
+              }
             }
           }
         } catch (notificationError) {
           console.error("[HYPE] Error sending notification:", notificationError);
-          // Don't fail the request if notification fails
         }
       } else {
         console.log('[HYPE] No followers to notify');

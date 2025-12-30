@@ -196,26 +196,97 @@ export function onForegroundMessage(callback: (payload: any) => void) {
   });
 }
 
-export async function requestFollowerNotificationPermission(): Promise<{ token: string | null; error?: string; instructions?: string }> {
+// Web Push subscription for iOS Safari PWA (FCM doesn't support iOS Safari)
+async function requestWebPushSubscription(): Promise<{ subscription: PushSubscription | null; error?: string; instructions?: string }> {
+  console.log('[WebPush] Requesting Web Push subscription for iOS...');
+  
+  try {
+    // Register service worker if not already registered
+    let registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
+    if (!registration) {
+      console.log('[WebPush] Registering service worker...');
+      registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      await navigator.serviceWorker.ready;
+    }
+    
+    console.log('[WebPush] Requesting notification permission...');
+    const permission = await Notification.requestPermission();
+    console.log('[WebPush] Permission result:', permission);
+    
+    if (permission !== 'granted') {
+      if (permission === 'denied') {
+        return { 
+          subscription: null, 
+          error: 'Notifications are blocked',
+          instructions: 'Go to Settings > Notifications > find this app and enable notifications.'
+        };
+      }
+      return { subscription: null, error: 'Please allow notifications when prompted to follow this athlete' };
+    }
+    
+    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+    if (!vapidKey) {
+      console.error('[WebPush] VAPID key is missing!');
+      return { subscription: null, error: 'Push notification configuration error.' };
+    }
+    
+    // Convert VAPID key to Uint8Array
+    const urlBase64ToUint8Array = (base64String: string) => {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+    };
+    
+    console.log('[WebPush] Subscribing to push...');
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey),
+    });
+    
+    console.log('[WebPush] Subscription obtained:', !!subscription);
+    return { subscription };
+  } catch (error: any) {
+    console.error('[WebPush] Error:', error);
+    return { subscription: null, error: error.message || 'Failed to set up notifications' };
+  }
+}
+
+export async function requestFollowerNotificationPermission(): Promise<{ token: string | null; subscription?: PushSubscription; error?: string; instructions?: string }> {
   // Debug: Log Firebase config status
-  console.log('[FCM Debug] Firebase config check:', {
+  console.log('[Push Debug] Check:', {
     apiKey: !!firebaseConfig.apiKey,
     projectId: !!firebaseConfig.projectId,
     messagingSenderId: !!firebaseConfig.messagingSenderId,
     appId: !!firebaseConfig.appId,
     messagingInitialized: !!messaging,
     isStandalone: isStandalonePWA(),
-    isIOSDevice: isIOS()
+    isIOSDevice: isIOS(),
+    isSafariDevice: isSafari()
   });
   
   // iOS requires PWA mode
   if (isIOS() && !isStandalonePWA()) {
-    console.log('[FCM Debug] iOS user not in standalone mode');
+    console.log('[Push Debug] iOS user not in standalone mode');
     return { 
       token: null, 
       error: 'iOS requires this app to be installed',
       instructions: 'Tap the Share button at the bottom of Safari, then "Add to Home Screen". Open the app from your home screen to enable notifications.'
     };
+  }
+  
+  // For iOS Safari PWA, use native Web Push API (FCM doesn't support iOS)
+  if (isIOS() && isStandalonePWA()) {
+    console.log('[Push Debug] iOS PWA detected, using native Web Push API');
+    const result = await requestWebPushSubscription();
+    if (result.subscription) {
+      return { token: null, subscription: result.subscription };
+    }
+    return { token: null, error: result.error, instructions: result.instructions };
   }
   
   // First check platform support
