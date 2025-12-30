@@ -8,6 +8,18 @@ export function isIOS(): boolean {
   return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
 }
 
+export function isAndroid(): boolean {
+  if (typeof window === 'undefined') return false;
+  const userAgent = navigator.userAgent || '';
+  return /android/i.test(userAgent);
+}
+
+export function isChrome(): boolean {
+  if (typeof window === 'undefined') return false;
+  const userAgent = navigator.userAgent || '';
+  return /chrome/i.test(userAgent) && !/edge|edg/i.test(userAgent);
+}
+
 export function isSafari(): boolean {
   if (typeof window === 'undefined') return false;
   const userAgent = navigator.userAgent;
