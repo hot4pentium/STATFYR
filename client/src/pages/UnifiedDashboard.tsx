@@ -896,6 +896,13 @@ export default function UnifiedDashboard() {
           <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/70 to-background dark:from-black/40 dark:via-black/60 dark:to-background" />
           <div className="absolute inset-0 bg-[url('/field-bg.jpg')] bg-cover bg-center opacity-30" />
           
+          {/* Team Badge Watermark */}
+          {currentTeam?.badgeId && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-35 pointer-events-none z-[5]">
+              <TeamBadge badgeId={currentTeam.badgeId} size="xl" />
+            </div>
+          )}
+          
           <div className="relative z-10 px-4 pt-6 pb-8">
             {/* Top Bar */}
             <div className="flex items-center justify-between mb-6">
