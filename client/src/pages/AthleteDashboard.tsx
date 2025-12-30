@@ -165,8 +165,10 @@ export default function AthleteDashboard() {
       // Refresh follower count after sending FYR
       queryClient.invalidateQueries({ queryKey: ["/api/athletes", user.id, "followers", "count"] });
       
-      if (data.notificationsSent > 0) {
-        toast.success(`FYR sent to ${data.notificationsSent} follower${data.notificationsSent > 1 ? 's' : ''}!`);
+      if (data.successCount > 0) {
+        toast.success(`FYR sent to ${data.successCount} follower${data.successCount > 1 ? 's' : ''}!`);
+      } else if (data.failureCount > 0) {
+        toast.error(`Failed to send notifications. ${data.failureCount} failed.`);
       } else {
         toast.info("No followers to notify yet. Share your HYPE card link!");
       }
