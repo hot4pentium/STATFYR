@@ -46,3 +46,4 @@ integrations = ["javascript_database:1.0.0", "javascript_object_storage:2.0.0"]
 [userenv]
 
 [userenv.shared]
+VAPID_PRIVATE_KEY = "ac17vpNlkgd6L3lrgkWyGqoBVdMPBnEK74zFliEbddw"
