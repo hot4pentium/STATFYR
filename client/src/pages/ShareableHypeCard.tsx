@@ -376,6 +376,7 @@ export default function ShareableHypeCard(props: any) {
     queryKey: ["/api/athletes", athleteId, "hype-posts"],
     queryFn: () => getHypePosts(athleteId),
     enabled: !!athleteId,
+    refetchInterval: 30000,
   });
 
   // Fetch team events for the upcoming games section
