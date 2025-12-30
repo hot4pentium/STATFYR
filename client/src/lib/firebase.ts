@@ -79,6 +79,16 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+export function getFirebaseConfigStatus(): { configured: boolean; missingKeys: string[] } {
+  const missingKeys: string[] = [];
+  if (!firebaseConfig.apiKey) missingKeys.push('API_KEY');
+  if (!firebaseConfig.projectId) missingKeys.push('PROJECT_ID');
+  if (!firebaseConfig.messagingSenderId) missingKeys.push('MESSAGING_SENDER_ID');
+  if (!firebaseConfig.appId) missingKeys.push('APP_ID');
+  if (!import.meta.env.VITE_FIREBASE_VAPID_KEY) missingKeys.push('VAPID_KEY');
+  return { configured: missingKeys.length === 0, missingKeys };
+}
+
 let app: ReturnType<typeof initializeApp> | null = null;
 let messaging: Messaging | null = null;
 
@@ -179,6 +189,15 @@ export function onForegroundMessage(callback: (payload: any) => void) {
 }
 
 export async function requestFollowerNotificationPermission(): Promise<{ token: string | null; error?: string; instructions?: string }> {
+  // Debug: Log Firebase config status
+  console.log('[FCM Debug] Firebase config check:', {
+    apiKey: !!firebaseConfig.apiKey,
+    projectId: !!firebaseConfig.projectId,
+    messagingSenderId: !!firebaseConfig.messagingSenderId,
+    appId: !!firebaseConfig.appId,
+    messagingInitialized: !!messaging
+  });
+  
   // First check platform support
   const platformStatus = getPushNotificationStatus();
   if (!platformStatus.supported) {
@@ -192,6 +211,10 @@ export async function requestFollowerNotificationPermission(): Promise<{ token: 
 
   if (!messaging) {
     console.log('Firebase messaging not available');
+    console.log('[FCM Debug] Config values present:', {
+      apiKey: !!firebaseConfig.apiKey,
+      projectId: !!firebaseConfig.projectId
+    });
     // Check if it's Safari which has limited FCM support
     if (isSafari() && !isIOS()) {
       return { 

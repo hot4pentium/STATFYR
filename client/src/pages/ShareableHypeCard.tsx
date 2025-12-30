@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { requestFollowerNotificationPermission, isIOS, isAndroid, isChrome, isStandalonePWA, isSafari } from "@/lib/firebase";
+import { requestFollowerNotificationPermission, isIOS, isAndroid, isChrome, isStandalonePWA, isSafari, getFirebaseConfigStatus } from "@/lib/firebase";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 import clutchImg from "@assets/clutch_1766970267487.png";
@@ -1295,6 +1295,20 @@ export default function ShareableHypeCard(props: any) {
                       )}
                     </div>
                   )}
+                  {/* Debug: Show Firebase config status if not configured */}
+                  {(() => {
+                    const fbStatus = getFirebaseConfigStatus();
+                    if (!fbStatus.configured) {
+                      return (
+                        <div className="p-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                          <p className="text-yellow-400 text-xs font-mono">
+                            Debug: Missing Firebase config: {fbStatus.missingKeys.join(', ')}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                   <div className="flex gap-2">
                     <Button
                       type="button"

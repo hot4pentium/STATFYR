@@ -1823,29 +1823,37 @@ export async function registerRoutes(
   app.post("/api/athletes/:athleteId/followers", async (req, res) => {
     try {
       const athleteId = req.params.athleteId;
+      console.log("[Follow] Request received for athlete:", athleteId);
+      console.log("[Follow] Request body:", JSON.stringify(req.body));
       
       const athlete = await storage.getUser(athleteId);
       if (!athlete || athlete.role !== 'athlete') {
+        console.log("[Follow] Athlete not found or not an athlete role");
         return res.status(404).json({ error: "Athlete not found" });
       }
+      console.log("[Follow] Found athlete:", athlete.username);
       
       const parsed = insertAthleteFollowerSchema.parse({
         athleteId,
         fcmToken: req.body.fcmToken,
         followerName: req.body.followerName || "Anonymous",
       });
+      console.log("[Follow] Parsed data successfully");
       
       if (!parsed.fcmToken) {
+        console.log("[Follow] FCM token is missing");
         return res.status(400).json({ error: "FCM token is required" });
       }
       
       const follower = await storage.createAthleteFollower(parsed);
       const count = await storage.getAthleteFollowerCount(athleteId);
+      console.log("[Follow] Created follower, total count:", count);
       
       res.status(201).json({ follower, count });
     } catch (error: any) {
-      console.error("Error following athlete:", error);
+      console.error("[Follow] Error:", error);
       if (error instanceof z.ZodError) {
+        console.error("[Follow] Zod validation error:", error.errors);
         return res.status(400).json({ error: error.errors });
       }
       res.status(500).json({ error: "Failed to follow athlete" });
