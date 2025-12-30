@@ -203,8 +203,20 @@ export async function requestFollowerNotificationPermission(): Promise<{ token: 
     projectId: !!firebaseConfig.projectId,
     messagingSenderId: !!firebaseConfig.messagingSenderId,
     appId: !!firebaseConfig.appId,
-    messagingInitialized: !!messaging
+    messagingInitialized: !!messaging,
+    isStandalone: isStandalonePWA(),
+    isIOSDevice: isIOS()
   });
+  
+  // iOS requires PWA mode
+  if (isIOS() && !isStandalonePWA()) {
+    console.log('[FCM Debug] iOS user not in standalone mode');
+    return { 
+      token: null, 
+      error: 'iOS requires this app to be installed',
+      instructions: 'Tap the Share button at the bottom of Safari, then "Add to Home Screen". Open the app from your home screen to enable notifications.'
+    };
+  }
   
   // First check platform support
   const platformStatus = getPushNotificationStatus();
@@ -292,6 +304,63 @@ export async function requestFollowerNotificationPermission(): Promise<{ token: 
   } catch (error: any) {
     console.error('Error getting FCM token:', error);
     return { token: null, error: error.message || 'Failed to set up notifications' };
+  }
+}
+
+// Function to refresh FCM token for existing followers (call on app open)
+export async function refreshFCMToken(athleteId: string, oldToken: string): Promise<string | null> {
+  if (!messaging) {
+    console.log('[FCM Refresh] Messaging not available');
+    return oldToken; // Keep existing token
+  }
+  
+  try {
+    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+    if (!vapidKey) {
+      console.log('[FCM Refresh] VAPID key missing');
+      return oldToken; // Keep existing token
+    }
+    
+    const swRegistration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
+    if (!swRegistration) {
+      console.log('[FCM Refresh] Service worker not registered');
+      return oldToken; // Keep existing token
+    }
+    
+    console.log('[FCM Refresh] Getting fresh token...');
+    const newToken = await getToken(messaging, { 
+      vapidKey,
+      serviceWorkerRegistration: swRegistration 
+    });
+    
+    if (!newToken) {
+      console.log('[FCM Refresh] Failed to get new token');
+      return oldToken; // Keep existing token
+    }
+    
+    // If token changed, update it on the server
+    if (newToken !== oldToken) {
+      console.log('[FCM Refresh] Token changed, updating on server...');
+      const res = await fetch(`/api/athletes/${athleteId}/followers/update-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldToken, newToken }),
+      });
+      
+      if (!res.ok) {
+        console.log('[FCM Refresh] Failed to update token on server, keeping old token');
+        return oldToken; // Keep existing token on failure
+      }
+      
+      console.log('[FCM Refresh] Token updated successfully');
+      return newToken;
+    }
+    
+    console.log('[FCM Refresh] Token unchanged');
+    return newToken;
+  } catch (error) {
+    console.error('[FCM Refresh] Error:', error);
+    return oldToken; // Keep existing token on error
   }
 }
 

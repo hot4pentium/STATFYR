@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { requestFollowerNotificationPermission, isIOS, isAndroid, isChrome, isStandalonePWA, isSafari, getFirebaseConfigStatus } from "@/lib/firebase";
+import { requestFollowerNotificationPermission, refreshFCMToken, isIOS, isAndroid, isChrome, isStandalonePWA, isSafari, getFirebaseConfigStatus } from "@/lib/firebase";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 import clutchImg from "@assets/clutch_1766970267487.png";
@@ -254,7 +254,7 @@ export default function ShareableHypeCard(props: any) {
     }
   }, [visitorName, athleteId]);
 
-  // Load stored FCM token on mount
+  // Load stored FCM token on mount and refresh if needed (handles iOS token rotation)
   useEffect(() => {
     if (typeof window !== 'undefined' && athleteId) {
       const storedToken = localStorage.getItem(fcmTokenStorageKey);
@@ -262,6 +262,20 @@ export default function ShareableHypeCard(props: any) {
         setFollowerFcmToken(storedToken);
         checkFollowStatus(athleteId, storedToken).then(({ isFollowing }) => {
           setIsFollowing(isFollowing);
+          
+          // If following, refresh the token in case it rotated (common on iOS)
+          if (isFollowing && isStandalonePWA()) {
+            console.log('[FCM] Refreshing token on app open...');
+            refreshFCMToken(athleteId, storedToken).then((newToken) => {
+              if (newToken && newToken !== storedToken) {
+                console.log('[FCM] Token was refreshed');
+                setFollowerFcmToken(newToken);
+                localStorage.setItem(fcmTokenStorageKey, newToken);
+              }
+            }).catch((err) => {
+              console.error('[FCM] Token refresh failed:', err);
+            });
+          }
         }).catch(() => {});
       }
     }

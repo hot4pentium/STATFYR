@@ -183,6 +183,7 @@ export interface IStorage {
   createAthleteFollower(data: InsertAthleteFollower): Promise<AthleteFollower>;
   deleteAthleteFollower(athleteId: string, fcmToken: string): Promise<void>;
   getAthleteFollowerByToken(athleteId: string, fcmToken: string): Promise<AthleteFollower | undefined>;
+  updateAthleteFollowerToken(athleteId: string, oldToken: string, newToken: string): Promise<boolean>;
   
   // HYPE Post methods
   getAthleteHypePosts(athleteId: string): Promise<(HypePost & { highlight?: HighlightVideo })[]>;
@@ -1621,6 +1622,18 @@ export class DatabaseStorage implements IStorage {
         eq(athleteFollowers.fcmToken, fcmToken)
       ));
     return follower || undefined;
+  }
+
+  async updateAthleteFollowerToken(athleteId: string, oldToken: string, newToken: string): Promise<boolean> {
+    const result = await db
+      .update(athleteFollowers)
+      .set({ fcmToken: newToken })
+      .where(and(
+        eq(athleteFollowers.athleteId, athleteId),
+        eq(athleteFollowers.fcmToken, oldToken)
+      ))
+      .returning();
+    return result.length > 0;
   }
 
   // HYPE Post methods

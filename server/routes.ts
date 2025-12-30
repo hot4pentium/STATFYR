@@ -1872,6 +1872,34 @@ export async function registerRoutes(
     }
   });
 
+  // Update FCM token for follower (handles iOS token rotation)
+  app.post("/api/athletes/:athleteId/followers/update-token", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      const { oldToken, newToken } = req.body;
+      
+      if (!oldToken || !newToken) {
+        return res.status(400).json({ error: "Both old and new tokens are required" });
+      }
+      
+      console.log("[Token Update] Updating token for athlete:", athleteId);
+      
+      // Use atomic update instead of delete+create
+      const updated = await storage.updateAthleteFollowerToken(athleteId, oldToken, newToken);
+      
+      if (!updated) {
+        console.log("[Token Update] Old token not found or already updated");
+        return res.status(404).json({ error: "Follower not found" });
+      }
+      
+      console.log("[Token Update] Token updated successfully");
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[Token Update] Error:", error);
+      res.status(500).json({ error: "Failed to update token" });
+    }
+  });
+
   // FYR - Send push notification to all athlete followers
   app.post("/api/athletes/:athleteId/fyr", async (req, res) => {
     try {
