@@ -309,7 +309,7 @@ export default function HypeManager() {
                   {isFyring ? (
                     <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Sending...</>
                   ) : (
-                    <><Flame className="h-5 w-5 mr-2" /> FYR IT OUT!</>
+                    <><img src={logoImage} alt="STATFYR" className="h-5 w-5 mr-2 object-contain" /> FYR IT OUT!</>
                   )}
                 </Button>
                 {!followerData?.count && (
