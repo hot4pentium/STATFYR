@@ -337,12 +337,19 @@ export default function ShareableHypeCard(props: any) {
 
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [followError, setFollowError] = useState<string | null>(null);
+  const [showFollowForm, setShowFollowForm] = useState(false);
+  const [followFormName, setFollowFormName] = useState("");
 
-  const handleFollow = async () => {
+  const handleFollowClick = () => {
+    setFollowError(null);
+    setShowFollowForm(true);
+  };
+
+  const handleFollowSubmit = async () => {
     setFollowError(null);
     
-    if (!visitorName.trim()) {
-      toast.error("Please enter your name first");
+    if (!followFormName.trim()) {
+      setFollowError("Please enter your name");
       return;
     }
     
@@ -367,7 +374,7 @@ export default function ShareableHypeCard(props: any) {
       const res = await fetch(`/api/athletes/${athleteId}/followers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fcmToken: result.token, followerName: visitorName.trim() }),
+        body: JSON.stringify({ fcmToken: result.token, followerName: followFormName.trim() }),
       });
       
       const data = await res.json();
@@ -379,14 +386,16 @@ export default function ShareableHypeCard(props: any) {
       
       setFollowerFcmToken(result.token);
       setIsFollowing(true);
+      setShowFollowForm(false);
+      setVisitorName(followFormName.trim());
       localStorage.setItem(fcmTokenStorageKey, result.token);
+      localStorage.setItem(visitorNameStorageKey, followFormName.trim());
       queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "followers", "count"] });
       toast.success("You're now following this athlete!");
     } catch (error: any) {
       console.error('[Follow] Error:', error);
       const errorMsg = error.message || "Failed to follow athlete";
       setFollowError(errorMsg);
-      toast.error(errorMsg);
     } finally {
       setIsFollowLoading(false);
     }
@@ -904,39 +913,7 @@ export default function ShareableHypeCard(props: any) {
           
           <Card className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-orange-500/30">
             <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground mb-2">
-                Get notified when {athlete.name || athlete.username} shares updates!
-              </p>
-              <p className="text-xs text-muted-foreground/70 mb-3">
-                You'll need to allow notifications when prompted to receive HYPE updates.
-              </p>
-              
-              <Input
-                placeholder="Enter your name"
-                value={visitorName}
-                onChange={(e) => setVisitorName(e.target.value)}
-                className="mb-3"
-                data-testid="input-visitor-name"
-              />
-              
-              {!isFollowing ? (
-                <>
-                  <Button
-                    onClick={handleFollow}
-                    disabled={isFollowLoading || !visitorName.trim()}
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white disabled:opacity-50"
-                    data-testid="button-follow-athlete"
-                  >
-                    <Bell className="h-4 w-4 mr-2" />
-                    {isFollowLoading ? 'Setting up...' : 'Follow & Get Notified'}
-                  </Button>
-                  {followError && (
-                    <div className="mt-2 p-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm">
-                      {followError}
-                    </div>
-                  )}
-                </>
-              ) : (
+              {isFollowing ? (
                 <div className="flex gap-2">
                   <div className="flex-1 flex items-center justify-center gap-2 bg-green-500/20 text-green-600 rounded-lg py-2 px-4">
                     <Bell className="h-4 w-4 fill-current" />
@@ -953,6 +930,64 @@ export default function ShareableHypeCard(props: any) {
                     <BellOff className="h-4 w-4" />
                   </Button>
                 </div>
+              ) : showFollowForm ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Enter your name to follow {athlete.name || athlete.username}
+                  </p>
+                  <Input
+                    placeholder="Your name"
+                    value={followFormName}
+                    onChange={(e) => setFollowFormName(e.target.value)}
+                    data-testid="input-follow-name"
+                    autoFocus
+                  />
+                  {followError && (
+                    <div className="p-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                      {followError}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleFollowSubmit}
+                      disabled={isFollowLoading || !followFormName.trim()}
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white disabled:opacity-50"
+                      data-testid="button-submit-follow"
+                    >
+                      <Bell className="h-4 w-4 mr-2" />
+                      {isFollowLoading ? 'Setting up...' : 'Get Notified'}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowFollowForm(false);
+                        setFollowError(null);
+                        setFollowFormName("");
+                      }}
+                      variant="outline"
+                      disabled={isFollowLoading}
+                      data-testid="button-cancel-follow"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground/70 text-center">
+                    You'll need to allow notifications when prompted
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Get notified when {athlete.name || athlete.username} shares updates!
+                  </p>
+                  <Button
+                    onClick={handleFollowClick}
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                    data-testid="button-follow-athlete"
+                  >
+                    <Bell className="h-4 w-4 mr-2" />
+                    Follow & Get Notified
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -963,9 +998,23 @@ export default function ShareableHypeCard(props: any) {
           <Card className="bg-card/80 backdrop-blur-sm border-white/10">
             <CardContent className="p-4 space-y-4">
               {!visitorName.trim() && (
-                <p className="text-xs text-muted-foreground text-center">
-                  Enter your name in the Follow section above to like or comment
-                </p>
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground text-center">
+                    Enter your name to like or comment
+                  </p>
+                  <Input
+                    placeholder="Your name"
+                    value={visitorName}
+                    onChange={(e) => {
+                      setVisitorName(e.target.value);
+                      if (e.target.value.trim()) {
+                        localStorage.setItem(visitorNameStorageKey, e.target.value.trim());
+                      }
+                    }}
+                    className="bg-background/50"
+                    data-testid="input-visitor-name"
+                  />
+                </div>
               )}
               {/* Like and Comment Buttons */}
               <div className="flex gap-2">
