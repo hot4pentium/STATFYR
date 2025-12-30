@@ -487,9 +487,12 @@ export default function ShareableHypeCard(props: any) {
     setShowFollowForm(true);
   };
 
+  const [followStep, setFollowStep] = useState<string>("");
+  
   const handleFollowSubmit = async () => {
     setFollowError(null);
     setFollowInstructions(null);
+    setFollowStep("");
     
     if (!followFormName.trim()) {
       setFollowError("Please enter your name");
@@ -499,12 +502,14 @@ export default function ShareableHypeCard(props: any) {
     setIsFollowLoading(true);
     
     try {
+      setFollowStep("Requesting notification permission...");
       let result: { token?: string | null; error?: string; instructions?: string } | undefined;
       try {
         result = await requestFollowerNotificationPermission();
       } catch (permError: any) {
         const errorMsg = permError.message || "Failed to set up notifications. Please try again.";
         setFollowError(errorMsg);
+        setFollowStep("");
         toast.error(errorMsg);
         setIsFollowLoading(false);
         return;
@@ -513,6 +518,7 @@ export default function ShareableHypeCard(props: any) {
       if (!result || !result.token) {
         const errorMsg = result?.error || "Please allow notifications to follow this athlete";
         setFollowError(errorMsg);
+        setFollowStep("");
         if (result?.instructions) {
           setFollowInstructions(result.instructions);
         }
@@ -521,6 +527,7 @@ export default function ShareableHypeCard(props: any) {
         return;
       }
       
+      setFollowStep("Got token! Registering with server...");
       console.log('[Follow] Got token, registering follower...');
       const res = await fetch(`/api/athletes/${athleteId}/followers`, {
         method: "POST",
@@ -528,6 +535,7 @@ export default function ShareableHypeCard(props: any) {
         body: JSON.stringify({ fcmToken: result.token, followerName: followFormName.trim() }),
       });
       
+      setFollowStep("Waiting for server response...");
       const data = await res.json();
       console.log('[Follow] Server response:', data);
       
@@ -535,6 +543,7 @@ export default function ShareableHypeCard(props: any) {
         throw new Error(data.error || "Failed to follow athlete");
       }
       
+      setFollowStep("Success!");
       setFollowerFcmToken(result.token);
       setIsFollowing(true);
       setShowFollowForm(false);
@@ -547,6 +556,7 @@ export default function ShareableHypeCard(props: any) {
       console.error('[Follow] Error:', error);
       const errorMsg = error.message || "Failed to follow athlete";
       setFollowError(errorMsg);
+      setFollowStep("");
       toast.error(errorMsg);
     } finally {
       setIsFollowLoading(false);
@@ -1309,6 +1319,11 @@ export default function ShareableHypeCard(props: any) {
                     }
                     return null;
                   })()}
+                  {followStep && (
+                    <div className="p-2 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                      <p className="text-blue-400 text-xs font-mono">{followStep}</p>
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <Button
                       type="button"
