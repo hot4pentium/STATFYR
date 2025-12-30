@@ -2962,11 +2962,17 @@ export async function registerRoutes(
     }
   });
 
-  // Get all teams (for admin panel)
+  // Get all teams with members (for admin panel)
   app.get("/api/admin/teams", requireSuperAdmin, async (req, res) => {
     try {
       const allTeams = await storage.getAllTeams();
-      res.json(allTeams);
+      const teamsWithMembers = await Promise.all(
+        allTeams.map(async (team) => {
+          const members = await storage.getTeamMembers(team.id);
+          return { ...team, members, memberCount: members.length };
+        })
+      );
+      res.json(teamsWithMembers);
     } catch (error) {
       console.error("Admin get teams failed:", error);
       res.status(500).json({ error: "Failed to get teams" });

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Search, User, Users, Shield, Eye, Trash2, UserPlus, ArrowLeft, Loader2, XCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, User, Users, Shield, Eye, Trash2, ArrowLeft, Loader2, ChevronRight } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { useUser } from "@/lib/userContext";
@@ -24,19 +25,45 @@ import {
   type Team,
 } from "@/lib/api";
 
+interface TeamWithMembers extends Team {
+  members: Array<{
+    id: string;
+    userId: string;
+    teamId: string;
+    role: string;
+    user: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      avatar?: string | null;
+      role: string;
+    };
+  }>;
+  memberCount: number;
+}
+
 export default function SuperAdminPanel() {
   const { user, setUser, setImpersonating, setOriginalAdmin } = useUser();
   const queryClient = useQueryClient();
   
+  const [activeTab, setActiveTab] = useState("teams");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<AdminUser[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [userTeams, setUserTeams] = useState<AdminTeamMember[]>([]);
   const [isLoadingUser, setIsLoadingUser] = useState(false);
-  const [editingMember, setEditingMember] = useState<AdminTeamMember | null>(null);
+  const [editingMember, setEditingMember] = useState<{ memberId: string; teamId: string; userId: string; role: string; userName: string; teamName: string } | null>(null);
   const [editRole, setEditRole] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<TeamWithMembers | null>(null);
+
+  const { data: teams = [], isLoading: isLoadingTeams, refetch: refetchTeams } = useQuery({
+    queryKey: ["admin-teams", user?.id],
+    queryFn: () => adminGetAllTeams(user!.id),
+    enabled: !!user?.isSuperAdmin,
+  });
 
   if (!user?.isSuperAdmin) {
     return (
@@ -87,15 +114,13 @@ export default function SuperAdminPanel() {
     }
   };
 
-  const handleImpersonate = async () => {
-    if (!selectedUser) return;
-    
+  const handleImpersonate = async (targetUser: AdminUser) => {
     try {
-      const { targetUser } = await adminStartImpersonation(selectedUser.id, user.id);
+      const { targetUser: impersonatedUser } = await adminStartImpersonation(targetUser.id, user.id);
       setOriginalAdmin(user);
-      setUser(targetUser as any);
+      setUser(impersonatedUser as any);
       setImpersonating(true);
-      toast.success(`Now viewing as ${targetUser.firstName} ${targetUser.lastName}`);
+      toast.success(`Now viewing as ${impersonatedUser.firstName} ${impersonatedUser.lastName}`);
       window.location.href = "/dashboard";
     } catch (error: any) {
       toast.error(error.message || "Failed to start impersonation");
@@ -107,9 +132,10 @@ export default function SuperAdminPanel() {
     
     setIsSaving(true);
     try {
-      await adminUpdateTeamMember(editingMember.id, { role: editRole }, user.id);
+      await adminUpdateTeamMember(editingMember.memberId, { role: editRole }, user.id);
       toast.success("Member role updated");
       setEditingMember(null);
+      refetchTeams();
       if (selectedUser) {
         const result = await adminGetUserWithTeams(selectedUser.id, user.id);
         setUserTeams(result.teams);
@@ -121,16 +147,13 @@ export default function SuperAdminPanel() {
     }
   };
 
-  const handleRemoveMember = async (member: AdminTeamMember) => {
-    if (!confirm(`Remove ${selectedUser?.firstName} from ${member.team.name}?`)) return;
+  const handleRemoveTeamMember = async (memberId: string, userName: string, teamName: string) => {
+    if (!confirm(`Remove ${userName} from ${teamName}?`)) return;
     
     try {
-      await adminRemoveTeamMember(member.id, user.id);
+      await adminRemoveTeamMember(memberId, user.id);
       toast.success("Member removed from team");
-      if (selectedUser) {
-        const result = await adminGetUserWithTeams(selectedUser.id, user.id);
-        setUserTeams(result.teams);
-      }
+      refetchTeams();
     } catch (error: any) {
       toast.error(error.message || "Failed to remove member");
     }
@@ -161,165 +184,327 @@ export default function SuperAdminPanel() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                User Search
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Search by name or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  data-testid="input-admin-search"
-                />
-                <Button onClick={handleSearch} disabled={isSearching} data-testid="button-admin-search">
-                  {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                </Button>
-              </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="teams" data-testid="tab-teams">
+              <Users className="h-4 w-4 mr-2" />
+              Teams
+            </TabsTrigger>
+            <TabsTrigger value="users" data-testid="tab-users">
+              <Search className="h-4 w-4 mr-2" />
+              User Search
+            </TabsTrigger>
+          </TabsList>
 
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {searchResults.map((result) => (
-                  <div
-                    key={result.id}
-                    className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                      selectedUser?.id === result.id ? "border-primary bg-primary/5" : "hover:bg-muted"
-                    }`}
-                    onClick={() => handleSelectUser(result)}
-                    data-testid={`user-result-${result.id}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                        {result.avatar ? (
-                          <img src={result.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
-                        ) : (
-                          <User className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{result.firstName} {result.lastName}</p>
-                        <p className="text-sm text-muted-foreground truncate">{result.email}</p>
-                      </div>
-                      <Badge className={getRoleBadgeColor(result.role)}>
-                        {result.role}
-                      </Badge>
+          <TabsContent value="teams" className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    All Teams ({(teams as TeamWithMembers[]).length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingTeams ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
-                  </div>
-                ))}
-                {searchResults.length === 0 && searchQuery && !isSearching && (
-                  <p className="text-center text-muted-foreground py-4">No users found</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                User Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoadingUser ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
-              ) : selectedUser ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-                      {selectedUser.avatar ? (
-                        <img src={selectedUser.avatar} alt="" className="h-16 w-16 rounded-full object-cover" />
-                      ) : (
-                        <User className="h-8 w-8 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold">{selectedUser.firstName} {selectedUser.lastName}</h3>
-                      <p className="text-muted-foreground">{selectedUser.email}</p>
-                      <div className="flex gap-2 mt-1">
-                        <Badge className={getRoleBadgeColor(selectedUser.role)}>{selectedUser.role}</Badge>
-                        {selectedUser.isSuperAdmin && <Badge className="bg-red-500">Super Admin</Badge>}
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button
-                    className="w-full"
-                    onClick={handleImpersonate}
-                    data-testid="button-impersonate"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View as This User
-                  </Button>
-
-                  <Separator />
-
-                  <div>
-                    <h4 className="font-medium mb-2 flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      Team Memberships ({userTeams.length})
-                    </h4>
-                    <div className="space-y-2">
-                      {userTeams.map((membership) => (
+                  ) : (
+                    <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                      {(teams as TeamWithMembers[]).map((team) => (
                         <div
-                          key={membership.id}
-                          className="p-3 rounded-lg border bg-muted/50"
-                          data-testid={`membership-${membership.id}`}
+                          key={team.id}
+                          className={`p-4 rounded-lg border cursor-pointer transition-colors ${
+                            selectedTeam?.id === team.id ? "border-primary bg-primary/5" : "hover:bg-muted"
+                          }`}
+                          onClick={() => setSelectedTeam(team)}
+                          data-testid={`team-row-${team.id}`}
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium">{membership.team.name}</p>
-                              <p className="text-sm text-muted-foreground">{membership.team.sport}</p>
+                              <p className="font-medium">{team.name}</p>
+                              <p className="text-sm text-muted-foreground">{team.sport}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Badge className={getRoleBadgeColor(membership.role)}>
-                                {membership.role}
-                              </Badge>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setEditingMember(membership);
-                                  setEditRole(membership.role);
-                                }}
-                                data-testid={`button-edit-member-${membership.id}`}
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleRemoveMember(membership)}
-                                data-testid={`button-remove-member-${membership.id}`}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
+                              <Badge variant="secondary">{team.memberCount} members</Badge>
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
                             </div>
                           </div>
                         </div>
                       ))}
-                      {userTeams.length === 0 && (
-                        <p className="text-center text-muted-foreground py-4">No team memberships</p>
+                      {(teams as TeamWithMembers[]).length === 0 && (
+                        <p className="text-center text-muted-foreground py-8">No teams found</p>
                       )}
                     </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    {selectedTeam ? `${selectedTeam.name} Members` : "Team Members"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {selectedTeam ? (
+                    <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                      {selectedTeam.members.map((member) => (
+                        <div
+                          key={member.id}
+                          className="p-3 rounded-lg border bg-muted/30"
+                          data-testid={`member-row-${member.id}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                              {member.user.avatar ? (
+                                <img src={member.user.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
+                              ) : (
+                                <User className="h-5 w-5 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{member.user.firstName} {member.user.lastName}</p>
+                              <p className="text-sm text-muted-foreground truncate">{member.user.email}</p>
+                            </div>
+                            <Badge className={getRoleBadgeColor(member.role)}>
+                              {member.role}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-2 mt-3">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => handleImpersonate(member.user as AdminUser)}
+                              data-testid={`button-impersonate-${member.id}`}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View As
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingMember({
+                                  memberId: member.id,
+                                  teamId: member.teamId,
+                                  userId: member.userId,
+                                  role: member.role,
+                                  userName: `${member.user.firstName} ${member.user.lastName}`,
+                                  teamName: selectedTeam.name,
+                                });
+                                setEditRole(member.role);
+                              }}
+                              data-testid={`button-edit-${member.id}`}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleRemoveTeamMember(
+                                member.id, 
+                                `${member.user.firstName} ${member.user.lastName}`,
+                                selectedTeam.name
+                              )}
+                              data-testid={`button-remove-${member.id}`}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {selectedTeam.members.length === 0 && (
+                        <p className="text-center text-muted-foreground py-8">No members in this team</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>Select a team to view members</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Search className="h-5 w-5" />
+                    User Search
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Search by name or email..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                      data-testid="input-admin-search"
+                    />
+                    <Button onClick={handleSearch} disabled={isSearching} data-testid="button-admin-search">
+                      {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                    </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <User className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>Select a user to view details</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {searchResults.map((result) => (
+                      <div
+                        key={result.id}
+                        className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                          selectedUser?.id === result.id ? "border-primary bg-primary/5" : "hover:bg-muted"
+                        }`}
+                        onClick={() => handleSelectUser(result)}
+                        data-testid={`user-result-${result.id}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                            {result.avatar ? (
+                              <img src={result.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
+                            ) : (
+                              <User className="h-5 w-5 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{result.firstName} {result.lastName}</p>
+                            <p className="text-sm text-muted-foreground truncate">{result.email}</p>
+                          </div>
+                          <Badge className={getRoleBadgeColor(result.role)}>
+                            {result.role}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                    {searchResults.length === 0 && searchQuery && !isSearching && (
+                      <p className="text-center text-muted-foreground py-4">No users found</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    User Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingUser ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : selectedUser ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+                          {selectedUser.avatar ? (
+                            <img src={selectedUser.avatar} alt="" className="h-16 w-16 rounded-full object-cover" />
+                          ) : (
+                            <User className="h-8 w-8 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold">{selectedUser.firstName} {selectedUser.lastName}</h3>
+                          <p className="text-muted-foreground">{selectedUser.email}</p>
+                          <div className="flex gap-2 mt-1">
+                            <Badge className={getRoleBadgeColor(selectedUser.role)}>{selectedUser.role}</Badge>
+                            {selectedUser.isSuperAdmin && <Badge className="bg-red-500">Super Admin</Badge>}
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button
+                        className="w-full"
+                        onClick={() => handleImpersonate(selectedUser)}
+                        data-testid="button-impersonate"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View as This User
+                      </Button>
+
+                      <Separator />
+
+                      <div>
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          Team Memberships ({userTeams.length})
+                        </h4>
+                        <div className="space-y-2">
+                          {userTeams.map((membership) => (
+                            <div
+                              key={membership.id}
+                              className="p-3 rounded-lg border bg-muted/50"
+                              data-testid={`membership-${membership.id}`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium">{membership.team.name}</p>
+                                  <p className="text-sm text-muted-foreground">{membership.team.sport}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge className={getRoleBadgeColor(membership.role)}>
+                                    {membership.role}
+                                  </Badge>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setEditingMember({
+                                        memberId: membership.id,
+                                        teamId: membership.team.id,
+                                        userId: selectedUser.id,
+                                        role: membership.role,
+                                        userName: `${selectedUser.firstName} ${selectedUser.lastName}`,
+                                        teamName: membership.team.name,
+                                      });
+                                      setEditRole(membership.role);
+                                    }}
+                                    data-testid={`button-edit-member-${membership.id}`}
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleRemoveTeamMember(
+                                      membership.id,
+                                      `${selectedUser.firstName} ${selectedUser.lastName}`,
+                                      membership.team.name
+                                    )}
+                                    data-testid={`button-remove-member-${membership.id}`}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {userTeams.length === 0 && (
+                            <p className="text-center text-muted-foreground py-4">No team memberships</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <User className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>Select a user to view details</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
 
         <Dialog open={!!editingMember} onOpenChange={() => setEditingMember(null)}>
           <DialogContent>
@@ -328,8 +513,12 @@ export default function SuperAdminPanel() {
             </DialogHeader>
             <div className="space-y-4">
               <div>
+                <Label>User</Label>
+                <p className="text-muted-foreground">{editingMember?.userName}</p>
+              </div>
+              <div>
                 <Label>Team</Label>
-                <p className="text-muted-foreground">{editingMember?.team.name}</p>
+                <p className="text-muted-foreground">{editingMember?.teamName}</p>
               </div>
               <div>
                 <Label>Role</Label>
