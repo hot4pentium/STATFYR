@@ -101,7 +101,7 @@ const supporterAthleteViewData: FeatureAccess[] = [
   { feature: "Playbook", access: "View athlete's team plays" },
   { feature: "StatTracker", access: "NO ACCESS" },
   { feature: "Stats", access: "View athlete's statistics" },
-  { feature: "Highlights", access: "View athlete's highlights" },
+  { feature: "Highlights", access: "View & upload athlete's highlights" },
   { feature: "Team Chat", access: "View/participate in athlete's team chat" },
   { feature: "HYPE Card", access: "View & share athlete's public profile" },
 ];
