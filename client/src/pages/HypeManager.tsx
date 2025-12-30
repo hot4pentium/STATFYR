@@ -406,7 +406,7 @@ export default function HypeManager() {
         <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
-              <Flame className="h-5 w-5 text-orange-500" />
+              <img src={logoImage} alt="STATFYR" className="h-5 w-5 object-contain" />
               Create HYPE Post
             </DialogTitle>
           </DialogHeader>
@@ -476,7 +476,7 @@ export default function HypeManager() {
               {createPostMutation.isPending ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Posting...</>
               ) : (
-                <><Flame className="h-4 w-4 mr-2" /> Post HYPE</>
+                <><img src={logoImage} alt="STATFYR" className="h-4 w-4 mr-2 object-contain" /> Post HYPE</>
               )}
             </Button>
           </DialogFooter>
