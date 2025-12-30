@@ -4,14 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
-import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin } from "lucide-react";
+import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin, Download, Smartphone } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { requestFollowerNotificationPermission } from "@/lib/firebase";
+import { requestFollowerNotificationPermission, isIOS, isStandalonePWA, isSafari } from "@/lib/firebase";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 import clutchImg from "@assets/clutch_1766970267487.png";
@@ -266,11 +266,92 @@ export default function ShareableHypeCard(props: any) {
     }
   }, [athleteId]);
 
+  // Set dynamic manifest for this athlete's HYPE card PWA
+  useEffect(() => {
+    if (typeof window !== 'undefined' && athleteId) {
+      const existingManifest = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+      const hadExistingManifest = !!existingManifest;
+      const originalHref = hadExistingManifest ? existingManifest.href : null;
+      
+      if (existingManifest) {
+        // Update existing manifest href
+        existingManifest.href = `/api/athletes/${athleteId}/manifest.json`;
+      } else {
+        // Create new manifest link
+        const manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = `/api/athletes/${athleteId}/manifest.json`;
+        manifestLink.id = `athlete-manifest-${athleteId}`;
+        document.head.appendChild(manifestLink);
+      }
+      
+      // Cleanup
+      return () => {
+        if (hadExistingManifest && originalHref !== null) {
+          // Restore original href
+          const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+          if (manifestLink) {
+            manifestLink.href = originalHref;
+          }
+        } else {
+          // Remove the manifest we created (no original existed)
+          const addedManifest = document.querySelector(`link#athlete-manifest-${athleteId}`);
+          if (addedManifest) {
+            addedManifest.remove();
+          }
+        }
+      };
+    }
+  }, [athleteId]);
+
   const { data: profile, isLoading } = useQuery({
     queryKey: ["/api/athletes", athleteId, "public-profile"],
     queryFn: () => getPublicAthleteProfile(athleteId),
     enabled: !!athleteId,
   });
+
+  // Update apple-mobile-web-app-title when athlete data loads
+  useEffect(() => {
+    if (typeof window !== 'undefined' && profile?.athlete) {
+      const athleteName = profile.athlete.name || profile.athlete.username;
+      const appTitle = `${athleteName} HYPE`;
+      
+      // Find existing meta tag
+      const existingMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]') as HTMLMetaElement;
+      const hadExistingMeta = !!existingMeta;
+      const originalContent = hadExistingMeta ? existingMeta.content : null;
+      
+      // Create or update meta tag
+      let appleTitleMeta = existingMeta;
+      if (!appleTitleMeta) {
+        appleTitleMeta = document.createElement('meta');
+        appleTitleMeta.name = 'apple-mobile-web-app-title';
+        appleTitleMeta.id = `athlete-app-title-${athleteId}`;
+        document.head.appendChild(appleTitleMeta);
+      }
+      appleTitleMeta.content = appTitle;
+      
+      // Also update the document title for better UX
+      const originalTitle = document.title;
+      document.title = appTitle;
+      
+      // Cleanup: restore original values or remove created meta
+      return () => {
+        if (hadExistingMeta && originalContent !== null) {
+          const meta = document.querySelector('meta[name="apple-mobile-web-app-title"]') as HTMLMetaElement;
+          if (meta) {
+            meta.content = originalContent;
+          }
+        } else {
+          const addedMeta = document.querySelector(`meta#athlete-app-title-${athleteId}`);
+          if (addedMeta) {
+            addedMeta.remove();
+          }
+        }
+        document.title = originalTitle;
+      };
+    }
+  }, [profile?.athlete, athleteId]);
 
   const { data: likesData } = useQuery({
     queryKey: ["/api/athletes", athleteId, "profile-likes"],
@@ -340,6 +421,18 @@ export default function ShareableHypeCard(props: any) {
   const [followInstructions, setFollowInstructions] = useState<string | null>(null);
   const [showFollowForm, setShowFollowForm] = useState(false);
   const [followFormName, setFollowFormName] = useState("");
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [installPromptDismissed, setInstallPromptDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(`install-prompt-dismissed-${athleteId}`) === 'true';
+  });
+
+  // Check if we should show install prompt for iOS Safari
+  const shouldShowInstallPrompt = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    if (installPromptDismissed) return false;
+    return isIOS() && !isStandalonePWA();
+  }, [installPromptDismissed]);
 
   const handleFollowClick = () => {
     setFollowError(null);
@@ -923,6 +1016,110 @@ export default function ShareableHypeCard(props: any) {
             </Badge>
           </h3>
           
+          {/* Install App Prompt for iOS Safari */}
+          {shouldShowInstallPrompt && !showInstallPrompt && (
+            <Card className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border-blue-500/30 mb-4">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-500/20 rounded-lg">
+                    <Smartphone className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-foreground mb-1">
+                      Install this app for the best experience
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Add to your home screen to get notifications and quick access
+                    </p>
+                    <Button
+                      onClick={() => setShowInstallPrompt(true)}
+                      size="sm"
+                      className="bg-blue-500 hover:bg-blue-600 text-white"
+                      data-testid="button-show-install"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      How to Install
+                    </Button>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground -mt-1 -mr-2"
+                    onClick={() => {
+                      localStorage.setItem(`install-prompt-dismissed-${athleteId}`, 'true');
+                      setInstallPromptDismissed(true);
+                    }}
+                    data-testid="button-dismiss-install"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Install Instructions Modal */}
+          {showInstallPrompt && (
+            <Card className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border-blue-500/30 mb-4">
+              <CardContent className="p-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <Download className="h-4 w-4 text-blue-400" />
+                      Install {athlete?.name || 'this'} HYPE Card
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowInstallPrompt(false)}
+                      data-testid="button-close-install"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-start gap-3 p-3 bg-background/50 rounded-lg">
+                      <div className="flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-bold flex-shrink-0">1</div>
+                      <div>
+                        <p className="font-medium">Tap the Share button</p>
+                        <p className="text-xs text-muted-foreground">It's at the bottom of Safari (square with arrow pointing up)</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3 p-3 bg-background/50 rounded-lg">
+                      <div className="flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-bold flex-shrink-0">2</div>
+                      <div>
+                        <p className="font-medium">Scroll down and tap "Add to Home Screen"</p>
+                        <p className="text-xs text-muted-foreground">You may need to scroll down in the share menu</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3 p-3 bg-background/50 rounded-lg">
+                      <div className="flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-bold flex-shrink-0">3</div>
+                      <div>
+                        <p className="font-medium">Tap "Add" in the top right</p>
+                        <p className="text-xs text-muted-foreground">The app will appear on your home screen</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3 p-3 bg-background/50 rounded-lg">
+                      <div className="flex items-center justify-center w-6 h-6 bg-green-500 text-white rounded-full text-xs font-bold flex-shrink-0">4</div>
+                      <div>
+                        <p className="font-medium">Open from your home screen</p>
+                        <p className="text-xs text-muted-foreground">Now you can follow and get push notifications!</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <p className="text-xs text-center text-muted-foreground">
+                    Once installed, notifications will work automatically
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-orange-500/30">
             <CardContent className="p-4">
               {isFollowing ? (

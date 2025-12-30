@@ -1522,6 +1522,70 @@ export async function registerRoutes(
   });
 
   // ============ PUBLIC ATHLETE PROFILE ============
+
+  // Dynamic PWA manifest for athlete HYPE cards
+  app.get("/api/athletes/:athleteId/manifest.json", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      
+      // Get athlete data
+      const athlete = await storage.getUser(athleteId);
+      if (!athlete) {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
+      
+      // Get team info for sport
+      const memberships = await storage.getUserTeamMemberships(athleteId);
+      const membership = memberships.length > 0 ? memberships[0] : null;
+      let teamName = "";
+      if (membership) {
+        const team = await storage.getTeam(membership.teamId.toString());
+        teamName = team?.name || "";
+      }
+      
+      const athleteName = athlete.name || athlete.username;
+      const appName = `${athleteName} HYPE`;
+      const shortName = athleteName.substring(0, 12);
+      const description = teamName 
+        ? `Follow ${athleteName} from ${teamName} - Get updates and show your support!`
+        : `Follow ${athleteName} - Get updates and show your support!`;
+      
+      // Build the manifest
+      const manifest = {
+        name: appName,
+        short_name: shortName,
+        description: description,
+        start_url: `/athlete/${athleteId}/share`,
+        scope: `/athlete/${athleteId}/`,
+        display: "standalone",
+        orientation: "portrait",
+        theme_color: "#f97316",
+        background_color: "#0a0a0a",
+        icons: [
+          {
+            src: athlete.avatar || "/icon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any maskable"
+          },
+          {
+            src: athlete.avatar || "/icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable"
+          }
+        ],
+        categories: ["sports", "social"],
+        lang: "en"
+      };
+      
+      res.setHeader("Content-Type", "application/manifest+json");
+      res.json(manifest);
+    } catch (error) {
+      console.error("Error generating athlete manifest:", error);
+      res.status(500).json({ error: "Failed to generate manifest" });
+    }
+  });
   
   app.get("/api/athletes/:athleteId/public-profile", async (req, res) => {
     try {
