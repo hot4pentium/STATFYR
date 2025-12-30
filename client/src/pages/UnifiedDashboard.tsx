@@ -432,8 +432,13 @@ export default function UnifiedDashboard() {
   };
 
   const renderMemberCard = (member: TeamMember) => (
-    <Card key={member.id} className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all">
-      <CardContent className="p-4 flex items-center gap-3">
+    <Card key={member.id} className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all overflow-hidden relative">
+      {currentTeam?.badgeId && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-45 pointer-events-none">
+          <TeamBadge badgeId={currentTeam.badgeId} size="lg" />
+        </div>
+      )}
+      <CardContent className="p-4 flex items-center gap-3 relative z-10">
         <Avatar className="h-12 w-12">
           <AvatarImage src={member.user?.avatar || undefined} />
           <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-lg font-bold">
