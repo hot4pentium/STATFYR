@@ -886,7 +886,7 @@ export default function UnifiedDashboard() {
       <div className="relative z-10 min-h-screen">
         {/* Hero Section */}
         <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/70 to-background dark:from-black/40 dark:via-black/60 dark:to-background" />
           <div className="absolute inset-0 bg-[url('/field-bg.jpg')] bg-cover bg-center opacity-30" />
           
           <div className="relative z-10 px-4 pt-6 pb-8">
