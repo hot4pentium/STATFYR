@@ -935,6 +935,19 @@ export default function UnifiedDashboard() {
                   )}
                 </Button>
                 
+                {/* Super Admin Button - only visible for super admins */}
+                {user?.isSuperAdmin && (
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={() => setLocation("/super-admin")}
+                    title="Super Admin Panel"
+                    data-testid="button-super-admin"
+                  >
+                    <Shield className="h-5 w-5 text-amber-500" />
+                  </Button>
+                )}
+                
                 {/* Settings Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -943,6 +956,14 @@ export default function UnifiedDashboard() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    {user?.isSuperAdmin && (
+                      <>
+                        <DropdownMenuItem onClick={() => setLocation("/super-admin")}>
+                          <Shield className="h-4 w-4 mr-2 text-amber-500" /> Super Admin
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
                     <DropdownMenuItem onClick={() => {
                       const settingsPath = userRole === "coach" ? "/settings" : 
                                            userRole === "athlete" ? "/athlete/settings" : 
