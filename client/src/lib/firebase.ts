@@ -204,19 +204,40 @@ export async function requestFollowerNotificationPermission(): Promise<{ token: 
   }
 
   try {
+    console.log('[FCM] Registering service worker...');
     await registerFirebaseServiceWorker();
     
+    console.log('[FCM] Requesting notification permission...');
     const permission = await Notification.requestPermission();
+    console.log('[FCM] Permission result:', permission);
     
     if (permission === 'granted') {
       const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-      const swRegistration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
+      console.log('[FCM] VAPID key present:', !!vapidKey);
       
+      if (!vapidKey) {
+        console.error('[FCM] VAPID key is missing!');
+        return { token: null, error: 'Push notification configuration error. Please contact support.' };
+      }
+      
+      const swRegistration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
+      console.log('[FCM] Service worker registration:', !!swRegistration);
+      
+      if (!swRegistration) {
+        console.error('[FCM] Service worker not registered!');
+        return { token: null, error: 'Failed to register notification service. Please refresh and try again.' };
+      }
+      
+      console.log('[FCM] Getting token...');
       const token = await getToken(messaging, { 
         vapidKey,
         serviceWorkerRegistration: swRegistration 
       });
-      console.log('FCM Token obtained for follower');
+      console.log('[FCM] Token obtained:', !!token);
+      
+      if (!token) {
+        return { token: null, error: 'Failed to get notification token. Please try again.' };
+      }
       
       return { token };
     } else if (permission === 'denied') {
