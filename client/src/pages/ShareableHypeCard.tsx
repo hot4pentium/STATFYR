@@ -874,15 +874,23 @@ export default function ShareableHypeCard(props: any) {
               <p className="text-sm text-muted-foreground mb-2">
                 Get notified when {athlete.name || athlete.username} shares updates!
               </p>
-              <p className="text-xs text-muted-foreground/70 mb-4">
+              <p className="text-xs text-muted-foreground/70 mb-3">
                 You'll need to allow notifications when prompted to receive HYPE updates.
               </p>
+              
+              <Input
+                placeholder="Enter your name"
+                value={visitorName}
+                onChange={(e) => setVisitorName(e.target.value)}
+                className="mb-3"
+                data-testid="input-visitor-name"
+              />
               
               {!isFollowing ? (
                 <Button
                   onClick={handleFollow}
-                  disabled={isFollowLoading}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                  disabled={isFollowLoading || !visitorName.trim()}
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white disabled:opacity-50"
                   data-testid="button-follow-athlete"
                 >
                   <Bell className="h-4 w-4 mr-2" />
@@ -914,12 +922,17 @@ export default function ShareableHypeCard(props: any) {
         <div className="mb-6">
           <Card className="bg-card/80 backdrop-blur-sm border-white/10">
             <CardContent className="p-4 space-y-4">
+              {!visitorName.trim() && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Enter your name in the Follow section above to like or comment
+                </p>
+              )}
               {/* Like and Comment Buttons */}
               <div className="flex gap-2">
                 <Button
                   onClick={handleLike}
-                  disabled={hasLiked || likeMutation.isPending}
-                  className={`flex-1 ${hasLiked ? 'bg-pink-500/20 text-pink-500' : 'bg-pink-500 hover:bg-pink-600 text-white'}`}
+                  disabled={hasLiked || likeMutation.isPending || !visitorName.trim()}
+                  className={`flex-1 ${hasLiked ? 'bg-pink-500/20 text-pink-500' : 'bg-pink-500 hover:bg-pink-600 text-white'} disabled:opacity-50`}
                   data-testid="button-like-profile"
                 >
                   <Heart className={`h-4 w-4 mr-2 ${hasLiked ? 'fill-pink-500' : ''}`} />
