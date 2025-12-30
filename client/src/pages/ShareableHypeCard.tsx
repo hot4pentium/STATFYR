@@ -227,6 +227,7 @@ export default function ShareableHypeCard(props: any) {
   // Persist liked state in localStorage to prevent spam
   const likeStorageKey = `profile-liked-${athleteId}`;
   const fcmTokenStorageKey = `follower-fcm-token-${athleteId}`;
+  const visitorNameStorageKey = `visitor-name-${athleteId}`;
   
   const [hasLiked, setHasLiked] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -234,6 +235,23 @@ export default function ShareableHypeCard(props: any) {
     }
     return false;
   });
+  
+  // Persist visitor name in localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && athleteId) {
+      const storedName = localStorage.getItem(visitorNameStorageKey);
+      if (storedName) {
+        setVisitorName(storedName);
+      }
+    }
+  }, [athleteId]);
+  
+  // Save visitor name when it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && athleteId && visitorName.trim()) {
+      localStorage.setItem(visitorNameStorageKey, visitorName.trim());
+    }
+  }, [visitorName, athleteId]);
 
   // Load stored FCM token on mount
   useEffect(() => {
