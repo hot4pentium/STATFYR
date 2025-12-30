@@ -1011,12 +1011,6 @@ export default function UnifiedDashboard() {
               </div>
             </div>
 
-            {/* User Info */}
-            <div className="mt-4">
-              <p className="text-primary font-semibold">{userRole === "coach" ? `Coach ${getUserDisplayName()}` : isStaff ? `Staff ${getUserDisplayName()}` : getUserDisplayName()}</p>
-              <p className="text-slate-500 dark:text-white/60 text-sm">{getRoleLabel()}</p>
-            </div>
-
             {/* View Selector - Supporters Only */}
             {userRole === "supporter" && managedAthletes.length > 0 && (
               <div className="mt-4 bg-[#5e5a5a00]">
