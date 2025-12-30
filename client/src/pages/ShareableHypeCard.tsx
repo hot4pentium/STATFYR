@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
-import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin, Download, Smartphone } from "lucide-react";
+import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin, Download, Smartphone, Plus, ExternalLink } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -1059,66 +1060,113 @@ export default function ShareableHypeCard(props: any) {
           )}
 
           {/* Install Instructions Modal */}
-          {showInstallPrompt && (
-            <Card className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border-blue-500/30 mb-4">
-              <CardContent className="p-4">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <Download className="h-4 w-4 text-blue-400" />
-                      Install {athlete?.name || 'this'} HYPE Card
-                    </h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowInstallPrompt(false)}
-                      data-testid="button-close-install"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-start gap-3 p-3 bg-background/50 rounded-lg">
-                      <div className="flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-bold flex-shrink-0">1</div>
-                      <div>
-                        <p className="font-medium">Tap the Share button</p>
-                        <p className="text-xs text-muted-foreground">It's at the bottom of Safari (square with arrow pointing up)</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3 p-3 bg-background/50 rounded-lg">
-                      <div className="flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-bold flex-shrink-0">2</div>
-                      <div>
-                        <p className="font-medium">Scroll down and tap "Add to Home Screen"</p>
-                        <p className="text-xs text-muted-foreground">You may need to scroll down in the share menu</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3 p-3 bg-background/50 rounded-lg">
-                      <div className="flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-bold flex-shrink-0">3</div>
-                      <div>
-                        <p className="font-medium">Tap "Add" in the top right</p>
-                        <p className="text-xs text-muted-foreground">The app will appear on your home screen</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3 p-3 bg-background/50 rounded-lg">
-                      <div className="flex items-center justify-center w-6 h-6 bg-green-500 text-white rounded-full text-xs font-bold flex-shrink-0">4</div>
-                      <div>
-                        <p className="font-medium">Open from your home screen</p>
-                        <p className="text-xs text-muted-foreground">Now you can follow and get push notifications!</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <p className="text-xs text-center text-muted-foreground">
-                    Once installed, notifications will work automatically
-                  </p>
+          <Dialog open={showInstallPrompt} onOpenChange={setShowInstallPrompt}>
+            <DialogContent className="max-w-sm mx-auto bg-gradient-to-b from-zinc-900 to-black border-zinc-700">
+              <DialogHeader className="text-center pb-2">
+                <div className="mx-auto mb-3 w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg">
+                  {athlete?.avatar ? (
+                    <img src={athlete.avatar} alt="" className="w-full h-full rounded-2xl object-cover" />
+                  ) : (
+                    <User className="h-8 w-8 text-white" />
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+                <DialogTitle className="text-xl font-display text-white">
+                  Install {athlete?.name?.split(' ')[0] || 'Athlete'}'s HYPE Card
+                </DialogTitle>
+                <p className="text-sm text-zinc-400 mt-1">
+                  Add to your home screen for the full experience
+                </p>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                {/* Step 1: Tap Share */}
+                <div className="flex items-center gap-4 p-4 bg-zinc-800/50 rounded-xl border border-zinc-700">
+                  <div className="flex-shrink-0 w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="5" y="8" width="14" height="12" rx="2" />
+                      <path d="M12 2v10M8 6l4-4 4 4" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">1</span>
+                      <span className="font-semibold text-white">Tap Share</span>
+                    </div>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Look for the share icon at the bottom of Safari
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 2: Add to Home Screen */}
+                <div className="flex items-center gap-4 p-4 bg-zinc-800/50 rounded-xl border border-zinc-700">
+                  <div className="flex-shrink-0 w-12 h-12 bg-zinc-600 rounded-xl flex items-center justify-center">
+                    <div className="relative">
+                      <div className="w-6 h-6 border-2 border-white rounded-md" />
+                      <Plus className="w-4 h-4 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">2</span>
+                      <span className="font-semibold text-white">Add to Home Screen</span>
+                    </div>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Scroll down in the menu and tap this option
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3: Tap Add */}
+                <div className="flex items-center gap-4 p-4 bg-zinc-800/50 rounded-xl border border-zinc-700">
+                  <div className="flex-shrink-0 w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                    <Check className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">3</span>
+                      <span className="font-semibold text-white">Tap "Add"</span>
+                    </div>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Confirm by tapping Add in the top right corner
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* What you'll get */}
+              <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-xl p-4 border border-orange-500/30">
+                <h4 className="font-semibold text-orange-400 mb-2 text-sm">What you'll get:</h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <Bell className="h-3.5 w-3.5 text-orange-400" />
+                    <span>Push notifications</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <Smartphone className="h-3.5 w-3.5 text-orange-400" />
+                    <span>Home screen icon</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <Zap className="h-3.5 w-3.5 text-orange-400" />
+                    <span>Instant access</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <ExternalLink className="h-3.5 w-3.5 text-orange-400" />
+                    <span>Full screen mode</span>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full mt-2 border-zinc-600 text-zinc-300 hover:bg-zinc-800"
+                onClick={() => setShowInstallPrompt(false)}
+                data-testid="button-close-install"
+              >
+                Got it
+              </Button>
+            </DialogContent>
+          </Dialog>
 
           <Card className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-orange-500/30">
             <CardContent className="p-4">
