@@ -462,12 +462,21 @@ export default function ShareableHypeCard(props: any) {
   const handleAndroidInstall = async () => {
     if (!deferredPrompt) return;
     
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    const promptEvent = deferredPrompt;
+    setDeferredPrompt(null);
     
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-      toast.success("App installed! Open from your home screen.");
+    try {
+      promptEvent.prompt();
+      const { outcome } = await promptEvent.userChoice;
+      
+      if (outcome === 'accepted') {
+        toast.success("App installed! Open from your home screen.");
+      } else {
+        localStorage.setItem(`install-prompt-dismissed-${athleteId}`, 'true');
+        setInstallPromptDismissed(true);
+      }
+    } catch (error) {
+      console.error('Install prompt error:', error);
     }
   };
 
