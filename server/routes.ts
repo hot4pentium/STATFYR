@@ -1996,20 +1996,28 @@ export async function registerRoutes(
   // Create a HYPE post
   app.post("/api/hype-posts", async (req, res) => {
     try {
+      console.log('[HYPE] Creating new HYPE post...');
       const parsed = insertHypePostSchema.parse(req.body);
+      console.log('[HYPE] Athlete ID:', parsed.athleteId);
       
       // Verify the athlete exists
       const athlete = await storage.getUser(parsed.athleteId);
       if (!athlete) {
         return res.status(404).json({ error: "Athlete not found" });
       }
+      console.log('[HYPE] Athlete found:', athlete.username);
       
       const post = await storage.createHypePost(parsed);
+      console.log('[HYPE] Post created with ID:', post.id);
       
       // Send push notification to followers
+      console.log('[HYPE] Fetching followers for athlete:', parsed.athleteId);
       const followers = await storage.getAthleteFollowers(parsed.athleteId);
+      console.log('[HYPE] Found', followers.length, 'followers');
+      
       if (followers.length > 0) {
         const tokens = followers.map(f => f.fcmToken);
+        console.log('[HYPE] Preparing to send notifications to', tokens.length, 'tokens');
         
         const athleteName = athlete.firstName && athlete.lastName
           ? `${athlete.firstName} ${athlete.lastName}`
@@ -2022,6 +2030,7 @@ export async function registerRoutes(
             : '';
         
         const hypeCardUrl = `${baseUrl}/share/athlete/${parsed.athleteId}`;
+        console.log('[HYPE] Notification URL:', hypeCardUrl);
         
         try {
           const result = await sendPushNotification(
@@ -2031,17 +2040,21 @@ export async function registerRoutes(
             { athleteId: parsed.athleteId, hypePostId: post.id, type: 'hype_post' },
             hypeCardUrl
           );
+          console.log('[HYPE] Notification result:', JSON.stringify(result));
           
           // Clean up invalid tokens
           if (result.invalidTokens.length > 0) {
+            console.log('[HYPE] Cleaning up', result.invalidTokens.length, 'invalid tokens');
             for (const token of result.invalidTokens) {
               await storage.deleteAthleteFollower(parsed.athleteId, token);
             }
           }
         } catch (notificationError) {
-          console.error("Error sending HYPE post notification:", notificationError);
+          console.error("[HYPE] Error sending notification:", notificationError);
           // Don't fail the request if notification fails
         }
+      } else {
+        console.log('[HYPE] No followers to notify');
       }
       
       res.json(post);

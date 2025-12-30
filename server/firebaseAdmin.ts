@@ -78,15 +78,24 @@ export async function sendPushNotification(
   data?: Record<string, string>,
   link?: string
 ): Promise<{ success: boolean; successCount: number; failureCount: number; invalidTokens: string[] }> {
+  console.log('[Push] sendPushNotification called with', tokens.length, 'tokens');
+  console.log('[Push] Title:', title);
+  console.log('[Push] Body:', body);
+  console.log('[Push] Link:', link);
+  
   const app = getFirebaseAdmin();
   
   if (!app) {
+    console.log('[Push] Firebase Admin not initialized, aborting');
     return { success: false, successCount: 0, failureCount: tokens.length, invalidTokens: [] };
   }
 
   if (tokens.length === 0) {
+    console.log('[Push] No tokens provided, nothing to send');
     return { success: true, successCount: 0, failureCount: 0, invalidTokens: [] };
   }
+
+  console.log('[Push] Token preview:', tokens.map(t => t.substring(0, 20) + '...'));
 
   const messaging = admin.messaging(app);
   
@@ -105,21 +114,28 @@ export async function sendPushNotification(
   };
 
   try {
+    console.log('[Push] Sending to Firebase...');
     const response = await messaging.sendEachForMulticast(message);
+    console.log('[Push] Firebase response - Success:', response.successCount, 'Failure:', response.failureCount);
     
     const invalidTokens: string[] = [];
     response.responses.forEach((resp, idx) => {
       if (!resp.success) {
         const errorCode = resp.error?.code;
+        const errorMsg = resp.error?.message;
+        console.log('[Push] Token', idx, 'failed:', errorCode, '-', errorMsg);
         if (
           errorCode === 'messaging/invalid-registration-token' ||
           errorCode === 'messaging/registration-token-not-registered'
         ) {
           invalidTokens.push(tokens[idx]);
         }
+      } else {
+        console.log('[Push] Token', idx, 'sent successfully');
       }
     });
 
+    console.log('[Push] Final result - Success:', response.successCount, 'Failure:', response.failureCount, 'Invalid tokens:', invalidTokens.length);
     return {
       success: response.successCount > 0,
       successCount: response.successCount,
@@ -127,7 +143,7 @@ export async function sendPushNotification(
       invalidTokens,
     };
   } catch (error) {
-    console.error('Error sending push notifications:', error);
+    console.error('[Push] Error sending push notifications:', error);
     return { success: false, successCount: 0, failureCount: tokens.length, invalidTokens: [] };
   }
 }
