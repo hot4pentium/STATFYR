@@ -346,27 +346,20 @@ export default function ShareableHypeCard(props: any) {
   };
 
   const handleFollowSubmit = async () => {
-    alert("DEBUG 1: handleFollowSubmit called, followFormName=" + followFormName);
     setFollowError(null);
-    alert("DEBUG 1.5: After setFollowError(null)");
     
     if (!followFormName.trim()) {
-      alert("DEBUG 1.6: Name is empty, returning");
       setFollowError("Please enter your name");
       return;
     }
     
-    alert("DEBUG 1.7: Name is valid, about to set loading");
     setIsFollowLoading(true);
-    alert("DEBUG 2: About to request notification permission");
     
     try {
-      let result;
+      let result: { token?: string | null; error?: string } | undefined;
       try {
         result = await requestFollowerNotificationPermission();
-        alert("DEBUG 3: Permission result: " + JSON.stringify(result));
       } catch (permError: any) {
-        alert("DEBUG 3-ERROR: " + (permError.message || String(permError)));
         const errorMsg = permError.message || "Failed to set up notifications. Please try again.";
         setFollowError(errorMsg);
         toast.error(errorMsg);
@@ -375,8 +368,10 @@ export default function ShareableHypeCard(props: any) {
       }
       
       if (!result || !result.token) {
-        const errorMsg = result?.error || "Please allow notifications to follow this athlete";
-        alert("DEBUG 4: No token, error: " + errorMsg);
+        let errorMsg = result?.error || "Please allow notifications to follow this athlete";
+        if (errorMsg.includes("blocked")) {
+          errorMsg = "Notifications are blocked. Please enable them in your browser settings and try again.";
+        }
         setFollowError(errorMsg);
         toast.error(errorMsg);
         setIsFollowLoading(false);
