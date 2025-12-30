@@ -6,6 +6,7 @@ import { Users, Shield, ChevronDown, ChevronUp, ArrowLeft, Search, Trash2, UserP
 import { Link } from "wouter";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUser } from "@/lib/userContext";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -84,14 +85,14 @@ type User = {
   lastAccessedAt: string | null;
 };
 
-async function getAdminTeams(): Promise<Team[]> {
-  const res = await fetch("/api/admin/teams");
+async function getAdminTeams(requesterId: string): Promise<Team[]> {
+  const res = await fetch(`/api/admin/teams?requesterId=${requesterId}`);
   if (!res.ok) throw new Error("Failed to fetch teams");
   return res.json();
 }
 
-async function getAdminUsers(): Promise<User[]> {
-  const res = await fetch("/api/admin/users");
+async function getAdminUsers(requesterId: string): Promise<User[]> {
+  const res = await fetch(`/api/admin/users?requesterId=${requesterId}`);
   if (!res.ok) throw new Error("Failed to fetch users");
   return res.json();
 }
@@ -129,6 +130,7 @@ async function createMember(
 }
 
 export default function AdminDashboard() {
+  const { user } = useUser();
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"teams" | "users">("teams");
@@ -146,13 +148,15 @@ export default function AdminDashboard() {
   const queryClient = useQueryClient();
 
   const { data: teams = [], isLoading: teamsLoading } = useQuery({
-    queryKey: ["/api/admin/teams"],
-    queryFn: getAdminTeams,
+    queryKey: ["/api/admin/teams", user?.id],
+    queryFn: () => getAdminTeams(user!.id),
+    enabled: !!user?.id,
   });
 
   const { data: users = [], isLoading: usersLoading } = useQuery({
-    queryKey: ["/api/admin/users"],
-    queryFn: getAdminUsers,
+    queryKey: ["/api/admin/users", user?.id],
+    queryFn: () => getAdminUsers(user!.id),
+    enabled: !!user?.id,
   });
 
   const removeMemberMutation = useMutation({
