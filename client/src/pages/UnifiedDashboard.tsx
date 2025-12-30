@@ -42,6 +42,7 @@ import {
   getTeamAggregateStats, getAdvancedTeamStats, getLiveSessionByEvent, createLiveSessionForEvent,
   startLiveSession, endLiveSession, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount,
   getManagedAthletes, getSupporterBadges, getAllBadges, getSupporterTapTotal, getActiveLiveSessions,
+  getUserTeams,
   type Team, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup,
   type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession, type ManagedAthlete
 } from "@/lib/api";
@@ -218,6 +219,13 @@ export default function UnifiedDashboard() {
     enabled: !!user && userRole === "supporter",
   });
 
+  // Fetch user's teams for athletes and supporters
+  const { data: userTeams = [] } = useQuery({
+    queryKey: ["/api/users", user?.id, "teams"],
+    queryFn: () => user ? getUserTeams(user.id) : Promise.resolve([]),
+    enabled: !!user && (userRole === "athlete" || userRole === "supporter") && !currentTeam,
+  });
+
   const userMembership = useMemo(() => {
     if (!user || !teamMembers) return null;
     return teamMembers.find((m: TeamMember) => m.userId === user.id) || null;
@@ -242,16 +250,31 @@ export default function UnifiedDashboard() {
     return managedAthletes.find((ma: ManagedAthlete) => ma.id === selectedManagedAthleteId) || null;
   }, [managedAthletes, selectedManagedAthleteId]);
 
-  // Initialize supporter's team context from first managed athlete
+  // Initialize athlete's team context from their teams
   useEffect(() => {
-    if (userRole === "supporter" && managedAthletes.length > 0 && !currentTeam && !supporterOriginalTeam) {
-      const firstAthleteWithTeam = managedAthletes.find((ma: ManagedAthlete) => ma.team);
-      if (firstAthleteWithTeam?.team) {
-        setCurrentTeam(firstAthleteWithTeam.team);
-        setSupporterOriginalTeam(firstAthleteWithTeam.team);
+    if (userRole === "athlete" && userTeams.length > 0 && !currentTeam) {
+      setCurrentTeam(userTeams[0]);
+    }
+  }, [userRole, userTeams, currentTeam, setCurrentTeam]);
+
+  // Initialize supporter's team context from first managed athlete or their own teams
+  useEffect(() => {
+    if (userRole === "supporter" && !currentTeam && !supporterOriginalTeam) {
+      if (managedAthletes.length > 0) {
+        const firstAthleteWithTeam = managedAthletes.find((ma: ManagedAthlete) => ma.team);
+        if (firstAthleteWithTeam?.team) {
+          setCurrentTeam(firstAthleteWithTeam.team);
+          setSupporterOriginalTeam(firstAthleteWithTeam.team);
+          return;
+        }
+      }
+      // Fall back to user's own teams if no managed athletes
+      if (userTeams.length > 0) {
+        setCurrentTeam(userTeams[0]);
+        setSupporterOriginalTeam(userTeams[0]);
       }
     }
-  }, [userRole, managedAthletes, currentTeam, supporterOriginalTeam, setCurrentTeam]);
+  }, [userRole, managedAthletes, userTeams, currentTeam, supporterOriginalTeam, setCurrentTeam]);
 
   // Handle view selection change for supporters
   const handleSupporterViewChange = (value: string) => {
