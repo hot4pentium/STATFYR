@@ -616,7 +616,6 @@ export default function UnifiedDashboard() {
             {visibleCards.find(c => c.id === selectedCard)?.name}
           </h2>
         </div>
-
         {selectedCard === "roster" && (
           <div className="space-y-4">
             <Tabs value={rosterTab} onValueChange={(v) => setRosterTab(v as typeof rosterTab)} className="w-full">
@@ -640,7 +639,6 @@ export default function UnifiedDashboard() {
             </div>
           </div>
         )}
-
         {selectedCard === "schedule" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -698,7 +696,6 @@ export default function UnifiedDashboard() {
             )}
           </div>
         )}
-
         {(selectedCard === "playmaker" || selectedCard === "playbook") && (
           <div className="space-y-4">
             {(userRole === "coach" || isStaff) && selectedCard === "playmaker" && (
@@ -731,7 +728,6 @@ export default function UnifiedDashboard() {
             )}
           </div>
         )}
-
         {selectedCard === "stats" && (
           <div className="space-y-4">
             {userRole === "athlete" && myStats && (
@@ -788,7 +784,6 @@ export default function UnifiedDashboard() {
             )}
           </div>
         )}
-
         {selectedCard === "highlights" && (
           <div className="space-y-4">
             {(userRole === "coach" || isStaff) && currentTeam && user && (
@@ -807,7 +802,6 @@ export default function UnifiedDashboard() {
             )}
           </div>
         )}
-
         {selectedCard === "gamedaylive" && (
           <div className="space-y-4">
             {activeSessions.length > 0 ? (
@@ -1005,7 +999,7 @@ export default function UnifiedDashboard() {
 
             {/* View Selector - Supporters Only */}
             {userRole === "supporter" && managedAthletes.length > 0 && (
-              <div className="mt-4">
+              <div className="mt-4 bg-[#5e5a5a00]">
                 <Label className="text-white/60 text-xs uppercase tracking-wide mb-2 block">
                   {supporterViewMode === "supporter" ? "My Dashboard" : "Viewing Athlete Profile"}
                 </Label>
@@ -1040,7 +1034,7 @@ export default function UnifiedDashboard() {
         {/* Main Content - switches based on supporter view mode */}
         {userRole === "supporter" && supporterViewMode === "athlete" && selectedManagedAthlete ? (
           /* Athlete Profile View for Supporters */
-          <div className="px-4 pb-8">
+          (<div className="px-4 pb-8">
             <div className="flex items-center gap-3 mb-4">
               <h2 className="text-xl font-display font-bold uppercase tracking-wide">
                 {selectedManagedAthlete.athlete.firstName}'s Profile
@@ -1049,7 +1043,6 @@ export default function UnifiedDashboard() {
                 {selectedManagedAthlete.team?.name || "Team"}
               </Badge>
             </div>
-
             {/* Athlete HYPE Card Preview */}
             <Card className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/40 mb-6">
               <CardContent className="p-6">
@@ -1081,7 +1074,6 @@ export default function UnifiedDashboard() {
                 </div>
               </CardContent>
             </Card>
-
             {/* Quick Stats for Managed Athlete */}
             <div className="grid grid-cols-2 gap-3 mb-6">
               <Card className="bg-card/80 backdrop-blur-sm border-white/10">
@@ -1099,7 +1091,6 @@ export default function UnifiedDashboard() {
                 </CardContent>
               </Card>
             </div>
-
             {/* Athlete's Highlights */}
             <div className="space-y-4">
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
@@ -1132,10 +1123,10 @@ export default function UnifiedDashboard() {
                 <p className="text-sm text-muted-foreground text-center py-4">No highlights yet</p>
               )}
             </div>
-          </div>
+          </div>)
         ) : (
           /* Normal Dashboard View - Quick Access Section */
-          <div className="px-4 pb-8">
+          (<div className="px-4 pb-8">
             <div className="flex items-center gap-3 mb-4">
               <h2 className="text-xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
               {currentTeam?.code && userRole === "coach" && (
@@ -1150,7 +1141,6 @@ export default function UnifiedDashboard() {
                 </Badge>
               )}
             </div>
-
             {/* Cards Grid */}
             <div className="grid grid-cols-2 gap-3">
               {visibleCards.map((card) => (
@@ -1172,7 +1162,6 @@ export default function UnifiedDashboard() {
                 </Card>
               ))}
             </div>
-
             {/* HYPE Portal Card - Athletes Only */}
             {userRole === "athlete" && (
               <Card 
@@ -1199,10 +1188,9 @@ export default function UnifiedDashboard() {
                 </CardContent>
               </Card>
             )}
-
             {/* Content Area */}
             {renderContent()}
-          </div>
+          </div>)
         )}
 
         {/* Event Modal */}
