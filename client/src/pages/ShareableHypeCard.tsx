@@ -336,23 +336,34 @@ export default function ShareableHypeCard(props: any) {
   });
 
   const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [followError, setFollowError] = useState<string | null>(null);
 
   const handleFollow = async () => {
+    setFollowError(null);
+    
     if (!visitorName.trim()) {
       toast.error("Please enter your name first");
       return;
     }
     
     setIsFollowLoading(true);
+    console.log('[Follow] Starting follow process...');
+    
     try {
+      console.log('[Follow] Requesting notification permission...');
       const result = await requestFollowerNotificationPermission();
+      console.log('[Follow] Permission result:', result);
       
       if (!result.token) {
-        toast.error(result.error || "Please allow notifications to follow this athlete");
+        const errorMsg = result.error || "Please allow notifications to follow this athlete";
+        console.log('[Follow] No token, error:', errorMsg);
+        setFollowError(errorMsg);
+        toast.error(errorMsg);
         setIsFollowLoading(false);
         return;
       }
       
+      console.log('[Follow] Got token, registering follower...');
       const res = await fetch(`/api/athletes/${athleteId}/followers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -360,6 +371,7 @@ export default function ShareableHypeCard(props: any) {
       });
       
       const data = await res.json();
+      console.log('[Follow] Server response:', data);
       
       if (!res.ok) {
         throw new Error(data.error || "Failed to follow athlete");
@@ -371,7 +383,10 @@ export default function ShareableHypeCard(props: any) {
       queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "followers", "count"] });
       toast.success("You're now following this athlete!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to follow athlete");
+      console.error('[Follow] Error:', error);
+      const errorMsg = error.message || "Failed to follow athlete";
+      setFollowError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsFollowLoading(false);
     }
@@ -905,15 +920,22 @@ export default function ShareableHypeCard(props: any) {
               />
               
               {!isFollowing ? (
-                <Button
-                  onClick={handleFollow}
-                  disabled={isFollowLoading || !visitorName.trim()}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white disabled:opacity-50"
-                  data-testid="button-follow-athlete"
-                >
-                  <Bell className="h-4 w-4 mr-2" />
-                  {isFollowLoading ? 'Setting up...' : 'Follow & Get Notified'}
-                </Button>
+                <>
+                  <Button
+                    onClick={handleFollow}
+                    disabled={isFollowLoading || !visitorName.trim()}
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white disabled:opacity-50"
+                    data-testid="button-follow-athlete"
+                  >
+                    <Bell className="h-4 w-4 mr-2" />
+                    {isFollowLoading ? 'Setting up...' : 'Follow & Get Notified'}
+                  </Button>
+                  {followError && (
+                    <div className="mt-2 p-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                      {followError}
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="flex gap-2">
                   <div className="flex-1 flex items-center justify-center gap-2 bg-green-500/20 text-green-600 rounded-lg py-2 px-4">
