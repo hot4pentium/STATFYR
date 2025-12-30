@@ -2889,6 +2889,25 @@ export async function registerRoutes(
     }
   });
 
+  // Delete entire team and all associated data
+  app.delete("/api/admin/teams/:teamId", requireSuperAdmin, async (req, res) => {
+    try {
+      const teamId = req.params.teamId;
+      
+      // Verify team exists
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      
+      await storage.deleteTeam(teamId);
+      res.json({ success: true, message: `Team "${team.name}" and all associated data deleted` });
+    } catch (error) {
+      console.error("Admin delete team failed:", error);
+      res.status(500).json({ error: "Failed to delete team" });
+    }
+  });
+
   // Start impersonation session
   app.post("/api/admin/impersonate", requireSuperAdmin, async (req, res) => {
     try {

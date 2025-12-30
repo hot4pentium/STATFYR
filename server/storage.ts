@@ -59,6 +59,7 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   createTeam(team: InsertTeam, coachId: string): Promise<Team>;
   updateTeam(id: string, data: Partial<{ name: string; sport: string; season: string; badgeId: string | null }>): Promise<Team | undefined>;
+  deleteTeam(id: string): Promise<void>;
   
   getTeamMembers(teamId: string): Promise<(TeamMember & { user: Omit<User, 'password'> })[]>;
   getTeamMembership(teamId: string, userId: string): Promise<TeamMember | undefined>;
@@ -287,6 +288,59 @@ export class DatabaseStorage implements IStorage {
       .where(eq(teams.id, id))
       .returning();
     return team || undefined;
+  }
+
+  async deleteTeam(id: string): Promise<void> {
+    // Get all live engagement sessions for this team first
+    const teamSessions = await db.select().from(liveEngagementSessions).where(eq(liveEngagementSessions.teamId, id));
+    const sessionIds = teamSessions.map(s => s.id);
+    
+    // Delete shoutouts, tap events, and tap totals for team sessions
+    if (sessionIds.length > 0) {
+      for (const sessionId of sessionIds) {
+        await db.delete(shoutouts).where(eq(shoutouts.sessionId, sessionId));
+        await db.delete(liveTapEvents).where(eq(liveTapEvents.sessionId, sessionId));
+        await db.delete(liveTapTotals).where(eq(liveTapTotals.sessionId, sessionId));
+      }
+    }
+    
+    // Delete live engagement sessions
+    await db.delete(liveEngagementSessions).where(eq(liveEngagementSessions.teamId, id));
+    
+    // Get all games for this team to delete related data
+    const teamGames = await db.select().from(games).where(eq(games.teamId, id));
+    const gameIds = teamGames.map(g => g.id);
+    
+    // Delete game stats and rosters
+    if (gameIds.length > 0) {
+      for (const gameId of gameIds) {
+        await db.delete(gameStats).where(eq(gameStats.gameId, gameId));
+        await db.delete(gameRosters).where(eq(gameRosters.gameId, gameId));
+      }
+    }
+    
+    // Get starting lineups to delete their players
+    const teamLineups = await db.select().from(startingLineups).where(eq(startingLineups.teamId, id));
+    const lineupIds = teamLineups.map(l => l.id);
+    
+    if (lineupIds.length > 0) {
+      for (const lineupId of lineupIds) {
+        await db.delete(startingLineupPlayers).where(eq(startingLineupPlayers.lineupId, lineupId));
+      }
+    }
+    
+    // Delete all team-related tables
+    await db.delete(chatMessages).where(eq(chatMessages.teamId, id));
+    await db.delete(startingLineups).where(eq(startingLineups.teamId, id));
+    await db.delete(games).where(eq(games.teamId, id));
+    await db.delete(statConfigurations).where(eq(statConfigurations.teamId, id));
+    await db.delete(plays).where(eq(plays.teamId, id));
+    await db.delete(highlightVideos).where(eq(highlightVideos.teamId, id));
+    await db.delete(events).where(eq(events.teamId, id));
+    await db.delete(teamMembers).where(eq(teamMembers.teamId, id));
+    
+    // Finally delete the team itself
+    await db.delete(teams).where(eq(teams.id, id));
   }
 
   async getTeamMembers(teamId: string): Promise<(TeamMember & { user: Omit<User, 'password'> })[]> {

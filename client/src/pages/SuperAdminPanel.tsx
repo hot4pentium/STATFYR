@@ -18,6 +18,7 @@ import {
   adminGetUserWithTeams,
   adminUpdateTeamMember,
   adminRemoveTeamMember,
+  adminDeleteTeam,
   adminStartImpersonation,
   adminGetAllTeams,
   type AdminUser,
@@ -159,6 +160,19 @@ export default function SuperAdminPanel() {
     }
   };
 
+  const handleDeleteTeam = async (team: TeamWithMembers) => {
+    if (!confirm(`Are you sure you want to delete the team "${team.name}" with ${team.memberCount} members? This will permanently remove all team data including events, highlights, stats, and members. This action cannot be undone.`)) return;
+    
+    try {
+      await adminDeleteTeam(team.id, user.id);
+      toast.success(`Team "${team.name}" deleted successfully`);
+      setSelectedTeam(null);
+      refetchTeams();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete team");
+    }
+  };
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "coach": return "bg-blue-500";
@@ -228,6 +242,18 @@ export default function SuperAdminPanel() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Badge variant="secondary">{team.memberCount} members</Badge>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteTeam(team);
+                                }}
+                                data-testid={`button-delete-team-${team.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                               <ChevronRight className="h-4 w-4 text-muted-foreground" />
                             </div>
                           </div>

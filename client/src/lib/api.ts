@@ -956,6 +956,16 @@ export async function adminGetAllTeams(requesterId: string): Promise<Team[]> {
   return res.json();
 }
 
+export async function adminDeleteTeam(teamId: string, requesterId: string): Promise<void> {
+  const res = await fetch(`/api/admin/teams/${teamId}?requesterId=${requesterId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    if (res.status === 403) throw new Error("Super admin access required");
+    throw new Error("Failed to delete team");
+  }
+}
+
 export async function adminStartImpersonation(targetUserId: string, requesterId: string): Promise<{ session: ImpersonationSession; targetUser: AdminUser }> {
   const res = await apiRequest("POST", `/api/admin/impersonate?requesterId=${requesterId}`, { targetUserId, requesterId });
   return res.json();
