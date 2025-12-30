@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { requestFollowerNotificationPermission, isIOS, isStandalonePWA, isSafari } from "@/lib/firebase";
+import { requestFollowerNotificationPermission, isIOS, isAndroid, isChrome, isStandalonePWA, isSafari } from "@/lib/firebase";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 import clutchImg from "@assets/clutch_1766970267487.png";
@@ -427,13 +427,49 @@ export default function ShareableHypeCard(props: any) {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(`install-prompt-dismissed-${athleteId}`) === 'true';
   });
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  // Listen for Android Chrome's beforeinstallprompt event
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
 
   // Check if we should show install prompt for iOS Safari
-  const shouldShowInstallPrompt = useMemo(() => {
+  const shouldShowIOSInstallPrompt = useMemo(() => {
     if (typeof window === 'undefined') return false;
     if (installPromptDismissed) return false;
     return isIOS() && !isStandalonePWA();
   }, [installPromptDismissed]);
+
+  // Check if we should show install prompt for Android Chrome
+  const shouldShowAndroidInstallPrompt = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    if (installPromptDismissed) return false;
+    if (isStandalonePWA()) return false;
+    return isAndroid() && isChrome() && deferredPrompt !== null;
+  }, [installPromptDismissed, deferredPrompt]);
+
+  // Handle Android install button click
+  const handleAndroidInstall = async () => {
+    if (!deferredPrompt) return;
+    
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+      toast.success("App installed! Open from your home screen.");
+    }
+  };
 
   const handleFollowClick = () => {
     setFollowError(null);
@@ -1018,7 +1054,7 @@ export default function ShareableHypeCard(props: any) {
           </h3>
           
           {/* Install App Prompt for iOS Safari */}
-          {shouldShowInstallPrompt && !showInstallPrompt && (
+          {shouldShowIOSInstallPrompt && !showInstallPrompt && (
             <Card className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border-blue-500/30 mb-4">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
@@ -1036,7 +1072,7 @@ export default function ShareableHypeCard(props: any) {
                       onClick={() => setShowInstallPrompt(true)}
                       size="sm"
                       className="bg-blue-500 hover:bg-blue-600 text-white"
-                      data-testid="button-show-install"
+                      data-testid="button-show-install-ios"
                     >
                       <Download className="h-4 w-4 mr-2" />
                       How to Install
@@ -1051,6 +1087,48 @@ export default function ShareableHypeCard(props: any) {
                       setInstallPromptDismissed(true);
                     }}
                     data-testid="button-dismiss-install"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Install App Prompt for Android Chrome */}
+          {shouldShowAndroidInstallPrompt && (
+            <Card className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/30 mb-4">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-green-500/20 rounded-lg">
+                    <Smartphone className="h-5 w-5 text-green-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-foreground mb-1">
+                      Install this app for the best experience
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Get notifications and quick access from your home screen
+                    </p>
+                    <Button
+                      onClick={handleAndroidInstall}
+                      size="sm"
+                      className="bg-green-500 hover:bg-green-600 text-white"
+                      data-testid="button-install-android"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Install App
+                    </Button>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground -mt-1 -mr-2"
+                    onClick={() => {
+                      localStorage.setItem(`install-prompt-dismissed-${athleteId}`, 'true');
+                      setInstallPromptDismissed(true);
+                    }}
+                    data-testid="button-dismiss-install-android"
                   >
                     <X className="h-4 w-4" />
                   </Button>
