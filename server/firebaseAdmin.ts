@@ -1,7 +1,9 @@
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 
 let firebaseAdmin: admin.app.App | null = null;
 let initAttempted = false;
+
+let initError: string | null = null;
 
 export function getFirebaseAdmin(): admin.app.App | null {
   if (firebaseAdmin) {
@@ -13,30 +15,39 @@ export function getFirebaseAdmin(): admin.app.App | null {
   }
   
   initAttempted = true;
+  initError = null;
 
   let serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
   
   if (!serviceAccountJson) {
     const base64Key = process.env.FIREBASE_SERVICE_ACCOUNT_KEY_B64;
     if (base64Key) {
+      console.log('[Firebase Admin] Found B64 key, decoding...');
       try {
         serviceAccountJson = Buffer.from(base64Key, 'base64').toString('utf8');
+        console.log('[Firebase Admin] B64 decoded successfully');
       } catch (e) {
-        console.warn('Failed to decode FIREBASE_SERVICE_ACCOUNT_KEY_B64');
+        initError = 'Failed to decode base64 key';
+        console.warn('[Firebase Admin] Failed to decode FIREBASE_SERVICE_ACCOUNT_KEY_B64');
       }
     }
+  } else {
+    console.log('[Firebase Admin] Found direct JSON key');
   }
   
   if (!serviceAccountJson) {
-    console.warn('Firebase service account not configured - push notifications disabled');
+    initError = 'No service account key configured';
+    console.warn('[Firebase Admin] Service account not configured - push notifications disabled');
     return null;
   }
 
   try {
     const serviceAccount = JSON.parse(serviceAccountJson);
+    console.log('[Firebase Admin] JSON parsed, project_id:', serviceAccount.project_id);
     
     if (!serviceAccount.project_id || !serviceAccount.private_key || !serviceAccount.client_email) {
-      console.warn('Firebase service account missing required fields');
+      initError = 'Missing required fields in service account';
+      console.warn('[Firebase Admin] Service account missing required fields');
       return null;
     }
     
@@ -44,11 +55,20 @@ export function getFirebaseAdmin(): admin.app.App | null {
       credential: admin.credential.cert(serviceAccount),
     });
     
+    console.log('[Firebase Admin] Initialized successfully!');
     return firebaseAdmin;
-  } catch (error) {
-    console.error('Failed to initialize Firebase Admin SDK:', error);
+  } catch (error: any) {
+    initError = error.message || 'Unknown initialization error';
+    console.error('[Firebase Admin] Failed to initialize:', error);
     return null;
   }
+}
+
+export function getFirebaseAdminStatus(): { initialized: boolean; error: string | null } {
+  return {
+    initialized: firebaseAdmin !== null,
+    error: initError
+  };
 }
 
 export async function sendPushNotification(

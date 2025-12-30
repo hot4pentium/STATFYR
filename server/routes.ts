@@ -9,7 +9,7 @@ import { spawn } from "child_process";
 import path from "path";
 import fs from "fs";
 import bcrypt from "bcrypt";
-import { sendPushNotification } from "./firebaseAdmin";
+import { sendPushNotification, getFirebaseAdmin, getFirebaseAdminStatus } from "./firebaseAdmin";
 import { WebSocketServer, WebSocket } from "ws";
 
 // Store connected WebSocket clients by team
@@ -24,6 +24,20 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // Debug endpoint to check Firebase Admin status
+  app.get("/api/debug/firebase-status", (req, res) => {
+    // Initialize Firebase Admin if not already done
+    getFirebaseAdmin();
+    const status = getFirebaseAdminStatus();
+    res.json({
+      firebaseAdmin: status,
+      envVars: {
+        hasServiceAccountKey: !!process.env.FIREBASE_SERVICE_ACCOUNT_KEY,
+        hasServiceAccountKeyB64: !!process.env.FIREBASE_SERVICE_ACCOUNT_KEY_B64,
+      }
+    });
+  });
 
   app.post("/api/auth/register", async (req, res) => {
     try {
