@@ -72,9 +72,9 @@ export default function AthleteSettings() {
     }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (file && contextUser) {
       if (file.size > 5 * 1024 * 1024) {
         toast.error("Image must be less than 5MB");
         return;
@@ -82,10 +82,30 @@ export default function AthleteSettings() {
       
       setIsUploadingAvatar(true);
       const reader = new FileReader();
-      reader.onload = (event) => {
-        setAvatarPreview(event.target?.result as string);
-        setIsUploadingAvatar(false);
-        toast.success("Avatar updated! Click Save to keep changes.");
+      reader.onload = async (event) => {
+        const avatarData = event.target?.result as string;
+        setAvatarPreview(avatarData);
+        
+        try {
+          const response = await fetch(`/api/users/${contextUser.id}?requesterId=${contextUser.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ avatar: avatarData }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to save avatar");
+          }
+
+          const updatedUser = await response.json();
+          updateUser({ ...contextUser, ...updatedUser });
+          toast.success("Avatar saved!");
+        } catch (error) {
+          console.error("Avatar save failed:", error);
+          toast.error("Failed to save avatar. Please try again.");
+        } finally {
+          setIsUploadingAvatar(false);
+        }
       };
       reader.onerror = () => {
         setIsUploadingAvatar(false);
