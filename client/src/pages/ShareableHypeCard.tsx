@@ -993,9 +993,30 @@ export default function ShareableHypeCard(props: any) {
           </div>
         )}
 
+        {/* Engagement Display */}
+        <div className="mt-6 mb-4">
+          <Card className="bg-slate-800/80 border-slate-600/50">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-center gap-6">
+                <div className="flex items-center gap-2 text-pink-400">
+                  <Heart className="h-5 w-5 fill-current" />
+                  <span className="text-lg font-bold">{likesData?.count || 0}</span>
+                  <span className="text-sm text-slate-400">likes</span>
+                </div>
+                <div className="w-px h-6 bg-slate-600" />
+                <div className="flex items-center gap-2 text-cyan-400">
+                  <MessageCircle className="h-5 w-5" />
+                  <span className="text-lg font-bold">{comments.length}</span>
+                  <span className="text-sm text-slate-400">messages</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Follow Me Section */}
         {showFollowSection && (
-        <div className="mt-8 mb-6">
+        <div className="mb-6">
           <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2">
             <Bell className="h-5 w-5 text-orange-500" />
             Follow Me
@@ -1192,32 +1213,38 @@ export default function ShareableHypeCard(props: any) {
             </DialogContent>
           </Dialog>
 
-          <Card className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-orange-500/30">
+          <Card className="bg-slate-800/90 border-slate-600/50">
             <CardContent className="p-4">
               {isFollowing ? (
-                <div className="flex gap-2">
-                  <div className="flex-1 flex items-center justify-center gap-2 bg-green-500/20 text-green-600 rounded-lg py-2 px-4">
-                    <Bell className="h-4 w-4 fill-current" />
-                    <span className="text-sm font-medium">Following!</span>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 bg-green-500/20 text-green-400 rounded-lg py-2 px-4">
+                      <Bell className="h-4 w-4 fill-current" />
+                      <span className="text-sm font-medium">You're following!</span>
+                    </div>
+                    <Button
+                      onClick={() => setShowFollowSection(false)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-400 hover:text-white hover:bg-slate-700"
+                      data-testid="button-close-follow-section"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
                   </div>
+                  <p className="text-xs text-slate-400 text-center">
+                    You'll receive notifications when {athlete.name?.split(' ')[0] || 'this athlete'} shares updates
+                  </p>
                   <Button
                     onClick={handleUnfollow}
                     disabled={isFollowLoading}
                     variant="outline"
                     size="sm"
-                    className="text-muted-foreground hover:text-destructive"
+                    className="w-full border-slate-600 text-slate-400 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10"
                     data-testid="button-unfollow-athlete"
                   >
-                    <BellOff className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    onClick={() => setShowFollowSection(false)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground"
-                    data-testid="button-close-follow-section"
-                  >
-                    <X className="h-4 w-4" />
+                    <BellOff className="h-4 w-4 mr-2" />
+                    Unsubscribe from updates
                   </Button>
                 </div>
               ) : showFollowForm ? (
