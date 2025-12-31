@@ -21,18 +21,8 @@ export function TeamBadge({ badgeId, size = "md", className = "", fallbackInitia
   
   const styledSvg = useMemo(() => {
     if (!badge) return "";
-    let svg = badge.svg.replace('<svg', '<svg style="width:100%;height:100%"');
-    
-    if (teamColor) {
-      svg = svg
-        .replace(/fill="#[a-fA-F0-9]{6}"/g, `fill="${teamColor}"`)
-        .replace(/fill="#[a-fA-F0-9]{3}"/g, `fill="${teamColor}"`)
-        .replace(/fill='#[a-fA-F0-9]{6}'/g, `fill='${teamColor}'`)
-        .replace(/fill='#[a-fA-F0-9]{3}'/g, `fill='${teamColor}'`);
-    }
-    
-    return svg;
-  }, [badge, teamColor]);
+    return badge.svg.replace('<svg', '<svg style="width:100%;height:100%"');
+  }, [badge]);
   
   if (!badge) {
     if (fallbackInitials) {
@@ -54,6 +44,7 @@ export function TeamBadge({ badgeId, size = "md", className = "", fallbackInitia
   return (
     <div 
       className={`${sizeClasses[size]} ${className}`}
+      style={{ color: teamColor || undefined }}
       dangerouslySetInnerHTML={{ __html: styledSvg }}
     />
   );
