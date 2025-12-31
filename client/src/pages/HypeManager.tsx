@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Flame, ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Video } from "lucide-react";
+import { Flame, ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Video, Heart, MessageCircle } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
@@ -69,6 +69,17 @@ export default function HypeManager() {
       if (!user) return { count: 0 };
       const res = await fetch(`/api/athletes/${user.id}/followers/count`);
       if (!res.ok) return { count: 0 };
+      return res.json();
+    },
+    enabled: !!user,
+  });
+
+  const { data: engagementData } = useQuery({
+    queryKey: ["/api/athletes", user?.id, "engagement"],
+    queryFn: async () => {
+      if (!user) return { likes: 0, comments: 0 };
+      const res = await fetch(`/api/athletes/${user.id}/engagement`);
+      if (!res.ok) return { likes: 0, comments: 0 };
       return res.json();
     },
     enabled: !!user,
@@ -244,35 +255,38 @@ export default function HypeManager() {
             <div className="w-20" />
           </div>
 
-          <div className="mb-8">
-            <Card className="bg-gradient-to-br from-orange-900/50 to-zinc-900 border-orange-700/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg text-white flex items-center gap-2">
-                  <img src={logoImage} alt="STATFYR" className="h-5 w-5 object-contain" />
-                  FYR IT OUT!
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center gap-4">
-                <p className="text-sm text-zinc-300 text-center">
-                  Send an instant notification to all your followers letting them know you've got something hot!
-                </p>
+          <div className="mb-6 flex gap-3">
+            <Card className="flex-1 bg-gradient-to-br from-orange-900/50 to-zinc-900 border-orange-700/50">
+              <CardContent className="p-4 flex items-center gap-3">
                 <Button
                   onClick={handleFYR}
                   disabled={isFyring || !followerData?.count}
-                  className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold text-lg py-6 px-8 w-full"
+                  size="sm"
+                  className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold"
                   data-testid="button-fyr"
                 >
                   {isFyring ? (
-                    <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Sending...</>
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <><img src={logoImage} alt="STATFYR" className="h-5 w-5 mr-2 object-contain" /> FYR IT OUT!</>
+                    <><img src={logoImage} alt="STATFYR" className="h-4 w-4 mr-1 object-contain" /> FYR IT!</>
                   )}
                 </Button>
-                {!followerData?.count && (
-                  <p className="text-xs text-zinc-500 text-center">
-                    Share your HYPE card to get followers first!
-                  </p>
-                )}
+                <span className="text-xs text-zinc-400">
+                  {followerData?.count ? `Notify ${followerData.count} followers` : "Get followers first!"}
+                </span>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-zinc-900/80 border-zinc-700">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="flex items-center gap-1.5 text-red-400">
+                  <Heart className="h-4 w-4 fill-current" />
+                  <span className="text-sm font-semibold">{engagementData?.likes || 0}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-cyan-400">
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="text-sm font-semibold">{engagementData?.comments || 0}</span>
+                </div>
               </CardContent>
             </Card>
           </div>

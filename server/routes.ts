@@ -1679,6 +1679,24 @@ export async function registerRoutes(
     }
   });
 
+  // Get engagement stats (likes and comments count) for athlete
+  app.get("/api/athletes/:athleteId/engagement", async (req, res) => {
+    try {
+      const athleteId = req.params.athleteId;
+      const athlete = await storage.getUser(athleteId);
+      if (!athlete || athlete.role !== 'athlete') {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
+      
+      const likeCount = await storage.getProfileLikeCount(athleteId);
+      const comments = await storage.getProfileComments(athleteId);
+      res.json({ likes: likeCount, comments: comments.length });
+    } catch (error) {
+      console.error("Error getting engagement stats:", error);
+      res.status(500).json({ error: "Failed to get engagement stats" });
+    }
+  });
+
   // Get profile likes count and list
   app.get("/api/athletes/:athleteId/profile-likes", async (req, res) => {
     try {
