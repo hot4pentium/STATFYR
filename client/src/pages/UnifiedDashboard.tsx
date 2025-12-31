@@ -1195,123 +1195,71 @@ export default function UnifiedDashboard() {
 
         {/* Main Content - switches based on supporter view mode */}
         {userRole === "supporter" && supporterViewMode === "athlete" && selectedManagedAthlete ? (
-          /* Athlete Profile View for Supporters */
+          /* Athlete Profile View for Supporters - matches coach layout */
           (<div className="px-4 pt-6 pb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-xl font-display font-bold uppercase tracking-wide">
-                {selectedManagedAthlete.athlete.firstName}'s Profile
-              </h2>
-              <Badge variant="outline" className="text-xs">
-                {selectedManagedAthlete.team?.name || "Team"}
-              </Badge>
-            </div>
-            {/* Athlete HYPE Card Preview */}
-            <Card className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-orange-500/40 mb-6">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-2xl font-bold text-white">
-                    {selectedManagedAthlete.athlete.firstName?.[0]}{selectedManagedAthlete.athlete.lastName?.[0]}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold">
-                      {selectedManagedAthlete.athlete.firstName} {selectedManagedAthlete.athlete.lastName}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">Athlete</p>
-                    {selectedManagedAthlete.team && (
-                      <p className="text-sm text-primary">{selectedManagedAthlete.team.name}</p>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="mt-4 flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1 gap-2"
-                    onClick={() => setLocation(`/share/athlete/${selectedManagedAthlete.athleteId}`)}
-                    data-testid="button-view-hype-card"
-                  >
-                    <Flame className="h-4 w-4 text-orange-500" />
-                    View HYPE Card
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            {/* Quick Stats for Managed Athlete */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                <CardContent className="p-4 text-center">
-                  <BarChart3 className="h-6 w-6 mx-auto mb-2 text-blue-400" />
-                  <p className="text-sm text-muted-foreground">Stats</p>
-                  <p className="text-lg font-bold">View</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                <CardContent className="p-4 text-center">
-                  <Video className="h-6 w-6 mx-auto mb-2 text-purple-400" />
-                  <p className="text-sm text-muted-foreground">Highlights</p>
-                  <p className="text-lg font-bold">{teamHighlights.filter(h => h.uploaderId === selectedManagedAthlete.athleteId).length}</p>
-                </CardContent>
-              </Card>
-            </div>
-            {/* Quick Access Cards Grid for Managed Athlete */}
-            <div className="mb-6">
-              <h3 className="text-xl font-display font-bold uppercase tracking-wide mb-4">Quick Access</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {visibleCards.map((card) => (
-                  <Card
-                    key={card.id}
-                    className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""}`}
-                    onClick={() => handleCardClick(card.id)}
-                    data-testid={`card-${card.id}`}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <card.icon className={`h-6 w-6 ${card.color} shrink-0`} />
-                        <div className="min-w-0">
-                          <p className="font-semibold">{card.name}</p>
-                          <p className="text-xs text-muted-foreground line-clamp-2">{card.description}</p>
-                        </div>
+            {/* Two-column layout on landscape - matching coach dashboard */}
+            <div className="flex flex-col landscape:flex-row landscape:gap-6">
+              {/* Left Column - Cards */}
+              <div className="landscape:w-1/3 landscape:shrink-0">
+                {/* Athlete HYPE Card Preview */}
+                <Card className="bg-card/80 backdrop-blur-sm border-white/10 mb-4 landscape:mb-5">
+                  <CardContent className="p-4 landscape:p-5">
+                    <div className="flex items-center gap-4">
+                      <div className="h-14 w-14 landscape:h-16 landscape:w-16 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-xl landscape:text-2xl font-bold text-white">
+                        {selectedManagedAthlete.athlete.firstName?.[0]}{selectedManagedAthlete.athlete.lastName?.[0]}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* Content Area */}
-            {renderContent()}
-
-            {/* Athlete's Highlights */}
-            <div className="space-y-4 mt-6">
-              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                {selectedManagedAthlete.athlete.firstName}'s Highlights
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {teamHighlights
-                  .filter(h => h.uploaderId === selectedManagedAthlete.athleteId)
-                  .slice(0, 6)
-                  .map((highlight) => (
-                    <div
-                      key={highlight.id}
-                      className="aspect-video rounded-lg overflow-hidden bg-muted/30 relative group"
-                    >
-                      {highlight.thumbnailKey ? (
-                        <img src={highlight.publicUrl || ""} alt={highlight.title || ""} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Video className="h-8 w-8 text-muted-foreground/50" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <p className="text-xs text-white font-medium truncate">{highlight.title}</p>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-bold truncate">
+                          {selectedManagedAthlete.athlete.firstName} {selectedManagedAthlete.athlete.lastName}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">Athlete</p>
+                        {selectedManagedAthlete.team && (
+                          <Badge variant="outline" className="text-xs mt-1">{selectedManagedAthlete.team.name}</Badge>
+                        )}
                       </div>
                     </div>
+                    <Button 
+                      variant="outline" 
+                      className="w-full mt-4 gap-2"
+                      onClick={() => setLocation(`/share/athlete/${selectedManagedAthlete.athleteId}`)}
+                      data-testid="button-view-hype-card"
+                    >
+                      <Flame className="h-4 w-4 text-orange-500" />
+                      View HYPE Card
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <div className="flex items-center gap-3 mb-4 landscape:mb-5">
+                  <h2 className="text-xl landscape:text-2xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
+                </div>
+                {/* Cards Grid */}
+                <div className="grid grid-cols-2 gap-3 landscape:gap-4">
+                  {visibleCards.map((card) => (
+                    <Card
+                      key={card.id}
+                      className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""}`}
+                      onClick={() => handleCardClick(card.id)}
+                      data-testid={`card-${card.id}`}
+                    >
+                      <CardContent className="p-4 landscape:p-5">
+                        <div className="flex items-start gap-3">
+                          <card.icon className={`h-6 w-6 landscape:h-7 landscape:w-7 ${card.color} shrink-0`} />
+                          <div className="min-w-0">
+                            <p className="font-semibold landscape:text-base">{card.name}</p>
+                            <p className="text-xs landscape:text-sm text-muted-foreground line-clamp-2">{card.description}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   ))}
+                </div>
               </div>
-              {teamHighlights.filter(h => h.uploaderId === selectedManagedAthlete.athleteId).length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">No highlights yet</p>
-              )}
+
+              {/* Right Column - Content Area */}
+              <div className="landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] mt-4">
+                {renderContent()}
+              </div>
             </div>
           </div>)
         ) : (
