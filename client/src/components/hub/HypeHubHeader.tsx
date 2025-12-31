@@ -30,11 +30,11 @@ export function HypeHubHeader({
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-400 via-cyan-500 to-amber-300 p-6 pb-8">
       <div className="relative z-10">
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-white/50 shadow-lg">
+            <Avatar className="h-24 w-24 border-3 border-white/50 shadow-xl">
               <AvatarImage src={avatarUrl} alt={name} />
-              <AvatarFallback className="bg-white/20 text-white text-xl font-bold">
+              <AvatarFallback className="bg-white/20 text-white text-3xl font-bold">
                 {name.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -47,25 +47,12 @@ export function HypeHubHeader({
               )}
             </div>
           </div>
-        </div>
-
-        <div className="flex items-center gap-6 mb-4 text-white/90">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm">📅</span>
-            <span className="font-medium">{games}</span>
-            <span className="text-white/70 text-sm">Games</span>
-          </div>
           {teamName && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm">🏆</span>
-              <span className="font-medium">{teamName}</span>
+            <div className="flex flex-col items-center gap-1 bg-white/20 rounded-xl px-4 py-2">
+              <span className="text-2xl">🏆</span>
+              <span className="font-medium text-white text-sm text-center">{teamName}</span>
             </div>
           )}
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm">🎉</span>
-            <span className="font-medium">{cheers}</span>
-            <span className="text-white/70 text-sm">Cheers</span>
-          </div>
         </div>
 
         <div className="flex items-center gap-2">
