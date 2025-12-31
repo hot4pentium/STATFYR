@@ -862,12 +862,21 @@ export default function ShareableHypeCard(props: any) {
                       <span className="text-sm font-bold text-white uppercase">Stats</span>
                     </div>
                     <div className="space-y-2">
-                      {topStats.slice(0, 4).map(([statName, value]) => (
-                        <div key={statName} className="flex justify-between items-center bg-white/5 rounded-lg px-2 py-1.5">
-                          <span className="text-xs text-white/70 truncate">{statName}</span>
-                          <span className="text-sm font-bold text-green-400">{value}</span>
-                        </div>
-                      ))}
+                      {topStats.slice(0, 4).map(([statName, statData]) => {
+                        const data = statData as any;
+                        const displayValue = typeof data === 'object' && data !== null 
+                          ? (data.total ?? data.perGame ?? 0)
+                          : data;
+                        const displayName = typeof data === 'object' && data !== null && data.name
+                          ? data.name
+                          : statName;
+                        return (
+                          <div key={statName} className="flex justify-between items-center bg-white/5 rounded-lg px-2 py-1.5">
+                            <span className="text-xs text-white/70 truncate">{displayName}</span>
+                            <span className="text-sm font-bold text-green-400">{displayValue}</span>
+                          </div>
+                        );
+                      })}
                       {topStats.length === 0 && (
                         <p className="text-xs text-white/50 text-center py-4">No stats yet</p>
                       )}
@@ -950,14 +959,23 @@ export default function ShareableHypeCard(props: any) {
               Season Stats
             </h3>
             <div className="grid grid-cols-3 gap-2">
-              {topStats.map(([statName, value]) => (
-                <Card key={statName} className="bg-card border-white/10">
-                  <CardContent className="p-3 text-center">
-                    <div className="text-2xl font-bold text-primary">{value}</div>
-                    <div className="text-xs text-muted-foreground uppercase tracking-wider truncate">{statName}</div>
-                  </CardContent>
-                </Card>
-              ))}
+              {topStats.map(([statName, statData]) => {
+                const data = statData as any;
+                const displayValue = typeof data === 'object' && data !== null 
+                  ? (data.total ?? data.perGame ?? 0)
+                  : data;
+                const displayName = typeof data === 'object' && data !== null && data.name
+                  ? data.name
+                  : statName;
+                return (
+                  <Card key={statName} className="bg-card border-white/10">
+                    <CardContent className="p-3 text-center">
+                      <div className="text-2xl font-bold text-primary">{displayValue}</div>
+                      <div className="text-xs text-muted-foreground uppercase tracking-wider truncate">{displayName}</div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}

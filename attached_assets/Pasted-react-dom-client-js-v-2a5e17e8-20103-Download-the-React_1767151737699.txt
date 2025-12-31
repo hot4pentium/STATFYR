@@ -1,0 +1,273 @@
+react-dom_client.js?v=2a5e17e8:20103 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+onesignal.ts:103 [OneSignal] Initialized successfully
+react-dom_client.js?v=2a5e17e8:4598 Uncaught Error: Objects are not valid as a React child (found: object with keys {name, total, perGame}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectTypeImpl (react-dom_client.js?v=2a5e17e8:4598:15)
+    at throwOnInvalidObjectType (react-dom_client.js?v=2a5e17e8:4606:13)
+    at reconcileChildFibersImpl (react-dom_client.js?v=2a5e17e8:5217:13)
+    at react-dom_client.js?v=2a5e17e8:5237:35
+    at reconcileChildren (react-dom_client.js?v=2a5e17e8:7182:53)
+    at beginWork (react-dom_client.js?v=2a5e17e8:8701:104)
+    at runWithFiberInDEV (react-dom_client.js?v=2a5e17e8:997:72)
+    at performUnitOfWork (react-dom_client.js?v=2a5e17e8:12561:98)
+    at workLoopSync (react-dom_client.js?v=2a5e17e8:12424:43)
+    at renderRootSync (react-dom_client.js?v=2a5e17e8:12408:13)
+throwOnInvalidObjectTypeImpl @ react-dom_client.js?v=2a5e17e8:4598
+throwOnInvalidObjectType @ react-dom_client.js?v=2a5e17e8:4606
+reconcileChildFibersImpl @ react-dom_client.js?v=2a5e17e8:5217
+(anonymous) @ react-dom_client.js?v=2a5e17e8:5237
+reconcileChildren @ react-dom_client.js?v=2a5e17e8:7182
+beginWork @ react-dom_client.js?v=2a5e17e8:8701
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11827
+performSyncWorkOnRoot @ react-dom_client.js?v=2a5e17e8:13517
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=2a5e17e8:13414
+processRootScheduleInMicrotask @ react-dom_client.js?v=2a5e17e8:13437
+(anonymous) @ react-dom_client.js?v=2a5e17e8:13531
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=2a5e17e8:247
+(anonymous) @ ShareableHypeCard.tsx:956
+ShareableHypeCard @ ShareableHypeCard.tsx:953
+react_stack_bottom_frame @ react-dom_client.js?v=2a5e17e8:18509
+renderWithHooks @ react-dom_client.js?v=2a5e17e8:5654
+updateFunctionComponent @ react-dom_client.js?v=2a5e17e8:7475
+beginWork @ react-dom_client.js?v=2a5e17e8:8525
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11827
+performSyncWorkOnRoot @ react-dom_client.js?v=2a5e17e8:13517
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=2a5e17e8:13414
+processRootScheduleInMicrotask @ react-dom_client.js?v=2a5e17e8:13437
+(anonymous) @ react-dom_client.js?v=2a5e17e8:13531
+<ShareableHypeCard>
+exports.createElement @ chunk-KMU3Z7QX.js?v=2a5e17e8:793
+h_route @ wouter.js?v=2a5e17e8:181
+Route @ wouter.js?v=2a5e17e8:200
+react_stack_bottom_frame @ react-dom_client.js?v=2a5e17e8:18509
+renderWithHooks @ react-dom_client.js?v=2a5e17e8:5654
+updateFunctionComponent @ react-dom_client.js?v=2a5e17e8:7475
+beginWork @ react-dom_client.js?v=2a5e17e8:8525
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=2a5e17e8:13505
+performWorkUntilDeadline @ react-dom_client.js?v=2a5e17e8:36
+<Route>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=2a5e17e8:247
+Router @ App.tsx:67
+react_stack_bottom_frame @ react-dom_client.js?v=2a5e17e8:18509
+renderWithHooks @ react-dom_client.js?v=2a5e17e8:5654
+updateFunctionComponent @ react-dom_client.js?v=2a5e17e8:7475
+beginWork @ react-dom_client.js?v=2a5e17e8:8525
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=2a5e17e8:13505
+performWorkUntilDeadline @ react-dom_client.js?v=2a5e17e8:36
+<Router>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=2a5e17e8:247
+App @ App.tsx:94
+react_stack_bottom_frame @ react-dom_client.js?v=2a5e17e8:18509
+renderWithHooks @ react-dom_client.js?v=2a5e17e8:5654
+updateFunctionComponent @ react-dom_client.js?v=2a5e17e8:7475
+beginWork @ react-dom_client.js?v=2a5e17e8:8525
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=2a5e17e8:13505
+performWorkUntilDeadline @ react-dom_client.js?v=2a5e17e8:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=2a5e17e8:247
+(anonymous) @ main.tsx:5Understand this error
+ShareableHypeCard.tsx:956 An error occurred in the <div> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+defaultOnUncaughtError @ react-dom_client.js?v=2a5e17e8:6966
+logUncaughtError @ react-dom_client.js?v=2a5e17e8:7020
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+lane.callback @ react-dom_client.js?v=2a5e17e8:7048
+callCallback @ react-dom_client.js?v=2a5e17e8:5491
+commitCallbacks @ react-dom_client.js?v=2a5e17e8:5503
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:999
+commitLayoutEffectOnFiber @ react-dom_client.js?v=2a5e17e8:9976
+flushLayoutEffects @ react-dom_client.js?v=2a5e17e8:12924
+commitRoot @ react-dom_client.js?v=2a5e17e8:12803
+commitRootWhenReady @ react-dom_client.js?v=2a5e17e8:12016
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11950
+performSyncWorkOnRoot @ react-dom_client.js?v=2a5e17e8:13517
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=2a5e17e8:13414
+processRootScheduleInMicrotask @ react-dom_client.js?v=2a5e17e8:13437
+(anonymous) @ react-dom_client.js?v=2a5e17e8:13531
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=2a5e17e8:247
+(anonymous) @ ShareableHypeCard.tsx:956
+ShareableHypeCard @ ShareableHypeCard.tsx:953
+react_stack_bottom_frame @ react-dom_client.js?v=2a5e17e8:18509
+renderWithHooks @ react-dom_client.js?v=2a5e17e8:5654
+updateFunctionComponent @ react-dom_client.js?v=2a5e17e8:7475
+beginWork @ react-dom_client.js?v=2a5e17e8:8525
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11827
+performSyncWorkOnRoot @ react-dom_client.js?v=2a5e17e8:13517
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=2a5e17e8:13414
+processRootScheduleInMicrotask @ react-dom_client.js?v=2a5e17e8:13437
+(anonymous) @ react-dom_client.js?v=2a5e17e8:13531
+<ShareableHypeCard>
+exports.createElement @ chunk-KMU3Z7QX.js?v=2a5e17e8:793
+h_route @ wouter.js?v=2a5e17e8:181
+Route @ wouter.js?v=2a5e17e8:200
+react_stack_bottom_frame @ react-dom_client.js?v=2a5e17e8:18509
+renderWithHooks @ react-dom_client.js?v=2a5e17e8:5654
+updateFunctionComponent @ react-dom_client.js?v=2a5e17e8:7475
+beginWork @ react-dom_client.js?v=2a5e17e8:8525
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=2a5e17e8:13505
+performWorkUntilDeadline @ react-dom_client.js?v=2a5e17e8:36
+<Route>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=2a5e17e8:247
+Router @ App.tsx:67
+react_stack_bottom_frame @ react-dom_client.js?v=2a5e17e8:18509
+renderWithHooks @ react-dom_client.js?v=2a5e17e8:5654
+updateFunctionComponent @ react-dom_client.js?v=2a5e17e8:7475
+beginWork @ react-dom_client.js?v=2a5e17e8:8525
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=2a5e17e8:13505
+performWorkUntilDeadline @ react-dom_client.js?v=2a5e17e8:36
+<Router>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=2a5e17e8:247
+App @ App.tsx:94
+react_stack_bottom_frame @ react-dom_client.js?v=2a5e17e8:18509
+renderWithHooks @ react-dom_client.js?v=2a5e17e8:5654
+updateFunctionComponent @ react-dom_client.js?v=2a5e17e8:7475
+beginWork @ react-dom_client.js?v=2a5e17e8:8525
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=2a5e17e8:13505
+performWorkUntilDeadline @ react-dom_client.js?v=2a5e17e8:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=2a5e17e8:247
+(anonymous) @ main.tsx:5Understand this warning
+client:809 [vite] TypeError: Cannot read properties of undefined (reading 'send')
+    at Object.send (client:449:7)
+    at Object.send (client:780:16)
+    at Object.send (client:318:23)
+    at Object.send (client:396:30)
+    at HMRClient.send (client:157:18)
+    at HMRContext.send (client:119:18)
+    at sendError (0563fc82-0f92-471e-83db-07136e5f77d8:16:7)
+    at 0563fc82-0f92-471e-83db-07136e5f77d8:20:3
+    at defaultOnUncaughtError (react-dom_client.js?v=2a5e17e8:6965:9)
+    at logUncaughtError (react-dom_client.js?v=2a5e17e8:7020:13)
+error @ client:809
+(anonymous) @ client:158
+Promise.catch
+send @ client:157
+send @ client:119
+sendError @ 0563fc82-0f92-471e-83db-07136e5f77d8:16
+(anonymous) @ 0563fc82-0f92-471e-83db-07136e5f77d8:20
+defaultOnUncaughtError @ react-dom_client.js?v=2a5e17e8:6965
+logUncaughtError @ react-dom_client.js?v=2a5e17e8:7020
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+lane.callback @ react-dom_client.js?v=2a5e17e8:7048
+callCallback @ react-dom_client.js?v=2a5e17e8:5491
+commitCallbacks @ react-dom_client.js?v=2a5e17e8:5503
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:999
+commitLayoutEffectOnFiber @ react-dom_client.js?v=2a5e17e8:9976
+flushLayoutEffects @ react-dom_client.js?v=2a5e17e8:12924
+commitRoot @ react-dom_client.js?v=2a5e17e8:12803
+commitRootWhenReady @ react-dom_client.js?v=2a5e17e8:12016
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11950
+performSyncWorkOnRoot @ react-dom_client.js?v=2a5e17e8:13517
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=2a5e17e8:13414
+processRootScheduleInMicrotask @ react-dom_client.js?v=2a5e17e8:13437
+(anonymous) @ react-dom_client.js?v=2a5e17e8:13531
+<div>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=2a5e17e8:247
+(anonymous) @ ShareableHypeCard.tsx:956
+ShareableHypeCard @ ShareableHypeCard.tsx:953
+react_stack_bottom_frame @ react-dom_client.js?v=2a5e17e8:18509
+renderWithHooks @ react-dom_client.js?v=2a5e17e8:5654
+updateFunctionComponent @ react-dom_client.js?v=2a5e17e8:7475
+beginWork @ react-dom_client.js?v=2a5e17e8:8525
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11827
+performSyncWorkOnRoot @ react-dom_client.js?v=2a5e17e8:13517
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=2a5e17e8:13414
+processRootScheduleInMicrotask @ react-dom_client.js?v=2a5e17e8:13437
+(anonymous) @ react-dom_client.js?v=2a5e17e8:13531
+<ShareableHypeCard>
+exports.createElement @ chunk-KMU3Z7QX.js?v=2a5e17e8:793
+h_route @ wouter.js?v=2a5e17e8:181
+Route @ wouter.js?v=2a5e17e8:200
+react_stack_bottom_frame @ react-dom_client.js?v=2a5e17e8:18509
+renderWithHooks @ react-dom_client.js?v=2a5e17e8:5654
+updateFunctionComponent @ react-dom_client.js?v=2a5e17e8:7475
+beginWork @ react-dom_client.js?v=2a5e17e8:8525
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=2a5e17e8:13505
+performWorkUntilDeadline @ react-dom_client.js?v=2a5e17e8:36
+<Route>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=2a5e17e8:247
+Router @ App.tsx:67
+react_stack_bottom_frame @ react-dom_client.js?v=2a5e17e8:18509
+renderWithHooks @ react-dom_client.js?v=2a5e17e8:5654
+updateFunctionComponent @ react-dom_client.js?v=2a5e17e8:7475
+beginWork @ react-dom_client.js?v=2a5e17e8:8525
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=2a5e17e8:13505
+performWorkUntilDeadline @ react-dom_client.js?v=2a5e17e8:36
+<Router>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=2a5e17e8:247
+App @ App.tsx:94
+react_stack_bottom_frame @ react-dom_client.js?v=2a5e17e8:18509
+renderWithHooks @ react-dom_client.js?v=2a5e17e8:5654
+updateFunctionComponent @ react-dom_client.js?v=2a5e17e8:7475
+beginWork @ react-dom_client.js?v=2a5e17e8:8525
+runWithFiberInDEV @ react-dom_client.js?v=2a5e17e8:997
+performUnitOfWork @ react-dom_client.js?v=2a5e17e8:12561
+workLoopSync @ react-dom_client.js?v=2a5e17e8:12424
+renderRootSync @ react-dom_client.js?v=2a5e17e8:12408
+performWorkOnRoot @ react-dom_client.js?v=2a5e17e8:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=2a5e17e8:13505
+performWorkUntilDeadline @ react-dom_client.js?v=2a5e17e8:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=2a5e17e8:247
+(anonymous) @ main.tsx:5Understand this error
+0563fc82-0f92-471e-83db-07136e5f77d8:1 <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">Understand this warning
