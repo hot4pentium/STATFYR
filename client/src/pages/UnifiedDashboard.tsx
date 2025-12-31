@@ -1195,7 +1195,7 @@ export default function UnifiedDashboard() {
           (<div className="px-4 pb-8">
             {/* HYPE Cards - Athletes Only - Above Quick Access */}
             {userRole === "athlete" && (
-              <div className="mb-4 grid grid-cols-2 gap-3">
+              <div className="mt-4 mb-4 grid grid-cols-2 gap-3">
                 {/* HYPE Portal Card */}
                 <Card 
                   onClick={() => setLocation("/athlete/hype-portal")}
