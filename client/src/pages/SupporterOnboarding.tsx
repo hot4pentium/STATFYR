@@ -36,7 +36,7 @@ export default function SupporterOnboarding() {
       setJoinedTeam(true);
       toast.success(`Successfully joined ${result.team.name}!`);
       setTimeout(() => {
-        setLocation("/supporter/dashboard");
+        setLocation("/supporter/hub");
       }, 1500);
     } catch (error) {
       toast.error("Invalid team code. Please check and try again.");

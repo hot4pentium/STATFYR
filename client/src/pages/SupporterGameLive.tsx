@@ -195,8 +195,8 @@ export default function SupporterGameLive() {
           <Card className="max-w-md">
             <CardContent className="pt-6 text-center">
               <p className="text-muted-foreground mb-4">Game not found</p>
-              <Button onClick={() => setLocation("/supporter/dashboard")}>
-                Back to Dashboard
+              <Button onClick={() => setLocation("/supporter/hub")}>
+                Back to Hub
               </Button>
             </CardContent>
           </Card>
@@ -216,7 +216,7 @@ export default function SupporterGameLive() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setLocation("/supporter/dashboard")}
+              onClick={() => setLocation("/supporter/hub")}
               data-testid="button-back"
             >
               <ArrowLeft className="h-5 w-5" />

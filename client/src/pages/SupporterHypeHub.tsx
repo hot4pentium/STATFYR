@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { HypeHubHeader, HypeHubPillNav, HypeHubContent, HypeHubFollowSection, type HubSection } from "@/components/hub";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, ArrowLeft, Bell, BellOff } from "lucide-react";
+import { Settings, LogOut, ArrowLeft, Bell, BellOff, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useUser } from "@/lib/userContext";
 import { useNotifications } from "@/lib/notificationContext";
 import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAthleteStats, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete } from "@/lib/api";
@@ -14,6 +15,7 @@ export default function SupporterHypeHub() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, logout } = useUser();
   const { notificationsEnabled, enableNotifications } = useNotifications();
+  const { theme, setTheme } = useTheme();
   const [activeSection, setActiveSection] = useState<HubSection>("hype");
   const [viewingAthlete, setViewingAthlete] = useState<ManagedAthlete | null>(null);
 
@@ -92,6 +94,15 @@ export default function SupporterHypeHub() {
             </Link>
             <h1 className="font-display font-bold text-lg">HYPE Hub</h1>
             <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                data-testid="button-theme-toggle"
+              >
+                {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"
