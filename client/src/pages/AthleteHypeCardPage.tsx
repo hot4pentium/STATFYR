@@ -228,7 +228,7 @@ export default function AthleteHypeCardPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h1 className="font-bold text-lg uppercase tracking-wide">
-              <span className="font-marker text-orange-500">HYPE</span>
+              <span className="font-marker text-orange-500 text-[26px]">HYPE</span>
               <span className="font-display"> Card</span>
             </h1>
             <Button variant="ghost" size="icon" onClick={handleShare} data-testid="button-share">
@@ -404,7 +404,6 @@ export default function AthleteHypeCardPage() {
           </Card>
         </div>
       </div>
-
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
         <DialogContent className="bg-zinc-900 border-zinc-700 max-w-sm">
           <DialogHeader>
