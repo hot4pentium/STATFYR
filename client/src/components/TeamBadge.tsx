@@ -16,9 +16,9 @@ const sizeClasses = {
   xl: "w-20 h-24"
 };
 
-function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
+function hexToHueRotate(hex: string): number {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return null;
+  if (!result) return 0;
   
   let r = parseInt(result[1], 16) / 255;
   let g = parseInt(result[2], 16) / 255;
@@ -26,12 +26,10 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
   
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  let h = 0, s = 0;
-  const l = (max + min) / 2;
+  let h = 0;
   
   if (max !== min) {
     const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
       case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
       case g: h = ((b - r) / d + 2) / 6; break;
@@ -39,7 +37,7 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
     }
   }
   
-  return { h: h * 360, s: s * 100, l: l * 100 };
+  return h * 360;
 }
 
 export function TeamBadge({ badgeId, size = "md", className = "", fallbackInitials, teamColor }: TeamBadgeProps) {
@@ -52,9 +50,8 @@ export function TeamBadge({ badgeId, size = "md", className = "", fallbackInitia
 
   const colorFilter = useMemo(() => {
     if (!teamColor) return undefined;
-    const hsl = hexToHsl(teamColor);
-    if (!hsl) return undefined;
-    return `hue-rotate(${hsl.h - 200}deg) saturate(${Math.max(hsl.s / 50, 0.5)})`;
+    const hue = hexToHueRotate(teamColor);
+    return `grayscale(100%) sepia(100%) saturate(200%) hue-rotate(${hue - 50}deg) brightness(0.95)`;
   }, [teamColor]);
   
   if (!badge) {

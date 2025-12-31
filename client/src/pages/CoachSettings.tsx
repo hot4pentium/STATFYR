@@ -33,9 +33,37 @@ const SPORTS = [
   "Other"
 ];
 
+const TEAM_COLORS = [
+  { name: "Red", hex: "#EF4444" },
+  { name: "Orange", hex: "#F97316" },
+  { name: "Amber", hex: "#F59E0B" },
+  { name: "Yellow", hex: "#EAB308" },
+  { name: "Lime", hex: "#84CC16" },
+  { name: "Green", hex: "#22C55E" },
+  { name: "Emerald", hex: "#10B981" },
+  { name: "Teal", hex: "#14B8A6" },
+  { name: "Cyan", hex: "#06B6D4" },
+  { name: "Sky", hex: "#0EA5E9" },
+  { name: "Blue", hex: "#3B82F6" },
+  { name: "Indigo", hex: "#6366F1" },
+  { name: "Violet", hex: "#8B5CF6" },
+  { name: "Purple", hex: "#A855F7" },
+  { name: "Fuchsia", hex: "#D946EF" },
+  { name: "Pink", hex: "#EC4899" },
+  { name: "Rose", hex: "#F43F5E" },
+  { name: "Slate", hex: "#64748B" },
+  { name: "Gray", hex: "#6B7280" },
+  { name: "Black", hex: "#1F2937" },
+  { name: "Maroon", hex: "#7F1D1D" },
+  { name: "Navy", hex: "#1E3A5F" },
+  { name: "Forest", hex: "#14532D" },
+  { name: "Gold", hex: "#CA8A04" },
+];
+
 export default function CoachSettings() {
   const { user, setUser, currentTeam, setCurrentTeam } = useUser();
   const [selectedBadge, setSelectedBadge] = useState(currentTeam?.badgeId || "");
+  const [selectedColor, setSelectedColor] = useState(currentTeam?.teamColor || "");
   const [copied, setCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -43,7 +71,10 @@ export default function CoachSettings() {
     if (currentTeam?.badgeId) {
       setSelectedBadge(currentTeam.badgeId);
     }
-  }, [currentTeam?.badgeId]);
+    if (currentTeam?.teamColor) {
+      setSelectedColor(currentTeam.teamColor);
+    }
+  }, [currentTeam?.badgeId, currentTeam?.teamColor]);
 
   const [profileForm, setProfileForm] = useState({
     firstName: "",
@@ -121,10 +152,11 @@ export default function CoachSettings() {
     setIsSaving(true);
     try {
       const updatedTeam = await updateTeam(currentTeam.id, {
-        badgeId: selectedBadge || null
+        badgeId: selectedBadge || null,
+        teamColor: selectedColor || null
       });
       setCurrentTeam(updatedTeam);
-      toast.success("Team badge updated successfully!");
+      toast.success("Team badge and color updated successfully!");
     } catch (error) {
       toast.error("Failed to update team badge");
     } finally {
@@ -337,6 +369,15 @@ export default function CoachSettings() {
                   <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Team Badge</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Badge Preview */}
+                  {selectedBadge && (
+                    <div className="flex justify-center mb-4">
+                      <div className="p-6 bg-background/50 rounded-xl border border-white/10">
+                        <TeamBadge badgeId={selectedBadge} size="xl" teamColor={selectedColor || undefined} />
+                      </div>
+                    </div>
+                  )}
+
                   <p className="text-sm text-muted-foreground">Select your team's badge design</p>
                   
                   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -360,13 +401,52 @@ export default function CoachSettings() {
                     ))}
                   </div>
 
+                  {/* Team Color Picker */}
+                  <div className="border-t border-white/10 pt-6">
+                    <p className="text-sm text-muted-foreground mb-4">Choose your team color</p>
+                    <div className="grid grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
+                      {TEAM_COLORS.map((color) => (
+                        <button
+                          key={color.hex}
+                          onClick={() => setSelectedColor(color.hex)}
+                          data-testid={`button-color-${color.name.toLowerCase()}`}
+                          title={color.name}
+                          className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${
+                            selectedColor === color.hex
+                              ? "border-white ring-2 ring-offset-2 ring-offset-background ring-white/50 scale-110"
+                              : "border-white/20 hover:border-white/40 hover:scale-105"
+                          }`}
+                          style={{ backgroundColor: color.hex }}
+                        />
+                      ))}
+                    </div>
+                    {selectedColor && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Selected:</span>
+                        <div 
+                          className="w-4 h-4 rounded-full border border-white/20" 
+                          style={{ backgroundColor: selectedColor }} 
+                        />
+                        <span className="text-xs font-mono">{selectedColor}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 text-xs"
+                          onClick={() => setSelectedColor("")}
+                        >
+                          Clear
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
                   <Button 
                     onClick={handleSaveBadge} 
                     disabled={isSaving}
                     data-testid="button-save-badge" 
                     className="w-full md:w-auto shadow-lg shadow-primary/30"
                   >
-                    {isSaving ? "Saving..." : "Save Badge"}
+                    {isSaving ? "Saving..." : "Save Badge & Color"}
                   </Button>
                 </CardContent>
               </Card>

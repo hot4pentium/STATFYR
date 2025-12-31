@@ -25,6 +25,7 @@ export interface Team {
   division?: string | null;
   season?: string | null;
   badgeId?: string | null;
+  teamColor?: string | null;
   coachId?: string | null;
   createdAt?: string | null;
 }
@@ -100,7 +101,7 @@ export async function createTeam(data: {
   return res.json();
 }
 
-export async function updateTeam(id: string, data: Partial<{ name: string; sport: string; season: string; badgeId: string | null }>): Promise<Team> {
+export async function updateTeam(id: string, data: Partial<{ name: string; sport: string; season: string; badgeId: string | null; teamColor: string | null }>): Promise<Team> {
   const res = await apiRequest("PATCH", `/api/teams/${id}`, data);
   return res.json();
 }

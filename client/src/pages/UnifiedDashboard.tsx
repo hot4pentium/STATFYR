@@ -477,7 +477,7 @@ export default function UnifiedDashboard() {
     <Card key={member.id} className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all overflow-hidden relative">
       {currentTeam?.badgeId && (
         <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-45 pointer-events-none">
-          <TeamBadge badgeId={currentTeam.badgeId} size="lg" />
+          <TeamBadge badgeId={currentTeam.badgeId} size="lg" teamColor={currentTeam.teamColor} />
         </div>
       )}
       <CardContent className="p-4 flex items-center gap-3 relative z-10">
@@ -996,7 +996,7 @@ export default function UnifiedDashboard() {
                   className="w-full justify-start gap-3"
                   onClick={() => setCurrentTeam(team)}
                 >
-                  <TeamBadge badgeId={team.badgeId} size="sm" fallbackInitials={team.name?.substring(0, 2)} />
+                  <TeamBadge badgeId={team.badgeId} size="sm" fallbackInitials={team.name?.substring(0, 2)} teamColor={team.teamColor} />
                   {team.name}
                 </Button>
               ))}
@@ -1122,7 +1122,7 @@ export default function UnifiedDashboard() {
               {/* Team Badge Watermark - positioned to align with profile content */}
               {currentTeam?.badgeId && (
                 <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-35 pointer-events-none">
-                  <TeamBadge badgeId={currentTeam.badgeId} size="xl" />
+                  <TeamBadge badgeId={currentTeam.badgeId} size="xl" teamColor={currentTeam.teamColor} />
                 </div>
               )}
               <div className="h-20 w-20 landscape:h-24 landscape:w-24 border-2 border-primary/50 rounded-xl overflow-hidden shrink-0">
