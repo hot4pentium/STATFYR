@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { requestFollowerNotificationPermission, refreshFCMToken, isIOS, isAndroid, isChrome, isStandalonePWA, isSafari, getFirebaseConfigStatus } from "@/lib/firebase";
+import { requestNotificationPermission, isIOS, isAndroid, isChrome, isStandalonePWA, isSafari, initOneSignal, getPushNotificationStatus } from "@/lib/onesignal";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 import clutchImg from "@assets/clutch_1766970267487.png";
@@ -254,7 +254,7 @@ export default function ShareableHypeCard(props: any) {
     }
   }, [visitorName, athleteId]);
 
-  // Load stored FCM token on mount and refresh if needed (handles iOS token rotation)
+  // Load stored player ID on mount and check follow status
   useEffect(() => {
     if (typeof window !== 'undefined' && athleteId) {
       const storedToken = localStorage.getItem(fcmTokenStorageKey);
@@ -262,22 +262,11 @@ export default function ShareableHypeCard(props: any) {
         setFollowerFcmToken(storedToken);
         checkFollowStatus(athleteId, storedToken).then(({ isFollowing }) => {
           setIsFollowing(isFollowing);
-          
-          // If following, refresh the token in case it rotated (common on iOS)
-          if (isFollowing && isStandalonePWA()) {
-            console.log('[FCM] Refreshing token on app open...');
-            refreshFCMToken(athleteId, storedToken).then((newToken) => {
-              if (newToken && newToken !== storedToken) {
-                console.log('[FCM] Token was refreshed');
-                setFollowerFcmToken(newToken);
-                localStorage.setItem(fcmTokenStorageKey, newToken);
-              }
-            }).catch((err) => {
-              console.error('[FCM] Token refresh failed:', err);
-            });
-          }
         }).catch(() => {});
       }
+      
+      // Initialize OneSignal
+      initOneSignal();
     }
   }, [athleteId]);
 
@@ -517,24 +506,14 @@ export default function ShareableHypeCard(props: any) {
     
     try {
       setFollowStep("Requesting notification permission...");
-      let result: { token?: string | null; subscription?: PushSubscription; error?: string; instructions?: string } | undefined;
-      try {
-        result = await requestFollowerNotificationPermission();
-      } catch (permError: any) {
-        const errorMsg = permError.message || "Failed to set up notifications. Please try again.";
-        setFollowError(errorMsg);
-        setFollowStep("");
-        toast.error(errorMsg);
-        setIsFollowLoading(false);
-        return;
-      }
       
-      // Check if we got either a token (FCM) or subscription (Web Push for iOS)
-      if (!result || (!result.token && !result.subscription)) {
-        const errorMsg = result?.error || "Please allow notifications to follow this athlete";
+      const result = await requestNotificationPermission();
+      
+      if (!result.granted || !result.playerId) {
+        const errorMsg = result.error || "Please allow notifications to follow this athlete";
         setFollowError(errorMsg);
         setFollowStep("");
-        if (result?.instructions) {
+        if (result.instructions) {
           setFollowInstructions(result.instructions);
         }
         toast.error(errorMsg);
@@ -543,25 +522,12 @@ export default function ShareableHypeCard(props: any) {
       }
       
       setFollowStep("Got permission! Registering with server...");
-      console.log('[Follow] Registering follower...', result.token ? 'FCM' : 'WebPush');
+      console.log('[Follow] Registering follower with OneSignal player ID:', result.playerId);
       
-      // Build request body based on subscription type
-      let requestBody: any = { followerName: followFormName.trim() };
-      let storageKey: string;
-      
-      if (result.subscription) {
-        // Web Push subscription (iOS)
-        const subJson = result.subscription.toJSON();
-        requestBody.subscription = {
-          endpoint: subJson.endpoint,
-          keys: subJson.keys,
-        };
-        storageKey = result.subscription.endpoint;
-      } else {
-        // FCM token (Android/desktop)
-        requestBody.fcmToken = result.token;
-        storageKey = result.token!;
-      }
+      const requestBody = { 
+        followerName: followFormName.trim(),
+        onesignalPlayerId: result.playerId
+      };
       
       const res = await fetch(`/api/athletes/${athleteId}/followers`, {
         method: "POST",
@@ -578,11 +544,11 @@ export default function ShareableHypeCard(props: any) {
       }
       
       setFollowStep("Success!");
-      setFollowerFcmToken(storageKey);
+      setFollowerFcmToken(result.playerId);
       setIsFollowing(true);
       setShowFollowForm(false);
       setVisitorName(followFormName.trim());
-      localStorage.setItem(fcmTokenStorageKey, storageKey);
+      localStorage.setItem(fcmTokenStorageKey, result.playerId);
       localStorage.setItem(visitorNameStorageKey, followFormName.trim());
       queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "followers", "count"] });
       toast.success("You're now following this athlete!");
@@ -1346,20 +1312,6 @@ export default function ShareableHypeCard(props: any) {
                       )}
                     </div>
                   )}
-                  {/* Debug: Show Firebase config status if not configured */}
-                  {(() => {
-                    const fbStatus = getFirebaseConfigStatus();
-                    if (!fbStatus.configured) {
-                      return (
-                        <div className="p-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
-                          <p className="text-yellow-400 text-xs font-mono">
-                            Debug: Missing Firebase config: {fbStatus.missingKeys.join(', ')}
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
                   {followStep && (
                     <div className="p-2 bg-blue-500/20 border border-blue-500/30 rounded-lg">
                       <p className="text-blue-400 text-xs font-mono">{followStep}</p>

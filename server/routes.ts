@@ -11,6 +11,7 @@ import fs from "fs";
 import bcrypt from "bcrypt";
 import { sendPushNotification, getFirebaseAdmin, getFirebaseAdminStatus } from "./firebaseAdmin";
 import { sendWebPushToMany, WebPushSubscription, initWebPush, getWebPushVapidPublicKey } from "./webPush";
+import { sendPushToPlayers, isConfigured as isOneSignalConfigured } from "./onesignal";
 import { WebSocketServer, WebSocket } from "ws";
 
 // Store connected WebSocket clients by team
@@ -1824,7 +1825,7 @@ export async function registerRoutes(
   });
 
   // Follow an athlete (public - no auth required)
-  // Supports both FCM tokens (Android/desktop) and Web Push subscriptions (iOS)
+  // Supports OneSignal player IDs (primary), FCM tokens (legacy), and Web Push subscriptions (legacy iOS)
   app.post("/api/athletes/:athleteId/followers", async (req, res) => {
     try {
       const athleteId = req.params.athleteId;
@@ -1838,11 +1839,25 @@ export async function registerRoutes(
       }
       console.log("[Follow] Found athlete:", athlete.username);
       
-      const { fcmToken, followerName, subscription } = req.body;
+      const { fcmToken, followerName, subscription, onesignalPlayerId } = req.body;
       
-      // Handle Web Push subscription (iOS)
+      // Handle OneSignal player ID (preferred - unified approach)
+      if (onesignalPlayerId) {
+        console.log("[Follow] OneSignal player ID detected");
+        const follower = await storage.createAthleteFollower({
+          athleteId,
+          followerName: followerName || "Anonymous",
+          fcmToken: onesignalPlayerId, // Store OneSignal player ID in fcmToken field for now
+          isWebPush: false,
+        });
+        const count = await storage.getAthleteFollowerCount(athleteId);
+        console.log("[Follow] Created OneSignal follower, total count:", count);
+        return res.status(201).json({ follower, count });
+      }
+      
+      // Handle Web Push subscription (legacy iOS)
       if (subscription && subscription.endpoint) {
-        console.log("[Follow] Web Push subscription detected (iOS)");
+        console.log("[Follow] Web Push subscription detected (legacy iOS)");
         const follower = await storage.createAthleteFollower({
           athleteId,
           followerName: followerName || "Anonymous",
@@ -1857,10 +1872,10 @@ export async function registerRoutes(
         return res.status(201).json({ follower, count });
       }
       
-      // Handle FCM token (Android/desktop)
+      // Handle FCM token (legacy Android/desktop)
       if (!fcmToken) {
-        console.log("[Follow] Neither FCM token nor Web Push subscription provided");
-        return res.status(400).json({ error: "FCM token or Web Push subscription required" });
+        console.log("[Follow] No valid subscription method provided");
+        return res.status(400).json({ error: "OneSignal player ID, FCM token, or Web Push subscription required" });
       }
       
       const follower = await storage.createAthleteFollower({
@@ -1969,12 +1984,6 @@ export async function registerRoutes(
         });
       }
       
-      // Separate FCM and Web Push subscribers
-      const fcmFollowers = followers.filter(f => !f.isWebPush && f.fcmToken);
-      const webPushFollowers = followers.filter(f => f.isWebPush && f.pushEndpoint && f.pushP256dh && f.pushAuth);
-      
-      console.log("[FYR API] FCM followers:", fcmFollowers.length, "Web Push followers:", webPushFollowers.length);
-      
       const athleteName = athlete.firstName && athlete.lastName 
         ? `${athlete.firstName} ${athlete.lastName}` 
         : athlete.name || athlete.username;
@@ -1990,16 +1999,51 @@ export async function registerRoutes(
       const body = `Check out ${athleteName}'s latest HYPE card updates!`;
       console.log("[FYR API] Sending notification to:", hypeCardUrl);
       
+      // Check if OneSignal is configured - use it as primary
+      if (isOneSignalConfigured()) {
+        console.log("[FYR API] Using OneSignal for notifications");
+        
+        // Get all followers with player IDs (stored in fcmToken field)
+        const onesignalFollowers = followers.filter(f => !f.isWebPush && f.fcmToken);
+        const playerIds = onesignalFollowers.map(f => f.fcmToken!);
+        
+        console.log("[FYR API] Sending to", playerIds.length, "OneSignal subscribers");
+        
+        const onesignalResult = await sendPushToPlayers(playerIds, {
+          title,
+          message: body,
+          url: hypeCardUrl,
+          data: { athleteId, type: 'fyr' }
+        });
+        
+        console.log("[FYR API] OneSignal result:", JSON.stringify(onesignalResult));
+        
+        const remainingCount = await storage.getAthleteFollowerCount(athleteId);
+        
+        return res.json({
+          success: onesignalResult.success,
+          successCount: onesignalResult.sentCount,
+          failureCount: onesignalResult.success ? 0 : playerIds.length,
+          remainingFollowers: remainingCount
+        });
+      }
+      
+      // Legacy: Fall back to FCM/Web Push if OneSignal not configured
+      console.log("[FYR API] OneSignal not configured, using legacy FCM/Web Push");
+      
+      const fcmFollowers = followers.filter(f => !f.isWebPush && f.fcmToken);
+      const webPushFollowers = followers.filter(f => f.isWebPush && f.pushEndpoint && f.pushP256dh && f.pushAuth);
+      
+      console.log("[FYR API] FCM followers:", fcmFollowers.length, "Web Push followers:", webPushFollowers.length);
+      
       let fcmResult = { success: true, successCount: 0, failureCount: 0, invalidTokens: [] as string[] };
       let webPushResult = { successCount: 0, failureCount: 0, invalidSubscriptions: [] as WebPushSubscription[] };
       
-      // Send FCM notifications
       if (fcmFollowers.length > 0) {
         const tokens = fcmFollowers.map(f => f.fcmToken!);
         fcmResult = await sendPushNotification(tokens, title, body, { athleteId, type: 'fyr' }, hypeCardUrl);
         console.log("[FYR API] FCM result:", JSON.stringify(fcmResult));
         
-        // Clean up invalid FCM tokens
         if (fcmResult.invalidTokens.length > 0) {
           console.log("[FYR API] Cleaning up", fcmResult.invalidTokens.length, "invalid FCM tokens");
           for (const token of fcmResult.invalidTokens) {
@@ -2008,7 +2052,6 @@ export async function registerRoutes(
         }
       }
       
-      // Send Web Push notifications (for iOS)
       if (webPushFollowers.length > 0) {
         const subscriptions: WebPushSubscription[] = webPushFollowers.map(f => ({
           endpoint: f.pushEndpoint!,
@@ -2017,7 +2060,6 @@ export async function registerRoutes(
         webPushResult = await sendWebPushToMany(subscriptions, title, body, { athleteId, type: 'fyr' }, hypeCardUrl);
         console.log("[FYR API] Web Push result:", JSON.stringify(webPushResult));
         
-        // Clean up invalid Web Push subscriptions
         if (webPushResult.invalidSubscriptions.length > 0) {
           console.log("[FYR API] Cleaning up", webPushResult.invalidSubscriptions.length, "invalid Web Push subscriptions");
           for (const sub of webPushResult.invalidSubscriptions) {
@@ -2096,11 +2138,6 @@ export async function registerRoutes(
       console.log('[HYPE] Found', followers.length, 'followers');
       
       if (followers.length > 0) {
-        // Separate FCM and Web Push subscribers
-        const fcmFollowers = followers.filter(f => !f.isWebPush && f.fcmToken);
-        const webPushFollowers = followers.filter(f => f.isWebPush && f.pushEndpoint && f.pushP256dh && f.pushAuth);
-        console.log('[HYPE] FCM followers:', fcmFollowers.length, 'Web Push followers:', webPushFollowers.length);
-        
         const athleteName = athlete.firstName && athlete.lastName
           ? `${athlete.firstName} ${athlete.lastName}`
           : athlete.name || athlete.username;
@@ -2117,35 +2154,56 @@ export async function registerRoutes(
         console.log('[HYPE] Notification URL:', hypeCardUrl);
         
         try {
-          // Send FCM notifications
-          if (fcmFollowers.length > 0) {
-            const tokens = fcmFollowers.map(f => f.fcmToken!);
-            const result = await sendPushNotification(tokens, title, body, { athleteId: parsed.athleteId, hypePostId: post.id, type: 'hype_post' }, hypeCardUrl);
-            console.log('[HYPE] FCM result:', JSON.stringify(result));
+          // Check if OneSignal is configured - use it as primary
+          if (isOneSignalConfigured()) {
+            console.log('[HYPE] Using OneSignal for notifications');
+            const onesignalFollowers = followers.filter(f => !f.isWebPush && f.fcmToken);
+            const playerIds = onesignalFollowers.map(f => f.fcmToken!);
             
-            if (result.invalidTokens.length > 0) {
-              console.log('[HYPE] Cleaning up', result.invalidTokens.length, 'invalid FCM tokens');
-              for (const token of result.invalidTokens) {
-                await storage.deleteAthleteFollower(parsed.athleteId, token);
+            if (playerIds.length > 0) {
+              const result = await sendPushToPlayers(playerIds, {
+                title,
+                message: body,
+                url: hypeCardUrl,
+                data: { athleteId: parsed.athleteId, hypePostId: post.id, type: 'hype_post' }
+              });
+              console.log('[HYPE] OneSignal result:', JSON.stringify(result));
+            }
+          } else {
+            // Legacy: Fall back to FCM/Web Push
+            console.log('[HYPE] Using legacy FCM/Web Push');
+            const fcmFollowers = followers.filter(f => !f.isWebPush && f.fcmToken);
+            const webPushFollowers = followers.filter(f => f.isWebPush && f.pushEndpoint && f.pushP256dh && f.pushAuth);
+            console.log('[HYPE] FCM followers:', fcmFollowers.length, 'Web Push followers:', webPushFollowers.length);
+            
+            if (fcmFollowers.length > 0) {
+              const tokens = fcmFollowers.map(f => f.fcmToken!);
+              const result = await sendPushNotification(tokens, title, body, { athleteId: parsed.athleteId, hypePostId: post.id, type: 'hype_post' }, hypeCardUrl);
+              console.log('[HYPE] FCM result:', JSON.stringify(result));
+              
+              if (result.invalidTokens.length > 0) {
+                console.log('[HYPE] Cleaning up', result.invalidTokens.length, 'invalid FCM tokens');
+                for (const token of result.invalidTokens) {
+                  await storage.deleteAthleteFollower(parsed.athleteId, token);
+                }
               }
             }
-          }
-          
-          // Send Web Push notifications (for iOS)
-          if (webPushFollowers.length > 0) {
-            const subscriptions: WebPushSubscription[] = webPushFollowers.map(f => ({
-              endpoint: f.pushEndpoint!,
-              keys: { p256dh: f.pushP256dh!, auth: f.pushAuth! }
-            }));
-            const webPushResult = await sendWebPushToMany(subscriptions, title, body, { athleteId: parsed.athleteId, hypePostId: post.id, type: 'hype_post' }, hypeCardUrl);
-            console.log('[HYPE] Web Push result:', JSON.stringify(webPushResult));
             
-            if (webPushResult.invalidSubscriptions.length > 0) {
-              console.log('[HYPE] Cleaning up', webPushResult.invalidSubscriptions.length, 'invalid Web Push subscriptions');
-              for (const sub of webPushResult.invalidSubscriptions) {
-                const follower = webPushFollowers.find(f => f.pushEndpoint === sub.endpoint);
-                if (follower) {
-                  await storage.deleteAthleteFollower(parsed.athleteId, follower.pushEndpoint!);
+            if (webPushFollowers.length > 0) {
+              const subscriptions: WebPushSubscription[] = webPushFollowers.map(f => ({
+                endpoint: f.pushEndpoint!,
+                keys: { p256dh: f.pushP256dh!, auth: f.pushAuth! }
+              }));
+              const webPushResult = await sendWebPushToMany(subscriptions, title, body, { athleteId: parsed.athleteId, hypePostId: post.id, type: 'hype_post' }, hypeCardUrl);
+              console.log('[HYPE] Web Push result:', JSON.stringify(webPushResult));
+              
+              if (webPushResult.invalidSubscriptions.length > 0) {
+                console.log('[HYPE] Cleaning up', webPushResult.invalidSubscriptions.length, 'invalid Web Push subscriptions');
+                for (const sub of webPushResult.invalidSubscriptions) {
+                  const follower = webPushFollowers.find(f => f.pushEndpoint === sub.endpoint);
+                  if (follower) {
+                    await storage.deleteAthleteFollower(parsed.athleteId, follower.pushEndpoint!);
+                  }
                 }
               }
             }
