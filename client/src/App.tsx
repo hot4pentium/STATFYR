@@ -38,6 +38,7 @@ import SuperAdminPanel from "@/pages/SuperAdminPanel";
 import RoleCapabilitiesPDF from "@/pages/RoleCapabilitiesPDF";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
 import TestPage from "@/pages/TestPage";
+import SupporterHypeHub from "@/pages/SupporterHypeHub";
 
 function Router() {
   return (
@@ -62,6 +63,7 @@ function Router() {
       <Route path="/supporter/onboarding" component={SupporterOnboarding} />
       <Route path="/supporter/dashboard" component={UnifiedDashboard} />
       <Route path="/supporter/settings" component={SupporterSettings} />
+      <Route path="/supporter/hub" component={SupporterHypeHub} />
       <Route path="/supporter/game/:gameId" component={SupporterGameLive} />
       <Route path="/supporter/live/:sessionId" component={SupporterSessionLive} />
       <Route path="/share/athlete/:id" component={ShareableHypeCard} />
