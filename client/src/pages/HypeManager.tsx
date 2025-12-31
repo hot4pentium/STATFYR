@@ -285,7 +285,7 @@ export default function HypeManager() {
               </p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                 {HYPE_TEMPLATES.map((template) => (
                   <button
                     key={template.id}
