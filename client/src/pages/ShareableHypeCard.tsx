@@ -1258,6 +1258,7 @@ export default function ShareableHypeCard(props: any) {
                     onChange={(e) => setFollowFormName(e.target.value)}
                     data-testid="input-follow-name"
                     autoFocus
+                    className="bg-[#ede4e400]"
                   />
                   {followError && (
                     <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg space-y-2">
