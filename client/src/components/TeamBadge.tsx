@@ -6,6 +6,7 @@ interface TeamBadgeProps {
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
   fallbackInitials?: string;
+  teamColor?: string | null;
 }
 
 const sizeClasses = {
@@ -15,18 +16,57 @@ const sizeClasses = {
   xl: "w-20 h-24"
 };
 
-export function TeamBadge({ badgeId, size = "md", className = "", fallbackInitials }: TeamBadgeProps) {
+function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return null;
+  
+  let r = parseInt(result[1], 16) / 255;
+  let g = parseInt(result[2], 16) / 255;
+  let b = parseInt(result[3], 16) / 255;
+  
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  
+  return { h: h * 360, s: s * 100, l: l * 100 };
+}
+
+export function TeamBadge({ badgeId, size = "md", className = "", fallbackInitials, teamColor }: TeamBadgeProps) {
   const badge = badgeId ? getBadgeById(badgeId) : null;
   
   const styledSvg = useMemo(() => {
     if (!badge) return "";
     return badge.svg.replace('<svg', '<svg style="width:100%;height:100%"');
   }, [badge]);
+
+  const colorFilter = useMemo(() => {
+    if (!teamColor) return undefined;
+    const hsl = hexToHsl(teamColor);
+    if (!hsl) return undefined;
+    return `hue-rotate(${hsl.h - 200}deg) saturate(${Math.max(hsl.s / 50, 0.5)})`;
+  }, [teamColor]);
   
   if (!badge) {
     if (fallbackInitials) {
       return (
-        <div className={`${sizeClasses[size]} bg-primary/20 rounded-lg flex items-center justify-center text-primary font-bold ${className}`}>
+        <div 
+          className={`${sizeClasses[size]} rounded-lg flex items-center justify-center font-bold ${className}`}
+          style={{ 
+            backgroundColor: teamColor ? `${teamColor}33` : undefined,
+            color: teamColor || undefined
+          }}
+        >
           {fallbackInitials.slice(0, 2).toUpperCase()}
         </div>
       );
@@ -37,6 +77,7 @@ export function TeamBadge({ badgeId, size = "md", className = "", fallbackInitia
   return (
     <div 
       className={`${sizeClasses[size]} ${className}`}
+      style={{ filter: colorFilter }}
       dangerouslySetInnerHTML={{ __html: styledSvg }}
     />
   );

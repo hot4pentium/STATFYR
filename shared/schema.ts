@@ -34,6 +34,7 @@ export const teams = pgTable("teams", {
   division: text("division"),
   season: text("season"),
   badgeId: text("badge_id"),
+  teamColor: text("team_color"),
   coachId: varchar("coach_id").references(() => users.id),
   wins: integer("wins").notNull().default(0),
   losses: integer("losses").notNull().default(0),
