@@ -906,32 +906,6 @@ export default function ShareableHypeCard(props: any) {
           </CardContent>
         </Card>
 
-        {/* Share Buttons */}
-        <div className="flex gap-2 mb-6">
-          <Button 
-            onClick={(e) => { e.stopPropagation(); shareToSocial('twitter'); }}
-            className="flex-1 bg-primary/20 hover:bg-primary/30 text-primary rounded-full text-sm"
-            data-testid="button-share-twitter"
-          >
-            Twitter
-          </Button>
-          <Button 
-            onClick={(e) => { e.stopPropagation(); shareToSocial('whatsapp'); }}
-            className="flex-1 bg-primary/20 hover:bg-primary/30 text-primary rounded-full text-sm"
-            data-testid="button-share-whatsapp"
-          >
-            WhatsApp
-          </Button>
-          <Button 
-            onClick={(e) => { e.stopPropagation(); copyShareLink(); }}
-            className="flex-1 bg-primary text-white hover:bg-primary/90 rounded-full text-sm font-bold"
-            data-testid="button-copy-link"
-          >
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4 mr-1" />}
-            {copied ? "Copied!" : "Copy"}
-          </Button>
-        </div>
-
         {/* Season Stats */}
         {topStats.length > 0 && (
           <div className="mb-6">
@@ -1094,20 +1068,17 @@ export default function ShareableHypeCard(props: any) {
                     <Smartphone className="h-5 w-5 text-blue-400" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-foreground mb-1">
-                      Install this app for the best experience
-                    </p>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Add to your home screen to get notifications and quick access
+                    <p className="text-sm font-medium text-foreground mb-3">
+                      Stay up to date with {athlete?.name?.split(' ')[0] || 'this athlete'}'s journey.
                     </p>
                     <Button
                       onClick={() => setShowInstallPrompt(true)}
                       size="sm"
-                      className="bg-blue-500 hover:bg-blue-600 text-white"
+                      className="bg-blue-500 hover:bg-blue-600 text-white font-bold"
                       data-testid="button-show-install-ios"
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      How to Install
+                      INSTALL THE APP
                     </Button>
                   </div>
                   <Button
@@ -1136,20 +1107,17 @@ export default function ShareableHypeCard(props: any) {
                     <Smartphone className="h-5 w-5 text-green-400" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-foreground mb-1">
-                      Install this app for the best experience
-                    </p>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Get notifications and quick access from your home screen
+                    <p className="text-sm font-medium text-foreground mb-3">
+                      Stay up to date with {athlete?.name?.split(' ')[0] || 'this athlete'}'s journey.
                     </p>
                     <Button
                       onClick={handleAndroidInstall}
                       size="sm"
-                      className="bg-green-500 hover:bg-green-600 text-white"
+                      className="bg-green-500 hover:bg-green-600 text-white font-bold"
                       data-testid="button-install-android"
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      Install App
+                      INSTALL THE APP
                     </Button>
                   </div>
                   <Button
