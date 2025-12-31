@@ -1126,7 +1126,7 @@ export default function UnifiedDashboard() {
 
             {/* Profile Section */}
             <div className="flex items-start gap-4 landscape:justify-center landscape:items-center landscape:gap-6">
-              <div className="h-24 w-16 landscape:h-28 landscape:w-20 border-2 border-primary/50 rounded-xl overflow-hidden shrink-0">
+              <div className="h-20 w-20 landscape:h-24 landscape:w-24 border-2 border-primary/50 rounded-xl overflow-hidden shrink-0">
                 {user.avatar ? (
                   <img src={user.avatar} alt="" className="w-full h-full object-cover" />
                 ) : (
