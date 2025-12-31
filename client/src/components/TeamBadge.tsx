@@ -16,43 +16,23 @@ const sizeClasses = {
   xl: "w-20 h-24"
 };
 
-function hexToHueRotate(hex: string): number {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return 0;
-  
-  let r = parseInt(result[1], 16) / 255;
-  let g = parseInt(result[2], 16) / 255;
-  let b = parseInt(result[3], 16) / 255;
-  
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  let h = 0;
-  
-  if (max !== min) {
-    const d = max - min;
-    switch (max) {
-      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-      case g: h = ((b - r) / d + 2) / 6; break;
-      case b: h = ((r - g) / d + 4) / 6; break;
-    }
-  }
-  
-  return h * 360;
-}
-
 export function TeamBadge({ badgeId, size = "md", className = "", fallbackInitials, teamColor }: TeamBadgeProps) {
   const badge = badgeId ? getBadgeById(badgeId) : null;
   
   const styledSvg = useMemo(() => {
     if (!badge) return "";
-    return badge.svg.replace('<svg', '<svg style="width:100%;height:100%"');
-  }, [badge]);
-
-  const colorFilter = useMemo(() => {
-    if (!teamColor) return undefined;
-    const hue = hexToHueRotate(teamColor);
-    return `grayscale(100%) sepia(100%) saturate(400%) hue-rotate(${hue - 50}deg) brightness(1.0)`;
-  }, [teamColor]);
+    let svg = badge.svg.replace('<svg', '<svg style="width:100%;height:100%"');
+    
+    if (teamColor) {
+      svg = svg
+        .replace(/fill="#[a-fA-F0-9]{6}"/g, `fill="${teamColor}"`)
+        .replace(/fill="#[a-fA-F0-9]{3}"/g, `fill="${teamColor}"`)
+        .replace(/fill='#[a-fA-F0-9]{6}'/g, `fill='${teamColor}'`)
+        .replace(/fill='#[a-fA-F0-9]{3}'/g, `fill='${teamColor}'`);
+    }
+    
+    return svg;
+  }, [badge, teamColor]);
   
   if (!badge) {
     if (fallbackInitials) {
@@ -74,7 +54,6 @@ export function TeamBadge({ badgeId, size = "md", className = "", fallbackInitia
   return (
     <div 
       className={`${sizeClasses[size]} ${className}`}
-      style={{ filter: colorFilter }}
       dangerouslySetInnerHTML={{ __html: styledSvg }}
     />
   );
