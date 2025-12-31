@@ -244,64 +244,7 @@ export default function HypeManager() {
             <div className="w-20" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card className="bg-gradient-to-br from-zinc-900 to-zinc-800 border-zinc-700">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg text-white flex items-center gap-2">
-                  <img src={logoImage} alt="STATFYR" className="h-5 w-5 object-contain" />
-                  Your HYPE Card
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center gap-4">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16 border-2 border-orange-500">
-                    <AvatarImage src={user.avatar || undefined} />
-                    <AvatarFallback className="bg-orange-500 text-white text-xl">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-lg font-bold text-white" data-testid="text-athlete-name">{athleteName}</p>
-                    <p className="text-sm text-zinc-400">
-                      {followerData?.count || 0} Follower{(followerData?.count || 0) !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-white p-3 rounded-lg">
-                  <QRCodeSVG
-                    value={shareUrl}
-                    size={140}
-                    level="H"
-                    includeMargin={true}
-                    data-testid="qr-code"
-                  />
-                </div>
-                <p className="text-xs text-zinc-400 text-center">Scan to view HYPE card</p>
-
-                <div className="flex gap-2 w-full">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={copyShareLink}
-                    className="flex-1 border-zinc-600 text-zinc-300 hover:bg-zinc-700"
-                    data-testid="button-copy-link"
-                  >
-                    {linkCopied ? "Copied!" : <><Copy className="h-4 w-4 mr-1" /> Copy Link</>}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(shareUrl, "_blank")}
-                    className="flex-1 border-zinc-600 text-zinc-300 hover:bg-zinc-700"
-                    data-testid="button-view-card"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-1" /> View
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
+          <div className="mb-8">
             <Card className="bg-gradient-to-br from-orange-900/50 to-zinc-900 border-orange-700/50">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg text-white flex items-center gap-2">

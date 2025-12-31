@@ -13,11 +13,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowLeft, Share2, CalendarClock, Video, TrendingUp, Zap,
   Heart, MessageCircle, Send, Copy, Check
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 
 import {
   getTeamMembers, getTeamEvents, getAllTeamHighlights, getAthleteStats,
@@ -40,6 +41,9 @@ export default function AthleteHypeCardPage() {
   const [comments, setComments] = useState<Array<{ name: string; text: string; time: string }>>([]);
   const [visitorName, setVisitorName] = useState("");
   const [copied, setCopied] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/share/athlete/${user?.id}` : "";
 
   const { data: teamMembers = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "members"],
@@ -77,8 +81,11 @@ export default function AthleteHypeCardPage() {
 
   const hypeScore = Math.min(100, (athleteStats as any)?.hypeCount || 0);
 
-  const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/share/athlete/${user?.id}`;
+  const handleShare = () => {
+    setShowShareModal(true);
+  };
+
+  const copyShareLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
@@ -216,7 +223,7 @@ export default function AthleteHypeCardPage() {
             </Button>
             <h1 className="font-display font-bold text-lg uppercase tracking-wide">HYPE Card</h1>
             <Button variant="ghost" size="icon" onClick={handleShare} data-testid="button-share">
-              {copied ? <Check className="h-5 w-5 text-green-500" /> : <Share2 className="h-5 w-5" />}
+              <Share2 className="h-5 w-5" />
             </Button>
           </div>
         </header>
@@ -385,6 +392,42 @@ export default function AthleteHypeCardPage() {
           </Card>
         </div>
       </div>
+
+      <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Share2 className="h-5 w-5" />
+              Share Your HYPE Card
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="flex items-center gap-4">
+              <div className="bg-white p-3 rounded-lg">
+                <QRCodeSVG
+                  value={shareUrl}
+                  size={140}
+                  level="H"
+                  includeMargin={true}
+                  data-testid="qr-code"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <p className="text-xs text-zinc-400">Scan to view HYPE card</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyShareLink}
+                  className="border-zinc-600 text-zinc-300 hover:bg-zinc-700"
+                  data-testid="button-copy-link"
+                >
+                  {copied ? <><Check className="h-4 w-4 mr-1" /> Copied!</> : <><Copy className="h-4 w-4 mr-1" /> Copy Link</>}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
