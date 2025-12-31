@@ -679,7 +679,7 @@ export default function ShareableHypeCard(props: any) {
       <DashboardBackground />
       <div className="relative z-10 min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
+      <header className="sticky top-0 z-50 bg-background border-b border-border">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <Button 
             variant="ghost" 
@@ -742,7 +742,7 @@ export default function ShareableHypeCard(props: any) {
               </div>
 
               <div className="absolute top-4 right-4">
-                <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                <div className="bg-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
                   <span className="text-lg font-bold text-slate-800">{rating}</span>
                   <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
                 </div>
@@ -945,7 +945,7 @@ export default function ShareableHypeCard(props: any) {
             </h3>
             <div className="grid grid-cols-3 gap-2">
               {topStats.map(([statName, value]) => (
-                <Card key={statName} className="bg-card/80 backdrop-blur-sm border-white/10">
+                <Card key={statName} className="bg-card border-white/10">
                   <CardContent className="p-3 text-center">
                     <div className="text-2xl font-bold text-primary">{value}</div>
                     <div className="text-xs text-muted-foreground uppercase tracking-wider truncate">{statName}</div>
@@ -994,7 +994,7 @@ export default function ShareableHypeCard(props: any) {
               {hypePosts.slice(0, 5).map((post) => (
                 <div 
                   key={post.id}
-                  className="bg-card/80 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden"
+                  className="bg-card border border-white/10 rounded-xl overflow-hidden"
                   data-testid={`hype-post-${post.id}`}
                 >
                   <div className="flex gap-3 p-3">
@@ -1040,7 +1040,7 @@ export default function ShareableHypeCard(props: any) {
               {shoutouts.slice(0, 20).map((shoutout, i) => (
                 <div 
                   key={shoutout.id || i} 
-                  className="bg-card/80 backdrop-blur-sm border border-white/10 rounded-full px-3 py-1.5 flex items-center gap-1"
+                  className="bg-card border border-white/10 rounded-full px-3 py-1.5 flex items-center gap-1"
                 >
                   <span className="text-lg">{shoutout.emoji}</span>
                   {shoutout.supporterName && (
@@ -1368,7 +1368,7 @@ export default function ShareableHypeCard(props: any) {
 
         {/* Like & Comment Section */}
         <div className="mb-6">
-          <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+          <Card className="bg-card border-white/10">
             <CardContent className="p-4 space-y-4">
               {!visitorName.trim() && (
                 <div className="space-y-2">
@@ -1451,7 +1451,7 @@ export default function ShareableHypeCard(props: any) {
             </h3>
             <div className="space-y-2">
               {comments.slice(0, 10).map((comment) => (
-                <Card key={comment.id} className="bg-card/80 backdrop-blur-sm border-white/10">
+                <Card key={comment.id} className="bg-card border-white/10">
                   <CardContent className="p-3">
                     <div className="flex items-start gap-3">
                       <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center flex-shrink-0">
