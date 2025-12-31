@@ -439,11 +439,7 @@ export default function UnifiedDashboard() {
 
   const handleCardClick = (cardId: string) => {
     if (cardId === "chat") {
-      if (isLandscape) {
-        setSelectedCard(selectedCard === cardId ? null : cardId);
-      } else {
-        setLocation("/chat");
-      }
+      setLocation("/chat");
       return;
     }
     if (cardId === "stattracker") {
