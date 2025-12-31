@@ -1,0 +1,415 @@
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { useUser } from "@/lib/userContext";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+
+import { DashboardBackground } from "@/components/layout/DashboardBackground";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import {
+  ArrowLeft, Share2, CalendarClock, Video, TrendingUp, Zap,
+  Heart, MessageCircle, Send, Copy, Check
+} from "lucide-react";
+
+import {
+  getTeamMembers, getTeamEvents, getAllTeamHighlights, getAthleteStats,
+  type TeamMember, type Event, type HighlightVideo
+} from "@/lib/api";
+
+import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
+
+type HypeTab = "events" | "highlights" | "stats" | "hypes";
+
+export default function AthleteHypeCardPage() {
+  const [, setLocation] = useLocation();
+  const { user, currentTeam } = useUser();
+
+  const [activeTab, setActiveTab] = useState<HypeTab>("events");
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [showCommentForm, setShowCommentForm] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [comments, setComments] = useState<Array<{ name: string; text: string; time: string }>>([]);
+  const [visitorName, setVisitorName] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "members"],
+    queryFn: () => currentTeam ? getTeamMembers(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+  });
+
+  const currentMembership = teamMembers.find((m: TeamMember) => m.userId === user?.id);
+
+  const { data: teamEvents = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "events"],
+    queryFn: () => currentTeam ? getTeamEvents(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+  });
+
+  const { data: teamHighlights = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "highlights", "all"],
+    queryFn: () => currentTeam ? getAllTeamHighlights(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+  });
+
+  const { data: athleteStats } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "athletes", user?.id, "stats"],
+    queryFn: () => currentTeam && user ? getAthleteStats(currentTeam.id, user.id) : Promise.resolve(null),
+    enabled: !!currentTeam && !!user,
+  });
+
+  const upcomingEvents = teamEvents
+    .filter((e: Event) => new Date(e.date) >= new Date())
+    .slice(0, 5);
+
+  const myHighlights = teamHighlights
+    .filter((h: HighlightVideo) => h.uploaderId === String(user?.id))
+    .slice(0, 6);
+
+  const hypeScore = Math.min(100, (athleteStats as any)?.hypeCount || 0);
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/share/athlete/${user?.id}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast.success("Link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handleLike = () => {
+    if (!visitorName.trim()) {
+      toast.error("Please enter your name first");
+      return;
+    }
+    setLiked(!liked);
+    setLikeCount(prev => liked ? prev - 1 : prev + 1);
+  };
+
+  const handleComment = () => {
+    if (!visitorName.trim()) {
+      toast.error("Please enter your name first");
+      return;
+    }
+    if (!commentText.trim()) return;
+    setComments(prev => [...prev, { name: visitorName, text: commentText, time: "Just now" }]);
+    setCommentText("");
+    setShowCommentForm(false);
+    toast.success("Comment added!");
+  };
+
+  const tabs = [
+    { id: "events" as const, label: "Events", icon: CalendarClock },
+    { id: "highlights" as const, label: "Highlights", icon: Video },
+    { id: "stats" as const, label: "Stats", icon: TrendingUp },
+    { id: "hypes" as const, label: "Hypes", icon: Zap },
+  ];
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "events":
+        return (
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {upcomingEvents.length > 0 ? (
+              upcomingEvents.map((event: Event) => (
+                <div key={event.id} className="flex-shrink-0 w-32 bg-slate-800/50 rounded-lg p-3 text-center">
+                  <p className="text-xs text-cyan-400 font-medium">{event.type}</p>
+                  <p className="text-sm font-semibold mt-1">{format(new Date(event.date), "MMM d")}</p>
+                  {event.location && <p className="text-xs text-slate-400 mt-1 truncate">{event.location}</p>}
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-slate-500 w-full text-center py-4">No upcoming events</p>
+            )}
+          </div>
+        );
+
+      case "highlights":
+        return (
+          <div className="grid grid-cols-2 gap-2">
+            {myHighlights.length > 0 ? (
+              myHighlights.map((highlight: HighlightVideo) => (
+                <div key={highlight.id} className="aspect-video bg-slate-800/50 rounded-lg overflow-hidden relative">
+                  {highlight.thumbnailKey ? (
+                    <img src={highlight.thumbnailKey} alt={highlight.title || ""} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Video className="h-6 w-6 text-slate-600" />
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="col-span-2 text-sm text-slate-500 text-center py-4">No highlights yet</p>
+            )}
+          </div>
+        );
+
+      case "stats":
+        return (
+          <div className="grid grid-cols-2 gap-2">
+            {athleteStats?.stats && Object.keys(athleteStats.stats).length > 0 ? (
+              Object.entries(athleteStats.stats).slice(0, 4).map(([key, stat]) => {
+                const statValue = typeof stat === 'object' && stat !== null ? (stat as any).total || 0 : stat;
+                return (
+                  <div key={key} className="bg-slate-800/50 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-cyan-400">{statValue}</p>
+                    <p className="text-xs text-slate-400 uppercase tracking-wider">{key}</p>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="col-span-2 text-sm text-slate-500 text-center py-4">No stats recorded yet</p>
+            )}
+          </div>
+        );
+
+      case "hypes":
+        return (
+          <div className="space-y-3">
+            <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-lg p-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <img src={logoImage} alt="Hype" className="h-8 w-8 drop-shadow-[0_0_8px_rgba(255,140,0,0.8)]" />
+                <span className="text-3xl font-bold text-orange-400">{(athleteStats as any)?.hypeCount || 0}</span>
+              </div>
+              <p className="text-sm text-slate-400">Total Hypes Received</p>
+            </div>
+            <p className="text-center text-slate-500 text-sm">
+              Share your HYPE Card to receive more hypes from supporters!
+            </p>
+          </div>
+        );
+    }
+  };
+
+  if (!user) {
+    return (
+      <>
+        <DashboardBackground />
+        <div className="min-h-screen flex items-center justify-center relative z-10">
+          <p className="text-slate-400">Please log in to view your HYPE Card</p>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <DashboardBackground />
+      <div className="min-h-screen pb-8 relative z-10">
+        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50 px-4 py-3">
+          <div className="flex items-center justify-between max-w-lg mx-auto">
+            <Button variant="ghost" size="icon" onClick={() => setLocation("/athlete/dashboard")} data-testid="button-back">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="font-display font-bold text-lg uppercase tracking-wide">HYPE Card</h1>
+            <Button variant="ghost" size="icon" onClick={handleShare} data-testid="button-share">
+              {copied ? <Check className="h-5 w-5 text-green-500" /> : <Share2 className="h-5 w-5" />}
+            </Button>
+          </div>
+        </header>
+
+        <div className="max-w-sm mx-auto px-4 pt-6">
+          <Card className="bg-gradient-to-b from-slate-800/90 to-slate-900/90 border-cyan-500/40 overflow-hidden rounded-2xl">
+            <CardContent className="p-0">
+              {/* Vertical Avatar Section - 2:3 aspect ratio */}
+              <div className="relative aspect-[2/3] bg-gradient-to-b from-slate-700 to-slate-800">
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name || ""} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Avatar className="h-32 w-32 border-4 border-cyan-500/50">
+                      <AvatarFallback className="bg-slate-700 text-cyan-400 text-4xl">
+                        {user.name?.charAt(0) || "A"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                )}
+
+                {/* Info Overlay */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900 via-slate-900/90 to-transparent p-4 pt-12">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h2 className="font-display font-bold text-2xl text-white uppercase">
+                        {user.name || user.username}
+                      </h2>
+                      <p className="text-slate-400 text-sm">
+                        {currentMembership?.jerseyNumber && `#${currentMembership.jerseyNumber} `}
+                        {currentMembership?.position && `• ${currentMembership.position}`}
+                      </p>
+                    </div>
+                    <Badge className="bg-blue-500/80 text-white border-0">
+                      {new Date().getFullYear()}
+                    </Badge>
+                  </div>
+
+                  {/* Key Stats Row */}
+                  {athleteStats?.stats && Object.keys(athleteStats.stats).length > 0 && (
+                    <div className="flex justify-around mt-4 pt-3 border-t border-slate-700/50">
+                      {Object.entries(athleteStats.stats).slice(0, 3).map(([key, stat]) => {
+                        const statValue = typeof stat === 'object' && stat !== null ? (stat as any).total || 0 : stat;
+                        return (
+                          <div key={key} className="text-center">
+                            <p className="text-xl font-bold text-cyan-400">{statValue}</p>
+                            <p className="text-xs text-slate-400 uppercase">{key}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* HYPE Score */}
+              <div className="px-4 py-3 flex items-center gap-3 border-b border-slate-700/50">
+                <Zap className="h-5 w-5 text-yellow-400" />
+                <span className="text-sm font-semibold text-slate-300 uppercase tracking-wide">HYPE Score</span>
+                <div className="flex-1">
+                  <Progress value={hypeScore} className="h-2 bg-slate-700" />
+                </div>
+                <span className="text-lg font-bold text-cyan-400">{hypeScore}</span>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex border-b border-slate-700/50">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 transition-all ${
+                      activeTab === tab.id
+                        ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-400"
+                        : "text-slate-400 hover:text-slate-300 hover:bg-slate-700/30"
+                    }`}
+                    data-testid={`tab-${tab.id}`}
+                  >
+                    <tab.icon className="h-5 w-5" />
+                    <span className="text-xs font-medium">{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-4 min-h-[140px]">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {renderTabContent()}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-between px-4 py-2 border-t border-slate-700/50 bg-slate-900/50">
+                <span className="text-xs font-display font-bold text-slate-500 tracking-widest">HYPE CARD™</span>
+                <span className="text-xs text-cyan-500/70 font-mono">#{String(user.id).padStart(6, '0')}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Like and Comment Section */}
+          <Card className="mt-4 bg-slate-800/50 border-slate-700/50">
+            <CardContent className="p-4 space-y-4">
+              {/* Like/Comment Buttons */}
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleLike}
+                  className={`flex items-center gap-2 transition-colors ${liked ? "text-red-500" : "text-slate-400 hover:text-red-400"}`}
+                  data-testid="button-like"
+                >
+                  <Heart className={`h-6 w-6 ${liked ? "fill-current" : ""}`} />
+                  <span className="text-sm font-medium">{likeCount}</span>
+                </button>
+                <button
+                  onClick={() => setShowCommentForm(!showCommentForm)}
+                  className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                  data-testid="button-comment"
+                >
+                  <MessageCircle className="h-6 w-6" />
+                  <span className="text-sm font-medium">{comments.length}</span>
+                </button>
+              </div>
+
+              {/* Visitor Name Input */}
+              <Input
+                placeholder="Enter your name to interact..."
+                value={visitorName}
+                onChange={(e) => setVisitorName(e.target.value)}
+                className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                data-testid="input-visitor-name"
+              />
+
+              {/* Comment Form */}
+              <AnimatePresence>
+                {showCommentForm && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-2"
+                  >
+                    <Textarea
+                      placeholder="Write a comment..."
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 min-h-[80px]"
+                      data-testid="input-comment"
+                    />
+                    <Button
+                      onClick={handleComment}
+                      disabled={!commentText.trim() || !visitorName.trim()}
+                      className="w-full bg-cyan-600 hover:bg-cyan-700"
+                      data-testid="button-submit-comment"
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Post Comment
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Comments List */}
+              {comments.length > 0 && (
+                <div className="space-y-3 pt-2 border-t border-slate-700/50">
+                  {comments.map((comment, i) => (
+                    <div key={i} className="flex gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-slate-700 text-cyan-400 text-xs">
+                          {comment.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="text-sm">
+                          <span className="font-semibold text-white">{comment.name}</span>
+                          <span className="text-slate-400 ml-2 text-xs">{comment.time}</span>
+                        </p>
+                        <p className="text-sm text-slate-300">{comment.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </>
+  );
+}
