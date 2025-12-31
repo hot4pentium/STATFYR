@@ -97,6 +97,13 @@ export async function initOneSignal(): Promise<boolean> {
     await sdk.init({
       appId: ONESIGNAL_APP_ID,
       allowLocalhostAsSecureOrigin: true,
+      autoPrompt: false,
+      promptOptions: {
+        slidedown: {
+          enabled: false,
+          autoPrompt: false,
+        },
+      },
     });
     
     initialized = true;
