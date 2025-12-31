@@ -254,21 +254,6 @@ export default function AthleteHypeCardPage() {
                       {new Date().getFullYear()}
                     </Badge>
                   </div>
-
-                  {/* Key Stats Row */}
-                  {athleteStats?.stats && Object.keys(athleteStats.stats).length > 0 && (
-                    <div className="flex justify-around mt-4 pt-3 border-t border-slate-700/50">
-                      {Object.entries(athleteStats.stats).slice(0, 3).map(([key, stat]) => {
-                        const statValue = typeof stat === 'object' && stat !== null ? (stat as any).total || 0 : stat;
-                        return (
-                          <div key={key} className="text-center">
-                            <p className="text-xl font-bold text-cyan-400">{statValue}</p>
-                            <p className="text-xs text-slate-400 uppercase">{key}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
               </div>
 
