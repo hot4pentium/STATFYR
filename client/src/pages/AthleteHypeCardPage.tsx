@@ -227,7 +227,10 @@ export default function AthleteHypeCardPage() {
             <Button variant="ghost" size="icon" onClick={() => setLocation("/athlete/dashboard")} data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="font-display font-bold text-lg uppercase tracking-wide">HYPE Card</h1>
+            <h1 className="font-bold text-lg uppercase tracking-wide">
+              <span className="font-marker text-orange-500">HYPE</span>
+              <span className="font-display"> Card</span>
+            </h1>
             <Button variant="ghost" size="icon" onClick={handleShare} data-testid="button-share">
               <Share2 className="h-5 w-5" />
             </Button>
