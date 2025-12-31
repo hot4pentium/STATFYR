@@ -293,7 +293,7 @@ export default function HypeManager() {
                     <><img src={logoImage} alt="STATFYR" className="h-4 w-4 mr-1 object-contain" /> FYR IT!</>
                   )}
                 </Button>
-                <span className="text-xs text-zinc-400">
+                <span className="text-xs text-[#fcfcfc]">
                   Sends a message to your followers that your HYPE Card has been updated.
                 </span>
               </CardContent>
