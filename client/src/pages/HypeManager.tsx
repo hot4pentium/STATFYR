@@ -251,7 +251,10 @@ export default function HypeManager() {
                 Back
               </Button>
             </Link>
-            <h1 className="font-bold text-[28px] text-[#141414]" data-testid="text-page-title">HYPE Portal</h1>
+            <h1 className="font-bold text-[#141414]" data-testid="text-page-title">
+              <span className="font-marker text-[24px] text-orange-500">HYPE</span>
+              <span className="font-display text-[28px]"> Portal</span>
+            </h1>
             <div className="w-20" />
           </div>
 
