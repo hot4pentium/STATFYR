@@ -1025,13 +1025,6 @@ export default function UnifiedDashboard() {
             }}
           />
           
-          {/* Team Badge Watermark */}
-          {currentTeam?.badgeId && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-35 pointer-events-none z-[5]">
-              <TeamBadge badgeId={currentTeam.badgeId} size="xl" />
-            </div>
-          )}
-          
           <div className="relative z-10 px-4 pt-6 pb-8">
             {/* Top Bar */}
             <div className="flex items-center justify-between mb-6">
@@ -1125,7 +1118,13 @@ export default function UnifiedDashboard() {
             </div>
 
             {/* Profile Section */}
-            <div className="flex items-start gap-4 landscape:justify-center landscape:items-center landscape:gap-6">
+            <div className="relative flex items-start gap-4 landscape:justify-center landscape:items-center landscape:gap-6">
+              {/* Team Badge Watermark - positioned to align with profile content */}
+              {currentTeam?.badgeId && (
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-35 pointer-events-none">
+                  <TeamBadge badgeId={currentTeam.badgeId} size="xl" />
+                </div>
+              )}
               <div className="h-20 w-20 landscape:h-24 landscape:w-24 border-2 border-primary/50 rounded-xl overflow-hidden shrink-0">
                 {user.avatar ? (
                   <img src={user.avatar} alt="" className="w-full h-full object-cover" />
