@@ -229,7 +229,7 @@ export default function AthleteHypeCardPage() {
             </Button>
             <h1 className="font-bold text-lg uppercase tracking-wide">
               <span className="font-marker text-orange-500 text-[26px]">HYPE</span>
-              <span className="font-display"> Card</span>
+              <span className="font-display font-thin text-[22px]"> Card</span>
             </h1>
             <Button variant="ghost" size="icon" onClick={handleShare} data-testid="button-share">
               <Share2 className="h-5 w-5" />
