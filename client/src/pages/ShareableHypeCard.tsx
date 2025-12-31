@@ -10,7 +10,9 @@ import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
 import { requestNotificationPermission, isIOS, isAndroid, isChrome, isStandalonePWA, isSafari, initOneSignal, getPushNotificationStatus } from "@/lib/onesignal";
+import { DashboardBackground } from "@/components/layout/DashboardBackground";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 import clutchImg from "@assets/clutch_1766970267487.png";
@@ -674,7 +676,8 @@ export default function ShareableHypeCard(props: any) {
 
   return (
     <>
-      <div className="min-h-screen bg-white dark:bg-zinc-900">
+      <DashboardBackground />
+      <div className="relative z-10 min-h-screen">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background border-b border-border">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
@@ -777,11 +780,16 @@ export default function ShareableHypeCard(props: any) {
           </div>
 
           {/* Sliding Detail Grid */}
-          {isDetailOpen && (
-            <div
-              className="mt-4 grid grid-cols-2 gap-3"
-              data-testid="detail-grid"
-            >
+          <AnimatePresence>
+            {isDetailOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="mt-4 grid grid-cols-2 gap-3"
+                data-testid="detail-grid"
+              >
                 {/* Events Card */}
                 <Card className="bg-gradient-to-br from-blue-900/80 to-blue-800/70 border-blue-500/40 overflow-hidden">
                   <CardContent className="p-4">
@@ -897,8 +905,9 @@ export default function ShareableHypeCard(props: any) {
                     </div>
                   </CardContent>
                 </Card>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Share Buttons */}
