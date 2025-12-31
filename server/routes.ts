@@ -2241,6 +2241,76 @@ export async function registerRoutes(
     }
   });
 
+  // ============ HYPES (UNIFIED ENGAGEMENT) ROUTES ============
+  
+  // Send a hype to an athlete during an event
+  app.post("/api/hypes", async (req, res) => {
+    try {
+      const { supporterId, athleteId, teamId, eventId, sessionId } = req.body;
+      
+      if (!supporterId || !athleteId || !teamId) {
+        return res.status(400).json({ error: "Missing required fields: supporterId, athleteId, teamId" });
+      }
+      
+      const hype = await storage.sendHype({
+        supporterId,
+        athleteId,
+        teamId,
+        eventId: eventId || null,
+        sessionId: sessionId || null,
+      });
+      
+      res.json(hype);
+    } catch (error) {
+      console.error("Error sending hype:", error);
+      res.status(500).json({ error: "Failed to send hype" });
+    }
+  });
+  
+  // Get hypes for a specific event
+  app.get("/api/events/:eventId/hypes", async (req, res) => {
+    try {
+      const hypes = await storage.getEventHypes(req.params.eventId);
+      res.json(hypes);
+    } catch (error) {
+      console.error("Error getting event hypes:", error);
+      res.status(500).json({ error: "Failed to get hypes" });
+    }
+  });
+  
+  // Get hype count for an athlete in a specific event
+  app.get("/api/events/:eventId/athletes/:athleteId/hypes/count", async (req, res) => {
+    try {
+      const count = await storage.getAthleteEventHypeCount(req.params.athleteId, req.params.eventId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error getting athlete event hype count:", error);
+      res.status(500).json({ error: "Failed to get hype count" });
+    }
+  });
+  
+  // Get season total hypes for an athlete on a team
+  app.get("/api/teams/:teamId/athletes/:athleteId/hypes/total", async (req, res) => {
+    try {
+      const total = await storage.getAthleteSeasonHypeTotal(req.params.athleteId, req.params.teamId);
+      res.json({ total });
+    } catch (error) {
+      console.error("Error getting athlete season hype total:", error);
+      res.status(500).json({ error: "Failed to get hype total" });
+    }
+  });
+  
+  // Get hypes by athlete for an event (leaderboard)
+  app.get("/api/events/:eventId/hypes/by-athlete", async (req, res) => {
+    try {
+      const hypesByAthlete = await storage.getEventHypesByAthlete(req.params.eventId);
+      res.json(hypesByAthlete);
+    } catch (error) {
+      console.error("Error getting hypes by athlete:", error);
+      res.status(500).json({ error: "Failed to get hypes by athlete" });
+    }
+  });
+
   // ============ SHOUTOUTS ROUTES ============
   
   app.get("/api/games/:gameId/shoutouts", async (req, res) => {

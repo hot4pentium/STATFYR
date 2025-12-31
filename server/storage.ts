@@ -3,7 +3,7 @@ import {
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
   liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
-  impersonationSessions,
+  impersonationSessions, hypes, athleteHypeTotals,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -30,7 +30,9 @@ import {
   type ChatMessage, type InsertChatMessage,
   type AthleteFollower, type InsertAthleteFollower,
   type HypePost, type InsertHypePost,
-  type ImpersonationSession, type InsertImpersonationSession
+  type ImpersonationSession, type InsertImpersonationSession,
+  type Hype, type InsertHype,
+  type AthleteHypeTotal, type InsertAthleteHypeTotal
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql, or, ilike } from "drizzle-orm";
@@ -202,6 +204,13 @@ export interface IStorage {
   createImpersonationSession(data: InsertImpersonationSession): Promise<ImpersonationSession>;
   getActiveImpersonationSession(adminId: string): Promise<ImpersonationSession | undefined>;
   endImpersonationSession(sessionId: string): Promise<ImpersonationSession | undefined>;
+  
+  // Hypes methods (unified engagement system)
+  sendHype(data: InsertHype): Promise<Hype>;
+  getEventHypes(eventId: string): Promise<Hype[]>;
+  getAthleteEventHypeCount(athleteId: string, eventId: string): Promise<number>;
+  getAthleteSeasonHypeTotal(athleteId: string, teamId: string): Promise<number>;
+  getEventHypesByAthlete(eventId: string): Promise<{ athleteId: string; athleteName: string; avatar: string | null; hypeCount: number }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1804,6 +1813,56 @@ export class DatabaseStorage implements IStorage {
       .where(eq(impersonationSessions.id, sessionId))
       .returning();
     return session || undefined;
+  }
+
+  // Hypes methods (unified engagement system)
+  async sendHype(data: InsertHype): Promise<Hype> {
+    const [hype] = await db.insert(hypes).values(data).returning();
+    return hype;
+  }
+
+  async getEventHypes(eventId: string): Promise<Hype[]> {
+    return await db
+      .select()
+      .from(hypes)
+      .where(eq(hypes.eventId, eventId))
+      .orderBy(desc(hypes.createdAt));
+  }
+
+  async getAthleteEventHypeCount(athleteId: string, eventId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(hypes)
+      .where(and(eq(hypes.athleteId, athleteId), eq(hypes.eventId, eventId)));
+    return result[0]?.count || 0;
+  }
+
+  async getAthleteSeasonHypeTotal(athleteId: string, teamId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(hypes)
+      .where(and(eq(hypes.athleteId, athleteId), eq(hypes.teamId, teamId)));
+    return result[0]?.count || 0;
+  }
+
+  async getEventHypesByAthlete(eventId: string): Promise<{ athleteId: string; athleteName: string; avatar: string | null; hypeCount: number }[]> {
+    const result = await db
+      .select({
+        athleteId: hypes.athleteId,
+        athleteName: users.name,
+        avatar: users.avatar,
+        hypeCount: sql<number>`count(*)::int`,
+      })
+      .from(hypes)
+      .leftJoin(users, eq(hypes.athleteId, users.id))
+      .where(eq(hypes.eventId, eventId))
+      .groupBy(hypes.athleteId, users.name, users.avatar);
+    return result.map(r => ({
+      athleteId: r.athleteId,
+      athleteName: r.athleteName || "Unknown",
+      avatar: r.avatar,
+      hypeCount: r.hypeCount,
+    }));
   }
 }
 

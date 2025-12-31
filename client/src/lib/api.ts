@@ -983,3 +983,57 @@ export async function adminGetCurrentImpersonation(requesterId: string): Promise
   }
   return res.json();
 }
+
+// ============ HYPES (UNIFIED ENGAGEMENT) ============
+
+export interface Hype {
+  id: string;
+  sessionId?: string | null;
+  eventId?: string | null;
+  supporterId: string;
+  athleteId: string;
+  teamId: string;
+  createdAt?: string | null;
+}
+
+export interface AthleteHypeCount {
+  athleteId: string;
+  athleteName: string;
+  avatar: string | null;
+  hypeCount: number;
+}
+
+export async function sendHype(data: {
+  supporterId: string;
+  athleteId: string;
+  teamId: string;
+  eventId?: string;
+  sessionId?: string;
+}): Promise<Hype> {
+  const res = await apiRequest("POST", "/api/hypes", data);
+  return res.json();
+}
+
+export async function getEventHypes(eventId: string): Promise<Hype[]> {
+  const res = await fetch(`/api/events/${eventId}/hypes`);
+  if (!res.ok) throw new Error("Failed to get event hypes");
+  return res.json();
+}
+
+export async function getAthleteEventHypeCount(eventId: string, athleteId: string): Promise<{ count: number }> {
+  const res = await fetch(`/api/events/${eventId}/athletes/${athleteId}/hypes/count`);
+  if (!res.ok) throw new Error("Failed to get athlete hype count");
+  return res.json();
+}
+
+export async function getAthleteSeasonHypeTotal(teamId: string, athleteId: string): Promise<{ total: number }> {
+  const res = await fetch(`/api/teams/${teamId}/athletes/${athleteId}/hypes/total`);
+  if (!res.ok) throw new Error("Failed to get athlete hype total");
+  return res.json();
+}
+
+export async function getEventHypesByAthlete(eventId: string): Promise<AthleteHypeCount[]> {
+  const res = await fetch(`/api/events/${eventId}/hypes/by-athlete`);
+  if (!res.ok) throw new Error("Failed to get hypes by athlete");
+  return res.json();
+}

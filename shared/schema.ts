@@ -911,3 +911,79 @@ export const insertImpersonationSessionSchema = createInsertSchema(impersonation
 
 export type InsertImpersonationSession = z.infer<typeof insertImpersonationSessionSchema>;
 export type ImpersonationSession = typeof impersonationSessions.$inferSelect;
+
+// Hypes - unified engagement system (replaces taps)
+export const hypes = pgTable("hypes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").references(() => liveEngagementSessions.id),
+  eventId: varchar("event_id").references(() => events.id),
+  supporterId: varchar("supporter_id").notNull().references(() => users.id),
+  athleteId: varchar("athlete_id").notNull().references(() => users.id),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const hypesRelations = relations(hypes, ({ one }) => ({
+  session: one(liveEngagementSessions, {
+    fields: [hypes.sessionId],
+    references: [liveEngagementSessions.id],
+  }),
+  event: one(events, {
+    fields: [hypes.eventId],
+    references: [events.id],
+  }),
+  supporter: one(users, {
+    fields: [hypes.supporterId],
+    references: [users.id],
+  }),
+  athlete: one(users, {
+    fields: [hypes.athleteId],
+    references: [users.id],
+  }),
+  team: one(teams, {
+    fields: [hypes.teamId],
+    references: [teams.id],
+  }),
+}));
+
+export const insertHypeSchema = createInsertSchema(hypes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertHype = z.infer<typeof insertHypeSchema>;
+export type Hype = typeof hypes.$inferSelect;
+
+// Athlete Hype Totals - aggregated hype counts per athlete per event
+export const athleteHypeTotals = pgTable("athlete_hype_totals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  athleteId: varchar("athlete_id").notNull().references(() => users.id),
+  eventId: varchar("event_id").references(() => events.id),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  totalHypes: integer("total_hypes").notNull().default(0),
+  season: text("season"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const athleteHypeTotalsRelations = relations(athleteHypeTotals, ({ one }) => ({
+  athlete: one(users, {
+    fields: [athleteHypeTotals.athleteId],
+    references: [users.id],
+  }),
+  event: one(events, {
+    fields: [athleteHypeTotals.eventId],
+    references: [events.id],
+  }),
+  team: one(teams, {
+    fields: [athleteHypeTotals.teamId],
+    references: [teams.id],
+  }),
+}));
+
+export const insertAthleteHypeTotalSchema = createInsertSchema(athleteHypeTotals).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertAthleteHypeTotal = z.infer<typeof insertAthleteHypeTotalSchema>;
+export type AthleteHypeTotal = typeof athleteHypeTotals.$inferSelect;
