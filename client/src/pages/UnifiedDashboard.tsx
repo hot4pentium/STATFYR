@@ -1256,127 +1256,166 @@ export default function UnifiedDashboard() {
                   </CardContent>
                 </Card>
 
-                {/* HYPE Card - Expanded Inline */}
+                {/* HYPE Card - Horizontal Clickable */}
                 <Card 
-                  className="bg-gradient-to-b from-slate-800/90 to-slate-900/90 border-cyan-500/40 overflow-hidden"
+                  onClick={() => setSelectedCard(selectedCard === "hypecard" ? null : "hypecard")}
+                  className={`bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-cyan-500/20 border-cyan-500/40 hover:border-cyan-500/60 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 cursor-pointer group overflow-hidden ${selectedCard === "hypecard" ? "border-cyan-400 ring-1 ring-cyan-400" : ""}`}
                   data-testid="card-hype-card"
                 >
-                  <CardContent className="p-0">
-                    {/* Header with Share Button */}
-                    <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
-                      <h3 className="font-display font-bold text-lg uppercase tracking-wide text-cyan-400">
+                  <CardContent className="p-4 sm:p-5 flex items-center gap-4">
+                    <div className="p-2 rounded-xl shadow-lg shadow-cyan-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-slate-700 to-slate-900">
+                      <User className="h-8 w-8 text-cyan-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-display font-bold text-lg uppercase tracking-wide text-cyan-500 group-hover:text-cyan-400 transition-colors">
                         HYPE Card
                       </h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20"
-                        onClick={() => user && setLocation(`/share/athlete/${user.id}`)}
-                        data-testid="button-share-hype-card"
-                      >
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Share
-                      </Button>
+                      <p className="text-sm text-muted-foreground">
+                        View and share your trading card style athlete profile
+                      </p>
                     </div>
-
-                    {/* Tabs */}
-                    <div className="flex border-b border-slate-700/50">
-                      {[
-                        { id: "events" as const, label: "Events", icon: CalendarClock },
-                        { id: "highlights" as const, label: "Highlights", icon: Video },
-                        { id: "stats" as const, label: "Stats", icon: TrendingUp },
-                        { id: "hypes" as const, label: "Hypes", icon: Zap },
-                      ].map((tab) => (
-                        <button
-                          key={tab.id}
-                          onClick={() => setActiveHypeTab(tab.id)}
-                          className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 transition-all ${
-                            activeHypeTab === tab.id
-                              ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-400"
-                              : "text-slate-400 hover:text-slate-300 hover:bg-slate-700/30"
-                          }`}
-                          data-testid={`tab-hype-${tab.id}`}
-                        >
-                          <tab.icon className="h-5 w-5" />
-                          <span className="text-xs font-medium">{tab.label}</span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Content Area */}
-                    <div className="p-4 min-h-[120px]">
-                      {activeHypeTab === "events" && (
-                        <div className="flex gap-3 overflow-x-auto pb-2" data-testid="hype-content-events">
-                          {teamEvents.filter((e: Event) => new Date(e.date) >= new Date()).slice(0, 5).length > 0 ? (
-                            teamEvents.filter((e: Event) => new Date(e.date) >= new Date()).slice(0, 5).map((event: Event) => (
-                              <div key={event.id} className="flex-shrink-0 w-32 bg-slate-800/50 rounded-lg p-3 text-center">
-                                <p className="text-xs text-cyan-400 font-medium">{event.type}</p>
-                                <p className="text-sm font-semibold mt-1">{format(new Date(event.date), "MMM d")}</p>
-                                {event.location && <p className="text-xs text-slate-400 mt-1 truncate">{event.location}</p>}
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-slate-500 w-full text-center py-4">No upcoming events</p>
-                          )}
-                        </div>
-                      )}
-
-                      {activeHypeTab === "highlights" && (
-                        <div className="flex gap-3 overflow-x-auto pb-2" data-testid="hype-content-highlights">
-                          {teamHighlights.filter((h: HighlightVideo) => h.uploaderId === String(user?.id)).slice(0, 5).length > 0 ? (
-                            teamHighlights.filter((h: HighlightVideo) => h.uploaderId === String(user?.id)).slice(0, 5).map((highlight: HighlightVideo) => (
-                              <div key={highlight.id} className="flex-shrink-0 w-28 aspect-video bg-slate-800/50 rounded-lg overflow-hidden relative">
-                                {highlight.thumbnailKey ? (
-                                  <img src={highlight.thumbnailKey} alt={highlight.title || ""} className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <Video className="h-6 w-6 text-slate-600" />
-                                  </div>
-                                )}
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-slate-500 w-full text-center py-4">No highlights yet</p>
-                          )}
-                        </div>
-                      )}
-
-                      {activeHypeTab === "stats" && (
-                        <div className="flex gap-3 overflow-x-auto pb-2" data-testid="hype-content-stats">
-                          {athleteStats?.stats && Object.keys(athleteStats.stats).length > 0 ? (
-                            Object.entries(athleteStats.stats).slice(0, 4).map(([key, stat]) => {
-                              const statValue = typeof stat === 'object' && stat !== null ? (stat as any).total || 0 : stat;
-                              return (
-                                <div key={key} className="flex-shrink-0 w-24 bg-slate-800/50 rounded-lg p-3 text-center">
-                                  <p className="text-2xl font-bold text-cyan-400">{statValue}</p>
-                                  <p className="text-xs text-slate-400 uppercase tracking-wider">{key}</p>
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <p className="text-sm text-slate-500 w-full text-center py-4">No stats recorded yet</p>
-                          )}
-                        </div>
-                      )}
-
-                      {activeHypeTab === "hypes" && (
-                        <div className="flex items-center justify-center gap-4 py-2" data-testid="hype-content-hypes">
-                          <div className="flex items-center gap-2">
-                            <img src={logoImage} alt="Hype" className="h-10 w-10 drop-shadow-[0_0_8px_rgba(255,140,0,0.8)]" />
-                            <span className="text-3xl font-bold text-orange-400">{(athleteStats as any)?.hypeCount || 0}</span>
-                          </div>
-                          <p className="text-sm text-slate-400">Total Hypes</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Footer */}
-                    <div className="flex items-center justify-between px-4 py-2 border-t border-slate-700/50 bg-slate-900/50">
-                      <span className="text-xs font-display font-bold text-slate-500 tracking-widest">HYPE CARD™</span>
-                      <span className="text-xs text-cyan-500/70 font-mono">#{String(user?.id || 0).padStart(6, '0')}</span>
+                    <div className="hidden sm:flex items-center gap-2 text-cyan-500/70 group-hover:text-cyan-500 transition-colors">
+                      <span className="text-sm font-medium">{selectedCard === "hypecard" ? "Close" : "View"}</span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${selectedCard === "hypecard" ? "rotate-180" : ""}`} />
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* HYPE Card - Expanded Content (shown when selected) */}
+                {selectedCard === "hypecard" && (
+                  <Card 
+                    className="bg-gradient-to-b from-slate-800/90 to-slate-900/90 border-cyan-500/40 overflow-hidden"
+                    data-testid="card-hype-card-expanded"
+                  >
+                    <CardContent className="p-0">
+                      {/* Avatar and Share Section */}
+                      <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-12 w-12 border-2 border-cyan-500/50">
+                            <AvatarImage src={user?.avatar || undefined} alt={user?.name || ""} />
+                            <AvatarFallback className="bg-slate-700 text-cyan-400">
+                              {user?.name?.charAt(0) || "A"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold text-white">{user?.name || user?.username}</p>
+                            <p className="text-xs text-slate-400">
+                              {currentMembership?.position && `${currentMembership.position} `}
+                              {currentMembership?.jerseyNumber && `#${currentMembership.jerseyNumber}`}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20"
+                          onClick={(e) => { e.stopPropagation(); user && setLocation(`/share/athlete/${user.id}`); }}
+                          data-testid="button-share-hype-card"
+                        >
+                          <Share2 className="h-4 w-4 mr-2" />
+                          Share
+                        </Button>
+                      </div>
+
+                      {/* Tabs */}
+                      <div className="flex border-b border-slate-700/50">
+                        {[
+                          { id: "events" as const, label: "Events", icon: CalendarClock },
+                          { id: "highlights" as const, label: "Highlights", icon: Video },
+                          { id: "stats" as const, label: "Stats", icon: TrendingUp },
+                          { id: "hypes" as const, label: "Hypes", icon: Zap },
+                        ].map((tab) => (
+                          <button
+                            key={tab.id}
+                            onClick={(e) => { e.stopPropagation(); setActiveHypeTab(tab.id); }}
+                            className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 transition-all ${
+                              activeHypeTab === tab.id
+                                ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-400"
+                                : "text-slate-400 hover:text-slate-300 hover:bg-slate-700/30"
+                            }`}
+                            data-testid={`tab-hype-${tab.id}`}
+                          >
+                            <tab.icon className="h-5 w-5" />
+                            <span className="text-xs font-medium">{tab.label}</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Content Area */}
+                      <div className="p-4 min-h-[120px]">
+                        {activeHypeTab === "events" && (
+                          <div className="flex gap-3 overflow-x-auto pb-2" data-testid="hype-content-events">
+                            {teamEvents.filter((e: Event) => new Date(e.date) >= new Date()).slice(0, 5).length > 0 ? (
+                              teamEvents.filter((e: Event) => new Date(e.date) >= new Date()).slice(0, 5).map((event: Event) => (
+                                <div key={event.id} className="flex-shrink-0 w-32 bg-slate-800/50 rounded-lg p-3 text-center">
+                                  <p className="text-xs text-cyan-400 font-medium">{event.type}</p>
+                                  <p className="text-sm font-semibold mt-1">{format(new Date(event.date), "MMM d")}</p>
+                                  {event.location && <p className="text-xs text-slate-400 mt-1 truncate">{event.location}</p>}
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-sm text-slate-500 w-full text-center py-4">No upcoming events</p>
+                            )}
+                          </div>
+                        )}
+
+                        {activeHypeTab === "highlights" && (
+                          <div className="flex gap-3 overflow-x-auto pb-2" data-testid="hype-content-highlights">
+                            {teamHighlights.filter((h: HighlightVideo) => h.uploaderId === String(user?.id)).slice(0, 5).length > 0 ? (
+                              teamHighlights.filter((h: HighlightVideo) => h.uploaderId === String(user?.id)).slice(0, 5).map((highlight: HighlightVideo) => (
+                                <div key={highlight.id} className="flex-shrink-0 w-28 aspect-video bg-slate-800/50 rounded-lg overflow-hidden relative">
+                                  {highlight.thumbnailKey ? (
+                                    <img src={highlight.thumbnailKey} alt={highlight.title || ""} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <Video className="h-6 w-6 text-slate-600" />
+                                    </div>
+                                  )}
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-sm text-slate-500 w-full text-center py-4">No highlights yet</p>
+                            )}
+                          </div>
+                        )}
+
+                        {activeHypeTab === "stats" && (
+                          <div className="flex gap-3 overflow-x-auto pb-2" data-testid="hype-content-stats">
+                            {athleteStats?.stats && Object.keys(athleteStats.stats).length > 0 ? (
+                              Object.entries(athleteStats.stats).slice(0, 4).map(([key, stat]) => {
+                                const statValue = typeof stat === 'object' && stat !== null ? (stat as any).total || 0 : stat;
+                                return (
+                                  <div key={key} className="flex-shrink-0 w-24 bg-slate-800/50 rounded-lg p-3 text-center">
+                                    <p className="text-2xl font-bold text-cyan-400">{statValue}</p>
+                                    <p className="text-xs text-slate-400 uppercase tracking-wider">{key}</p>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <p className="text-sm text-slate-500 w-full text-center py-4">No stats recorded yet</p>
+                            )}
+                          </div>
+                        )}
+
+                        {activeHypeTab === "hypes" && (
+                          <div className="flex items-center justify-center gap-4 py-2" data-testid="hype-content-hypes">
+                            <div className="flex items-center gap-2">
+                              <img src={logoImage} alt="Hype" className="h-10 w-10 drop-shadow-[0_0_8px_rgba(255,140,0,0.8)]" />
+                              <span className="text-3xl font-bold text-orange-400">{(athleteStats as any)?.hypeCount || 0}</span>
+                            </div>
+                            <p className="text-sm text-slate-400">Total Hypes</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-between px-4 py-2 border-t border-slate-700/50 bg-slate-900/50">
+                        <span className="text-xs font-display font-bold text-slate-500 tracking-widest">HYPE CARD™</span>
+                        <span className="text-xs text-cyan-500/70 font-mono">#{String(user?.id || 0).padStart(6, '0')}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
             {/* Content Area */}
