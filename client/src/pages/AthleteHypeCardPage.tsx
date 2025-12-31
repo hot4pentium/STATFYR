@@ -33,7 +33,7 @@ export default function AthleteHypeCardPage() {
   const [, setLocation] = useLocation();
   const { user, currentTeam } = useUser();
 
-  const [activeTab, setActiveTab] = useState<HypeTab>("events");
+  const [activeTab, setActiveTab] = useState<HypeTab | null>(null);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [showCommentForm, setShowCommentForm] = useState(false);
@@ -278,7 +278,7 @@ export default function AthleteHypeCardPage() {
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => setActiveTab(activeTab === tab.id ? null : tab.id)}
                     className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 transition-all ${
                       activeTab === tab.id
                         ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-400"
@@ -292,20 +292,22 @@ export default function AthleteHypeCardPage() {
                 ))}
               </div>
 
-              {/* Tab Content */}
-              <div className="p-4 min-h-[140px]">
-                <AnimatePresence mode="wait">
+              {/* Tab Content - only shown when a tab is selected */}
+              <AnimatePresence>
+                {activeTab && (
                   <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
                   >
-                    {renderTabContent()}
+                    <div className="p-4 min-h-[140px]">
+                      {renderTabContent()}
+                    </div>
                   </motion.div>
-                </AnimatePresence>
-              </div>
+                )}
+              </AnimatePresence>
 
               {/* Footer */}
               <div className="flex items-center justify-between px-4 py-2 border-t border-slate-700/50 bg-slate-900/50">
