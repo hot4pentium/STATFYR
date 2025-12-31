@@ -265,8 +265,14 @@ export default function ShareableHypeCard(props: any) {
         }).catch(() => {});
       }
       
-      // Initialize OneSignal
-      initOneSignal();
+      // Initialize OneSignal (wrapped in try-catch to prevent crashes on unsupported browsers)
+      try {
+        initOneSignal().catch(() => {
+          // Silently fail - notifications will just not work
+        });
+      } catch (e) {
+        // Silently fail
+      }
     }
   }, [athleteId]);
 

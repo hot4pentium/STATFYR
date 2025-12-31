@@ -1,8 +1,20 @@
-import OneSignal from 'react-onesignal';
-
 const ONESIGNAL_APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID || '';
 
 let initialized = false;
+let OneSignal: any = null;
+
+// Dynamically load OneSignal to prevent crashes on unsupported browsers
+async function loadOneSignal() {
+  if (OneSignal) return OneSignal;
+  try {
+    const module = await import('react-onesignal');
+    OneSignal = module.default;
+    return OneSignal;
+  } catch (e) {
+    console.warn('[OneSignal] Failed to load SDK:', e);
+    return null;
+  }
+}
 
 export function isIOS(): boolean {
   if (typeof window === 'undefined') return false;
@@ -79,7 +91,10 @@ export async function initOneSignal(): Promise<boolean> {
   }
 
   try {
-    await OneSignal.init({
+    const sdk = await loadOneSignal();
+    if (!sdk) return false;
+    
+    await sdk.init({
       appId: ONESIGNAL_APP_ID,
       allowLocalhostAsSecureOrigin: true,
     });
@@ -109,15 +124,23 @@ export async function requestNotificationPermission(): Promise<{
   }
 
   try {
-    await initOneSignal();
+    const initSuccess = await initOneSignal();
+    if (!initSuccess) {
+      return { granted: false, error: 'Failed to initialize notifications' };
+    }
     
-    const permission = await OneSignal.Notifications.requestPermission();
+    const sdk = await loadOneSignal();
+    if (!sdk) {
+      return { granted: false, error: 'Notifications not available' };
+    }
+    
+    const permission = await sdk.Notifications.requestPermission();
     
     if (!permission) {
       return { granted: false, error: 'Notification permission denied' };
     }
 
-    const playerId = await OneSignal.User.PushSubscription.id;
+    const playerId = await sdk.User.PushSubscription.id;
     
     if (!playerId) {
       return { granted: false, error: 'Failed to get subscription ID' };
@@ -134,7 +157,9 @@ export async function requestNotificationPermission(): Promise<{
 export async function getPlayerId(): Promise<string | null> {
   try {
     await initOneSignal();
-    return await OneSignal.User.PushSubscription.id || null;
+    const sdk = await loadOneSignal();
+    if (!sdk) return null;
+    return await sdk.User.PushSubscription.id || null;
   } catch {
     return null;
   }
@@ -143,7 +168,9 @@ export async function getPlayerId(): Promise<string | null> {
 export async function setExternalUserId(userId: string): Promise<void> {
   try {
     await initOneSignal();
-    await OneSignal.login(userId);
+    const sdk = await loadOneSignal();
+    if (!sdk) return;
+    await sdk.login(userId);
     console.log('[OneSignal] External user ID set:', userId);
   } catch (error) {
     console.error('[OneSignal] Failed to set external user ID:', error);
@@ -153,7 +180,9 @@ export async function setExternalUserId(userId: string): Promise<void> {
 export async function addTags(tags: Record<string, string>): Promise<void> {
   try {
     await initOneSignal();
-    await OneSignal.User.addTags(tags);
+    const sdk = await loadOneSignal();
+    if (!sdk) return;
+    await sdk.User.addTags(tags);
     console.log('[OneSignal] Tags added:', tags);
   } catch (error) {
     console.error('[OneSignal] Failed to add tags:', error);
@@ -163,7 +192,9 @@ export async function addTags(tags: Record<string, string>): Promise<void> {
 export async function removeExternalUserId(): Promise<void> {
   try {
     await initOneSignal();
-    await OneSignal.logout();
+    const sdk = await loadOneSignal();
+    if (!sdk) return;
+    await sdk.logout();
     console.log('[OneSignal] Logged out');
   } catch (error) {
     console.error('[OneSignal] Failed to logout:', error);
