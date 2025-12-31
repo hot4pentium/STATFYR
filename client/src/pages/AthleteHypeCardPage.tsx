@@ -257,16 +257,6 @@ export default function AthleteHypeCardPage() {
                 </div>
               </div>
 
-              {/* HYPE Score */}
-              <div className="px-4 py-3 flex items-center gap-3 border-b border-slate-700/50">
-                <Zap className="h-5 w-5 text-yellow-400" />
-                <span className="text-sm font-semibold text-slate-300 uppercase tracking-wide">HYPE Score</span>
-                <div className="flex-1">
-                  <Progress value={hypeScore} className="h-2 bg-slate-700" />
-                </div>
-                <span className="text-lg font-bold text-cyan-400">{hypeScore}</span>
-              </div>
-
               {/* Tabs */}
               <div className="flex border-b border-slate-700/50">
                 {tabs.map((tab) => (
