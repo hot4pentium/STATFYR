@@ -223,7 +223,7 @@ export default function AthleteHypeCardPage() {
       </div>
       <div className="min-h-screen pb-8 relative z-10">
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50 px-4 py-3">
-          <div className="flex items-center justify-between max-w-lg mx-auto">
+          <div className="flex items-center justify-between max-w-lg mx-auto font-thin">
             <Button variant="ghost" size="icon" onClick={() => setLocation("/athlete/dashboard")} data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
