@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin, Download, Smartphone, Plus, ExternalLink } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
@@ -676,8 +675,7 @@ export default function ShareableHypeCard(props: any) {
 
   return (
     <>
-      <DashboardBackground />
-      <div className="relative z-10 min-h-screen">
+      <div className="min-h-screen bg-white dark:bg-zinc-900">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background border-b border-border">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
