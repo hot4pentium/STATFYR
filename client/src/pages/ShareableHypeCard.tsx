@@ -434,6 +434,7 @@ export default function ShareableHypeCard(props: any) {
   const [followInstructions, setFollowInstructions] = useState<string | null>(null);
   const [showFollowForm, setShowFollowForm] = useState(false);
   const [followFormName, setFollowFormName] = useState("");
+  const [showFollowSection, setShowFollowSection] = useState(true);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [installPromptDismissed, setInstallPromptDismissed] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -961,51 +962,6 @@ export default function ShareableHypeCard(props: any) {
           </div>
         )}
 
-        {/* HYPE Posts */}
-        {hypePosts.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2">
-              <Flame className="h-5 w-5 text-orange-500" />
-              Latest HYPE
-            </h3>
-            <div className="space-y-3">
-              {hypePosts.slice(0, 5).map((post) => (
-                <div 
-                  key={post.id}
-                  className="bg-card border border-white/10 rounded-xl overflow-hidden"
-                  data-testid={`hype-post-${post.id}`}
-                >
-                  <div className="flex gap-3 p-3">
-                    <img
-                      src={HYPE_TEMPLATE_IMAGES[post.templateImage] || clutchImg}
-                      alt="HYPE template"
-                      className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground line-clamp-2">{post.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {format(new Date(post.createdAt), "MMM d, yyyy")}
-                      </p>
-                      {post.highlight && post.highlight.publicUrl && (
-                        <div className="mt-2">
-                          <a
-                            href={post.highlight.publicUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-orange-500 hover:text-orange-400"
-                          >
-                            <Video className="h-3 w-3" />
-                            Watch highlight
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Shoutouts */}
         {shoutouts.length > 0 && (
@@ -1048,6 +1004,7 @@ export default function ShareableHypeCard(props: any) {
         )}
 
         {/* Follow Me Section */}
+        {showFollowSection && (
         <div className="mt-8 mb-6">
           <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2">
             <Bell className="h-5 w-5 text-orange-500" />
@@ -1263,6 +1220,15 @@ export default function ShareableHypeCard(props: any) {
                   >
                     <BellOff className="h-4 w-4" />
                   </Button>
+                  <Button
+                    onClick={() => setShowFollowSection(false)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground"
+                    data-testid="button-close-follow-section"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               ) : showFollowForm ? (
                 <div className="space-y-3">
@@ -1337,6 +1303,7 @@ export default function ShareableHypeCard(props: any) {
             </CardContent>
           </Card>
         </div>
+        )}
 
         {/* Like & Comment Section */}
         <div className="mb-6">
