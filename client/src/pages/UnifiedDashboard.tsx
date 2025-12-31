@@ -1120,24 +1120,24 @@ export default function UnifiedDashboard() {
             </div>
 
             {/* Profile Section */}
-            <div className="flex items-start gap-4 landscape:justify-center landscape:items-center">
-              <div className="h-24 w-16 border-2 border-primary/50 rounded-xl overflow-hidden shrink-0">
+            <div className="flex items-start gap-4 landscape:justify-center landscape:items-center landscape:gap-6">
+              <div className="h-24 w-16 landscape:h-28 landscape:w-20 border-2 border-primary/50 rounded-xl overflow-hidden shrink-0">
                 {user.avatar ? (
                   <img src={user.avatar} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                    <span className="text-2xl font-bold text-white">{getUserDisplayName().charAt(0)}</span>
+                    <span className="text-2xl landscape:text-3xl font-bold text-white">{getUserDisplayName().charAt(0)}</span>
                   </div>
                 )}
               </div>
-              <div className="flex-1">
+              <div className="flex-1 landscape:flex-none landscape:text-center">
                 {currentTeam && (
-                  <p className="font-marker text-lg text-white/90 -rotate-2 mb-1">{currentTeam.name}</p>
+                  <p className="font-marker text-lg landscape:text-2xl text-white/90 -rotate-2 mb-1">{currentTeam.name}</p>
                 )}
-                <h1 className="text-2xl font-display font-bold text-primary uppercase tracking-wide">
+                <h1 className="text-2xl landscape:text-3xl font-display font-bold text-primary uppercase tracking-wide">
                   {roleConfig[userRole].title}
                 </h1>
-                <p className="text-slate-600 dark:text-white/80 text-sm">Welcome, {userRole === "coach" ? "Coach" : isStaff ? "Staff" : getUserDisplayName()}!</p>
+                <p className="text-slate-600 dark:text-white/80 text-sm landscape:text-base">Welcome, {userRole === "coach" ? "Coach" : isStaff ? "Staff" : getUserDisplayName()}!</p>
               </div>
             </div>
 
@@ -1305,22 +1305,22 @@ export default function UnifiedDashboard() {
               <div className="landscape:w-1/3 landscape:shrink-0">
                 {/* HYPE Cards - Athletes Only - Above Quick Access */}
                 {userRole === "athlete" && (
-                  <div className="mt-4 mb-4 grid grid-cols-2 gap-3">
+                  <div className="mt-4 mb-4 landscape:mb-5 grid grid-cols-2 gap-3 landscape:gap-4">
                     {/* HYPE Portal Card */}
                     <Card 
                       onClick={() => setLocation("/athlete/hype-portal")}
                       className="bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
                       data-testid="card-hype-portal"
                     >
-                      <CardContent className="p-3 sm:p-4 flex flex-col items-center gap-2 sm:gap-3">
-                        <div className="p-2 sm:p-2.5 rounded-xl shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-gray-400 to-gray-600">
-                          <img src={logoImage} alt="STATFYR" className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
+                      <CardContent className="p-3 sm:p-4 landscape:p-5 flex flex-col items-center gap-2 sm:gap-3 landscape:gap-4">
+                        <div className="p-2 sm:p-2.5 landscape:p-3 rounded-xl shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-gray-400 to-gray-600">
+                          <img src={logoImage} alt="STATFYR" className="h-6 w-6 sm:h-8 sm:w-8 landscape:h-10 landscape:w-10 object-contain" />
                         </div>
                         <div className="text-center">
-                          <h3 className="font-display font-bold text-sm sm:text-lg uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
+                          <h3 className="font-display font-bold text-sm sm:text-lg landscape:text-xl uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
                             HYPE Portal
                           </h3>
-                          <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
+                          <p className="hidden sm:block text-xs landscape:text-sm text-muted-foreground mt-0.5">
                             Post updates & fire up followers
                           </p>
                         </div>
@@ -1333,15 +1333,15 @@ export default function UnifiedDashboard() {
                       className="bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-cyan-500/20 border-cyan-500/40 hover:border-cyan-500/60 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
                       data-testid="card-hype-card"
                     >
-                      <CardContent className="p-3 sm:p-4 flex flex-col items-center gap-2 sm:gap-3">
-                        <div className="p-2 sm:p-2.5 rounded-xl shadow-lg shadow-cyan-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-slate-700 to-slate-900">
-                          <User className="h-6 w-6 sm:h-8 sm:w-8 text-cyan-400" />
+                      <CardContent className="p-3 sm:p-4 landscape:p-5 flex flex-col items-center gap-2 sm:gap-3 landscape:gap-4">
+                        <div className="p-2 sm:p-2.5 landscape:p-3 rounded-xl shadow-lg shadow-cyan-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-slate-700 to-slate-900">
+                          <User className="h-6 w-6 sm:h-8 sm:w-8 landscape:h-10 landscape:w-10 text-cyan-400" />
                         </div>
                         <div className="text-center">
-                          <h3 className="font-display font-bold text-sm sm:text-lg uppercase tracking-wide text-cyan-500 group-hover:text-cyan-400 transition-colors">
+                          <h3 className="font-display font-bold text-sm sm:text-lg landscape:text-xl uppercase tracking-wide text-cyan-500 group-hover:text-cyan-400 transition-colors">
                             HYPE Card
                           </h3>
-                          <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
+                          <p className="hidden sm:block text-xs landscape:text-sm text-muted-foreground mt-0.5">
                             View & share your player card
                           </p>
                         </div>
@@ -1350,8 +1350,8 @@ export default function UnifiedDashboard() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-3 mb-4">
-                  <h2 className="text-xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
+                <div className="flex items-center gap-3 mb-4 landscape:mb-5">
+                  <h2 className="text-xl landscape:text-2xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
                   {currentTeam?.code && userRole === "coach" && (
                     <Badge 
                       variant="outline" 
@@ -1365,7 +1365,7 @@ export default function UnifiedDashboard() {
                   )}
                 </div>
                 {/* Cards Grid */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 landscape:gap-4">
                   {visibleCards.map((card) => (
                     <Card
                       key={card.id}
@@ -1373,12 +1373,12 @@ export default function UnifiedDashboard() {
                       onClick={() => handleCardClick(card.id)}
                       data-testid={`card-${card.id}`}
                     >
-                      <CardContent className="p-4">
+                      <CardContent className="p-4 landscape:p-5">
                         <div className="flex items-start gap-3">
-                          <card.icon className={`h-6 w-6 ${card.color} shrink-0`} />
+                          <card.icon className={`h-6 w-6 landscape:h-7 landscape:w-7 ${card.color} shrink-0`} />
                           <div className="min-w-0">
-                            <p className="font-semibold">{card.name}</p>
-                            <p className="text-xs text-muted-foreground line-clamp-2">{card.description}</p>
+                            <p className="font-semibold landscape:text-base">{card.name}</p>
+                            <p className="text-xs landscape:text-sm text-muted-foreground line-clamp-2">{card.description}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -1388,7 +1388,7 @@ export default function UnifiedDashboard() {
               </div>
 
               {/* Right Column - Content Area */}
-              <div className="landscape:flex-1 landscape:mt-0 mt-4">
+              <div className="landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] mt-4">
                 {renderContent()}
               </div>
             </div>
