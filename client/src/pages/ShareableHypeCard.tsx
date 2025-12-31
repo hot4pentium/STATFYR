@@ -10,7 +10,6 @@ import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { motion, AnimatePresence } from "framer-motion";
 import { requestNotificationPermission, isIOS, isAndroid, isChrome, isStandalonePWA, isSafari, initOneSignal, getPushNotificationStatus } from "@/lib/onesignal";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
@@ -778,16 +777,11 @@ export default function ShareableHypeCard(props: any) {
           </div>
 
           {/* Sliding Detail Grid */}
-          <AnimatePresence>
-            {isDetailOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="mt-4 grid grid-cols-2 gap-3"
-                data-testid="detail-grid"
-              >
+          {isDetailOpen && (
+            <div
+              className="mt-4 grid grid-cols-2 gap-3"
+              data-testid="detail-grid"
+            >
                 {/* Events Card */}
                 <Card className="bg-gradient-to-br from-blue-900/80 to-blue-800/70 border-blue-500/40 overflow-hidden">
                   <CardContent className="p-4">
@@ -903,9 +897,8 @@ export default function ShareableHypeCard(props: any) {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            </div>
+          )}
         </div>
 
         {/* Share Buttons */}
