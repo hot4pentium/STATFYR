@@ -301,7 +301,10 @@ export default function AthleteHypeCardPage() {
               {/* Footer */}
               <div className="flex items-center justify-between px-4 py-2 border-t border-slate-700/50 bg-slate-900/50">
                 <span className="text-xs font-display font-bold text-slate-500 tracking-widest">HYPE CARD™</span>
-                <span className="text-xs text-cyan-500/70 font-mono">#{String(user.id).slice(0, 6).toUpperCase()}</span>
+                <span className="text-xs text-cyan-500/70 font-mono">
+                  {currentMembership?.jerseyNumber ? `#${currentMembership.jerseyNumber}` : currentMembership?.position || ""}
+                  {currentTeam && ` • ${currentTeam.name.slice(0, 3).toUpperCase()}`}
+                </span>
               </div>
             </CardContent>
           </Card>
