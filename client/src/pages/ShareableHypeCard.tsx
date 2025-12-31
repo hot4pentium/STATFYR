@@ -746,7 +746,14 @@ export default function ShareableHypeCard(props: any) {
           >
             <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-b from-teal-600 via-teal-500 to-teal-400" />
-              <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+              {/* Use inline pattern instead of external URL for iOS Safari compatibility */}
+              <div 
+                className="absolute inset-0 opacity-10"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Cpath fill='%23ffffff' fill-opacity='0.4' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'repeat',
+                }}
+              />
               
               <div className="absolute inset-0 flex flex-col">
                 <div className="relative flex-1 flex items-end justify-center overflow-hidden">
