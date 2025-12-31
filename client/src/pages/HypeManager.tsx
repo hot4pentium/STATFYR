@@ -251,7 +251,7 @@ export default function HypeManager() {
                 Back
               </Button>
             </Link>
-            <h1 className="text-2xl font-bold" data-testid="text-page-title">HYPE Portal</h1>
+            <h1 className="text-2xl font-bold text-[#141414]" data-testid="text-page-title">HYPE Portal</h1>
             <div className="w-20" />
           </div>
 
@@ -371,7 +371,6 @@ export default function HypeManager() {
           )}
         </div>
       </div>
-
       <Dialog open={showPostDialog} onOpenChange={setShowPostDialog}>
         <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md">
           <DialogHeader>
