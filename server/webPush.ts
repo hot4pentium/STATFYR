@@ -56,11 +56,14 @@ export async function sendWebPushNotification(
     }
   }
 
+  // Format payload to match what the service worker expects
   const payload = JSON.stringify({
-    title,
-    body,
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    notification: {
+      title,
+      body,
+      icon: '/logo.png',
+      badge: '/logo.png',
+    },
     data: {
       ...data,
       url: link || '/',
