@@ -15,6 +15,7 @@ import { requestNotificationPermission, isIOS, isAndroid, isChrome, isStandalone
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
+import hypeCardBg from "@assets/hype_card_BG_1767219165965.png";
 import clutchImg from "@assets/clutch_1766970267487.png";
 import dominationImg from "@assets/domination_1766970267487.png";
 import gamechangerImg from "@assets/gamechanger_1766970267487.png";
@@ -213,6 +214,8 @@ async function unfollowAthlete(athleteId: string, token: string): Promise<{ succ
   return res.json();
 }
 
+type HypeTab = "events" | "highlights" | "stats" | "hypes";
+
 export default function ShareableHypeCard(props: any) {
   const athleteId = props.params?.id;
   const [, setLocation] = useLocation();
@@ -220,7 +223,7 @@ export default function ShareableHypeCard(props: any) {
   const [visitorName, setVisitorName] = useState("");
   const [commentMessage, setCommentMessage] = useState("");
   const [showCommentForm, setShowCommentForm] = useState(false);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<HypeTab | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerFcmToken, setFollowerFcmToken] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -706,224 +709,202 @@ export default function ShareableHypeCard(props: any) {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-4">
-        {/* HYPE Card with Sliding Detail Grid */}
-        <div className="relative mb-6">
-          {/* Main HYPE Card */}
-          <div 
-            className="relative cursor-pointer mx-auto w-[65%]" 
-            style={{ aspectRatio: "3/4" }}
-            onClick={() => setIsDetailOpen(!isDetailOpen)}
-            data-testid="hype-card"
-          >
-            <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl">
-              <div className="absolute inset-0 bg-gradient-to-b from-teal-600 via-teal-500 to-teal-400" />
-              {/* Use inline pattern instead of external URL for iOS Safari compatibility */}
-              <div 
-                className="absolute inset-0 opacity-10"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Cpath fill='%23ffffff' fill-opacity='0.4' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'repeat',
-                }}
-              />
-              
-              <div className="absolute inset-0 flex flex-col">
-                <div className="relative flex-1 flex items-end justify-center overflow-hidden">
-                  {athlete.avatar ? (
-                    <img 
-                      src={athlete.avatar} 
-                      alt={athlete.name || ""} 
-                      className="absolute inset-0 w-full h-full object-cover object-top"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-[120px] font-display font-bold text-white/30">
-                        {(athlete.name || athlete.username || "A").charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-rose-200/50 via-rose-100/30 to-transparent" />
-                </div>
-              </div>
-
-              <div className="absolute top-4 right-4">
-                <div className="bg-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
-                  <span className="text-lg font-bold text-slate-800">{rating}</span>
-                  <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-                </div>
-              </div>
-
-              <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                <h2 className="text-3xl font-display font-bold mb-1" style={{ textShadow: '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 -2px 0 #000, 0 2px 0 #000, -2px 0 0 #000, 2px 0 0 #000' }}>
-                  {athlete.name || athlete.username}
-                </h2>
-                <p className="text-white/80 text-sm mb-4 drop-shadow">
-                  {membership?.position || "Athlete"} {membership?.team ? `• ${membership.team.name}` : ""}
-                </p>
-
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex-1 text-center border-r border-white/20">
-                    <div className="text-2xl font-bold">{stats.gamesPlayed}</div>
-                    <div className="text-xs text-white/70 uppercase tracking-wider">Games</div>
-                  </div>
-                  <div className="flex-1 text-center border-r border-white/20">
-                    <div className="text-2xl font-bold">{membership?.jerseyNumber || "—"}</div>
-                    <div className="text-xs text-white/70 uppercase tracking-wider">Jersey</div>
-                  </div>
-                  <div className="flex-1 text-center">
-                    <div className="text-2xl font-bold">{shoutoutCount}</div>
-                    <div className="text-xs text-white/70 uppercase tracking-wider">Cheers</div>
+      <main className="max-w-sm mx-auto px-4 pt-6">
+        {/* HYPE Card - Trading Card Style */}
+        <Card className="bg-gradient-to-b from-slate-800/90 to-slate-900/90 border-cyan-500/40 overflow-hidden rounded-2xl" data-testid="hype-card">
+          <CardContent className="p-0">
+            {/* Vertical Avatar Section - 2:3 aspect ratio */}
+            <div className="relative aspect-[2/3] bg-gradient-to-b from-slate-700 to-slate-800">
+              {athlete.avatar ? (
+                <img src={athlete.avatar} alt={athlete.name || ""} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="h-32 w-32 rounded-full border-4 border-cyan-500/50 bg-slate-700 flex items-center justify-center">
+                    <span className="text-4xl text-cyan-400">
+                      {(athlete.name || athlete.username || "A").charAt(0).toUpperCase()}
+                    </span>
                   </div>
                 </div>
+              )}
 
-                <div className="flex items-center justify-center gap-2 text-white/60 text-xs">
-                  <ChevronUp className={`h-3 w-3 transition-transform duration-300 ${isDetailOpen ? 'rotate-180' : ''}`} />
-                  <span>{isDetailOpen ? 'Tap to close' : 'Tap to explore'}</span>
+              {/* Info Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900 via-slate-900/90 to-transparent p-4 pt-12">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="font-display font-bold text-2xl text-white uppercase">
+                      {athlete.name || athlete.username}
+                    </h2>
+                    <p className="text-slate-400 text-sm">
+                      {membership?.jerseyNumber && `#${membership.jerseyNumber} `}
+                      {membership?.position && `• ${membership.position}`}
+                    </p>
+                  </div>
+                  <Badge className="bg-blue-500/80 text-white border-0">
+                    {new Date().getFullYear()}
+                  </Badge>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Sliding Detail Grid */}
-          <AnimatePresence>
-            {isDetailOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="mt-4 grid grid-cols-2 gap-3"
-                data-testid="detail-grid"
+            {/* Tabs */}
+            <div className="flex border-b border-slate-700/50">
+              <button
+                onClick={() => setActiveTab(activeTab === "events" ? null : "events")}
+                className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 transition-all ${
+                  activeTab === "events"
+                    ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-400"
+                    : "text-slate-400 hover:text-slate-300 hover:bg-slate-700/30"
+                }`}
+                data-testid="tab-events"
               >
-                {/* Events Card */}
-                <Card className="bg-gradient-to-br from-blue-900/80 to-blue-800/70 border-blue-500/40 overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Calendar className="h-5 w-5 text-blue-400" />
-                      <span className="text-sm font-bold text-white uppercase">Upcoming</span>
-                    </div>
-                    <div className="space-y-2">
-                      {upcomingEvents.length > 0 ? (
-                        upcomingEvents.map((event: TeamEvent) => (
-                          <div key={event.id} className="bg-white/5 rounded-lg p-2">
-                            <div className="text-xs font-semibold text-white truncate">{event.title}</div>
-                            <div className="flex items-center gap-1 text-[10px] text-white/60 mt-1">
-                              <Clock className="h-3 w-3" />
-                              {format(new Date(event.date), "MMM d")}
+                <Calendar className="h-5 w-5" />
+                <span className="text-xs font-medium">Events</span>
+              </button>
+              <button
+                onClick={() => setActiveTab(activeTab === "highlights" ? null : "highlights")}
+                className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 transition-all ${
+                  activeTab === "highlights"
+                    ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-400"
+                    : "text-slate-400 hover:text-slate-300 hover:bg-slate-700/30"
+                }`}
+                data-testid="tab-highlights"
+              >
+                <Video className="h-5 w-5" />
+                <span className="text-xs font-medium">Highlights</span>
+              </button>
+              <button
+                onClick={() => setActiveTab(activeTab === "stats" ? null : "stats")}
+                className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 transition-all ${
+                  activeTab === "stats"
+                    ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-400"
+                    : "text-slate-400 hover:text-slate-300 hover:bg-slate-700/30"
+                }`}
+                data-testid="tab-stats"
+              >
+                <TrendingUp className="h-5 w-5" />
+                <span className="text-xs font-medium">Stats</span>
+              </button>
+              <button
+                onClick={() => setActiveTab(activeTab === "hypes" ? null : "hypes")}
+                className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 transition-all ${
+                  activeTab === "hypes"
+                    ? "bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-400"
+                    : "text-slate-400 hover:text-slate-300 hover:bg-slate-700/30"
+                }`}
+                data-testid="tab-hypes"
+              >
+                <Flame className="h-5 w-5" />
+                <span className="text-xs font-medium">HYPES</span>
+              </button>
+            </div>
+
+            {/* Tab Content - only shown when a tab is selected */}
+            <AnimatePresence>
+              {activeTab && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 min-h-[140px]">
+                    {activeTab === "events" && (
+                      <div className="space-y-2">
+                        {upcomingEvents.length > 0 ? (
+                          upcomingEvents.map((event: TeamEvent) => (
+                            <div key={event.id} className="flex items-center gap-3 p-2 bg-slate-800/50 rounded-lg">
+                              <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                                <Calendar className="h-5 w-5 text-cyan-400" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-white truncate">{event.title}</p>
+                                <p className="text-xs text-slate-400">{format(new Date(event.date), "MMM d, yyyy")}</p>
+                              </div>
                             </div>
-                            {event.location && (
-                              <div className="flex items-center gap-1 text-[10px] text-white/60">
-                                <MapPin className="h-3 w-3" />
-                                <span className="truncate">{event.location}</span>
+                          ))
+                        ) : (
+                          <p className="text-center text-slate-500 py-4">No upcoming events</p>
+                        )}
+                      </div>
+                    )}
+                    {activeTab === "highlights" && (
+                      <div className="grid grid-cols-2 gap-2">
+                        {highlights.slice(0, 4).map((highlight) => (
+                          <div key={highlight.id} className="relative aspect-video rounded-lg overflow-hidden bg-slate-800">
+                            {highlight.thumbnail ? (
+                              <img src={highlight.thumbnail} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Video className="h-6 w-6 text-slate-600" />
                               </div>
                             )}
                           </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-white/50 text-center py-2">No upcoming events</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Highlights Card */}
-                <Card className="bg-gradient-to-br from-purple-900/80 to-purple-800/70 border-purple-500/40 overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Video className="h-5 w-5 text-purple-400" />
-                      <span className="text-sm font-bold text-white uppercase">Highlights</span>
-                      <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0">{highlights.length}</Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {highlights.slice(0, 4).map((highlight) => (
-                        <div key={highlight.id} className="relative aspect-video rounded-lg overflow-hidden bg-black/30">
-                          {highlight.thumbnail ? (
-                            <img src={highlight.thumbnail} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Video className="h-4 w-4 text-white/30" />
+                        ))}
+                        {highlights.length === 0 && (
+                          <p className="col-span-2 text-center text-slate-500 py-4">No highlights yet</p>
+                        )}
+                      </div>
+                    )}
+                    {activeTab === "stats" && (
+                      <div className="space-y-2">
+                        {topStats.slice(0, 4).map(([statName, statData]) => {
+                          const data = statData as any;
+                          const displayValue = typeof data === 'object' && data !== null 
+                            ? (data.total ?? data.perGame ?? 0)
+                            : data;
+                          const displayName = typeof data === 'object' && data !== null && data.name
+                            ? data.name
+                            : statName;
+                          return (
+                            <div key={statName} className="flex justify-between items-center p-2 bg-slate-800/50 rounded-lg">
+                              <span className="text-sm text-slate-400">{displayName}</span>
+                              <span className="text-lg font-bold text-cyan-400">{displayValue}</span>
                             </div>
-                          )}
-                        </div>
-                      ))}
-                      {highlights.length === 0 && (
-                        <p className="col-span-2 text-xs text-white/50 text-center py-4">No highlights yet</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Stats Card */}
-                <Card className="bg-gradient-to-br from-green-900/80 to-green-800/70 border-green-500/40 overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <TrendingUp className="h-5 w-5 text-green-400" />
-                      <span className="text-sm font-bold text-white uppercase">Stats</span>
-                    </div>
-                    <div className="space-y-2">
-                      {topStats.slice(0, 4).map(([statName, statData]) => {
-                        const data = statData as any;
-                        const displayValue = typeof data === 'object' && data !== null 
-                          ? (data.total ?? data.perGame ?? 0)
-                          : data;
-                        const displayName = typeof data === 'object' && data !== null && data.name
-                          ? data.name
-                          : statName;
-                        return (
-                          <div key={statName} className="flex justify-between items-center bg-white/5 rounded-lg px-2 py-1.5">
-                            <span className="text-xs text-white/70 truncate">{displayName}</span>
-                            <span className="text-sm font-bold text-green-400">{displayValue}</span>
+                          );
+                        })}
+                        {topStats.length === 0 && (
+                          <p className="text-center text-slate-500 py-4">No stats yet</p>
+                        )}
+                      </div>
+                    )}
+                    {activeTab === "hypes" && (
+                      <div className="space-y-2">
+                        {hypePosts.slice(0, 3).map((post: HypePost) => (
+                          <div key={post.id} className="flex gap-3 p-2 bg-slate-800/50 rounded-lg">
+                            <img
+                              src={HYPE_TEMPLATE_IMAGES[post.templateImage] || clutchImg}
+                              alt=""
+                              className="w-12 h-12 rounded object-cover flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-white line-clamp-2">{post.message}</p>
+                              <p className="text-xs text-slate-500 mt-1">
+                                {format(new Date(post.createdAt), "MMM d")}
+                              </p>
+                            </div>
                           </div>
-                        );
-                      })}
-                      {topStats.length === 0 && (
-                        <p className="text-xs text-white/50 text-center py-4">No stats yet</p>
-                      )}
-                      {stats.hotStreak && (
-                        <div className="flex items-center justify-center gap-1 bg-orange-500/20 px-2 py-1.5 rounded-full mt-2">
-                          <Flame className="h-3 w-3 text-orange-500" />
-                          <span className="text-xs text-orange-400 font-bold">{stats.streakLength} Game Streak!</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                        ))}
+                        {hypePosts.length === 0 && (
+                          <p className="text-center text-slate-500 py-4">No HYPE posts yet</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-                {/* HYPES Card */}
-                <Card className="bg-gradient-to-br from-orange-900/80 to-red-800/70 border-orange-500/40 overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Flame className="h-5 w-5 text-orange-400" />
-                      <span className="text-sm font-bold text-white uppercase">HYPES</span>
-                      <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0">{hypePosts.length}</Badge>
-                    </div>
-                    <div className="space-y-2">
-                      {hypePosts.slice(0, 2).map((post: HypePost) => (
-                        <div key={post.id} className="flex gap-2 bg-white/5 rounded-lg p-2">
-                          <img
-                            src={HYPE_TEMPLATE_IMAGES[post.templateImage] || clutchImg}
-                            alt=""
-                            className="w-10 h-10 rounded object-cover flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs text-white line-clamp-2">{post.message}</p>
-                            <p className="text-[10px] text-white/50 mt-0.5">
-                              {format(new Date(post.createdAt), "MMM d")}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                      {hypePosts.length === 0 && (
-                        <p className="text-xs text-white/50 text-center py-4">No HYPE posts yet</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+            {/* Footer */}
+            <div className="flex items-center justify-between px-4 py-2 border-t border-slate-700/50 bg-slate-900/50">
+              <span className="text-xs font-display font-bold text-slate-500 tracking-widest">HYPE CARD™</span>
+              <span className="text-xs text-cyan-500/70 font-mono">
+                {membership?.jerseyNumber ? `#${membership.jerseyNumber}` : membership?.position || ""}
+                {membership?.team && ` • ${membership.team.name.slice(0, 3).toUpperCase()}`}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Share Buttons */}
         <div className="flex gap-2 mb-6">
