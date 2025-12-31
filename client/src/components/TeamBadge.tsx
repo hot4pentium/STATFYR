@@ -51,7 +51,7 @@ export function TeamBadge({ badgeId, size = "md", className = "", fallbackInitia
   const colorFilter = useMemo(() => {
     if (!teamColor) return undefined;
     const hue = hexToHueRotate(teamColor);
-    return `grayscale(100%) sepia(100%) saturate(200%) hue-rotate(${hue - 50}deg) brightness(0.95)`;
+    return `grayscale(100%) sepia(100%) saturate(400%) hue-rotate(${hue - 50}deg) brightness(1.0)`;
   }, [teamColor]);
   
   if (!badge) {
