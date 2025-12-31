@@ -41,7 +41,7 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **Shareable Athlete Profiles**: Publicly accessible, read-only profiles displaying athlete stats, highlights, recent cheers, and allowing public likes/comments.
 - **Admin Dashboard**: Centralized view for managing teams and users (security limitations noted).
 - **PWA Features**: Service worker for offline support and update notifications.
-- **Push Notifications**: Firebase Cloud Messaging (FCM) integration for user notifications.
+- **Push Notifications**: OneSignal Web Push for cross-platform notifications (works on iOS Safari PWA, Android, and desktop).
 
 ### Design Patterns
 - Path aliases (`@/`, `@shared/`) for organized imports.
@@ -70,6 +70,6 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **Oswald**: Display font.
 
 ### Other Integrations
-- **Firebase Cloud Messaging (FCM)**: Push notifications.
+- **OneSignal**: Cross-platform push notifications (supports iOS Safari PWA, Android, desktop browsers).
 - **FFmpeg**: Video transcoding for highlights.
 - **Replit App Storage (GCS-backed)**: Video file hosting.
