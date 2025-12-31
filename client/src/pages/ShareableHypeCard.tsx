@@ -685,27 +685,17 @@ export default function ShareableHypeCard(props: any) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-background -z-10" />
+      <div className="fixed inset-0 -z-10">
+        <img src={hypeCardBg} alt="" className="w-full h-full object-cover" />
+      </div>
       <div className="relative z-10 min-h-screen pb-8">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background border-b border-border">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setLocation('/dashboard')}
-            className="text-foreground"
-            data-testid="button-close-hype-card"
-          >
-            <X className="h-5 w-5" />
-          </Button>
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
+        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-center">
           <div className="flex items-center gap-2">
             <img src={logoImage} alt="STATFYR" className="h-6 w-6" />
             <span className="text-sm font-display font-bold text-slate-900 dark:text-white">STATF<span className="text-orange-500">Y</span>R</span>
           </div>
-          <Button variant="ghost" size="icon" onClick={copyShareLink} className="text-foreground" data-testid="button-share">
-            {copied ? <Check className="h-5 w-5 text-green-500" /> : <Share2 className="h-5 w-5" />}
-          </Button>
         </div>
       </header>
 
@@ -1305,120 +1295,6 @@ export default function ShareableHypeCard(props: any) {
         </div>
         )}
 
-        {/* Like & Comment Section */}
-        <div className="mb-6">
-          <Card className="bg-card border-white/10">
-            <CardContent className="p-4 space-y-4">
-              {!visitorName.trim() && (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground text-center">
-                    Enter your name to like or comment
-                  </p>
-                  <Input
-                    placeholder="Your name"
-                    value={visitorName}
-                    onChange={(e) => {
-                      setVisitorName(e.target.value);
-                      if (e.target.value.trim()) {
-                        localStorage.setItem(visitorNameStorageKey, e.target.value.trim());
-                      }
-                    }}
-                    className="bg-background/50"
-                    data-testid="input-visitor-name"
-                  />
-                </div>
-              )}
-              {/* Like and Comment Buttons */}
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleLike}
-                  disabled={hasLiked || likeMutation.isPending || !visitorName.trim()}
-                  className={`flex-1 ${hasLiked ? 'bg-pink-500/20 text-pink-500' : 'bg-pink-500 hover:bg-pink-600 text-white'} disabled:opacity-50`}
-                  data-testid="button-like-profile"
-                >
-                  <Heart className={`h-4 w-4 mr-2 ${hasLiked ? 'fill-pink-500' : ''}`} />
-                  {hasLiked ? 'Liked!' : 'Like'} ({likesData?.count || 0})
-                </Button>
-                <Button
-                  onClick={() => setShowCommentForm(!showCommentForm)}
-                  variant="outline"
-                  className="flex-1"
-                  data-testid="button-toggle-comment"
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Comment ({comments.length})
-                </Button>
-              </div>
-
-              {/* Comment Form */}
-              {showCommentForm && (
-                <div className="space-y-2 pt-2 border-t border-white/10">
-                  <Textarea
-                    placeholder="Leave an encouraging message..."
-                    value={commentMessage}
-                    onChange={(e) => setCommentMessage(e.target.value)}
-                    maxLength={500}
-                    className="bg-background/50 resize-none"
-                    rows={3}
-                    data-testid="input-comment-message"
-                  />
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">{commentMessage.length}/500</span>
-                    <Button
-                      onClick={handleComment}
-                      disabled={commentMutation.isPending || !commentMessage.trim()}
-                      size="sm"
-                      className="bg-primary"
-                      data-testid="button-submit-comment"
-                    >
-                      <Send className="h-4 w-4 mr-1" />
-                      Send
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Comments Section */}
-        {comments.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-primary" />
-              Messages ({comments.length})
-            </h3>
-            <div className="space-y-2">
-              {comments.slice(0, 10).map((comment) => (
-                <Card key={comment.id} className="bg-card border-white/10">
-                  <CardContent className="p-3">
-                    <div className="flex items-start gap-3">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-bold text-primary">
-                          {comment.visitorName.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-semibold">{comment.visitorName}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {format(new Date(comment.createdAt), 'MMM d')}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{comment.message}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              {comments.length > 10 && (
-                <p className="text-center text-sm text-muted-foreground">
-                  + {comments.length - 10} more messages
-                </p>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Footer */}
         <div className="text-center py-4">
