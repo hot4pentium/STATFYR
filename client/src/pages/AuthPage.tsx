@@ -128,7 +128,7 @@ export default function AuthPage() {
       
       if (user.role === 'coach') setLocation("/dashboard");
       else if (user.role === 'athlete') setLocation("/athlete/dashboard");
-      else setLocation("/supporter/hub");
+      else setLocation("/supporter/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
       setErrors({ submit: "Invalid email or password. Please try again." });

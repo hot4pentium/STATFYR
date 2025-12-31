@@ -223,8 +223,8 @@ export default function SupporterSessionLive() {
           <Card className="max-w-lg mx-auto mt-10">
             <CardContent className="pt-6 text-center">
               <p className="text-muted-foreground mb-4">Session not found</p>
-              <Button onClick={() => setLocation("/supporter/hub")} data-testid="button-back-dashboard">
-                Back to Hub
+              <Button onClick={() => setLocation("/supporter/dashboard")} data-testid="button-back-dashboard">
+                Back to Dashboard
               </Button>
             </CardContent>
           </Card>
@@ -261,12 +261,12 @@ export default function SupporterSessionLive() {
               
               <Button 
                 variant="ghost" 
-                onClick={() => setLocation("/supporter/hub")}
+                onClick={() => setLocation("/supporter/dashboard")}
                 className="w-full"
                 data-testid="button-back"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Hub
+                Back to Dashboard
               </Button>
             </CardContent>
           </Card>
@@ -284,7 +284,7 @@ export default function SupporterSessionLive() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setLocation("/supporter/hub")}
+              onClick={() => setLocation("/supporter/dashboard")}
               data-testid="button-back"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -440,7 +440,7 @@ export default function SupporterSessionLive() {
               <Button 
                 variant="outline" 
                 className="flex-1"
-                onClick={() => setLocation("/supporter/hub")}
+                onClick={() => setLocation("/supporter/dashboard")}
               >
                 I'm Done
               </Button>
