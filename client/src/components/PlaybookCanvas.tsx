@@ -126,7 +126,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       const container = canvasRef.current?.parentElement;
       if (container) {
         const width = container.clientWidth;
-        const height = Math.max(550, (window.innerHeight - 300) * 1.1);
+        const height = Math.max(650, (window.innerHeight - 200) * 1.2);
         setCanvasSize({ width, height });
       }
     };

@@ -110,8 +110,22 @@ export default function UnifiedDashboard() {
   const [supporterViewMode, setSupporterViewMode] = useState<"supporter" | "athlete">("supporter");
   const [supporterOriginalTeam, setSupporterOriginalTeam] = useState<Team | null>(null);
   const [activeHypeTab, setActiveHypeTab] = useState<"events" | "highlights" | "stats" | "hypes">("events");
+  const [isLandscape, setIsLandscape] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    const checkLandscape = () => {
+      setIsLandscape(window.matchMedia("(orientation: landscape)").matches && window.innerWidth > 600);
+    };
+    checkLandscape();
+    window.addEventListener("resize", checkLandscape);
+    window.addEventListener("orientationchange", checkLandscape);
+    return () => {
+      window.removeEventListener("resize", checkLandscape);
+      window.removeEventListener("orientationchange", checkLandscape);
+    };
+  }, []);
 
   const userRole: UserRole = useMemo(() => {
     if (!user) return "supporter";
@@ -180,7 +194,7 @@ export default function UnifiedDashboard() {
   const { data: aggregateStats } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "stats", "aggregate"],
     queryFn: () => currentTeam ? getTeamAggregateStats(currentTeam.id) : Promise.resolve({ games: 0, wins: 0, losses: 0, statTotals: {} }),
-    enabled: !!currentTeam && selectedCard === "stats",
+    enabled: !!currentTeam && (selectedCard === "stats" || selectedCard === "stattracker"),
   });
 
   const { data: advancedStats } = useQuery({
@@ -425,11 +439,19 @@ export default function UnifiedDashboard() {
 
   const handleCardClick = (cardId: string) => {
     if (cardId === "chat") {
-      setLocation("/chat");
+      if (isLandscape) {
+        setSelectedCard(selectedCard === cardId ? null : cardId);
+      } else {
+        setLocation("/chat");
+      }
       return;
     }
     if (cardId === "stattracker") {
-      setLocation("/stat-tracker");
+      if (isLandscape) {
+        setSelectedCard(selectedCard === cardId ? null : cardId);
+      } else {
+        setLocation("/stat-tracker");
+      }
       return;
     }
     setSelectedCard(selectedCard === cardId ? null : cardId);
@@ -871,6 +893,84 @@ export default function UnifiedDashboard() {
             )}
           </div>
         )}
+        {selectedCard === "stattracker" && (
+          <div className="space-y-4">
+            <Card className="bg-gradient-to-r from-orange-500/20 to-red-500/20 border-orange-500/40">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                    <Activity className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-display font-bold uppercase">StatTracker</h3>
+                    <p className="text-sm text-muted-foreground">Live game stat tracking</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground mb-4">
+                  Track individual player stats or team stats in real-time during games. 
+                  Set up rosters, configure stat types, and record every play.
+                </p>
+                <Button 
+                  className="w-full gap-2" 
+                  onClick={() => setLocation("/stat-tracker")}
+                >
+                  <Activity className="h-4 w-4" />
+                  Open Full StatTracker
+                  <ChevronRight className="h-4 w-4 ml-auto" />
+                </Button>
+              </CardContent>
+            </Card>
+            
+            {aggregateStats && (
+              <div className="grid grid-cols-2 gap-3">
+                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                  <CardContent className="p-4 text-center">
+                    <p className="text-2xl font-display font-bold text-primary">{aggregateStats.games}</p>
+                    <p className="text-xs text-muted-foreground">Games Tracked</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                  <CardContent className="p-4 text-center">
+                    <p className="text-2xl font-display font-bold">
+                      <span className="text-green-500">{aggregateStats.wins}</span>
+                      <span className="text-muted-foreground mx-1">-</span>
+                      <span className="text-red-500">{aggregateStats.losses}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">Win/Loss Record</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
+        )}
+        {selectedCard === "chat" && (
+          <div className="space-y-4">
+            <Card className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-blue-500/40">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                    <MessageSquare className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-display font-bold uppercase">Team Chat</h3>
+                    <p className="text-sm text-muted-foreground">Message your team</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground mb-4">
+                  Stay connected with your team. Send messages, share updates, and coordinate with coaches and teammates.
+                </p>
+                <Button 
+                  className="w-full gap-2" 
+                  onClick={() => setLocation("/chat")}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Open Full Chat
+                  <ChevronRight className="h-4 w-4 ml-auto" />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     );
   };
@@ -1020,7 +1120,7 @@ export default function UnifiedDashboard() {
             </div>
 
             {/* Profile Section */}
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 landscape:justify-center landscape:items-center">
               <div className="h-24 w-16 border-2 border-primary/50 rounded-xl overflow-hidden shrink-0">
                 {user.avatar ? (
                   <img src={user.avatar} alt="" className="w-full h-full object-cover" />
