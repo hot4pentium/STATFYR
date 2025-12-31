@@ -1048,7 +1048,7 @@ export default function ShareableHypeCard(props: any) {
         )}
 
         {/* Follow Me Section */}
-        <div className="mb-6">
+        <div className="mt-8 mb-6">
           <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2">
             <Bell className="h-5 w-5 text-orange-500" />
             Follow Me
