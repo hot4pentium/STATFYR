@@ -37,6 +37,7 @@ import HypeManager from "@/pages/HypeManager";
 import SuperAdminPanel from "@/pages/SuperAdminPanel";
 import RoleCapabilitiesPDF from "@/pages/RoleCapabilitiesPDF";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
+import TestPage from "@/pages/TestPage";
 
 function Router() {
   return (
@@ -73,6 +74,7 @@ function Router() {
       <Route path="/change-password" component={ChangePassword} />
       <Route path="/athlete/hype-portal" component={HypeManager} />
       <Route path="/role-capabilities" component={RoleCapabilitiesPDF} />
+      <Route path="/test" component={TestPage} />
       <Route component={NotFound} />
     </Switch>
   );
