@@ -47,3 +47,4 @@ integrations = ["javascript_database:1.0.0", "javascript_object_storage:2.0.0"]
 
 [userenv.shared]
 VAPID_PRIVATE_KEY = "ac17vpNlkgd6L3lrgkWyGqoBVdMPBnEK74zFliEbddw"
+WEBPUSH_VAPID_PUBLIC_KEY = "BBKE7w1t8L2C1uT9yMIZNGa_27C5xzkl62isWjBbYUcCJ42S8-xkDnt4mvxCdLOc48txZt8xkEOWWm6LcTvkWnc"

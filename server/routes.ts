@@ -10,7 +10,7 @@ import path from "path";
 import fs from "fs";
 import bcrypt from "bcrypt";
 import { sendPushNotification, getFirebaseAdmin, getFirebaseAdminStatus } from "./firebaseAdmin";
-import { sendWebPushToMany, WebPushSubscription, initWebPush } from "./webPush";
+import { sendWebPushToMany, WebPushSubscription, initWebPush, getWebPushVapidPublicKey } from "./webPush";
 import { WebSocketServer, WebSocket } from "ws";
 
 // Store connected WebSocket clients by team
@@ -36,6 +36,17 @@ export async function registerRoutes(
       messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
       appId: process.env.VITE_FIREBASE_APP_ID || '',
     });
+  });
+
+  // Endpoint to provide Web Push VAPID public key for iOS
+  app.get("/api/webpush/vapid-public-key", (req, res) => {
+    // Initialize Web Push if not already done
+    initWebPush();
+    const publicKey = getWebPushVapidPublicKey();
+    if (!publicKey) {
+      return res.status(503).json({ error: "Web Push not configured" });
+    }
+    res.json({ publicKey });
   });
 
   // Debug endpoint to check Firebase Admin status

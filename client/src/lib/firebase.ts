@@ -197,6 +197,7 @@ export function onForegroundMessage(callback: (payload: any) => void) {
 }
 
 // Web Push subscription for iOS Safari PWA (FCM doesn't support iOS Safari)
+// Uses a separate VAPID key from FCM - fetched from server
 async function requestWebPushSubscription(): Promise<{ subscription: PushSubscription | null; error?: string; instructions?: string }> {
   console.log('[WebPush] Requesting Web Push subscription for iOS...');
   
@@ -224,9 +225,16 @@ async function requestWebPushSubscription(): Promise<{ subscription: PushSubscri
       return { subscription: null, error: 'Please allow notifications when prompted to follow this athlete' };
     }
     
-    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+    // Fetch the Web Push VAPID public key from server (separate from Firebase VAPID key)
+    const vapidResponse = await fetch('/api/webpush/vapid-public-key');
+    if (!vapidResponse.ok) {
+      console.error('[WebPush] Failed to fetch VAPID public key');
+      return { subscription: null, error: 'Push notification configuration error.' };
+    }
+    const { publicKey: vapidKey } = await vapidResponse.json();
+    
     if (!vapidKey) {
-      console.error('[WebPush] VAPID key is missing!');
+      console.error('[WebPush] VAPID key is missing from server!');
       return { subscription: null, error: 'Push notification configuration error.' };
     }
     
@@ -242,7 +250,7 @@ async function requestWebPushSubscription(): Promise<{ subscription: PushSubscri
       return outputArray;
     };
     
-    console.log('[WebPush] Subscribing to push...');
+    console.log('[WebPush] Subscribing to push with server VAPID key...');
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(vapidKey),

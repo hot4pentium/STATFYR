@@ -1,13 +1,19 @@
 import webpush from 'web-push';
 
 let webPushInitialized = false;
+let webPushVapidPublicKey: string | undefined;
+
+export function getWebPushVapidPublicKey(): string | undefined {
+  return webPushVapidPublicKey;
+}
 
 export function initWebPush(): boolean {
   if (webPushInitialized) {
     return true;
   }
 
-  const vapidPublicKey = process.env.VITE_FIREBASE_VAPID_KEY;
+  // Use dedicated WEBPUSH_VAPID_PUBLIC_KEY for iOS Web Push (separate from Firebase VAPID)
+  const vapidPublicKey = process.env.WEBPUSH_VAPID_PUBLIC_KEY;
   const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
   const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:support@statfyr.com';
 
@@ -18,6 +24,7 @@ export function initWebPush(): boolean {
 
   try {
     webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+    webPushVapidPublicKey = vapidPublicKey;
     webPushInitialized = true;
     console.log('[WebPush] Initialized successfully with VAPID keys');
     return true;
