@@ -258,12 +258,6 @@ export default function AthleteDashboard() {
       name: "Playbook",
       icon: BookOpen,
       description: "Review team plays and strategies."
-    },
-    {
-      id: "hype-card",
-      name: "Hype Card",
-      icon: Trophy,
-      description: "View your personalized player card."
     }
   ];
 
@@ -296,7 +290,7 @@ export default function AthleteDashboard() {
       position: "bottom"
     },
     {
-      target: '[data-testid="card-nav-hype-card"]',
+      target: '[data-testid="card-hype-card"]',
       title: "Your Hype Card",
       description: "This is YOUR spotlight! Return often to see your latest accomplishments, stats, and shoutouts from supporters.",
       position: "bottom"
@@ -437,6 +431,51 @@ export default function AthleteDashboard() {
             </div>
           </div>
 
+          {/* HYPE Cards - Above Quick Access */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
+            {/* HYPE Portal Card */}
+            <Card 
+              onClick={() => setLocation("/athlete/hype-portal")}
+              className="bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
+              data-testid="card-hype-portal"
+            >
+              <CardContent className="p-3 sm:p-5 flex flex-col items-center gap-2 sm:gap-3">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300">
+                  <Flame className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+                </div>
+                <div className="text-center">
+                  <h3 className="font-display font-bold text-sm sm:text-lg uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
+                    HYPE Portal
+                  </h3>
+                  <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
+                    Post updates & fire up followers
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* HYPE Card */}
+            <Card 
+              onClick={() => setLocation("/athlete/hype-card")}
+              className="bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-cyan-500/20 border-cyan-500/40 hover:border-cyan-500/60 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
+              data-testid="card-hype-card"
+            >
+              <CardContent className="p-3 sm:p-5 flex flex-col items-center gap-2 sm:gap-3">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 shadow-lg shadow-cyan-500/30 group-hover:scale-110 transition-transform duration-300">
+                  <Trophy className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+                </div>
+                <div className="text-center">
+                  <h3 className="font-display font-bold text-sm sm:text-lg uppercase tracking-wide text-cyan-500 group-hover:text-cyan-400 transition-colors">
+                    HYPE Card
+                  </h3>
+                  <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
+                    View & share your player card
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Quick Access Section */}
           <div className="mb-6">
             <div className="flex items-center justify-between gap-3 mb-4">
@@ -470,33 +509,6 @@ export default function AthleteDashboard() {
                 </Card>
               ))}
             </div>
-          </div>
-
-          {/* HYPE Portal Card - Full Width Horizontal */}
-          <div className="mb-6">
-            <Card 
-              onClick={() => setLocation("/athlete/hype-portal")}
-              className="bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
-              data-testid="card-hype-portal"
-            >
-              <CardContent className="p-4 sm:p-6 flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300">
-                  <Flame className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display font-bold text-lg sm:text-xl uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
-                    HYPE Portal
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    Share your HYPE card, post updates, and fire up your followers
-                  </p>
-                </div>
-                <div className="hidden sm:flex items-center gap-2 text-orange-500/70 group-hover:text-orange-500 transition-colors">
-                  <span className="text-sm font-medium">Enter</span>
-                  <ExternalLink className="h-4 w-4" />
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Section Content */}
