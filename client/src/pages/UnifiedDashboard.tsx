@@ -1199,90 +1199,99 @@ export default function UnifiedDashboard() {
         ) : (
           /* Normal Dashboard View - Quick Access Section */
           (<div className="px-4 pb-8">
-            {/* HYPE Cards - Athletes Only - Above Quick Access */}
-            {userRole === "athlete" && (
-              <div className="mt-4 mb-4 grid grid-cols-2 gap-3">
-                {/* HYPE Portal Card */}
-                <Card 
-                  onClick={() => setLocation("/athlete/hype-portal")}
-                  className="bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
-                  data-testid="card-hype-portal"
-                >
-                  <CardContent className="p-3 sm:p-4 flex flex-col items-center gap-2 sm:gap-3">
-                    <div className="p-2 sm:p-2.5 rounded-xl shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-gray-400 to-gray-600">
-                      <img src={logoImage} alt="STATFYR" className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
-                    </div>
-                    <div className="text-center">
-                      <h3 className="font-display font-bold text-sm sm:text-lg uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
-                        HYPE Portal
-                      </h3>
-                      <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
-                        Post updates & fire up followers
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+            {/* Two-column layout on landscape */}
+            <div className="flex flex-col landscape:flex-row landscape:gap-6">
+              {/* Left Column - Cards */}
+              <div className="landscape:w-1/3 landscape:shrink-0">
+                {/* HYPE Cards - Athletes Only - Above Quick Access */}
+                {userRole === "athlete" && (
+                  <div className="mt-4 mb-4 grid grid-cols-2 gap-3">
+                    {/* HYPE Portal Card */}
+                    <Card 
+                      onClick={() => setLocation("/athlete/hype-portal")}
+                      className="bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
+                      data-testid="card-hype-portal"
+                    >
+                      <CardContent className="p-3 sm:p-4 flex flex-col items-center gap-2 sm:gap-3">
+                        <div className="p-2 sm:p-2.5 rounded-xl shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-gray-400 to-gray-600">
+                          <img src={logoImage} alt="STATFYR" className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="font-display font-bold text-sm sm:text-lg uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
+                            HYPE Portal
+                          </h3>
+                          <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
+                            Post updates & fire up followers
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                {/* HYPE Card - Link to dedicated page */}
-                <Card 
-                  onClick={() => setLocation("/athlete/hype-card")}
-                  className="bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-cyan-500/20 border-cyan-500/40 hover:border-cyan-500/60 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
-                  data-testid="card-hype-card"
-                >
-                  <CardContent className="p-3 sm:p-4 flex flex-col items-center gap-2 sm:gap-3">
-                    <div className="p-2 sm:p-2.5 rounded-xl shadow-lg shadow-cyan-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-slate-700 to-slate-900">
-                      <User className="h-6 w-6 sm:h-8 sm:w-8 text-cyan-400" />
-                    </div>
-                    <div className="text-center">
-                      <h3 className="font-display font-bold text-sm sm:text-lg uppercase tracking-wide text-cyan-500 group-hover:text-cyan-400 transition-colors">
-                        HYPE Card
-                      </h3>
-                      <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
-                        View & share your player card
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                    {/* HYPE Card - Link to dedicated page */}
+                    <Card 
+                      onClick={() => setLocation("/athlete/hype-card")}
+                      className="bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-cyan-500/20 border-cyan-500/40 hover:border-cyan-500/60 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
+                      data-testid="card-hype-card"
+                    >
+                      <CardContent className="p-3 sm:p-4 flex flex-col items-center gap-2 sm:gap-3">
+                        <div className="p-2 sm:p-2.5 rounded-xl shadow-lg shadow-cyan-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-slate-700 to-slate-900">
+                          <User className="h-6 w-6 sm:h-8 sm:w-8 text-cyan-400" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="font-display font-bold text-sm sm:text-lg uppercase tracking-wide text-cyan-500 group-hover:text-cyan-400 transition-colors">
+                            HYPE Card
+                          </h3>
+                          <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
+                            View & share your player card
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 mb-4">
+                  <h2 className="text-xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
+                  {currentTeam?.code && userRole === "coach" && (
+                    <Badge 
+                      variant="outline" 
+                      className="gap-1 cursor-pointer hover:bg-primary/10 font-mono"
+                      onClick={handleCopyCode}
+                      data-testid="badge-team-code"
+                    >
+                      Team Code: {currentTeam.code}
+                      {codeCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    </Badge>
+                  )}
+                </div>
+                {/* Cards Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  {visibleCards.map((card) => (
+                    <Card
+                      key={card.id}
+                      className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""}`}
+                      onClick={() => handleCardClick(card.id)}
+                      data-testid={`card-${card.id}`}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <card.icon className={`h-6 w-6 ${card.color} shrink-0`} />
+                          <div className="min-w-0">
+                            <p className="font-semibold">{card.name}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{card.description}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            )}
 
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
-              {currentTeam?.code && userRole === "coach" && (
-                <Badge 
-                  variant="outline" 
-                  className="gap-1 cursor-pointer hover:bg-primary/10 font-mono"
-                  onClick={handleCopyCode}
-                  data-testid="badge-team-code"
-                >
-                  Team Code: {currentTeam.code}
-                  {codeCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                </Badge>
-              )}
+              {/* Right Column - Content Area */}
+              <div className="landscape:flex-1 landscape:mt-0 mt-4">
+                {renderContent()}
+              </div>
             </div>
-            {/* Cards Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              {visibleCards.map((card) => (
-                <Card
-                  key={card.id}
-                  className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""}`}
-                  onClick={() => handleCardClick(card.id)}
-                  data-testid={`card-${card.id}`}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <card.icon className={`h-6 w-6 ${card.color} shrink-0`} />
-                      <div className="min-w-0">
-                        <p className="font-semibold">{card.name}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-2">{card.description}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            {/* Content Area */}
-            {renderContent()}
           </div>)
         )}
 
