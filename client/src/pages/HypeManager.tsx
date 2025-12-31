@@ -51,6 +51,14 @@ interface HypePost {
   highlight?: HighlightVideo;
 }
 
+interface ProfileComment {
+  id: string;
+  athleteId: string;
+  visitorName: string;
+  message: string;
+  createdAt: string;
+}
+
 export default function HypeManager() {
   const { user, currentTeam } = useUser();
   const queryClient = useQueryClient();
@@ -80,6 +88,17 @@ export default function HypeManager() {
       if (!user) return { likes: 0, comments: 0 };
       const res = await fetch(`/api/athletes/${user.id}/engagement`);
       if (!res.ok) return { likes: 0, comments: 0 };
+      return res.json();
+    },
+    enabled: !!user,
+  });
+
+  const { data: profileComments = [] } = useQuery<ProfileComment[]>({
+    queryKey: ["/api/athletes", user?.id, "profile-comments"],
+    queryFn: async () => {
+      if (!user) return [];
+      const res = await fetch(`/api/athletes/${user.id}/profile-comments`);
+      if (!res.ok) return [];
       return res.json();
     },
     enabled: !!user,
@@ -293,6 +312,41 @@ export default function HypeManager() {
               </CardContent>
             </Card>
           </div>
+
+          {profileComments.length > 0 && (
+            <Card className="bg-zinc-900/80 border-zinc-700 mb-6">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg text-white flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5 text-cyan-400" />
+                  Fan Messages
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {profileComments.slice(0, 5).map((comment) => (
+                    <div
+                      key={comment.id}
+                      className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700"
+                      data-testid={`comment-${comment.id}`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-semibold text-cyan-400 text-sm">{comment.visitorName}</span>
+                        <span className="text-xs text-zinc-500">
+                          {format(new Date(comment.createdAt), "MMM d, yyyy")}
+                        </span>
+                      </div>
+                      <p className="text-white text-sm">{comment.message}</p>
+                    </div>
+                  ))}
+                  {profileComments.length > 5 && (
+                    <p className="text-center text-xs text-zinc-500">
+                      + {profileComments.length - 5} more messages
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="bg-zinc-900/80 border-zinc-700 mb-8">
             <CardHeader>
