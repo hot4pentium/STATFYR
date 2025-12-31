@@ -759,7 +759,7 @@ export default function UnifiedDashboard() {
                   <CardTitle className="text-lg">Create New Play</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <PlaybookCanvas onSave={async (data) => { createPlayMutation.mutate(data); }} />
+                  <PlaybookCanvas sport={currentTeam?.sport} onSave={async (data) => { createPlayMutation.mutate(data); }} />
                 </CardContent>
               </Card>
             )}
