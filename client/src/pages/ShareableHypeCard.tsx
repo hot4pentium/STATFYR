@@ -12,7 +12,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { requestNotificationPermission, isIOS, isAndroid, isChrome, isStandalonePWA, isSafari, initOneSignal, getPushNotificationStatus } from "@/lib/onesignal";
-import { DashboardBackground } from "@/components/layout/DashboardBackground";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 import hypeCardBg from "@assets/hype_card_BG_1767219165965.png";
@@ -685,8 +684,8 @@ export default function ShareableHypeCard(props: any) {
 
   return (
     <>
-      <DashboardBackground />
-      <div className="relative z-10 min-h-screen">
+      <div className="fixed inset-0 bg-background -z-10" />
+      <div className="relative z-10 min-h-screen pb-8">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background border-b border-border">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
