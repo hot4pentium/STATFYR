@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { withRetry } from "./db";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema, insertAthleteFollowerSchema, insertHypePostSchema } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema, insertAthleteFollowerSchema, insertHypePostSchema, insertHypeSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
@@ -2246,23 +2246,16 @@ export async function registerRoutes(
   // Send a hype to an athlete during an event
   app.post("/api/hypes", async (req, res) => {
     try {
-      const { supporterId, athleteId, teamId, eventId, sessionId } = req.body;
+      const parsed = insertHypeSchema.parse(req.body);
       
-      if (!supporterId || !athleteId || !teamId) {
-        return res.status(400).json({ error: "Missing required fields: supporterId, athleteId, teamId" });
-      }
-      
-      const hype = await storage.sendHype({
-        supporterId,
-        athleteId,
-        teamId,
-        eventId: eventId || null,
-        sessionId: sessionId || null,
-      });
+      const hype = await storage.sendHype(parsed);
       
       res.json(hype);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error sending hype:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
       res.status(500).json({ error: "Failed to send hype" });
     }
   });
