@@ -1137,7 +1137,7 @@ export default function UnifiedDashboard() {
               </div>
               <div className="flex-1 landscape:flex-none landscape:text-center">
                 {currentTeam && (
-                  <p className="font-marker text-lg landscape:text-2xl text-white/90 -rotate-2 mb-1">{currentTeam.name}</p>
+                  <p className="font-marker text-lg landscape:text-2xl -rotate-2 mb-1 text-[#de8816e6]">{currentTeam.name}</p>
                 )}
                 <h1 className="text-2xl landscape:text-3xl font-display font-bold text-primary uppercase tracking-wide">
                   {roleConfig[userRole].title}
