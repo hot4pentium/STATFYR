@@ -125,8 +125,8 @@ export function HypeHubContent({
           {highlights.map((highlight: any) => (
             <Card key={highlight.id} className="bg-card border-border/50 overflow-hidden">
               <div className="aspect-video bg-black/20 relative">
-                {highlight.thumbnail ? (
-                  <img src={highlight.thumbnail} alt={highlight.title} className="w-full h-full object-cover" />
+                {highlight.thumbnailKey ? (
+                  <img src={highlight.thumbnailKey} alt={highlight.title} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Video className="h-8 w-8 text-muted-foreground/50" />
@@ -188,8 +188,8 @@ export function HypeHubContent({
           {plays.map((play: any) => (
             <Card key={play.id} className="bg-card border-border/50 overflow-hidden">
               <div className="aspect-square bg-black/20 relative">
-                {play.thumbnail ? (
-                  <img src={play.thumbnail} alt={play.name} className="w-full h-full object-contain" />
+                {play.thumbnailData ? (
+                  <img src={play.thumbnailData} alt={play.name} className="w-full h-full object-contain bg-white dark:bg-gray-900" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <BookOpen className="h-8 w-8 text-muted-foreground/50" />
