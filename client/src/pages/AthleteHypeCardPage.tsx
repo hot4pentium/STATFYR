@@ -6,7 +6,6 @@ import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
-import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,6 +25,7 @@ import {
 } from "@/lib/api";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
+import hypeCardBg from "@assets/hype_card_BG_1767219165965.png";
 
 type HypeTab = "events" | "highlights" | "stats" | "hypes";
 
@@ -204,7 +204,10 @@ export default function AthleteHypeCardPage() {
   if (!user) {
     return (
       <>
-        <DashboardBackground />
+        <div className="fixed inset-0 z-0">
+          <img src={hypeCardBg} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-slate-900/70" />
+        </div>
         <div className="min-h-screen flex items-center justify-center relative z-10">
           <p className="text-slate-400">Please log in to view your HYPE Card</p>
         </div>
@@ -214,7 +217,10 @@ export default function AthleteHypeCardPage() {
 
   return (
     <>
-      <DashboardBackground />
+      <div className="fixed inset-0 z-0">
+        <img src={hypeCardBg} alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-slate-900/70" />
+      </div>
       <div className="min-h-screen pb-8 relative z-10">
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50 px-4 py-3">
           <div className="flex items-center justify-between max-w-lg mx-auto">
