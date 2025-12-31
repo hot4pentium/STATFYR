@@ -194,8 +194,8 @@ html:not(.dark) {
   }
 }
 
-/* Smooth transitions for theme switching */
-html, body, * {
+/* Smooth transitions for theme switching - only on explicit interactions */
+.theme-transitioning, .theme-transitioning * {
   @apply transition-colors duration-300;
 }
 
