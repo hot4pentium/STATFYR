@@ -1021,12 +1021,15 @@ export default function UnifiedDashboard() {
 
             {/* Profile Section */}
             <div className="flex items-start gap-4">
-              <Avatar className="h-20 w-20 border-2 border-primary/50">
-                <AvatarImage src={user.avatar || undefined} />
-                <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-2xl font-bold text-white">
-                  {getUserDisplayName().charAt(0)}
-                </AvatarFallback>
-              </Avatar>
+              <div className="h-24 w-16 border-2 border-primary/50 rounded-xl overflow-hidden shrink-0">
+                {user.avatar ? (
+                  <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                    <span className="text-2xl font-bold text-white">{getUserDisplayName().charAt(0)}</span>
+                  </div>
+                )}
+              </div>
               <div className="flex-1">
                 <h1 className="text-2xl font-display font-bold text-primary uppercase tracking-wide">
                   {roleConfig[userRole].title}
