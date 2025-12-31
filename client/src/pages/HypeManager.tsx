@@ -294,7 +294,7 @@ export default function HypeManager() {
                   )}
                 </Button>
                 <span className="text-xs text-zinc-400">
-                  {followerData?.count ? `Notify ${followerData.count} followers` : "Get followers first!"}
+                  Sends a message to your followers that your HYPE Card has been updated.
                 </span>
               </CardContent>
             </Card>
