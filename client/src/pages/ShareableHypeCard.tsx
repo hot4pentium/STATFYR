@@ -1027,6 +1027,81 @@ export default function ShareableHypeCard(props: any) {
           )}
         </div>
 
+        {/* Like & Comment Section */}
+        <div className="mb-6">
+          <Card className="bg-slate-800/80 border-slate-600/50">
+            <CardContent className="p-4 space-y-4">
+              {!visitorName.trim() && (
+                <div className="space-y-2">
+                  <p className="text-xs text-slate-400 text-center">
+                    Enter your name to like or comment
+                  </p>
+                  <Input
+                    placeholder="Your name"
+                    value={visitorName}
+                    onChange={(e) => {
+                      setVisitorName(e.target.value);
+                      if (e.target.value.trim()) {
+                        localStorage.setItem(visitorNameStorageKey, e.target.value.trim());
+                      }
+                    }}
+                    className="bg-transparent text-white placeholder:text-slate-500"
+                    data-testid="input-visitor-name"
+                  />
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleLike}
+                  disabled={hasLiked || likeMutation.isPending || !visitorName.trim()}
+                  className={`flex-1 ${hasLiked ? 'bg-pink-500/20 text-pink-400' : 'bg-pink-500 hover:bg-pink-600 text-white'} disabled:opacity-50`}
+                  data-testid="button-like-profile"
+                >
+                  <Heart className={`h-4 w-4 mr-2 ${hasLiked ? 'fill-pink-400' : ''}`} />
+                  {hasLiked ? 'Liked!' : 'Like'}
+                </Button>
+                <Button
+                  onClick={() => setShowCommentForm(!showCommentForm)}
+                  variant="outline"
+                  disabled={!visitorName.trim()}
+                  className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700 disabled:opacity-50"
+                  data-testid="button-toggle-comment"
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Comment
+                </Button>
+              </div>
+
+              {showCommentForm && (
+                <div className="space-y-2 pt-2 border-t border-slate-700">
+                  <Textarea
+                    placeholder="Leave an encouraging message..."
+                    value={commentMessage}
+                    onChange={(e) => setCommentMessage(e.target.value)}
+                    maxLength={500}
+                    className="bg-transparent text-white placeholder:text-slate-500 resize-none border-slate-600"
+                    rows={3}
+                    data-testid="input-comment-message"
+                  />
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-slate-500">{commentMessage.length}/500</span>
+                    <Button
+                      onClick={handleComment}
+                      disabled={commentMutation.isPending || !commentMessage.trim()}
+                      size="sm"
+                      className="bg-cyan-500 hover:bg-cyan-600 text-white"
+                      data-testid="button-submit-comment"
+                    >
+                      <Send className="h-4 w-4 mr-1" />
+                      Send
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Follow Me Section */}
         {showFollowSection && (
         <div className="mb-6">
