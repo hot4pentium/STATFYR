@@ -115,6 +115,7 @@ export default function UnifiedDashboard() {
   const [isLandscape, setIsLandscape] = useState(false);
   const [joinTeamCode, setJoinTeamCode] = useState("");
   const [isJoiningTeam, setIsJoiningTeam] = useState(false);
+  const [playingHighlight, setPlayingHighlight] = useState<HighlightVideo | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -627,39 +628,69 @@ export default function UnifiedDashboard() {
     </Card>
   );
 
-  const renderHighlightCard = (highlight: HighlightVideo) => (
-    <div key={highlight.id} className="relative aspect-video rounded-xl overflow-hidden bg-black/20 group">
-      {highlight.thumbnailKey ? (
-        <img src={highlight.thumbnailKey} alt={highlight.title ?? "Highlight"} className="w-full h-full object-cover" />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
-          <Video className="h-8 w-8 text-muted-foreground" />
+  const renderHighlightCard = (highlight: HighlightVideo) => {
+    const hasVideo = highlight.publicUrl && highlight.status === "completed";
+    const isProcessing = highlight.status === "processing" || highlight.status === "transcoding";
+    
+    return (
+      <div 
+        key={highlight.id} 
+        className={`relative aspect-video rounded-xl overflow-hidden bg-black/20 group ${hasVideo ? "cursor-pointer" : ""}`}
+        onClick={() => hasVideo && setPlayingHighlight(highlight)}
+        data-testid={`highlight-card-${highlight.id}`}
+      >
+        {highlight.thumbnailKey ? (
+          <img src={highlight.thumbnailKey} alt={highlight.title ?? "Highlight"} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
+            <Video className="h-8 w-8 text-muted-foreground" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+        
+        {/* Play button overlay */}
+        {hasVideo && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="w-12 h-12 rounded-full bg-orange-500/90 flex items-center justify-center">
+              <Video className="h-5 w-5 text-white ml-0.5" />
+            </div>
+          </div>
+        )}
+        
+        {/* Processing indicator */}
+        {isProcessing && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+            <div className="flex flex-col items-center gap-1">
+              <Loader2 className="h-6 w-6 text-orange-400 animate-spin" />
+              <span className="text-xs text-white">Processing...</span>
+            </div>
+          </div>
+        )}
+        
+        <div className="absolute bottom-2 left-2 right-2">
+          <p className="text-xs text-white font-medium truncate">{highlight.title}</p>
         </div>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-      <div className="absolute bottom-2 left-2 right-2">
-        <p className="text-xs text-white font-medium truncate">{highlight.title}</p>
+        {(userRole === "coach" || isStaff) && (
+          <Button
+            variant="destructive"
+            size="icon"
+            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (user) {
+                deleteHighlightVideo(highlight.id, user.id).then(() => {
+                  refetchHighlights();
+                  toast.success("Highlight deleted");
+                });
+              }
+            }}
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        )}
       </div>
-      {(userRole === "coach" || isStaff) && (
-        <Button
-          variant="destructive"
-          size="icon"
-          className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (user) {
-              deleteHighlightVideo(highlight.id, user.id).then(() => {
-                refetchHighlights();
-                toast.success("Highlight deleted");
-              });
-            }
-          }}
-        >
-          <Trash2 className="h-3 w-3" />
-        </Button>
-      )}
-    </div>
-  );
+    );
+  };
 
   const renderContent = () => {
     if (!selectedCard) return null;
@@ -1676,6 +1707,31 @@ export default function UnifiedDashboard() {
                   <Trash2 className="h-4 w-4 mr-2" /> Delete Play
                 </Button>
               </DialogFooter>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Video Player Dialog */}
+        <Dialog open={!!playingHighlight} onOpenChange={(open) => !open && setPlayingHighlight(null)}>
+          <DialogContent className="max-w-4xl p-0 bg-black border-zinc-800">
+            <DialogHeader className="p-4 pb-2">
+              <DialogTitle className="text-white flex items-center gap-2">
+                <Video className="h-5 w-5 text-orange-500" />
+                {playingHighlight?.title || "Video"}
+              </DialogTitle>
+            </DialogHeader>
+            {playingHighlight?.publicUrl && (
+              <div className="w-full aspect-video bg-black">
+                <video
+                  src={playingHighlight.publicUrl}
+                  controls
+                  autoPlay
+                  className="w-full h-full"
+                  poster={playingHighlight.thumbnailKey || undefined}
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
             )}
           </DialogContent>
         </Dialog>

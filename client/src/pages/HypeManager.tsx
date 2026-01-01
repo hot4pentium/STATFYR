@@ -124,7 +124,8 @@ export default function HypeManager() {
   });
 
   const processedHighlights = useMemo(() => {
-    return highlights.filter((h: HighlightVideo) => h.status === "completed" && h.publicUrl);
+    // Include videos that have a publicUrl OR have completed status
+    return highlights.filter((h: HighlightVideo) => h.publicUrl || h.status === "completed");
   }, [highlights]);
 
   const createPostMutation = useMutation({
