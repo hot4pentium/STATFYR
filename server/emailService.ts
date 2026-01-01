@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const APP_URL = process.env.REPLIT_APP_URL || 'https://statfyr.replit.app';
-const FROM_EMAIL = 'STATFYR <notifications@resend.dev>';
+const FROM_EMAIL = 'STATFYR <noreply@statfyr.com>';
 
 interface EmailResult {
   success: boolean;
