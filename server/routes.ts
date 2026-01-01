@@ -2408,20 +2408,31 @@ export async function registerRoutes(
       // Check recipient's notification preferences and send email if enabled
       const prefs = await storage.getNotificationPreferences(recipientId);
       const shouldSendEmail = prefs?.emailOnMessage !== false; // Default to true
+      
+      console.log('[Chat] Sending email check:', {
+        recipientId,
+        recipientEmail: message.recipient.email,
+        prefs,
+        shouldSendEmail
+      });
 
       if (shouldSendEmail && message.recipient.email) {
         try {
           const { sendDirectMessageEmail } = await import('./emailService');
-          await sendDirectMessageEmail(
+          console.log('[Chat] Attempting to send email to:', message.recipient.email);
+          const result = await sendDirectMessageEmail(
             message.recipient.email,
             message.recipient.name || message.recipient.username,
             message.sender.name || message.sender.username,
             content,
             req.params.teamId
           );
+          console.log('[Chat] Email result:', result);
         } catch (err) {
           console.error('[Chat] Email notification failed:', err);
         }
+      } else {
+        console.log('[Chat] Skipping email:', { shouldSendEmail, hasEmail: !!message.recipient.email });
       }
 
       res.status(201).json(message);
