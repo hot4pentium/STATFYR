@@ -11,7 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getSupporterBadges, getAllBadges, getSupporterThemes, getActiveTheme, activateTheme, getSupporterTapTotal, getActiveLiveSessions, checkSessionLifecycle, joinTeamByCode, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats, type SupporterBadge, type BadgeDefinition, type ThemeUnlock, type LiveEngagementSession } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getSupporterBadges, getAllBadges, getSupporterThemes, getActiveTheme, activateTheme, getSupporterTapTotal, getActiveLiveSessions, checkSessionLifecycle, joinTeamByCode, getUnreadMessageCount, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats, type SupporterBadge, type BadgeDefinition, type ThemeUnlock, type LiveEngagementSession } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
@@ -20,7 +20,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { usePWA } from "@/lib/pwaContext";
-import { useNotifications } from "@/lib/notificationContext";
 import { TeamBadge } from "@/components/TeamBadge";
 import { TeamHeroCard } from "@/components/dashboard/TeamHeroCard";
 
@@ -32,7 +31,6 @@ export default function SupporterDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, logout, setCurrentTeam } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
-  const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [selectedCard, setSelectedCard] = useState<string | null>("schedule");
@@ -59,6 +57,13 @@ export default function SupporterDashboard() {
     queryKey: ["/api/users", user?.id, "managed-athletes"],
     queryFn: () => user ? getManagedAthletes(user.id) : Promise.resolve([]),
     enabled: !!user,
+  });
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["/api/users", user?.id, "unread-count"],
+    queryFn: () => user ? getUnreadMessageCount(user.id) : Promise.resolve(0),
+    enabled: !!user,
+    refetchInterval: 15000,
   });
 
   const { data: teamMembers = [] } = useQuery({
@@ -1105,24 +1110,19 @@ export default function SupporterDashboard() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={async () => {
-                  if (notificationsEnabled) {
-                    clearUnread();
-                    setLocation("/chat");
-                  } else {
-                    const success = await enableNotifications();
-                    if (success) {
-                      toast.success("Notifications enabled!");
-                    } else {
-                      toast.error("Could not enable notifications");
-                    }
-                  }
+                onClick={() => {
+                  setLocation("/chat");
                 }}
-                className={hasUnread ? "text-green-500 hover:text-green-400" : ""}
-                title={notificationsEnabled ? (hasUnread ? "New messages" : "Notifications enabled") : "Enable notifications"}
-                data-testid="button-notifications"
+                className={unreadCount > 0 ? "text-green-500 hover:text-green-400 relative" : "relative"}
+                title={unreadCount > 0 ? `${unreadCount} unread messages` : "Messages"}
+                data-testid="button-messages"
               >
                 <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Button>
               {mounted && (
                 <button

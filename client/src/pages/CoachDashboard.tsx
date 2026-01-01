@@ -10,8 +10,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
 import { useTheme } from "next-themes";
 import { usePWA } from "@/lib/pwaContext";
-import { useNotifications } from "@/lib/notificationContext";
-import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, getTeamAggregateStats, getAdvancedTeamStats, getLiveSessionByEvent, createLiveSessionForEvent, startLiveSession, endLiveSession, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup, type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession } from "@/lib/api";
+import { getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay, updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, getTeamAggregateStats, getAdvancedTeamStats, getLiveSessionByEvent, createLiveSessionForEvent, startLiveSession, endLiveSession, getUnreadMessageCount, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup, type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession } from "@/lib/api";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend } from "recharts";
 import { Flame, TrendingUp } from "lucide-react";
 import { TeamBadge } from "@/components/TeamBadge";
@@ -37,7 +36,6 @@ export default function CoachDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, setCurrentTeam, logout } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
-  const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const queryClient = useQueryClient();
@@ -82,6 +80,13 @@ export default function CoachDashboard() {
     queryKey: ["/api/coach", user?.id, "teams"],
     queryFn: () => user ? getCoachTeams(user.id) : Promise.resolve([]),
     enabled: !!user && !currentTeam,
+  });
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["/api/users", user?.id, "unread-count"],
+    queryFn: () => user ? getUnreadMessageCount(user.id) : Promise.resolve(0),
+    enabled: !!user,
+    refetchInterval: 15000,
   });
 
   const { data: teamMembers = [] } = useQuery({
@@ -1403,24 +1408,19 @@ export default function CoachDashboard() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={async () => {
-                  if (notificationsEnabled) {
-                    clearUnread();
-                    setLocation("/chat");
-                  } else {
-                    const success = await enableNotifications();
-                    if (success) {
-                      toast.success("Notifications enabled!");
-                    } else {
-                      toast.error("Could not enable notifications");
-                    }
-                  }
+                onClick={() => {
+                  setLocation("/chat");
                 }}
-                className={hasUnread ? "text-green-500 hover:text-green-400" : ""}
-                title={notificationsEnabled ? (hasUnread ? "New messages" : "Notifications enabled") : "Enable notifications"}
-                data-testid="button-notifications"
+                className={unreadCount > 0 ? "text-green-500 hover:text-green-400 relative" : "relative"}
+                title={unreadCount > 0 ? `${unreadCount} unread messages` : "Messages"}
+                data-testid="button-messages"
               >
                 <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Button>
               {mounted && (
                 <button
