@@ -2,6 +2,7 @@ const ONESIGNAL_APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID || '';
 
 let initialized = false;
 let OneSignal: any = null;
+let lastInitError: string | null = null;
 
 // Store pending deep link from notification click
 let pendingDeepLink: { athleteId: string; hypePostId: string } | null = null;
@@ -108,20 +109,35 @@ export function getPushNotificationStatus(): {
   return { supported: true };
 }
 
+export function getLastInitError(): string | null {
+  return lastInitError;
+}
+
 export async function initOneSignal(): Promise<boolean> {
   if (initialized) return true;
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') {
+    lastInitError = 'Not in browser environment';
+    return false;
+  }
   
   if (!ONESIGNAL_APP_ID) {
-    console.warn('[OneSignal] App ID not configured');
+    lastInitError = 'App ID not configured - VITE_ONESIGNAL_APP_ID is empty';
+    console.warn('[OneSignal]', lastInitError);
     return false;
   }
 
   try {
     const sdk = await loadOneSignal();
-    if (!sdk) return false;
+    if (!sdk) {
+      lastInitError = 'Failed to load OneSignal SDK module';
+      console.warn('[OneSignal]', lastInitError);
+      return false;
+    }
     
     console.log('[OneSignal] Starting initialization with App ID:', ONESIGNAL_APP_ID ? ONESIGNAL_APP_ID.substring(0, 8) + '...' : 'undefined');
+    console.log('[OneSignal] Service worker path: /OneSignalSDKWorker.js');
+    console.log('[OneSignal] Current URL:', window.location.href);
+    console.log('[OneSignal] Is standalone PWA:', isStandalonePWA());
     
     await sdk.init({
       appId: ONESIGNAL_APP_ID,
@@ -137,6 +153,7 @@ export async function initOneSignal(): Promise<boolean> {
     });
     
     console.log('[OneSignal] SDK init completed');
+    lastInitError = null;
     
     // Add notification click handler to capture deep link data
     sdk.Notifications.addEventListener('click', (event: any) => {
@@ -164,6 +181,7 @@ export async function initOneSignal(): Promise<boolean> {
     console.log('[OneSignal] Initialized successfully');
     return true;
   } catch (error: any) {
+    lastInitError = `SDK init failed: ${error?.message || 'Unknown error'}`;
     console.error('[OneSignal] Initialization error:', error);
     console.error('[OneSignal] Error details:', error?.message || 'Unknown error');
     console.error('[OneSignal] Error stack:', error?.stack || 'No stack trace');
@@ -189,7 +207,8 @@ export async function requestNotificationPermission(): Promise<{
   try {
     const initSuccess = await initOneSignal();
     if (!initSuccess) {
-      return { granted: false, error: 'Failed to initialize notifications' };
+      const detailedError = getLastInitError() || 'Failed to initialize notifications';
+      return { granted: false, error: detailedError };
     }
     
     const sdk = await loadOneSignal();
