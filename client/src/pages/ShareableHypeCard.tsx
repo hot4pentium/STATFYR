@@ -4,14 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin, Download, Smartphone, Plus, ExternalLink, RefreshCw } from "lucide-react";
+import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin, Download, Smartphone, Plus, ExternalLink, RefreshCw, Mail } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { requestNotificationPermission, isIOS, isAndroid, isChrome, isStandalonePWA, isSafari, initOneSignal, getPushNotificationStatus } from "@/lib/onesignal";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 import hypeCardBg from "@assets/hype_card_BG_1767219165965.png";
@@ -200,24 +199,24 @@ async function getSingleHypePost(postId: string): Promise<HypePost | null> {
   }
 }
 
-async function checkFollowStatus(athleteId: string, token: string): Promise<{ isFollowing: boolean }> {
-  const res = await fetch(`/api/athletes/${athleteId}/followers/check?token=${encodeURIComponent(token)}`);
+async function checkFollowStatus(athleteId: string, email: string): Promise<{ isFollowing: boolean }> {
+  const res = await fetch(`/api/athletes/${athleteId}/followers/check?email=${encodeURIComponent(email)}`);
   if (!res.ok) throw new Error("Failed to check follow status");
   return res.json();
 }
 
-async function followAthlete(athleteId: string, fcmToken: string, followerName: string): Promise<{ follower: any; count: number }> {
+async function followAthlete(athleteId: string, email: string, followerName: string): Promise<{ follower: any; count: number }> {
   const res = await fetch(`/api/athletes/${athleteId}/followers`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fcmToken, followerName }),
+    body: JSON.stringify({ email, followerName }),
   });
   if (!res.ok) throw new Error("Failed to follow athlete");
   return res.json();
 }
 
-async function unfollowAthlete(athleteId: string, token: string): Promise<{ success: boolean; count: number }> {
-  const res = await fetch(`/api/athletes/${athleteId}/followers?token=${encodeURIComponent(token)}`, {
+async function unfollowAthlete(athleteId: string, email: string): Promise<{ success: boolean; count: number }> {
+  const res = await fetch(`/api/athletes/${athleteId}/followers?email=${encodeURIComponent(email)}`, {
     method: "DELETE",
   });
   if (!res.ok) throw new Error("Failed to unfollow athlete");
@@ -236,7 +235,7 @@ export default function ShareableHypeCard(props: any) {
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [activeTab, setActiveTab] = useState<HypeTab | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [followerFcmToken, setFollowerFcmToken] = useState<string | null>(null);
+  const [followerEmail, setFollowerEmail] = useState<string | null>(null);
   const [spotlightPost, setSpotlightPost] = useState<HypePost | null>(null);
   const [spotlightLoading, setSpotlightLoading] = useState(false);
   const [displayedPostId, setDisplayedPostId] = useState<string | null>(null); // Track which postId is currently being displayed
@@ -337,7 +336,7 @@ export default function ShareableHypeCard(props: any) {
 
   // Persist liked state in localStorage to prevent spam
   const likeStorageKey = `profile-liked-${athleteId}`;
-  const fcmTokenStorageKey = `follower-fcm-token-${athleteId}`;
+  const followerEmailStorageKey = `follower-email-${athleteId}`;
   const visitorNameStorageKey = `visitor-name-${athleteId}`;
   
   const [hasLiked, setHasLiked] = useState(() => {
@@ -364,24 +363,20 @@ export default function ShareableHypeCard(props: any) {
     }
   }, [visitorName, athleteId]);
 
-  // Load stored player ID on mount and check follow status
+  // Load stored email on mount and check follow status
+  // Also clean up any legacy FCM tokens from the old push notification system
   useEffect(() => {
     if (typeof window !== 'undefined' && athleteId) {
-      const storedToken = localStorage.getItem(fcmTokenStorageKey);
-      if (storedToken) {
-        setFollowerFcmToken(storedToken);
-        checkFollowStatus(athleteId, storedToken).then(({ isFollowing }) => {
+      // Clean up legacy FCM token storage key (from old push notification system)
+      const legacyFcmKey = `follower-fcm-token-${athleteId}`;
+      localStorage.removeItem(legacyFcmKey);
+      
+      const storedEmail = localStorage.getItem(followerEmailStorageKey);
+      if (storedEmail) {
+        setFollowerEmail(storedEmail);
+        checkFollowStatus(athleteId, storedEmail).then(({ isFollowing }) => {
           setIsFollowing(isFollowing);
         }).catch(() => {});
-      }
-      
-      // Initialize OneSignal (wrapped in try-catch to prevent crashes on unsupported browsers)
-      try {
-        initOneSignal().catch(() => {
-          // Silently fail - notifications will just not work
-        });
-      } catch (e) {
-        // Silently fail
       }
     }
   }, [athleteId]);
@@ -549,9 +544,9 @@ export default function ShareableHypeCard(props: any) {
 
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [followError, setFollowError] = useState<string | null>(null);
-  const [followInstructions, setFollowInstructions] = useState<string | null>(null);
   const [showFollowForm, setShowFollowForm] = useState(false);
   const [followFormName, setFollowFormName] = useState("");
+  const [followFormEmail, setFollowFormEmail] = useState("");
   const [showFollowSection, setShowFollowSection] = useState(true);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [installPromptDismissed, setInstallPromptDismissed] = useState(() => {
@@ -613,77 +608,52 @@ export default function ShareableHypeCard(props: any) {
 
   const handleFollowClick = () => {
     setFollowError(null);
-    setFollowInstructions(null);
     setShowFollowForm(true);
   };
 
-  const [followStep, setFollowStep] = useState<string>("");
-  
   const handleFollowSubmit = async () => {
     setFollowError(null);
-    setFollowInstructions(null);
-    setFollowStep("");
     
     if (!followFormName.trim()) {
       setFollowError("Please enter your name");
       return;
     }
     
+    if (!followFormEmail.trim() || !followFormEmail.includes('@')) {
+      setFollowError("Please enter a valid email address");
+      return;
+    }
+    
     setIsFollowLoading(true);
     
     try {
-      setFollowStep("Requesting notification permission...");
-      
-      const result = await requestNotificationPermission();
-      
-      if (!result.granted || !result.playerId) {
-        const errorMsg = result.error || "Please allow notifications to follow this athlete";
-        setFollowError(errorMsg);
-        setFollowStep("");
-        if (result.instructions) {
-          setFollowInstructions(result.instructions);
-        }
-        toast.error(errorMsg);
-        setIsFollowLoading(false);
-        return;
-      }
-      
-      setFollowStep("Got permission! Registering with server...");
-      console.log('[Follow] Registering follower with OneSignal player ID:', result.playerId);
-      
-      const requestBody = { 
-        followerName: followFormName.trim(),
-        onesignalPlayerId: result.playerId
-      };
-      
       const res = await fetch(`/api/athletes/${athleteId}/followers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          email: followFormEmail.trim().toLowerCase(),
+          followerName: followFormName.trim(),
+        }),
       });
       
-      setFollowStep("Waiting for server response...");
       const data = await res.json();
-      console.log('[Follow] Server response:', data);
       
       if (!res.ok) {
         throw new Error(data.error || "Failed to follow athlete");
       }
       
-      setFollowStep("Success!");
-      setFollowerFcmToken(result.playerId);
+      setFollowerEmail(followFormEmail.trim().toLowerCase());
       setIsFollowing(true);
       setShowFollowForm(false);
       setVisitorName(followFormName.trim());
-      localStorage.setItem(fcmTokenStorageKey, result.playerId);
+      localStorage.setItem(followerEmailStorageKey, followFormEmail.trim().toLowerCase());
       localStorage.setItem(visitorNameStorageKey, followFormName.trim());
       queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "followers", "count"] });
-      toast.success("You're now following this athlete!");
+      toast.success("You're now following! You'll receive email updates.");
     } catch (error: any) {
       console.error('[Follow] Error:', error);
       const errorMsg = error.message || "Failed to follow athlete";
       setFollowError(errorMsg);
-      setFollowStep("");
       toast.error(errorMsg);
     } finally {
       setIsFollowLoading(false);
@@ -691,11 +661,11 @@ export default function ShareableHypeCard(props: any) {
   };
 
   const handleUnfollow = async () => {
-    if (!followerFcmToken) return;
+    if (!followerEmail) return;
     
     setIsFollowLoading(true);
     try {
-      const res = await fetch(`/api/athletes/${athleteId}/followers?token=${encodeURIComponent(followerFcmToken)}`, {
+      const res = await fetch(`/api/athletes/${athleteId}/followers?email=${encodeURIComponent(followerEmail)}`, {
         method: "DELETE",
       });
       
@@ -706,7 +676,8 @@ export default function ShareableHypeCard(props: any) {
       }
       
       setIsFollowing(false);
-      localStorage.removeItem(fcmTokenStorageKey);
+      setFollowerEmail(null);
+      localStorage.removeItem(followerEmailStorageKey);
       queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "followers", "count"] });
       toast.success("Unfollowed");
     } catch (error: any) {
@@ -1672,10 +1643,6 @@ export default function ShareableHypeCard(props: any) {
                 <h4 className="font-semibold text-orange-400 mb-2 text-sm">What you'll get:</h4>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="flex items-center gap-2 text-zinc-300">
-                    <Bell className="h-3.5 w-3.5 text-orange-400" />
-                    <span>Push notifications</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-zinc-300">
                     <Smartphone className="h-3.5 w-3.5 text-orange-400" />
                     <span>Home screen icon</span>
                   </div>
@@ -1686,6 +1653,10 @@ export default function ShareableHypeCard(props: any) {
                   <div className="flex items-center gap-2 text-zinc-300">
                     <ExternalLink className="h-3.5 w-3.5 text-orange-400" />
                     <span>Full screen mode</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <Mail className="h-3.5 w-3.5 text-orange-400" />
+                    <span>Email updates</span>
                   </div>
                 </div>
               </div>
@@ -1721,7 +1692,7 @@ export default function ShareableHypeCard(props: any) {
                     </Button>
                   </div>
                   <p className="text-xs text-slate-400 text-center">
-                    You'll receive notifications when {athlete.name?.split(' ')[0] || 'this athlete'} shares updates
+                    You'll receive email updates when {athlete.name?.split(' ')[0] || 'this athlete'} shares news
                   </p>
                   <Button
                     onClick={handleUnfollow}
@@ -1738,7 +1709,7 @@ export default function ShareableHypeCard(props: any) {
               ) : showFollowForm ? (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Enter your name to follow {athlete.name || athlete.username}
+                    Get email updates when {athlete.name || athlete.username} shares news
                   </p>
                   <Input
                     placeholder="Your name"
@@ -1748,37 +1719,37 @@ export default function ShareableHypeCard(props: any) {
                     autoFocus
                     className="bg-[#ede4e400] text-white placeholder:text-slate-400"
                   />
+                  <Input
+                    type="email"
+                    placeholder="Your email address"
+                    value={followFormEmail}
+                    onChange={(e) => setFollowFormEmail(e.target.value)}
+                    data-testid="input-follow-email"
+                    className="bg-[#ede4e400] text-white placeholder:text-slate-400"
+                  />
                   {followError && (
-                    <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg space-y-2">
+                    <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
                       <p className="text-red-400 text-sm font-medium">{followError}</p>
-                      {followInstructions && (
-                        <p className="text-amber-400 text-xs">{followInstructions}</p>
-                      )}
-                    </div>
-                  )}
-                  {followStep && (
-                    <div className="p-2 bg-blue-500/20 border border-blue-500/30 rounded-lg">
-                      <p className="text-blue-400 text-xs font-mono">{followStep}</p>
                     </div>
                   )}
                   <div className="flex gap-2">
                     <Button
                       type="button"
                       onClick={handleFollowSubmit}
-                      disabled={isFollowLoading || !followFormName.trim()}
+                      disabled={isFollowLoading || !followFormName.trim() || !followFormEmail.trim()}
                       className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white disabled:opacity-50"
                       data-testid="button-submit-follow"
                     >
-                      <Bell className="h-4 w-4 mr-2" />
-                      {isFollowLoading ? 'Setting up...' : 'Get Notified'}
+                      <Mail className="h-4 w-4 mr-2" />
+                      {isFollowLoading ? 'Subscribing...' : 'Subscribe'}
                     </Button>
                     <Button
                       type="button"
                       onClick={() => {
                         setShowFollowForm(false);
                         setFollowError(null);
-                        setFollowInstructions(null);
                         setFollowFormName("");
+                        setFollowFormEmail("");
                       }}
                       variant="outline"
                       disabled={isFollowLoading}
@@ -1788,7 +1759,7 @@ export default function ShareableHypeCard(props: any) {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground/70 text-center">
-                    You'll need to allow notifications when prompted
+                    Your email is only used for athlete updates. We never share or sell your information.
                   </p>
                 </div>
               ) : (

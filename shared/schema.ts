@@ -825,17 +825,12 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 
-// Athlete Followers - for anonymous fans who follow athletes via push notifications
+// Athlete Followers - for fans who follow athletes via email notifications
 export const athleteFollowers = pgTable("athlete_followers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   athleteId: varchar("athlete_id").notNull().references(() => users.id),
-  fcmToken: text("fcm_token"), // FCM token for Android/desktop (nullable for web push)
+  followerEmail: text("follower_email").notNull(),
   followerName: text("follower_name").notNull().default("Anonymous"),
-  // Web Push fields for iOS Safari PWA support
-  pushEndpoint: text("push_endpoint"),
-  pushP256dh: text("push_p256dh"),
-  pushAuth: text("push_auth"),
-  isWebPush: boolean("is_web_push").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -1034,9 +1029,9 @@ export const notificationPreferences = pgTable("notification_preferences", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id).unique(),
   emailOnMessage: boolean("email_on_message").notNull().default(true),
-  pushOnMessage: boolean("push_on_message").notNull().default(true),
-  emailOnHype: boolean("email_on_hype").notNull().default(false),
-  pushOnHype: boolean("push_on_hype").notNull().default(true),
+  emailOnHype: boolean("email_on_hype").notNull().default(true),
+  emailOnFollow: boolean("email_on_follow").notNull().default(true),
+  emailOnEvent: boolean("email_on_event").notNull().default(true),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 

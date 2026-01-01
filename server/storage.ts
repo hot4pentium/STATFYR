@@ -186,9 +186,8 @@ export interface IStorage {
   getAthleteFollowers(athleteId: string): Promise<AthleteFollower[]>;
   getAthleteFollowerCount(athleteId: string): Promise<number>;
   createAthleteFollower(data: InsertAthleteFollower): Promise<AthleteFollower>;
-  deleteAthleteFollower(athleteId: string, fcmToken: string): Promise<void>;
-  getAthleteFollowerByToken(athleteId: string, fcmToken: string): Promise<AthleteFollower | undefined>;
-  updateAthleteFollowerToken(athleteId: string, oldToken: string, newToken: string): Promise<boolean>;
+  deleteAthleteFollowerByEmail(athleteId: string, email: string): Promise<void>;
+  getAthleteFollowerByEmail(athleteId: string, email: string): Promise<AthleteFollower | undefined>;
   
   // HYPE Post methods
   getAthleteHypePosts(athleteId: string): Promise<(HypePost & { highlight?: HighlightVideo })[]>;
@@ -1620,25 +1619,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAthleteFollower(data: InsertAthleteFollower): Promise<AthleteFollower> {
-    // Check for existing follower by FCM token or Web Push endpoint
-    let existing: AthleteFollower[] = [];
-    if (data.fcmToken) {
-      existing = await db
-        .select()
-        .from(athleteFollowers)
-        .where(and(
-          eq(athleteFollowers.athleteId, data.athleteId),
-          eq(athleteFollowers.fcmToken, data.fcmToken)
-        ));
-    } else if (data.pushEndpoint) {
-      existing = await db
-        .select()
-        .from(athleteFollowers)
-        .where(and(
-          eq(athleteFollowers.athleteId, data.athleteId),
-          eq(athleteFollowers.pushEndpoint, data.pushEndpoint)
-        ));
-    }
+    // Check for existing follower by email
+    const existing = await db
+      .select()
+      .from(athleteFollowers)
+      .where(and(
+        eq(athleteFollowers.athleteId, data.athleteId),
+        eq(athleteFollowers.followerEmail, data.followerEmail)
+      ));
     
     if (existing.length > 0) {
       return existing[0];
@@ -1648,44 +1636,24 @@ export class DatabaseStorage implements IStorage {
     return follower;
   }
 
-  async deleteAthleteFollower(athleteId: string, tokenOrEndpoint: string): Promise<void> {
-    // Try to delete by FCM token or by push endpoint
+  async deleteAthleteFollowerByEmail(athleteId: string, email: string): Promise<void> {
     await db
       .delete(athleteFollowers)
       .where(and(
         eq(athleteFollowers.athleteId, athleteId),
-        or(
-          eq(athleteFollowers.fcmToken, tokenOrEndpoint),
-          eq(athleteFollowers.pushEndpoint, tokenOrEndpoint)
-        )
+        eq(athleteFollowers.followerEmail, email)
       ));
   }
 
-  async getAthleteFollowerByToken(athleteId: string, tokenOrEndpoint: string): Promise<AthleteFollower | undefined> {
-    // Try to find by FCM token or by push endpoint
+  async getAthleteFollowerByEmail(athleteId: string, email: string): Promise<AthleteFollower | undefined> {
     const [follower] = await db
       .select()
       .from(athleteFollowers)
       .where(and(
         eq(athleteFollowers.athleteId, athleteId),
-        or(
-          eq(athleteFollowers.fcmToken, tokenOrEndpoint),
-          eq(athleteFollowers.pushEndpoint, tokenOrEndpoint)
-        )
+        eq(athleteFollowers.followerEmail, email)
       ));
     return follower || undefined;
-  }
-
-  async updateAthleteFollowerToken(athleteId: string, oldToken: string, newToken: string): Promise<boolean> {
-    const result = await db
-      .update(athleteFollowers)
-      .set({ fcmToken: newToken })
-      .where(and(
-        eq(athleteFollowers.athleteId, athleteId),
-        eq(athleteFollowers.fcmToken, oldToken)
-      ))
-      .returning();
-    return result.length > 0;
   }
 
   // HYPE Post methods

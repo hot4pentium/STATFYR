@@ -1856,17 +1856,17 @@ export async function registerRoutes(
     }
   });
 
-  // Check if a token is following an athlete
+  // Check if an email is following an athlete
   app.get("/api/athletes/:athleteId/followers/check", async (req, res) => {
     try {
       const athleteId = req.params.athleteId;
-      const fcmToken = req.query.token as string;
+      const email = req.query.email as string;
       
-      if (!fcmToken) {
+      if (!email) {
         return res.json({ isFollowing: false });
       }
       
-      const follower = await storage.getAthleteFollowerByToken(athleteId, fcmToken);
+      const follower = await storage.getAthleteFollowerByEmail(athleteId, email.toLowerCase());
       res.json({ isFollowing: !!follower });
     } catch (error) {
       console.error("Error checking follower status:", error);
@@ -1874,13 +1874,11 @@ export async function registerRoutes(
     }
   });
 
-  // Follow an athlete (public - no auth required)
-  // Supports OneSignal player IDs (primary), FCM tokens (legacy), and Web Push subscriptions (legacy iOS)
+  // Follow an athlete (public - no auth required, email-based)
   app.post("/api/athletes/:athleteId/followers", async (req, res) => {
     try {
       const athleteId = req.params.athleteId;
       console.log("[Follow] Request received for athlete:", athleteId);
-      console.log("[Follow] Request body:", JSON.stringify(req.body));
       
       const athlete = await storage.getUser(athleteId);
       if (!athlete || athlete.role !== 'athlete') {
@@ -1889,59 +1887,45 @@ export async function registerRoutes(
       }
       console.log("[Follow] Found athlete:", athlete.username);
       
-      const { fcmToken, followerName, subscription, onesignalPlayerId } = req.body;
+      const { email, followerName } = req.body;
       
-      // Handle OneSignal player ID (preferred - unified approach)
-      if (onesignalPlayerId) {
-        console.log("[Follow] OneSignal player ID detected");
-        const follower = await storage.createAthleteFollower({
-          athleteId,
-          followerName: followerName || "Anonymous",
-          fcmToken: onesignalPlayerId, // Store OneSignal player ID in fcmToken field for now
-          isWebPush: false,
-        });
-        const count = await storage.getAthleteFollowerCount(athleteId);
-        console.log("[Follow] Created OneSignal follower, total count:", count);
-        return res.status(201).json({ follower, count });
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        return res.status(400).json({ error: "Valid email address is required" });
       }
       
-      // Handle Web Push subscription (legacy iOS)
-      if (subscription && subscription.endpoint) {
-        console.log("[Follow] Web Push subscription detected (legacy iOS)");
-        const follower = await storage.createAthleteFollower({
-          athleteId,
-          followerName: followerName || "Anonymous",
-          fcmToken: null,
-          pushEndpoint: subscription.endpoint,
-          pushP256dh: subscription.keys?.p256dh,
-          pushAuth: subscription.keys?.auth,
-          isWebPush: true,
-        });
-        const count = await storage.getAthleteFollowerCount(athleteId);
-        console.log("[Follow] Created Web Push follower, total count:", count);
-        return res.status(201).json({ follower, count });
-      }
+      const normalizedEmail = email.toLowerCase().trim();
       
-      // Handle FCM token (legacy Android/desktop)
-      if (!fcmToken) {
-        console.log("[Follow] No valid subscription method provided");
-        return res.status(400).json({ error: "OneSignal player ID, FCM token, or Web Push subscription required" });
+      // Check if already following
+      const existing = await storage.getAthleteFollowerByEmail(athleteId, normalizedEmail);
+      if (existing) {
+        const count = await storage.getAthleteFollowerCount(athleteId);
+        return res.status(200).json({ follower: existing, count, alreadyFollowing: true });
       }
       
       const follower = await storage.createAthleteFollower({
         athleteId,
-        fcmToken,
+        followerEmail: normalizedEmail,
         followerName: followerName || "Anonymous",
-        isWebPush: false,
       });
       const count = await storage.getAthleteFollowerCount(athleteId);
-      console.log("[Follow] Created FCM follower, total count:", count);
+      console.log("[Follow] Created email follower, total count:", count);
+      
+      // Send email notification to athlete about new follower
+      if (athlete.email) {
+        const { sendNewFollowerEmail } = await import('./emailService');
+        const prefs = await storage.getNotificationPreferences(athleteId);
+        if (!prefs || prefs.emailOnFollow) {
+          const athleteDisplayName = athlete.firstName && athlete.lastName 
+            ? `${athlete.firstName} ${athlete.lastName}` 
+            : athlete.username;
+          await sendNewFollowerEmail(athlete.email, athleteDisplayName, followerName || "Someone");
+        }
+      }
       
       res.status(201).json({ follower, count });
     } catch (error: any) {
       console.error("[Follow] Error:", error);
       if (error instanceof z.ZodError) {
-        console.error("[Follow] Zod validation error:", error.errors);
         return res.status(400).json({ error: error.errors });
       }
       res.status(500).json({ error: "Failed to follow athlete" });
@@ -1952,47 +1936,19 @@ export async function registerRoutes(
   app.delete("/api/athletes/:athleteId/followers", async (req, res) => {
     try {
       const athleteId = req.params.athleteId;
-      const fcmToken = req.query.token as string;
+      const email = req.query.email as string;
       
-      if (!fcmToken) {
-        return res.status(400).json({ error: "FCM token is required" });
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
       }
       
-      await storage.deleteAthleteFollower(athleteId, fcmToken);
+      await storage.deleteAthleteFollowerByEmail(athleteId, email.toLowerCase());
       const count = await storage.getAthleteFollowerCount(athleteId);
       
       res.json({ success: true, count });
     } catch (error) {
       console.error("Error unfollowing athlete:", error);
       res.status(500).json({ error: "Failed to unfollow athlete" });
-    }
-  });
-
-  // Update FCM token for follower (handles iOS token rotation)
-  app.post("/api/athletes/:athleteId/followers/update-token", async (req, res) => {
-    try {
-      const athleteId = req.params.athleteId;
-      const { oldToken, newToken } = req.body;
-      
-      if (!oldToken || !newToken) {
-        return res.status(400).json({ error: "Both old and new tokens are required" });
-      }
-      
-      console.log("[Token Update] Updating token for athlete:", athleteId);
-      
-      // Use atomic update instead of delete+create
-      const updated = await storage.updateAthleteFollowerToken(athleteId, oldToken, newToken);
-      
-      if (!updated) {
-        console.log("[Token Update] Old token not found or already updated");
-        return res.status(404).json({ error: "Follower not found" });
-      }
-      
-      console.log("[Token Update] Token updated successfully");
-      res.json({ success: true });
-    } catch (error) {
-      console.error("[Token Update] Error:", error);
-      res.status(500).json({ error: "Failed to update token" });
     }
   });
 
@@ -2139,8 +2095,7 @@ export async function registerRoutes(
     }
   });
 
-  // FYR - Send push notification to all athlete followers
-  // Now supports updateType: 'hype_post' | 'stats' | 'highlights' | 'event' | 'general'
+  // FYR - Send email notification to all athlete followers
   app.post("/api/athletes/:athleteId/fyr", async (req, res) => {
     try {
       console.log("[FYR API] Request received");
@@ -2183,140 +2138,51 @@ export async function registerRoutes(
         ? `${athlete.firstName} ${athlete.lastName}` 
         : athlete.name || athlete.username;
       
-      const baseUrl = process.env.REPLIT_DOMAINS 
-        ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
-        : process.env.REPLIT_DEV_DOMAIN 
-          ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-          : '';
-      
-      // Build URL and message based on update type
-      let hypeCardUrl = `${baseUrl}/share/athlete/${athleteId}`;
-      let title = '';
-      let body = '';
-      let notificationData: any = { athleteId, type: 'fyr' };
-      
-      // Customize notification based on update type
-      // Use descriptive titles to avoid iOS showing duplicate "from {name}"
-      switch (updateType) {
-        case 'hype_post':
-          title = `New HYPE Post`;
-          body = `${athleteName} just dropped a new post!`;
-          if (hypePostId) {
-            hypeCardUrl = `${baseUrl}/share/athlete/${athleteId}/post/${hypePostId}`;
-            notificationData = { athleteId, hypePostId, type: 'hype_post' };
-          }
-          break;
-        case 'stats':
-          title = `Stats Update`;
-          body = `${athleteName} updated their stats!`;
-          break;
-        case 'highlights':
-          title = `New Highlight`;
-          body = `${athleteName} just posted a highlight!`;
-          break;
-        case 'event':
-          title = `Upcoming Event`;
-          body = `${athleteName} has a new event!`;
-          break;
-        default:
-          title = `FYR Alert`;
-          body = `${athleteName} just FYR'd!`;
-          break;
-      }
-      
-      console.log("[FYR API] Sending notification to:", hypeCardUrl);
-      
-      // Check if OneSignal is configured - use it as primary
-      if (isOneSignalConfigured()) {
-        console.log("[FYR API] Using OneSignal for notifications");
-        
-        // Get all followers with player IDs (stored in fcmToken field)
-        const onesignalFollowers = followers.filter(f => !f.isWebPush && f.fcmToken);
-        const playerIds = onesignalFollowers.map(f => f.fcmToken!);
-        
-        console.log("[FYR API] Sending to", playerIds.length, "OneSignal subscribers");
-        
-        const onesignalResult = await sendPushToPlayers(playerIds, {
-          title,
-          message: body,
-          url: hypeCardUrl,
-          data: notificationData
-        });
-        
-        console.log("[FYR API] OneSignal result:", JSON.stringify(onesignalResult));
-        
-        // Clean up invalid player IDs from followers table
-        if (onesignalResult.invalidPlayerIds && onesignalResult.invalidPlayerIds.length > 0) {
-          console.log("[FYR API] Cleaning up", onesignalResult.invalidPlayerIds.length, "invalid player IDs");
-          for (const invalidId of onesignalResult.invalidPlayerIds) {
-            await storage.deleteAthleteFollower(athleteId, invalidId);
-          }
-        }
-        
-        const remainingCount = await storage.getAthleteFollowerCount(athleteId);
-        
-        return res.json({
-          success: onesignalResult.success,
-          successCount: onesignalResult.sentCount,
-          failureCount: onesignalResult.failedCount,
-          remainingFollowers: remainingCount
-        });
-      }
-      
-      // Legacy: Fall back to FCM/Web Push if OneSignal not configured
-      console.log("[FYR API] OneSignal not configured, using legacy FCM/Web Push");
-      
-      const fcmFollowers = followers.filter(f => !f.isWebPush && f.fcmToken);
-      const webPushFollowers = followers.filter(f => f.isWebPush && f.pushEndpoint && f.pushP256dh && f.pushAuth);
-      
-      console.log("[FYR API] FCM followers:", fcmFollowers.length, "Web Push followers:", webPushFollowers.length);
-      
-      let fcmResult = { success: true, successCount: 0, failureCount: 0, invalidTokens: [] as string[] };
-      let webPushResult = { successCount: 0, failureCount: 0, invalidSubscriptions: [] as WebPushSubscription[] };
-      
-      if (fcmFollowers.length > 0) {
-        const tokens = fcmFollowers.map(f => f.fcmToken!);
-        fcmResult = await sendPushNotification(tokens, title, body, { athleteId, type: 'fyr' }, hypeCardUrl);
-        console.log("[FYR API] FCM result:", JSON.stringify(fcmResult));
-        
-        if (fcmResult.invalidTokens.length > 0) {
-          console.log("[FYR API] Cleaning up", fcmResult.invalidTokens.length, "invalid FCM tokens");
-          for (const token of fcmResult.invalidTokens) {
-            await storage.deleteAthleteFollower(athleteId, token);
-          }
+      // Get the HYPE post message if available
+      let postMessage = `Check out the latest from ${athleteName}!`;
+      if (hypePostId) {
+        const post = await storage.getHypePost(hypePostId);
+        if (post) {
+          postMessage = post.message;
         }
       }
       
-      if (webPushFollowers.length > 0) {
-        const subscriptions: WebPushSubscription[] = webPushFollowers.map(f => ({
-          endpoint: f.pushEndpoint!,
-          keys: { p256dh: f.pushP256dh!, auth: f.pushAuth! }
-        }));
-        webPushResult = await sendWebPushToMany(subscriptions, title, body, { athleteId, type: 'fyr' }, hypeCardUrl);
-        console.log("[FYR API] Web Push result:", JSON.stringify(webPushResult));
-        
-        if (webPushResult.invalidSubscriptions.length > 0) {
-          console.log("[FYR API] Cleaning up", webPushResult.invalidSubscriptions.length, "invalid Web Push subscriptions");
-          for (const sub of webPushResult.invalidSubscriptions) {
-            const follower = webPushFollowers.find(f => f.pushEndpoint === sub.endpoint);
-            if (follower) {
-              await storage.deleteAthleteFollower(athleteId, follower.pushEndpoint!);
-            }
+      // Send email notifications to all followers
+      const { sendHypePostEmail } = await import('./emailService');
+      let successCount = 0;
+      let failureCount = 0;
+      
+      for (const follower of followers) {
+        try {
+          const result = await sendHypePostEmail(
+            follower.followerEmail,
+            follower.followerName,
+            athleteName,
+            athleteId,
+            hypePostId || '',
+            postMessage
+          );
+          if (result.success) {
+            successCount++;
+          } else {
+            failureCount++;
           }
+        } catch (err) {
+          console.error("[FYR API] Email failed for:", follower.followerEmail, err);
+          failureCount++;
         }
       }
       
-      const remainingCount = await storage.getAthleteFollowerCount(athleteId);
+      console.log("[FYR API] Emails sent - success:", successCount, "failed:", failureCount);
       
-      const response = {
-        success: fcmResult.success || webPushResult.successCount > 0,
-        successCount: fcmResult.successCount + webPushResult.successCount,
-        failureCount: fcmResult.failureCount + webPushResult.failureCount,
-        invalidTokensRemoved: fcmResult.invalidTokens.length + webPushResult.invalidSubscriptions.length,
-        remainingFollowers: remainingCount
-      };
-      console.log("[FYR API] Sending response:", JSON.stringify(response));
-      res.json(response);
+      const followerCount = await storage.getAthleteFollowerCount(athleteId);
+      
+      res.json({
+        success: successCount > 0,
+        successCount,
+        failureCount,
+        remainingFollowers: followerCount
+      });
     } catch (error) {
       console.error("[FYR API] Error:", error);
       res.status(500).json({ error: "Failed to send FYR notification" });
@@ -2545,14 +2411,13 @@ export async function registerRoutes(
 
       if (shouldSendEmail && message.recipient.email) {
         try {
-          const { sendChatNotificationEmail } = await import('./onesignal');
-          const chatUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'https://statfyr.replit.app'}/chat`;
-          await sendChatNotificationEmail(
+          const { sendDirectMessageEmail } = await import('./emailService');
+          await sendDirectMessageEmail(
             message.recipient.email,
+            message.recipient.name || message.recipient.username,
             message.sender.name || message.sender.username,
             content,
-            chatUrl,
-            recipientId // Pass user ID for OneSignal external_id targeting
+            req.params.teamId
           );
         } catch (err) {
           console.error('[Chat] Email notification failed:', err);
