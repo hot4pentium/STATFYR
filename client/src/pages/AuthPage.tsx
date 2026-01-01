@@ -2,19 +2,31 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { User, Users, Clipboard, ArrowLeft } from "lucide-react";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
 import { registerUser, loginUser, getUserTeams } from "@/lib/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
   const { setUser, setCurrentTeam } = useUser();
   const [loading, setLoading] = useState(false);
   const [authMode, setAuthMode] = useState<"select" | "signup" | "login">("select");
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+
+  const searchParams = new URLSearchParams(searchString);
+  const redirectTo = searchParams.get("redirect");
+  const preselectedRole = searchParams.get("role");
+
+  useEffect(() => {
+    if (preselectedRole && (preselectedRole === "athlete" || preselectedRole === "supporter")) {
+      setSelectedRole(preselectedRole);
+      setAuthMode("signup");
+    }
+  }, [preselectedRole]);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -83,9 +95,15 @@ export default function AuthPage() {
       });
       setUser(user);
       
-      if (selectedRole === 'coach') setLocation("/coach/onboarding");
-      else if (selectedRole === 'athlete') setLocation("/athlete/onboarding");
-      else setLocation("/supporter/onboarding");
+      if (redirectTo) {
+        setLocation(redirectTo);
+      } else if (selectedRole === 'coach') {
+        setLocation("/coach/onboarding");
+      } else if (selectedRole === 'athlete') {
+        setLocation("/athlete/onboarding");
+      } else {
+        setLocation("/supporter/onboarding");
+      }
     } catch (error: any) {
       console.error("Registration failed:", error);
       const message = error?.message || "Registration failed. Please try again.";
@@ -126,9 +144,15 @@ export default function AuthPage() {
         console.log("No teams found for user");
       }
       
-      if (user.role === 'coach') setLocation("/dashboard");
-      else if (user.role === 'athlete') setLocation("/athlete/dashboard");
-      else setLocation("/supporter/dashboard");
+      if (redirectTo) {
+        setLocation(redirectTo);
+      } else if (user.role === 'coach') {
+        setLocation("/dashboard");
+      } else if (user.role === 'athlete') {
+        setLocation("/athlete/dashboard");
+      } else {
+        setLocation("/supporter/dashboard");
+      }
     } catch (error) {
       console.error("Login failed:", error);
       setErrors({ submit: "Invalid email or password. Please try again." });

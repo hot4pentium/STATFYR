@@ -2,18 +2,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useLocation, useSearch } from "wouter";
 import { Shield, Users, Trophy } from "lucide-react";
+import { useUser } from "@/lib/userContext";
 
 export default function JoinTeamPage() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const searchParams = new URLSearchParams(searchString);
   const code = searchParams.get("code") || "";
+  const { user } = useUser();
 
   const handleRoleSelect = (role: "athlete" | "supporter") => {
-    if (role === "athlete") {
-      setLocation(`/athlete/onboarding?code=${code}`);
+    const onboardingPath = role === "athlete" 
+      ? `/athlete/onboarding?code=${code}` 
+      : `/supporter/onboarding?code=${code}`;
+    
+    if (user) {
+      setLocation(onboardingPath);
     } else {
-      setLocation(`/supporter/onboarding?code=${code}`);
+      setLocation(`/auth?redirect=${encodeURIComponent(onboardingPath)}&role=${role}`);
     }
   };
 
