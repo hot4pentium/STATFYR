@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useUser } from "@/lib/userContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,12 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Flame, ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Video, Heart, MessageCircle } from "lucide-react";
+import { Flame, ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Video, Heart, MessageCircle, Upload, X } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
-import { getAllTeamHighlights, type HighlightVideo } from "@/lib/api";
+import { getAllTeamHighlights, requestVideoUpload, completeVideoUpload, type HighlightVideo } from "@/lib/api";
 import { format } from "date-fns";
 
 import clutchImg from "@assets/clutch_1766970267487.png";
@@ -69,6 +69,13 @@ export default function HypeManager() {
   const [isFyring, setIsFyring] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [uploadedVideoId, setUploadedVideoId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/share/athlete/${user?.id}` : "";
 
@@ -247,6 +254,94 @@ export default function HypeManager() {
     setSelectedTemplate(template);
     setShowPostDialog(true);
     setPostMessage("");
+    setSelectedHighlightId(null);
+    setUploadedVideoId(null);
+  };
+
+  const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !currentTeam || !user) return;
+
+    if (!file.type.startsWith("video/")) {
+      toast.error("Please select a video file");
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Video must be less than 100MB");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(5);
+    setUploadStatus("Preparing upload...");
+
+    try {
+      const { uploadURL, videoId } = await requestVideoUpload(
+        currentTeam.id,
+        user.id,
+        file.name,
+        file.size,
+        file.type
+      );
+
+      setUploadProgress(10);
+      setUploadStatus("Uploading video...");
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", uploadURL);
+        xhr.setRequestHeader("Content-Type", file.type);
+        
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percentComplete = Math.round((e.loaded / e.total) * 70) + 10;
+            setUploadProgress(Math.min(percentComplete, 80));
+          }
+        };
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error("Upload failed"));
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error("Upload failed"));
+        xhr.send(file);
+      });
+
+      setUploadProgress(85);
+      setUploadStatus("Processing video...");
+
+      await completeVideoUpload(videoId);
+
+      setUploadProgress(100);
+      setUploadStatus("Complete!");
+      setUploadedVideoId(videoId);
+      setSelectedHighlightId(videoId);
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id, "highlights", "all"] });
+      
+      toast.success("Video uploaded!", {
+        description: "Your video is being processed and will appear in the gallery.",
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload video");
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+      setUploadStatus("");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const clearUploadedVideo = () => {
+    setUploadedVideoId(null);
     setSelectedHighlightId(null);
   };
 
@@ -506,27 +601,88 @@ export default function HypeManager() {
                 />
               </div>
 
-              {processedHighlights.length > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-white">Attach a Highlight (optional)</Label>
-                  <Select
-                    value={selectedHighlightId || "none"}
-                    onValueChange={(val) => setSelectedHighlightId(val === "none" ? null : val)}
-                  >
-                    <SelectTrigger className="bg-zinc-800 border-zinc-600 text-white" data-testid="select-highlight">
-                      <SelectValue placeholder="Select a highlight..." />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700">
-                      <SelectItem value="none" className="text-zinc-400">No highlight</SelectItem>
-                      {processedHighlights.map((h: HighlightVideo) => (
-                        <SelectItem key={h.id} value={h.id} className="text-white">
-                          {h.title || "Untitled highlight"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              <div className="space-y-2">
+                <Label className="text-white">Attach a Video (optional)</Label>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  className="hidden"
+                  disabled={isUploading}
+                  data-testid="input-video-upload"
+                />
+
+                {isUploading ? (
+                  <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700 space-y-2">
+                    <div className="flex items-center gap-2 text-orange-400">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">{uploadStatus}</span>
+                    </div>
+                    <div className="w-full h-2 bg-zinc-700 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-300" 
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                ) : uploadedVideoId ? (
+                  <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-green-600/50">
+                    <div className="flex items-center gap-2 text-green-400">
+                      <Video className="h-4 w-4" />
+                      <span className="text-sm">Video uploaded (processing...)</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearUploadedVideo}
+                      className="h-6 w-6 p-0 text-zinc-400 hover:text-red-400"
+                      data-testid="button-clear-video"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {processedHighlights.length > 0 && (
+                      <Select
+                        value={selectedHighlightId || "none"}
+                        onValueChange={(val) => setSelectedHighlightId(val === "none" ? null : val)}
+                      >
+                        <SelectTrigger className="bg-zinc-800 border-zinc-600 text-white" data-testid="select-highlight">
+                          <SelectValue placeholder="Choose from gallery..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-800 border-zinc-700">
+                          <SelectItem value="none" className="text-zinc-400">No video</SelectItem>
+                          {processedHighlights.map((h: HighlightVideo) => (
+                            <SelectItem key={h.id} value={h.id} className="text-white">
+                              {h.title || "Untitled highlight"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
+                    <div className="flex items-center gap-2">
+                      {processedHighlights.length > 0 && (
+                        <span className="text-xs text-zinc-500">or</span>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-zinc-600 text-zinc-300 hover:text-white gap-2"
+                        data-testid="button-upload-new-video"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Upload New Video
+                      </Button>
+                    </div>
+                    <p className="text-xs text-zinc-500">Max 100MB - Will be added to team gallery</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
