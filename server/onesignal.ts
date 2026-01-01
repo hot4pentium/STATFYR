@@ -114,15 +114,18 @@ export async function sendPushToPlayers(
       };
     }
     
-    // All failed
+    // All failed - treat all player IDs as potentially invalid for cleanup
     if (!response.ok || recipients === 0) {
       const errorMsg = result.errors?.[0] || (Array.isArray(result.errors) ? result.errors.join(', ') : 'All notifications failed');
       console.error('[OneSignal] API error:', errorMsg);
+      // If no specific invalid IDs listed but all failed, mark all as invalid
+      const allInvalid = invalidIds.length === 0 ? playerIds : invalidIds;
+      console.log('[OneSignal] Marking all as invalid:', allInvalid);
       return { 
         success: false, 
         sentCount: 0, 
         failedCount: playerIds.length,
-        invalidPlayerIds: invalidIds,
+        invalidPlayerIds: allInvalid,
         error: errorMsg
       };
     }
