@@ -42,6 +42,7 @@ import ImpersonationBanner from "@/components/ImpersonationBanner";
 import TestPage from "@/pages/TestPage";
 import SupporterHypeHub from "@/pages/SupporterHypeHub";
 import AthleteHypeCardPage from "@/pages/AthleteHypeCardPage";
+import JoinTeamPage from "@/pages/JoinTeamPage";
 
 function Router() {
   const [, setLocation] = useLocation();
@@ -103,6 +104,7 @@ function Router() {
       <Route path="/athlete/hype-portal" component={HypeManager} />
       <Route path="/athlete/hype-card" component={AthleteHypeCardPage} />
       <Route path="/role-capabilities" component={RoleCapabilitiesPDF} />
+      <Route path="/join" component={JoinTeamPage} />
       <Route path="/test" component={TestPage} />
       <Route component={NotFound} />
     </Switch>

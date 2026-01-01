@@ -2,9 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { Shield, ArrowLeft, CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
@@ -12,10 +12,19 @@ import { joinTeamByCode } from "@/lib/api";
 
 export default function SupporterOnboarding() {
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
   const { user, setCurrentTeam } = useUser();
   const [teamCode, setTeamCode] = useState("");
   const [isJoining, setIsJoining] = useState(false);
   const [joinedTeam, setJoinedTeam] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    const code = params.get("code");
+    if (code) {
+      setTeamCode(code);
+    }
+  }, [searchString]);
 
   const handleJoinTeam = async () => {
     if (!teamCode.trim()) {
