@@ -11,7 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getSupporterBadges, getAllBadges, getSupporterThemes, getActiveTheme, activateTheme, getSupporterTapTotal, getActiveLiveSessions, checkSessionLifecycle, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats, type SupporterBadge, type BadgeDefinition, type ThemeUnlock, type LiveEngagementSession } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getSupporterBadges, getAllBadges, getSupporterThemes, getActiveTheme, activateTheme, getSupporterTapTotal, getActiveLiveSessions, checkSessionLifecycle, joinTeamByCode, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats, type SupporterBadge, type BadgeDefinition, type ThemeUnlock, type LiveEngagementSession } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
@@ -30,7 +30,7 @@ function Badge({ children, className }: { children: React.ReactNode; className?:
 
 export default function SupporterDashboard() {
   const [, setLocation] = useLocation();
-  const { user, currentTeam, logout } = useUser();
+  const { user, currentTeam, logout, setCurrentTeam } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
   const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
   const { theme, setTheme } = useTheme();
@@ -176,10 +176,10 @@ export default function SupporterDashboard() {
   }, [rosterTab, teamMembers, athletes, coaches, supporters]);
 
   useEffect(() => {
-    if (!user || !currentTeam) {
-      setLocation("/supporter/onboarding");
+    if (!user) {
+      setLocation("/auth");
     }
-  }, [user, currentTeam, setLocation]);
+  }, [user, setLocation]);
 
   useEffect(() => {
     if (selectedCard && contentRef.current) {
@@ -931,8 +931,75 @@ export default function SupporterDashboard() {
     }
   };
 
+  const [joinTeamCode, setJoinTeamCode] = useState("");
+  const [isJoiningTeam, setIsJoiningTeam] = useState(false);
+
+  const handleJoinTeamWithCode = async () => {
+    if (!joinTeamCode.trim() || !user) return;
+    setIsJoiningTeam(true);
+    try {
+      const result = await joinTeamByCode(joinTeamCode.trim(), user.id, "supporter");
+      setCurrentTeam(result.team);
+      toast.success(`Joined ${result.team.name}!`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to join team");
+    } finally {
+      setIsJoiningTeam(false);
+    }
+  };
+
   if (!currentTeam) {
-    return null;
+    return (
+      <>
+        <DashboardBackground />
+        <div className="min-h-screen relative z-10 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md border-white/10 bg-card/50 backdrop-blur-xl">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <Users className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="font-display text-2xl uppercase tracking-wide">Join a Team</CardTitle>
+              <p className="text-muted-foreground text-sm mt-2">
+                Enter a team code to join as a supporter
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Enter team code"
+                  value={joinTeamCode}
+                  onChange={(e) => setJoinTeamCode(e.target.value.toUpperCase())}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-center font-mono text-lg uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary"
+                  maxLength={6}
+                  data-testid="input-join-team-code"
+                />
+              </div>
+              <Button
+                onClick={handleJoinTeamWithCode}
+                disabled={!joinTeamCode.trim() || isJoiningTeam}
+                className="w-full"
+                size="lg"
+                data-testid="button-join-team-submit"
+              >
+                {isJoiningTeam ? "Joining..." : "Join Team"}
+              </Button>
+              <div className="text-center pt-4 border-t border-white/10">
+                <p className="text-xs text-muted-foreground mb-2">Or scan a QR code from your team</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLocation("/join/scan")}
+                  data-testid="button-scan-qr"
+                >
+                  Scan QR Code
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    );
   }
 
   return (

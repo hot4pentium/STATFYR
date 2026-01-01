@@ -10,7 +10,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useTheme } from "next-themes";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount, type TeamMember, type Event, type HighlightVideo, type Play, type Shoutout } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount, joinTeamByCode, type TeamMember, type Event, type HighlightVideo, type Play, type Shoutout } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
 import { useNotifications } from "@/lib/notificationContext";
@@ -27,7 +27,7 @@ type HypeCardTab = "events" | "stats" | "highlights" | "shoutouts";
 export default function AthleteDashboard() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
-  const { user, currentTeam, logout } = useUser();
+  const { user, currentTeam, logout, setCurrentTeam } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
   const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
   const { theme, setTheme } = useTheme();
@@ -216,11 +216,28 @@ export default function AthleteDashboard() {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (!user || !currentTeam) {
-      setLocation("/athlete/onboarding");
+  const [joinTeamCode, setJoinTeamCode] = useState("");
+  const [isJoiningTeam, setIsJoiningTeam] = useState(false);
+
+  const handleJoinTeamWithCode = async () => {
+    if (!joinTeamCode.trim() || !user) return;
+    setIsJoiningTeam(true);
+    try {
+      const result = await joinTeamByCode(joinTeamCode.trim(), user.id, "athlete");
+      setCurrentTeam(result.team);
+      toast.success(`Joined ${result.team.name}!`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to join team");
+    } finally {
+      setIsJoiningTeam(false);
     }
-  }, [user, currentTeam, setLocation]);
+  };
+
+  useEffect(() => {
+    if (!user) {
+      setLocation("/auth");
+    }
+  }, [user, setLocation]);
 
   const handleLogout = () => {
     logout();
@@ -314,6 +331,60 @@ export default function AthleteDashboard() {
       position: "bottom"
     }
   ];
+
+  if (!currentTeam) {
+    return (
+      <>
+        <DashboardBackground />
+        <div className="min-h-screen relative z-10 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md border-white/10 bg-card/50 backdrop-blur-xl">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <Trophy className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="font-display text-2xl uppercase tracking-wide">Join a Team</CardTitle>
+              <p className="text-muted-foreground text-sm mt-2">
+                Enter a team code to join as an athlete
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Enter team code"
+                  value={joinTeamCode}
+                  onChange={(e) => setJoinTeamCode(e.target.value.toUpperCase())}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-center font-mono text-lg uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary"
+                  maxLength={6}
+                  data-testid="input-join-team-code"
+                />
+              </div>
+              <Button
+                onClick={handleJoinTeamWithCode}
+                disabled={!joinTeamCode.trim() || isJoiningTeam}
+                className="w-full"
+                size="lg"
+                data-testid="button-join-team-submit"
+              >
+                {isJoiningTeam ? "Joining..." : "Join Team"}
+              </Button>
+              <div className="text-center pt-4 border-t border-white/10">
+                <p className="text-xs text-muted-foreground mb-2">Or scan a QR code from your team</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLocation("/join/scan")}
+                  data-testid="button-scan-qr"
+                >
+                  Scan QR Code
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
