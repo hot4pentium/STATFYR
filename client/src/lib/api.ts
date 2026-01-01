@@ -140,6 +140,13 @@ export async function getUserTeams(userId: string): Promise<Team[]> {
   return res.json();
 }
 
+export async function getUnreadMessageCount(userId: string): Promise<number> {
+  const res = await fetch(`/api/users/${userId}/unread-count`);
+  if (!res.ok) throw new Error("Failed to get unread count");
+  const data = await res.json();
+  return data.count;
+}
+
 export async function getCoachTeams(coachId: string): Promise<Team[]> {
   const res = await fetch(`/api/coach/${coachId}/teams`);
   if (!res.ok) throw new Error("Failed to get coach teams");

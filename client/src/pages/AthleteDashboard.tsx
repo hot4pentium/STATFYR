@@ -10,10 +10,9 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useTheme } from "next-themes";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount, joinTeamByCode, type TeamMember, type Event, type HighlightVideo, type Play, type Shoutout } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount, joinTeamByCode, getUnreadMessageCount, type TeamMember, type Event, type HighlightVideo, type Play, type Shoutout } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
-import { useNotifications } from "@/lib/notificationContext";
 import { format, isSameDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -29,7 +28,6 @@ export default function AthleteDashboard() {
   const searchString = useSearch();
   const { user, currentTeam, logout, setCurrentTeam } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
-  const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>("schedule");
@@ -133,6 +131,13 @@ export default function AthleteDashboard() {
     },
     enabled: !!user && activeSection === "hype-card",
     refetchInterval: 30000,
+  });
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["/api/users", user?.id, "unread-count"],
+    queryFn: () => user ? getUnreadMessageCount(user.id) : Promise.resolve(0),
+    enabled: !!user,
+    refetchInterval: 15000,
   });
 
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/athlete/${user?.id}` : '';
@@ -417,24 +422,19 @@ export default function AthleteDashboard() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={async () => {
-                  if (notificationsEnabled) {
-                    clearUnread();
-                    setLocation("/chat");
-                  } else {
-                    const success = await enableNotifications();
-                    if (success) {
-                      toast.success("Notifications enabled!");
-                    } else {
-                      toast.error("Could not enable notifications");
-                    }
-                  }
+                onClick={() => {
+                  setLocation("/athlete/dashboard?section=messages");
                 }}
-                className={hasUnread ? "text-green-500 hover:text-green-400" : ""}
-                title={notificationsEnabled ? (hasUnread ? "New messages" : "Notifications enabled") : "Enable notifications"}
-                data-testid="button-notifications"
+                className={unreadCount > 0 ? "text-green-500 hover:text-green-400 relative" : "relative"}
+                title={unreadCount > 0 ? `${unreadCount} unread messages` : "Messages"}
+                data-testid="button-messages"
               >
                 <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Button>
               {mounted && (
                 <button
