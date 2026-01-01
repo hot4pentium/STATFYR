@@ -56,7 +56,9 @@ export async function sendNewFollowerEmail(
       <p style="margin: 0 0 20px; color: #999; font-size: 14px;">
         They'll receive email updates whenever you post new content.
       </p>
-      <a href="${APP_URL}/dashboard" style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Your Dashboard</a>
+      <div style="background: #222; border-radius: 8px; padding: 16px; text-align: center;">
+        <p style="margin: 0; color: #f97316; font-weight: 600;">Open the STATFYR app to see your followers</p>
+      </div>
     `;
 
     const { error } = await resend.emails.send({
@@ -93,7 +95,6 @@ export async function sendHypePostEmail(
   }
 
   try {
-    const postUrl = `${APP_URL}/share/athlete/${athleteId}/post/${postId}`;
     const truncatedMessage = message.length > 150 ? message.substring(0, 150) + '...' : message;
 
     const content = `
@@ -101,7 +102,9 @@ export async function sendHypePostEmail(
       <p style="margin: 0 0 16px; color: #ccc; font-size: 16px; line-height: 1.5; font-style: italic;">
         "${truncatedMessage}"
       </p>
-      <a href="${postUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View HYPE Post</a>
+      <div style="background: #222; border-radius: 8px; padding: 16px; text-align: center;">
+        <p style="margin: 0; color: #f97316; font-weight: 600;">Open the STATFYR app to view this post</p>
+      </div>
     `;
 
     const { error } = await resend.emails.send({
@@ -137,7 +140,6 @@ export async function sendDirectMessageEmail(
   }
 
   try {
-    const chatUrl = `${APP_URL}/athlete/dashboard?section=messages&team=${teamId}`;
     const truncatedPreview = messagePreview.length > 100 ? messagePreview.substring(0, 100) + '...' : messagePreview;
 
     const content = `
@@ -145,7 +147,9 @@ export async function sendDirectMessageEmail(
       <p style="margin: 0 0 16px; color: #ccc; font-size: 16px; line-height: 1.5;">
         "${truncatedPreview}"
       </p>
-      <a href="${chatUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Message</a>
+      <div style="background: #222; border-radius: 8px; padding: 16px; text-align: center;">
+        <p style="margin: 0; color: #f97316; font-weight: 600;">Open the STATFYR app and go to Messages to reply</p>
+      </div>
     `;
 
     const { error } = await resend.emails.send({
@@ -198,7 +202,9 @@ export async function sendEventReminderEmail(
         ${eventLocation ? `<p style="margin: 0; color: #999; font-size: 14px;">${eventLocation}</p>` : ''}
         <p style="margin: 8px 0 0; color: #666; font-size: 12px;">${teamName}</p>
       </div>
-      <a href="${APP_URL}/athlete/dashboard?section=schedule" style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Schedule</a>
+      <div style="background: #222; border-radius: 8px; padding: 16px; text-align: center; margin-top: 16px;">
+        <p style="margin: 0; color: #f97316; font-weight: 600;">Open the STATFYR app to view your Schedule</p>
+      </div>
     `;
 
     const { error } = await resend.emails.send({
@@ -235,7 +241,6 @@ export async function sendTeamChatEmail(
   }
 
   try {
-    const chatUrl = `${APP_URL}/athlete/dashboard?section=chat&team=${teamId}`;
     const truncatedPreview = messagePreview.length > 100 ? messagePreview.substring(0, 100) + '...' : messagePreview;
     const channelDisplay = channel === 'announcements' ? 'Announcements' : 'General';
 
@@ -245,7 +250,9 @@ export async function sendTeamChatEmail(
       <p style="margin: 0 0 16px; color: #ccc; font-size: 16px; line-height: 1.5;">
         <strong style="color: #f97316;">${senderName}:</strong> "${truncatedPreview}"
       </p>
-      <a href="${chatUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Chat</a>
+      <div style="background: #222; border-radius: 8px; padding: 16px; text-align: center;">
+        <p style="margin: 0; color: #f97316; font-weight: 600;">Open the STATFYR app to view Team Chat</p>
+      </div>
     `;
 
     const { error } = await resend.emails.send({
