@@ -137,7 +137,7 @@ export async function sendDirectMessageEmail(
   }
 
   try {
-    const chatUrl = `${APP_URL}/dashboard?tab=messages&team=${teamId}`;
+    const chatUrl = `${APP_URL}/athlete/dashboard?section=messages&team=${teamId}`;
     const truncatedPreview = messagePreview.length > 100 ? messagePreview.substring(0, 100) + '...' : messagePreview;
 
     const content = `
@@ -198,7 +198,7 @@ export async function sendEventReminderEmail(
         ${eventLocation ? `<p style="margin: 0; color: #999; font-size: 14px;">${eventLocation}</p>` : ''}
         <p style="margin: 8px 0 0; color: #666; font-size: 12px;">${teamName}</p>
       </div>
-      <a href="${APP_URL}/dashboard?tab=schedule" style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Schedule</a>
+      <a href="${APP_URL}/athlete/dashboard?section=schedule" style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Schedule</a>
     `;
 
     const { error } = await resend.emails.send({
@@ -235,7 +235,7 @@ export async function sendTeamChatEmail(
   }
 
   try {
-    const chatUrl = `${APP_URL}/dashboard?tab=chat&team=${teamId}`;
+    const chatUrl = `${APP_URL}/athlete/dashboard?section=chat&team=${teamId}`;
     const truncatedPreview = messagePreview.length > 100 ? messagePreview.substring(0, 100) + '...' : messagePreview;
     const channelDisplay = channel === 'announcements' ? 'Announcements' : 'General';
 
