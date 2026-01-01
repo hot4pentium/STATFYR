@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin, Download, Smartphone, Plus, ExternalLink } from "lucide-react";
+import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin, Download, Smartphone, Plus, ExternalLink, RefreshCw } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -489,12 +489,22 @@ export default function ShareableHypeCard(props: any) {
     enabled: !!athleteId,
   });
 
-  const { data: hypePosts = [] } = useQuery({
+  const { data: hypePosts = [], refetch: refetchHypePosts } = useQuery({
     queryKey: ["/api/athletes", athleteId, "hype-posts"],
     queryFn: () => getHypePosts(athleteId),
     enabled: !!athleteId,
-    refetchInterval: 30000,
+    staleTime: 5000, // Consider data stale after 5 seconds
+    refetchInterval: 15000, // Refetch every 15 seconds
   });
+  
+  // Force refetch when arriving from a notification with a post ID
+  useEffect(() => {
+    if (routePostId && athleteId) {
+      console.log('[HYPE Card] Arrived from notification, forcing refetch');
+      refetchHypePosts();
+      queryClient.invalidateQueries({ queryKey: ["/api/athletes", athleteId, "hype-posts"] });
+    }
+  }, [routePostId, athleteId, refetchHypePosts, queryClient]);
 
   // Fetch team events for the upcoming games section
   const teamId = profile?.membership?.team?.id;
@@ -1096,6 +1106,21 @@ export default function ShareableHypeCard(props: any) {
                     )}
                     {activeTab === "hypes" && (
                       <div className="space-y-2">
+                        <div className="flex justify-end mb-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              refetchHypePosts();
+                              toast.success("Refreshed!");
+                            }}
+                            className="h-7 px-2 text-xs text-slate-400 hover:text-white"
+                            data-testid="button-refresh-hypes"
+                          >
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                            Refresh
+                          </Button>
+                        </div>
                         {hypePosts.slice(0, 3).map((post: HypePost) => (
                           <div key={post.id} className="flex gap-3 p-2 bg-slate-800/50 rounded-lg">
                             <img
