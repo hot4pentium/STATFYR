@@ -1012,6 +1012,19 @@ export default function ShareableHypeCard(props: any) {
               </div>
             </CardContent>
           </Card>
+          {isFollowing && (
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={handleUnfollow}
+                disabled={isFollowLoading}
+                className="text-xs text-slate-500 hover:text-red-400 transition-colors flex items-center gap-1"
+                data-testid="button-unsubscribe-small"
+              >
+                <BellOff className="h-3 w-3" />
+                Unsubscribe
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Follow Me Section */}
