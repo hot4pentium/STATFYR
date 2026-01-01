@@ -1017,7 +1017,7 @@ export default function ShareableHypeCard(props: any) {
               <button
                 onClick={handleUnfollow}
                 disabled={isFollowLoading}
-                className="text-xs text-slate-500 hover:text-red-400 transition-colors flex items-center gap-1"
+                className="text-xs hover:text-red-400 transition-colors flex items-center gap-1 text-[#3d3939]"
                 data-testid="button-unsubscribe-small"
               >
                 <BellOff className="h-3 w-3" />
