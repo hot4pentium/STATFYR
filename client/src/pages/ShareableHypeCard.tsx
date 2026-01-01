@@ -189,6 +189,16 @@ async function getHypePosts(athleteId: string): Promise<HypePost[]> {
   return res.json();
 }
 
+async function getSingleHypePost(postId: string): Promise<HypePost | null> {
+  try {
+    const res = await fetch(`/api/hype-posts/${postId}`);
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
 async function checkFollowStatus(athleteId: string, token: string): Promise<{ isFollowing: boolean }> {
   const res = await fetch(`/api/athletes/${athleteId}/followers/check?token=${encodeURIComponent(token)}`);
   if (!res.ok) throw new Error("Failed to check follow status");
@@ -225,21 +235,43 @@ export default function ShareableHypeCard(props: any) {
   const [activeTab, setActiveTab] = useState<HypeTab | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerFcmToken, setFollowerFcmToken] = useState<string | null>(null);
-  const [showHypePostsDropdown, setShowHypePostsDropdown] = useState(false);
-  const [highlightedPostId, setHighlightedPostId] = useState<string | null>(null);
+  const [showSpotlightModal, setShowSpotlightModal] = useState(false);
+  const [spotlightPost, setSpotlightPost] = useState<HypePost | null>(null);
+  const [spotlightLoading, setSpotlightLoading] = useState(false);
   const queryClient = useQueryClient();
   
-  // Check URL for hypePostId parameter (from notification click)
+  // Check URL for hypePostId parameter (from notification click) - triggers spotlight modal
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && athleteId) {
       const urlParams = new URLSearchParams(window.location.search);
       const postId = urlParams.get('hypePostId');
       if (postId) {
-        setShowHypePostsDropdown(true);
-        setHighlightedPostId(postId);
+        // Immediately show the modal with loading state
+        setShowSpotlightModal(true);
+        setSpotlightLoading(true);
+        
+        // Fetch the specific post
+        getSingleHypePost(postId).then((post) => {
+          if (post) {
+            setSpotlightPost(post);
+          } else {
+            toast.error("This HYPE post is no longer available");
+            setShowSpotlightModal(false);
+          }
+          setSpotlightLoading(false);
+        }).catch(() => {
+          toast.error("Failed to load HYPE post");
+          setShowSpotlightModal(false);
+          setSpotlightLoading(false);
+        });
+        
+        // Clear the URL parameter
+        const url = new URL(window.location.href);
+        url.searchParams.delete('hypePostId');
+        window.history.replaceState({}, '', url.toString());
       }
     }
-  }, []);
+  }, [athleteId]);
 
   // Persist liked state in localStorage to prevent spam
   const likeStorageKey = `profile-liked-${athleteId}`;
@@ -713,79 +745,117 @@ export default function ShareableHypeCard(props: any) {
         </div>
       </header>
 
-      <main className="max-w-sm mx-auto px-4 pt-6">
-        {/* HYPE Posts Dropdown - Shows when arriving from notification */}
-        <AnimatePresence>
-          {showHypePostsDropdown && hypePosts.length > 0 && (
+      {/* HYPE Post Spotlight Modal - Shows when arriving from notification */}
+      <AnimatePresence>
+        {showSpotlightModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            data-testid="spotlight-modal-overlay"
+          >
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="mb-4"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm"
             >
-              <Card className="bg-gradient-to-b from-orange-500/20 to-slate-900/90 border-orange-500/50">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
+              <Card className="bg-gradient-to-b from-orange-500/30 to-slate-900 border-orange-500/50 overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Header */}
+                  <div className="flex items-center justify-between p-4 border-b border-orange-500/30">
                     <div className="flex items-center gap-2">
-                      <Flame className="h-5 w-5 text-orange-500" />
-                      <span className="font-display font-bold text-white">Latest HYPE Posts</span>
+                      <Flame className="h-6 w-6 text-orange-500 animate-pulse" />
+                      <span className="font-display font-bold text-white text-lg">New HYPE Post!</span>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        setShowHypePostsDropdown(false);
-                        setHighlightedPostId(null);
-                        // Clear the URL parameter
-                        if (typeof window !== 'undefined') {
-                          const url = new URL(window.location.href);
-                          url.searchParams.delete('hypePostId');
-                          window.history.replaceState({}, '', url.toString());
-                        }
+                        setShowSpotlightModal(false);
+                        setSpotlightPost(null);
                       }}
                       className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700/50"
-                      data-testid="button-close-hype-dropdown"
+                      data-testid="button-close-spotlight-modal"
                     >
                       <X className="h-5 w-5" />
                     </Button>
                   </div>
-                  <div className="space-y-3 max-h-80 overflow-y-auto">
-                    {hypePosts.map((post: HypePost) => (
-                      <div
-                        key={post.id}
-                        className={`flex gap-3 p-3 rounded-lg transition-all ${
-                          highlightedPostId === post.id
-                            ? "bg-orange-500/30 border border-orange-500/50 ring-2 ring-orange-500/30"
-                            : "bg-slate-800/70 border border-slate-700/50"
-                        }`}
-                        data-testid={`hype-post-${post.id}`}
-                      >
-                        <img
-                          src={HYPE_TEMPLATE_IMAGES[post.templateImage] || clutchImg}
-                          alt=""
-                          className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-white line-clamp-3">{post.message}</p>
-                          <p className="text-xs text-slate-500 mt-1">
-                            {format(new Date(post.createdAt), "MMM d, yyyy 'at' h:mm a")}
-                          </p>
-                          {post.highlightId && (
-                            <div className="flex items-center gap-1 mt-1 text-xs text-orange-400">
-                              <Video className="h-3 w-3" />
-                              <span>Video attached</span>
-                            </div>
-                          )}
+                  
+                  {/* Content */}
+                  <div className="p-4">
+                    {spotlightLoading ? (
+                      // Skeleton loading state
+                      <div className="space-y-4 animate-pulse">
+                        <div className="aspect-square bg-slate-700/50 rounded-xl" />
+                        <div className="space-y-2">
+                          <div className="h-4 bg-slate-700/50 rounded w-3/4" />
+                          <div className="h-4 bg-slate-700/50 rounded w-1/2" />
                         </div>
+                        <div className="h-3 bg-slate-700/50 rounded w-1/4" />
                       </div>
-                    ))}
+                    ) : spotlightPost ? (
+                      <div className="space-y-4">
+                        {/* Template Image */}
+                        <div className="relative aspect-square rounded-xl overflow-hidden">
+                          <img
+                            src={HYPE_TEMPLATE_IMAGES[spotlightPost.templateImage] || clutchImg}
+                            alt={spotlightPost.templateImage}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        </div>
+                        
+                        {/* Message */}
+                        <p className="text-white text-base leading-relaxed">{spotlightPost.message}</p>
+                        
+                        {/* Video indicator */}
+                        {spotlightPost.highlightId && (
+                          <div className="flex items-center gap-2 text-orange-400 text-sm">
+                            <Video className="h-4 w-4" />
+                            <span>Video attached - view in HYPES tab</span>
+                          </div>
+                        )}
+                        
+                        {/* Timestamp */}
+                        <p className="text-slate-500 text-sm">
+                          {format(new Date(spotlightPost.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                  
+                  {/* Footer - View HYPE Card button */}
+                  <div className="p-4 border-t border-slate-700/50">
+                    <Button
+                      onClick={() => {
+                        setShowSpotlightModal(false);
+                        setSpotlightPost(null);
+                        setActiveTab("hypes");
+                        // Scroll to tabs area after a short delay
+                        setTimeout(() => {
+                          const tabsSection = document.querySelector('[data-testid="tabs-section"]');
+                          if (tabsSection) {
+                            tabsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }, 100);
+                      }}
+                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3"
+                      data-testid="button-view-hype-card"
+                    >
+                      <Flame className="h-4 w-4 mr-2" />
+                      View HYPE Card
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
+      <main className="max-w-sm mx-auto px-4 pt-6">
         {/* HYPE Card - Trading Card Style */}
         <Card className="bg-gradient-to-b from-slate-800/90 to-slate-900/90 border-cyan-500/40 overflow-hidden rounded-2xl" data-testid="hype-card">
           <CardContent className="p-0">
@@ -823,7 +893,7 @@ export default function ShareableHypeCard(props: any) {
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-slate-700/50">
+            <div className="flex border-b border-slate-700/50" data-testid="tabs-section">
               <button
                 onClick={() => setActiveTab(activeTab === "events" ? null : "events")}
                 className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 transition-all ${
