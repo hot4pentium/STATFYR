@@ -812,7 +812,14 @@ export default function ShareableHypeCard(props: any) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overscroll-none"
+            style={{ touchAction: 'none' }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                closeSpotlightModal();
+              }
+            }}
+            onTouchMove={(e) => e.preventDefault()}
             data-testid="spotlight-modal-overlay"
           >
             <motion.div
@@ -820,6 +827,7 @@ export default function ShareableHypeCard(props: any) {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               className="w-full max-w-sm"
+              onClick={(e) => e.stopPropagation()}
             >
               <Card className="bg-gradient-to-b from-orange-500/30 to-slate-900 border-orange-500/50 overflow-hidden">
                 <CardContent className="p-0">
@@ -833,7 +841,12 @@ export default function ShareableHypeCard(props: any) {
                       variant="ghost"
                       size="sm"
                       onClick={closeSpotlightModal}
-                      className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700/50"
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        closeSpotlightModal();
+                      }}
+                      className="h-10 w-10 p-0 text-slate-400 hover:text-white hover:bg-slate-700/50 active:bg-slate-600/50"
+                      style={{ touchAction: 'manipulation' }}
                       data-testid="button-close-spotlight-modal"
                     >
                       <X className="h-5 w-5" />
@@ -889,7 +902,6 @@ export default function ShareableHypeCard(props: any) {
                       onClick={() => {
                         closeSpotlightModal();
                         setActiveTab("hypes");
-                        // Scroll to tabs area after a short delay
                         setTimeout(() => {
                           const tabsSection = document.querySelector('[data-testid="tabs-section"]');
                           if (tabsSection) {
@@ -897,7 +909,19 @@ export default function ShareableHypeCard(props: any) {
                           }
                         }, 100);
                       }}
-                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3"
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        closeSpotlightModal();
+                        setActiveTab("hypes");
+                        setTimeout(() => {
+                          const tabsSection = document.querySelector('[data-testid="tabs-section"]');
+                          if (tabsSection) {
+                            tabsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }, 100);
+                      }}
+                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 active:from-orange-700 active:to-red-700 text-white font-semibold py-4"
+                      style={{ touchAction: 'manipulation' }}
                       data-testid="button-view-hype-card"
                     >
                       <Flame className="h-4 w-4 mr-2" />
