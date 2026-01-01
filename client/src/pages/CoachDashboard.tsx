@@ -76,28 +76,29 @@ export default function CoachDashboard() {
   const [eventSessions, setEventSessions] = useState<Record<string, LiveEngagementSession | null>>({});
   const [loadingSessionForEvent, setLoadingSessionForEvent] = useState<string | null>(null);
 
+  const [unreadCount, setUnreadCount] = useState(0);
+
   useEffect(() => {
-    console.log("[CoachDashboard] User state:", user ? `id=${user.id}` : "null");
+    if (!user) return;
+    
+    const fetchUnreadCount = async () => {
+      try {
+        const count = await getUnreadMessageCount(user.id);
+        setUnreadCount(count);
+      } catch (error) {
+        console.error("Failed to fetch unread count:", error);
+      }
+    };
+    
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 15000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const { data: coachTeams } = useQuery({
     queryKey: ["/api/coach", user?.id, "teams"],
     queryFn: () => user ? getCoachTeams(user.id) : Promise.resolve([]),
     enabled: !!user && !currentTeam,
-  });
-
-  const { data: unreadCount = 0 } = useQuery({
-    queryKey: ["/api/users", user?.id, "unread-count"],
-    queryFn: async () => {
-      if (!user) return 0;
-      console.log("[CoachDashboard] Fetching unread count for user:", user.id);
-      const count = await getUnreadMessageCount(user.id);
-      console.log("[CoachDashboard] Unread count result:", count);
-      return count;
-    },
-    enabled: !!user,
-    refetchInterval: 15000,
-    staleTime: 0,
   });
 
   const { data: teamMembers = [] } = useQuery({

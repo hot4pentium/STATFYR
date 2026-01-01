@@ -59,12 +59,24 @@ export default function SupporterDashboard() {
     enabled: !!user,
   });
 
-  const { data: unreadCount = 0 } = useQuery({
-    queryKey: ["/api/users", user?.id, "unread-count"],
-    queryFn: () => user ? getUnreadMessageCount(user.id) : Promise.resolve(0),
-    enabled: !!user,
-    refetchInterval: 15000,
-  });
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    
+    const fetchUnreadCount = async () => {
+      try {
+        const count = await getUnreadMessageCount(user.id);
+        setUnreadCount(count);
+      } catch (error) {
+        console.error("Failed to fetch unread count:", error);
+      }
+    };
+    
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 15000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const { data: teamMembers = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "members"],
