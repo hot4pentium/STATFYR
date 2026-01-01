@@ -26,6 +26,7 @@ export function PWAProvider({ children }: PWAProviderProps) {
     if (!('serviceWorker' in navigator)) return;
 
     let intervalId: ReturnType<typeof setInterval> | null = null;
+    let registration: ServiceWorkerRegistration | null = null;
 
     const handleControllerChange = () => {
       // Only reload if the main service worker changed, not the Firebase messaging worker
@@ -35,9 +36,26 @@ export function PWAProvider({ children }: PWAProviderProps) {
       }
     };
 
+    // Check for updates when app regains focus or becomes visible
+    const checkForUpdate = () => {
+      if (registration) {
+        registration.update().catch(() => {});
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkForUpdate();
+      }
+    };
+
+    const handleFocus = () => {
+      checkForUpdate();
+    };
+
     const registerSW = async () => {
       try {
-        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        registration = await navigator.serviceWorker.register('/service-worker.js');
 
         if (registration.waiting) {
           setWaitingWorker(registration.waiting);
@@ -45,7 +63,7 @@ export function PWAProvider({ children }: PWAProviderProps) {
         }
 
         registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
+          const newWorker = registration!.installing;
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
@@ -56,8 +74,9 @@ export function PWAProvider({ children }: PWAProviderProps) {
           }
         });
 
+        // Check every 60 seconds while app is open
         intervalId = setInterval(() => {
-          registration.update().catch(() => {});
+          registration?.update().catch(() => {});
         }, 60000);
 
       } catch (error) {
@@ -68,12 +87,16 @@ export function PWAProvider({ children }: PWAProviderProps) {
     registerSW();
 
     navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
 
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
       navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 
