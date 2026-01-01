@@ -54,14 +54,14 @@ export async function sendPushToPlayer(
 export async function sendPushToPlayers(
   playerIds: string[],
   payload: NotificationPayload
-): Promise<{ success: boolean; sentCount: number; error?: string }> {
+): Promise<{ success: boolean; sentCount: number; failedCount: number; invalidPlayerIds: string[]; error?: string }> {
   if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
     console.error('[OneSignal] Missing APP_ID or REST_API_KEY');
-    return { success: false, sentCount: 0, error: 'OneSignal not configured' };
+    return { success: false, sentCount: 0, failedCount: playerIds.length, invalidPlayerIds: [], error: 'OneSignal not configured' };
   }
 
   if (playerIds.length === 0) {
-    return { success: true, sentCount: 0 };
+    return { success: true, sentCount: 0, failedCount: 0, invalidPlayerIds: [] };
   }
 
   try {
@@ -76,7 +76,7 @@ export async function sendPushToPlayers(
       web_push_topic: topic,
     };
     console.log('[OneSignal] Sending with topic:', topic);
-    console.log('[OneSignal] Full request:', JSON.stringify(requestBody, null, 2));
+    console.log('[OneSignal] Sending to player IDs:', playerIds);
     
     const response = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
@@ -88,17 +88,49 @@ export async function sendPushToPlayers(
     });
 
     const result = await response.json();
+    console.log('[OneSignal] API response:', JSON.stringify(result, null, 2));
     
-    if (!response.ok) {
-      console.error('[OneSignal] API error:', result);
-      return { success: false, sentCount: 0, error: result.errors?.[0] || 'Failed to send notification' };
+    // Parse the response - OneSignal returns recipients count and errors object
+    const recipients = result.recipients || 0;
+    const invalidIds: string[] = [];
+    
+    // Check for invalid player IDs in errors
+    if (result.errors && result.errors.invalid_player_ids) {
+      invalidIds.push(...result.errors.invalid_player_ids);
+    }
+    
+    const failedCount = playerIds.length - recipients;
+    const sentCount = recipients;
+    
+    console.log('[OneSignal] Result - sent:', sentCount, 'failed:', failedCount, 'invalid IDs:', invalidIds.length);
+    
+    // Consider it a success if at least one notification was sent
+    if (recipients > 0) {
+      return { 
+        success: true, 
+        sentCount, 
+        failedCount,
+        invalidPlayerIds: invalidIds
+      };
+    }
+    
+    // All failed
+    if (!response.ok || recipients === 0) {
+      const errorMsg = result.errors?.[0] || (Array.isArray(result.errors) ? result.errors.join(', ') : 'All notifications failed');
+      console.error('[OneSignal] API error:', errorMsg);
+      return { 
+        success: false, 
+        sentCount: 0, 
+        failedCount: playerIds.length,
+        invalidPlayerIds: invalidIds,
+        error: errorMsg
+      };
     }
 
-    console.log('[OneSignal] Notification sent to', playerIds.length, 'players:', result.id);
-    return { success: true, sentCount: playerIds.length };
+    return { success: true, sentCount, failedCount, invalidPlayerIds: invalidIds };
   } catch (error: any) {
     console.error('[OneSignal] Send error:', error);
-    return { success: false, sentCount: 0, error: error.message };
+    return { success: false, sentCount: 0, failedCount: playerIds.length, invalidPlayerIds: [], error: error.message };
   }
 }
 

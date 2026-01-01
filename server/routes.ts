@@ -2089,12 +2089,20 @@ export async function registerRoutes(
         
         console.log("[FYR API] OneSignal result:", JSON.stringify(onesignalResult));
         
+        // Clean up invalid player IDs from followers table
+        if (onesignalResult.invalidPlayerIds && onesignalResult.invalidPlayerIds.length > 0) {
+          console.log("[FYR API] Cleaning up", onesignalResult.invalidPlayerIds.length, "invalid player IDs");
+          for (const invalidId of onesignalResult.invalidPlayerIds) {
+            await storage.deleteAthleteFollower(athleteId, invalidId);
+          }
+        }
+        
         const remainingCount = await storage.getAthleteFollowerCount(athleteId);
         
         return res.json({
           success: onesignalResult.success,
           successCount: onesignalResult.sentCount,
-          failureCount: onesignalResult.success ? 0 : playerIds.length,
+          failureCount: onesignalResult.failedCount,
           remainingFollowers: remainingCount
         });
       }
