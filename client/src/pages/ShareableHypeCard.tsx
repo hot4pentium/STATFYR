@@ -227,6 +227,7 @@ type HypeTab = "events" | "highlights" | "stats" | "hypes";
 
 export default function ShareableHypeCard(props: any) {
   const athleteId = props.params?.id;
+  const routePostId = props.params?.postId; // From /share/athlete/:id/post/:postId route
   const [, setLocation] = useLocation();
   const [copied, setCopied] = useState(false);
   const [visitorName, setVisitorName] = useState("");
@@ -235,70 +236,53 @@ export default function ShareableHypeCard(props: any) {
   const [activeTab, setActiveTab] = useState<HypeTab | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerFcmToken, setFollowerFcmToken] = useState<string | null>(null);
-  const [showSpotlightModal, setShowSpotlightModal] = useState(false);
   const [spotlightPost, setSpotlightPost] = useState<HypePost | null>(null);
   const [spotlightLoading, setSpotlightLoading] = useState(false);
+  const [displayedPostId, setDisplayedPostId] = useState<string | null>(null); // Track which postId is currently being displayed
   const queryClient = useQueryClient();
   
-  // Check URL for hypePostId parameter (from notification click) - triggers spotlight modal
+  // Derive showSpotlightModal from whether we have a postId to display
+  const showSpotlightModal = !!routePostId;
+  
+  // Fetch the HYPE post when routePostId changes
   useEffect(() => {
-    const checkForHypePostId = () => {
-      if (typeof window !== 'undefined' && athleteId) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const postId = urlParams.get('hypePostId');
-        console.log('[HYPE Card] Checking for hypePostId:', postId, 'Current URL:', window.location.href);
-        
-        if (postId && !showSpotlightModal) {
-          console.log('[HYPE Card] Found hypePostId, opening spotlight modal');
-          // Immediately show the modal with loading state
-          setShowSpotlightModal(true);
-          setSpotlightLoading(true);
-          
-          // Fetch the specific post
-          getSingleHypePost(postId).then((post) => {
-            if (post) {
-              console.log('[HYPE Card] Post loaded:', post.id);
-              setSpotlightPost(post);
-            } else {
-              console.log('[HYPE Card] Post not found');
-              toast.error("This HYPE post is no longer available");
-              setShowSpotlightModal(false);
-            }
-            setSpotlightLoading(false);
-          }).catch((err) => {
-            console.error('[HYPE Card] Error loading post:', err);
-            toast.error("Failed to load HYPE post");
-            setShowSpotlightModal(false);
-            setSpotlightLoading(false);
-          });
-          
-          // Clear the URL parameter
-          const url = new URL(window.location.href);
-          url.searchParams.delete('hypePostId');
-          window.history.replaceState({}, '', url.toString());
+    if (routePostId && athleteId && routePostId !== displayedPostId) {
+      console.log('[HYPE Card] Fetching post for spotlight modal:', routePostId);
+      setSpotlightLoading(true);
+      setDisplayedPostId(routePostId);
+      
+      getSingleHypePost(routePostId).then((post) => {
+        if (post) {
+          console.log('[HYPE Card] Post loaded:', post.id);
+          setSpotlightPost(post);
+        } else {
+          console.log('[HYPE Card] Post not found');
+          toast.error("This HYPE post is no longer available");
+          // Navigate away since post doesn't exist
+          setLocation(`/share/athlete/${athleteId}`);
         }
-      }
-    };
+        setSpotlightLoading(false);
+      }).catch((err) => {
+        console.error('[HYPE Card] Error loading post:', err);
+        toast.error("Failed to load HYPE post");
+        setLocation(`/share/athlete/${athleteId}`);
+        setSpotlightLoading(false);
+      });
+    }
     
-    // Check immediately
-    checkForHypePostId();
-    
-    // Also check after a short delay (for PWA launch scenarios)
-    const timeoutId = setTimeout(checkForHypePostId, 100);
-    
-    // Listen for visibility changes (when app comes to foreground from notification)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        checkForHypePostId();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [athleteId, showSpotlightModal]);
+    // When navigating away from the post route, clear the displayed post
+    if (!routePostId && displayedPostId) {
+      setDisplayedPostId(null);
+      setSpotlightPost(null);
+    }
+  }, [athleteId, routePostId, displayedPostId, setLocation]);
+  
+  // Function to close spotlight modal - just navigate to base URL
+  const closeSpotlightModal = () => {
+    if (athleteId) {
+      setLocation(`/share/athlete/${athleteId}`);
+    }
+  };
 
   // Persist liked state in localStorage to prevent spam
   const likeStorageKey = `profile-liked-${athleteId}`;
@@ -799,10 +783,7 @@ export default function ShareableHypeCard(props: any) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        setShowSpotlightModal(false);
-                        setSpotlightPost(null);
-                      }}
+                      onClick={closeSpotlightModal}
                       className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700/50"
                       data-testid="button-close-spotlight-modal"
                     >
@@ -857,8 +838,7 @@ export default function ShareableHypeCard(props: any) {
                   <div className="p-4 border-t border-slate-700/50">
                     <Button
                       onClick={() => {
-                        setShowSpotlightModal(false);
-                        setSpotlightPost(null);
+                        closeSpotlightModal();
                         setActiveTab("hypes");
                         // Scroll to tabs area after a short delay
                         setTimeout(() => {

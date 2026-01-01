@@ -68,6 +68,7 @@ function Router() {
       <Route path="/supporter/game/:gameId" component={SupporterGameLive} />
       <Route path="/supporter/live/:sessionId" component={SupporterSessionLive} />
       <Route path="/share/athlete/:id" component={ShareableHypeCard} />
+      <Route path="/share/athlete/:id/post/:postId" component={ShareableHypeCard} />
       <Route path="/hype/:id" component={ShareableHypeCard} />
       <Route path="/stattracker" component={StatTrackerPage} />
       <Route path="/stat-tracker" component={StatTrackerPage} />
