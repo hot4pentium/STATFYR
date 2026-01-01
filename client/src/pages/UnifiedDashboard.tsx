@@ -113,6 +113,8 @@ export default function UnifiedDashboard() {
   const [supporterOriginalTeam, setSupporterOriginalTeam] = useState<Team | null>(null);
   const [activeHypeTab, setActiveHypeTab] = useState<"events" | "highlights" | "stats" | "hypes">("events");
   const [isLandscape, setIsLandscape] = useState(false);
+  const [joinTeamCode, setJoinTeamCode] = useState("");
+  const [isJoiningTeam, setIsJoiningTeam] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -981,6 +983,20 @@ export default function UnifiedDashboard() {
     );
   }
 
+  const handleJoinTeamWithCode = async () => {
+    if (!joinTeamCode.trim() || !user) return;
+    setIsJoiningTeam(true);
+    try {
+      const result = await joinTeamByCode(joinTeamCode.trim(), user.id, userRole === "athlete" ? "athlete" : "supporter");
+      setCurrentTeam(result.team);
+      toast.success(`Joined ${result.team.name}!`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to join team");
+    } finally {
+      setIsJoiningTeam(false);
+    }
+  };
+
   if (!currentTeam && userRole === "coach" && coachTeams && coachTeams.length > 0) {
     return (
       <>
@@ -1002,6 +1018,60 @@ export default function UnifiedDashboard() {
                   {team.name}
                 </Button>
               ))}
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    );
+  }
+
+  if (!currentTeam && (userRole === "athlete" || userRole === "supporter")) {
+    return (
+      <>
+        <DashboardBackground />
+        <div className="min-h-screen relative z-10 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md border-white/10 bg-card/50 backdrop-blur-xl">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                {userRole === "athlete" ? <Trophy className="h-8 w-8 text-primary" /> : <Users className="h-8 w-8 text-primary" />}
+              </div>
+              <CardTitle className="font-display text-2xl uppercase tracking-wide">Join a Team</CardTitle>
+              <p className="text-muted-foreground text-sm mt-2">
+                Enter a team code to join as {userRole === "athlete" ? "an athlete" : "a supporter"}
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  placeholder="Enter team code"
+                  value={joinTeamCode}
+                  onChange={(e) => setJoinTeamCode(e.target.value.toUpperCase())}
+                  className="text-center font-mono text-lg uppercase tracking-widest"
+                  maxLength={6}
+                  data-testid="input-join-team-code"
+                />
+              </div>
+              <Button
+                onClick={handleJoinTeamWithCode}
+                disabled={!joinTeamCode.trim() || isJoiningTeam}
+                className="w-full"
+                size="lg"
+                data-testid="button-join-team-submit"
+              >
+                {isJoiningTeam ? "Joining..." : "Join Team"}
+              </Button>
+              <div className="text-center pt-4 border-t border-white/10">
+                <p className="text-xs text-muted-foreground mb-2">Or scan a QR code from your team</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLocation("/join/scan")}
+                  data-testid="button-scan-qr"
+                >
+                  Scan QR Code
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
