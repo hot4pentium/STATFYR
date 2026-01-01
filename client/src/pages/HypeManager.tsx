@@ -628,20 +628,23 @@ export default function HypeManager() {
                     </div>
                   </div>
                 ) : uploadedVideoId ? (
-                  <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-green-600/50">
-                    <div className="flex items-center gap-2 text-green-400">
-                      <Video className="h-4 w-4" />
-                      <span className="text-sm">Video uploaded (processing...)</span>
+                  <div className="p-3 bg-zinc-800/50 rounded-lg border border-green-600/50 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-green-400">
+                        <Video className="h-4 w-4" />
+                        <span className="text-sm font-medium">Video attached!</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearUploadedVideo}
+                        className="h-6 w-6 p-0 text-zinc-400 hover:text-red-400"
+                        data-testid="button-clear-video"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearUploadedVideo}
-                      className="h-6 w-6 p-0 text-zinc-400 hover:text-red-400"
-                      data-testid="button-clear-video"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <p className="text-xs text-zinc-400">Video is being converted (~1 min). You can post now and it will appear when ready.</p>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2">
