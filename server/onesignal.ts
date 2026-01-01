@@ -208,9 +208,10 @@ interface EmailPayload {
   preheader?: string;
 }
 
-export async function sendEmailToAddress(
+// Register a user's email with OneSignal so they can receive email notifications
+export async function registerEmailWithOneSignal(
   email: string,
-  payload: EmailPayload
+  userId: string
 ): Promise<{ success: boolean; error?: string }> {
   if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
     console.error('[OneSignal Email] Missing APP_ID or REST_API_KEY');
@@ -218,6 +219,59 @@ export async function sendEmailToAddress(
   }
 
   try {
+    // First, create or update the user with an external_id
+    const userResponse = await fetch(`https://onesignal.com/api/v1/apps/${ONESIGNAL_APP_ID}/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
+      },
+      body: JSON.stringify({
+        identity: {
+          external_id: userId,
+        },
+        subscriptions: [
+          {
+            type: 'Email',
+            token: email,
+            enabled: true,
+          }
+        ]
+      }),
+    });
+
+    const userResult = await userResponse.json();
+    
+    if (!userResponse.ok && userResponse.status !== 409) {
+      // 409 means user already exists, which is fine
+      console.error('[OneSignal Email] User creation error:', userResult);
+      return { success: false, error: userResult.errors?.[0] || 'Failed to register email' };
+    }
+
+    console.log('[OneSignal Email] Registered email:', email, 'for user:', userId);
+    return { success: true };
+  } catch (error: any) {
+    console.error('[OneSignal Email] Registration error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function sendEmailToAddress(
+  email: string,
+  payload: EmailPayload,
+  userId?: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+    console.error('[OneSignal Email] Missing APP_ID or REST_API_KEY');
+    return { success: false, error: 'OneSignal not configured' };
+  }
+
+  try {
+    // Use external_id if provided (more reliable), otherwise fall back to email tokens
+    const targetingPayload = userId 
+      ? { include_aliases: { external_id: [userId] }, target_channel: 'email' }
+      : { include_email_tokens: [email] };
+
     const response = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
       headers: {
@@ -226,7 +280,7 @@ export async function sendEmailToAddress(
       },
       body: JSON.stringify({
         app_id: ONESIGNAL_APP_ID,
-        include_email_tokens: [email],
+        ...targetingPayload,
         email_subject: payload.subject,
         email_body: payload.body,
         email_from_name: payload.fromName || 'STATFYR',
@@ -253,7 +307,8 @@ export async function sendChatNotificationEmail(
   recipientEmail: string,
   senderName: string,
   messagePreview: string,
-  chatUrl: string
+  chatUrl: string,
+  recipientUserId?: string
 ): Promise<{ success: boolean; error?: string }> {
   const truncatedPreview = messagePreview.length > 100 
     ? messagePreview.substring(0, 100) + '...' 
@@ -281,5 +336,5 @@ export async function sendChatNotificationEmail(
     subject: `New message from ${senderName}`,
     body: emailBody,
     preheader: truncatedPreview,
-  });
+  }, recipientUserId);
 }

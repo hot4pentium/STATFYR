@@ -92,6 +92,18 @@ export async function registerRoutes(
       // Hash the password before storing
       const hashedPassword = await bcrypt.hash(parsed.password, SALT_ROUNDS);
       const user = await withRetry(() => storage.createUser({ ...parsed, password: hashedPassword }));
+      
+      // Register email with OneSignal for email notifications (don't block on this)
+      if (user.email) {
+        import('./onesignal').then(({ registerEmailWithOneSignal }) => {
+          registerEmailWithOneSignal(user.email!, user.id).catch(err => {
+            console.error('[Registration] OneSignal email registration failed:', err);
+          });
+        }).catch(err => {
+          console.error('[Registration] Failed to import OneSignal:', err);
+        });
+      }
+      
       const { password, ...safeUser } = user;
       res.json(safeUser);
     } catch (error: any) {
@@ -2539,7 +2551,8 @@ export async function registerRoutes(
             message.recipient.email,
             message.sender.name || message.sender.username,
             content,
-            chatUrl
+            chatUrl,
+            recipientId // Pass user ID for OneSignal external_id targeting
           );
         } catch (err) {
           console.error('[Chat] Email notification failed:', err);
@@ -2616,6 +2629,31 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error updating notification preferences:", error);
       res.status(500).json({ error: "Failed to update notification preferences" });
+    }
+  });
+
+  // Register user's email with OneSignal for email notifications
+  app.post("/api/users/:userId/register-email-notifications", async (req, res) => {
+    try {
+      const user = await storage.getUser(req.params.userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      if (!user.email) {
+        return res.status(400).json({ error: "User does not have an email address" });
+      }
+      
+      const { registerEmailWithOneSignal } = await import('./onesignal');
+      const result = await registerEmailWithOneSignal(user.email, user.id);
+      
+      if (result.success) {
+        res.json({ success: true, message: "Email registered with OneSignal" });
+      } else {
+        res.status(500).json({ error: result.error || "Failed to register email" });
+      }
+    } catch (error) {
+      console.error("Error registering email with OneSignal:", error);
+      res.status(500).json({ error: "Failed to register email with OneSignal" });
     }
   });
 
