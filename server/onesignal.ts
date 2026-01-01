@@ -65,19 +65,23 @@ export async function sendPushToPlayers(
   }
 
   try {
-    const topic = payload.topic || `notification-${Date.now()}`;
+    // Use a unique ID for each notification to prevent iOS from collapsing them
+    const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const requestBody = {
       app_id: ONESIGNAL_APP_ID,
       include_player_ids: playerIds,
       headings: { en: payload.title },
       contents: { en: payload.message },
       url: payload.url,
-      data: payload.data,
-      web_push_topic: topic,
+      data: { ...payload.data, _nid: uniqueId }, // Add unique ID to data
+      // Don't use web_push_topic to avoid collapsing - each notification should be separate
+      // web_push_topic: undefined,
+      ttl: 86400, // Time to live: 24 hours
+      priority: 10, // High priority for immediate delivery
       // Explicitly set no subtitle to avoid iOS duplication
       subtitle: undefined,
     };
-    console.log('[OneSignal] Sending with topic:', topic);
+    console.log('[OneSignal] Sending notification ID:', uniqueId);
     console.log('[OneSignal] Sending to player IDs:', playerIds);
     console.log('[OneSignal] Notification data:', JSON.stringify(payload.data));
     
