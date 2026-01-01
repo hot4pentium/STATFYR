@@ -92,8 +92,6 @@ export async function sendPushToPlayers(
     console.log('[OneSignal] API response:', JSON.stringify(result, null, 2));
     console.log('[OneSignal] Response keys:', Object.keys(result));
     
-    // Parse the response - OneSignal returns recipients count and errors object
-    const recipients = result.recipients || 0;
     const invalidIds: string[] = [];
     
     // Check for invalid player IDs in errors
@@ -101,13 +99,27 @@ export async function sendPushToPlayers(
       invalidIds.push(...result.errors.invalid_player_ids);
     }
     
-    const failedCount = playerIds.length - recipients;
-    const sentCount = recipients;
+    // OneSignal returns a notification ID if the request was accepted
+    // The 'recipients' field may not be present immediately - it's populated asynchronously
+    // If we have an ID and no errors, consider it a success
+    const hasNotificationId = !!result.id;
+    const hasErrors = result.errors && (Array.isArray(result.errors) ? result.errors.length > 0 : Object.keys(result.errors).length > 0);
     
-    console.log('[OneSignal] Result - sent:', sentCount, 'failed:', failedCount, 'invalid IDs:', invalidIds.length);
+    // Calculate recipients - if not provided but we have an ID, assume sent to all valid players
+    let recipients = result.recipients;
+    if (recipients === undefined && hasNotificationId && !hasErrors) {
+      // Notification was accepted - assume all non-invalid players received it
+      recipients = playerIds.length - invalidIds.length;
+    }
+    recipients = recipients || 0;
     
-    // Consider it a success if at least one notification was sent
-    if (recipients > 0) {
+    const failedCount = invalidIds.length;
+    const sentCount = Math.max(0, playerIds.length - invalidIds.length);
+    
+    console.log('[OneSignal] Result - hasId:', hasNotificationId, 'hasErrors:', hasErrors, 'sent:', sentCount, 'failed:', failedCount, 'invalid IDs:', invalidIds.length);
+    
+    // If we got a notification ID and no errors, consider it a success
+    if (hasNotificationId && !hasErrors) {
       return { 
         success: true, 
         sentCount, 
@@ -116,18 +128,15 @@ export async function sendPushToPlayers(
       };
     }
     
-    // All failed - treat all player IDs as potentially invalid for cleanup
-    if (!response.ok || recipients === 0) {
-      const errorMsg = result.errors?.[0] || (Array.isArray(result.errors) ? result.errors.join(', ') : 'All notifications failed');
+    // Check if there are explicit errors
+    if (hasErrors || !response.ok) {
+      const errorMsg = result.errors?.[0] || (Array.isArray(result.errors) ? result.errors.join(', ') : 'Notification failed');
       console.error('[OneSignal] API error:', errorMsg);
-      // If no specific invalid IDs listed but all failed, mark all as invalid
-      const allInvalid = invalidIds.length === 0 ? playerIds : invalidIds;
-      console.log('[OneSignal] Marking all as invalid:', allInvalid);
       return { 
         success: false, 
         sentCount: 0, 
         failedCount: playerIds.length,
-        invalidPlayerIds: allInvalid,
+        invalidPlayerIds: invalidIds,
         error: errorMsg
       };
     }
