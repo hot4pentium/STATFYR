@@ -178,6 +178,7 @@ export default function ChatPage() {
       return res.json();
     },
     enabled: !!currentTeam?.id,
+    refetchInterval: 30000, // Refresh every 30 seconds to pick up new members
   });
 
   // Filter out current user from team members
