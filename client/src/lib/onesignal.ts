@@ -121,8 +121,11 @@ export async function initOneSignal(): Promise<boolean> {
     const sdk = await loadOneSignal();
     if (!sdk) return false;
     
+    console.log('[OneSignal] Starting initialization with App ID:', ONESIGNAL_APP_ID ? ONESIGNAL_APP_ID.substring(0, 8) + '...' : 'undefined');
+    
     await sdk.init({
       appId: ONESIGNAL_APP_ID,
+      serviceWorkerPath: '/OneSignalSDKWorker.js',
       allowLocalhostAsSecureOrigin: true,
       autoPrompt: false,
       promptOptions: {
@@ -132,6 +135,8 @@ export async function initOneSignal(): Promise<boolean> {
         },
       },
     });
+    
+    console.log('[OneSignal] SDK init completed');
     
     // Add notification click handler to capture deep link data
     sdk.Notifications.addEventListener('click', (event: any) => {
@@ -158,8 +163,10 @@ export async function initOneSignal(): Promise<boolean> {
     initialized = true;
     console.log('[OneSignal] Initialized successfully');
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('[OneSignal] Initialization error:', error);
+    console.error('[OneSignal] Error details:', error?.message || 'Unknown error');
+    console.error('[OneSignal] Error stack:', error?.stack || 'No stack trace');
     return false;
   }
 }
