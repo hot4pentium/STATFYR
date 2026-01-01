@@ -76,6 +76,10 @@ export default function CoachDashboard() {
   const [eventSessions, setEventSessions] = useState<Record<string, LiveEngagementSession | null>>({});
   const [loadingSessionForEvent, setLoadingSessionForEvent] = useState<string | null>(null);
 
+  useEffect(() => {
+    console.log("[CoachDashboard] User state:", user ? `id=${user.id}` : "null");
+  }, [user]);
+
   const { data: coachTeams } = useQuery({
     queryKey: ["/api/coach", user?.id, "teams"],
     queryFn: () => user ? getCoachTeams(user.id) : Promise.resolve([]),
@@ -84,9 +88,16 @@ export default function CoachDashboard() {
 
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ["/api/users", user?.id, "unread-count"],
-    queryFn: () => user ? getUnreadMessageCount(user.id) : Promise.resolve(0),
+    queryFn: async () => {
+      if (!user) return 0;
+      console.log("[CoachDashboard] Fetching unread count for user:", user.id);
+      const count = await getUnreadMessageCount(user.id);
+      console.log("[CoachDashboard] Unread count result:", count);
+      return count;
+    },
     enabled: !!user,
     refetchInterval: 15000,
+    staleTime: 0,
   });
 
   const { data: teamMembers = [] } = useQuery({
