@@ -39,6 +39,12 @@ export async function registerRoutes(
     });
   });
 
+  // Endpoint to provide OneSignal App ID for client
+  app.get("/api/onesignal/config", (req, res) => {
+    const appId = process.env.ONESIGNAL_APP_ID || '';
+    res.json({ appId });
+  });
+
   // Endpoint to provide Web Push VAPID public key for iOS
   app.get("/api/webpush/vapid-public-key", (req, res) => {
     // Initialize Web Push if not already done

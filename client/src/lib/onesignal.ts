@@ -1,8 +1,32 @@
-const ONESIGNAL_APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID || '';
+let ONESIGNAL_APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID || '';
 
 let initialized = false;
 let OneSignal: any = null;
 let lastInitError: string | null = null;
+let configFetched = false;
+
+// Fetch OneSignal App ID from server (for production where VITE_ env vars may not be available)
+async function fetchOneSignalConfig(): Promise<void> {
+  if (configFetched) return;
+  if (ONESIGNAL_APP_ID) {
+    configFetched = true;
+    return; // Already have App ID from env var
+  }
+  
+  try {
+    const response = await fetch('/api/onesignal/config');
+    if (response.ok) {
+      const data = await response.json();
+      if (data.appId) {
+        ONESIGNAL_APP_ID = data.appId;
+        console.log('[OneSignal] Fetched App ID from server:', ONESIGNAL_APP_ID.substring(0, 8) + '...');
+      }
+    }
+  } catch (error) {
+    console.warn('[OneSignal] Failed to fetch config from server:', error);
+  }
+  configFetched = true;
+}
 
 // Store pending deep link from notification click
 let pendingDeepLink: { athleteId: string; hypePostId: string } | null = null;
@@ -120,8 +144,11 @@ export async function initOneSignal(): Promise<boolean> {
     return false;
   }
   
+  // Fetch config from server if not already available
+  await fetchOneSignalConfig();
+  
   if (!ONESIGNAL_APP_ID) {
-    lastInitError = 'App ID not configured - VITE_ONESIGNAL_APP_ID is empty';
+    lastInitError = 'App ID not configured - neither VITE_ONESIGNAL_APP_ID nor server config available';
     console.warn('[OneSignal]', lastInitError);
     return false;
   }
