@@ -628,7 +628,7 @@ export default function HypeManager() {
                     </div>
                   </div>
                 ) : uploadedVideoId ? (
-                  <div className="p-3 bg-zinc-800/50 rounded-lg border border-green-600/50 space-y-1">
+                  <div className="p-3 bg-zinc-800/50 rounded-lg border border-green-600/50 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-green-400">
                         <Video className="h-4 w-4" />
@@ -644,7 +644,9 @@ export default function HypeManager() {
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
-                    <p className="text-xs text-zinc-400">Video is being converted (~1 min). You can post now and it will appear when ready.</p>
+                    <div className="bg-orange-500/10 border border-orange-500/30 rounded p-2">
+                      <p className="text-xs text-orange-300">Your video is being converted (~1 min). Go ahead and post - the video will automatically appear in your HYPE post once it's ready!</p>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2">
