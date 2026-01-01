@@ -1984,6 +1984,53 @@ export async function registerRoutes(
     }
   });
 
+  // Debug endpoint to test sending to a specific player ID
+  app.post("/api/debug/onesignal/test-player", async (req, res) => {
+    try {
+      const { playerId } = req.body;
+      const appId = process.env.ONESIGNAL_APP_ID;
+      const restApiKey = process.env.ONESIGNAL_REST_API_KEY;
+      
+      if (!playerId) {
+        return res.json({ error: "playerId required in body" });
+      }
+      
+      if (!appId || !restApiKey) {
+        return res.json({ error: "OneSignal not configured" });
+      }
+      
+      console.log('[OneSignal Debug] Testing player ID:', playerId);
+      
+      const response = await fetch('https://onesignal.com/api/v1/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${restApiKey}`,
+        },
+        body: JSON.stringify({
+          app_id: appId,
+          include_player_ids: [playerId],
+          headings: { en: 'Test for Player ID' },
+          contents: { en: `Testing player: ${playerId.substring(0, 8)}...` },
+        }),
+      });
+      
+      const result = await response.json();
+      console.log('[OneSignal Debug] Test player result:', JSON.stringify(result, null, 2));
+      
+      res.json({
+        playerId,
+        httpStatus: response.status,
+        id: result.id,
+        recipients: result.recipients,
+        errors: result.errors
+      });
+    } catch (error: any) {
+      console.error('[OneSignal Debug] Test player error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Debug endpoint to test sending to ALL OneSignal subscribers
   app.post("/api/debug/onesignal/test-send", async (req, res) => {
     try {
