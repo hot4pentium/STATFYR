@@ -109,6 +109,7 @@ type HypePost = {
     id: string;
     title: string | null;
     publicUrl: string | null;
+    thumbnail: string | null;
   };
 };
 
@@ -891,11 +892,25 @@ export default function ShareableHypeCard(props: any) {
                         {/* Message */}
                         <p className="text-white text-base leading-relaxed">{spotlightPost.message}</p>
                         
-                        {/* Video indicator */}
-                        {spotlightPost.highlightId && (
-                          <div className="flex items-center gap-2 text-orange-400 text-sm">
-                            <Video className="h-4 w-4" />
-                            <span>Video attached - view in HYPES tab</span>
+                        {/* Video player */}
+                        {spotlightPost.highlight?.publicUrl && (
+                          <div className="relative rounded-xl overflow-hidden bg-black">
+                            <video
+                              controls
+                              playsInline
+                              preload="metadata"
+                              className="w-full max-h-[300px] object-contain"
+                              poster={spotlightPost.highlight.thumbnail || undefined}
+                            >
+                              <source src={spotlightPost.highlight.publicUrl} type="video/mp4" />
+                              Your browser does not support the video tag.
+                            </video>
+                            {spotlightPost.highlight.title && (
+                              <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                                <Video className="h-3 w-3" />
+                                {spotlightPost.highlight.title}
+                              </p>
+                            )}
                           </div>
                         )}
                         
@@ -1008,11 +1023,25 @@ export default function ShareableHypeCard(props: any) {
                   <div className="p-4 space-y-3">
                     <p className="text-white text-base leading-relaxed">{expandedPost.message}</p>
                     
-                    {/* Video indicator */}
-                    {expandedPost.highlightId && (
-                      <div className="flex items-center gap-2 text-orange-400 text-sm bg-orange-500/10 p-2 rounded-lg">
-                        <Video className="h-4 w-4" />
-                        <span>Video attached - view in Highlights</span>
+                    {/* Video player */}
+                    {expandedPost.highlight?.publicUrl && (
+                      <div className="relative rounded-lg overflow-hidden bg-black">
+                        <video
+                          controls
+                          playsInline
+                          preload="metadata"
+                          className="w-full max-h-[250px] object-contain"
+                          poster={expandedPost.highlight.thumbnail || undefined}
+                        >
+                          <source src={expandedPost.highlight.publicUrl} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                        {expandedPost.highlight.title && (
+                          <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                            <Video className="h-3 w-3" />
+                            {expandedPost.highlight.title}
+                          </p>
+                        )}
                       </div>
                     )}
                     
