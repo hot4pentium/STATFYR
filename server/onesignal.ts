@@ -65,21 +65,26 @@ export async function sendPushToPlayers(
   }
 
   try {
+    const topic = payload.topic || `notification-${Date.now()}`;
+    const requestBody = {
+      app_id: ONESIGNAL_APP_ID,
+      include_player_ids: playerIds,
+      headings: { en: payload.title },
+      contents: { en: payload.message },
+      url: payload.url,
+      data: payload.data,
+      web_push_topic: topic,
+    };
+    console.log('[OneSignal] Sending with topic:', topic);
+    console.log('[OneSignal] Full request:', JSON.stringify(requestBody, null, 2));
+    
     const response = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
       },
-      body: JSON.stringify({
-        app_id: ONESIGNAL_APP_ID,
-        include_player_ids: playerIds,
-        headings: { en: payload.title },
-        contents: { en: payload.message },
-        url: payload.url,
-        data: payload.data,
-        web_push_topic: payload.topic || `notification-${Date.now()}`,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     const result = await response.json();
