@@ -6,6 +6,7 @@ interface NotificationPayload {
   message: string;
   url?: string;
   data?: Record<string, any>;
+  topic?: string;
 }
 
 export async function sendPushToPlayer(
@@ -31,6 +32,7 @@ export async function sendPushToPlayer(
         contents: { en: payload.message },
         url: payload.url,
         data: payload.data,
+        web_push_topic: payload.topic || `notification-${Date.now()}`,
       }),
     });
 
@@ -76,6 +78,7 @@ export async function sendPushToPlayers(
         contents: { en: payload.message },
         url: payload.url,
         data: payload.data,
+        web_push_topic: payload.topic || `notification-${Date.now()}`,
       }),
     });
 
@@ -117,6 +120,7 @@ export async function sendPushToSegment(
         contents: { en: payload.message },
         url: payload.url,
         data: payload.data,
+        web_push_topic: payload.topic || `notification-${Date.now()}`,
       }),
     });
 
