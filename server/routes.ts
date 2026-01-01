@@ -2178,36 +2178,36 @@ export async function registerRoutes(
           : '';
       
       // Build URL and message based on update type
-      // IMPORTANT: Each notification must have unique content to prevent iOS from collapsing duplicates
       let hypeCardUrl = `${baseUrl}/share/athlete/${athleteId}`;
-      let title = `${athleteName} just FYR'd!`;
-      let body = `Check out what ${athleteName} has to share!`;
+      let title = '';
+      let body = '';
       let notificationData: any = { athleteId, type: 'fyr' };
       
-      // Customize notification based on update type - include athlete name in body for uniqueness
+      // Customize notification based on update type
       switch (updateType) {
         case 'hype_post':
-          title = `New HYPE Post from ${athleteName}!`;
-          body = `Check out what ${athleteName} has to share!`;
+          title = `${athleteName}`;
+          body = `Just dropped a new HYPE Post!`;
           if (hypePostId) {
             hypeCardUrl = `${baseUrl}/share/athlete/${athleteId}/post/${hypePostId}`;
             notificationData = { athleteId, hypePostId, type: 'hype_post' };
           }
           break;
         case 'stats':
-          title = `${athleteName} updated their Stats!`;
-          body = `See ${athleteName}'s latest numbers!`;
+          title = `${athleteName}`;
+          body = `Updated their stats - check it out!`;
           break;
         case 'highlights':
-          title = `New Highlight from ${athleteName}!`;
-          body = `Watch ${athleteName}'s latest highlight!`;
+          title = `${athleteName}`;
+          body = `Just posted a new highlight!`;
           break;
         case 'event':
-          title = `${athleteName} has a new Event!`;
-          body = `Check out ${athleteName}'s upcoming event!`;
+          title = `${athleteName}`;
+          body = `Has an upcoming event!`;
           break;
         default:
-          // Keep the default generic message
+          title = `${athleteName}`;
+          body = `Just FYR'd - check it out!`;
           break;
       }
       

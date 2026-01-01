@@ -2,12 +2,15 @@
 // This runs BEFORE the OneSignal SDK handler to ensure proper navigation
 self.addEventListener('notificationclick', function(event) {
   const notification = event.notification;
-  const data = notification.data || {};
+  const rawData = notification.data || {};
   
-  console.log('[SW] Notification clicked, data:', JSON.stringify(data));
+  console.log('[SW] Notification clicked, raw data:', JSON.stringify(rawData));
   
-  // Extract the additionalData which contains our custom payload
-  const additionalData = data.additionalData || data || {};
+  // OneSignal wraps custom data in additionalData, but also includes it at root level
+  // Check multiple possible locations for our custom data
+  const additionalData = rawData.additionalData || rawData.data || rawData || {};
+  
+  console.log('[SW] Extracted additionalData:', JSON.stringify(additionalData));
   
   if (additionalData.athleteId && additionalData.hypePostId) {
     const deepLinkPath = `/share/athlete/${additionalData.athleteId}/post/${additionalData.hypePostId}`;
