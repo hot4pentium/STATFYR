@@ -1,3 +1,4 @@
+// Service Worker Version: 2.0 - Force update on iOS
 // Custom notification click handler for iOS Safari PWA deep linking
 // This runs BEFORE the OneSignal SDK handler to ensure proper navigation
 self.addEventListener('notificationclick', function(event) {
