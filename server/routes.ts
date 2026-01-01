@@ -1979,12 +1979,14 @@ export async function registerRoutes(
   });
 
   // FYR - Send push notification to all athlete followers
+  // Now supports updateType: 'hype_post' | 'stats' | 'highlights' | 'event' | 'general'
   app.post("/api/athletes/:athleteId/fyr", async (req, res) => {
     try {
       console.log("[FYR API] Request received");
       const athleteId = req.params.athleteId;
       const userId = req.query.userId as string;
-      console.log("[FYR API] athleteId:", athleteId, "userId:", userId);
+      const { updateType, hypePostId } = req.body;
+      console.log("[FYR API] athleteId:", athleteId, "userId:", userId, "updateType:", updateType);
       
       if (!userId) {
         console.log("[FYR API] No userId provided");
@@ -2026,9 +2028,39 @@ export async function registerRoutes(
           ? `https://${process.env.REPLIT_DEV_DOMAIN}`
           : '';
       
-      const hypeCardUrl = `${baseUrl}/share/athlete/${athleteId}`;
-      const title = `${athleteName} just FYR'd!`;
-      const body = `Check out ${athleteName}'s latest HYPE card updates!`;
+      // Build URL and message based on update type
+      let hypeCardUrl = `${baseUrl}/share/athlete/${athleteId}`;
+      let title = `${athleteName} just FYR'd!`;
+      let body = `Check out ${athleteName}'s latest HYPE card updates!`;
+      let notificationData: any = { athleteId, type: 'fyr' };
+      
+      // Customize notification based on update type
+      switch (updateType) {
+        case 'hype_post':
+          title = `New HYPE Post from ${athleteName}!`;
+          body = `Check out what ${athleteName} has to share!`;
+          if (hypePostId) {
+            hypeCardUrl = `${baseUrl}/share/athlete/${athleteId}/post/${hypePostId}`;
+            notificationData = { athleteId, hypePostId, type: 'hype_post' };
+          }
+          break;
+        case 'stats':
+          title = `${athleteName} updated their Stats!`;
+          body = `See ${athleteName}'s latest performance numbers!`;
+          break;
+        case 'highlights':
+          title = `New Highlight from ${athleteName}!`;
+          body = `Watch ${athleteName}'s latest video highlight!`;
+          break;
+        case 'event':
+          title = `${athleteName} has a new Event!`;
+          body = `Check out ${athleteName}'s upcoming schedule!`;
+          break;
+        default:
+          // Keep the default generic message
+          break;
+      }
+      
       console.log("[FYR API] Sending notification to:", hypeCardUrl);
       
       // Check if OneSignal is configured - use it as primary
@@ -2045,7 +2077,7 @@ export async function registerRoutes(
           title,
           message: body,
           url: hypeCardUrl,
-          data: { athleteId, type: 'fyr' }
+          data: notificationData
         });
         
         console.log("[FYR API] OneSignal result:", JSON.stringify(onesignalResult));

@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Flame, ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Video, Heart, MessageCircle, Upload, X } from "lucide-react";
+import { Flame, ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Video, Heart, MessageCircle, Upload, X, ChevronDown, BarChart3, Calendar, Play } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
@@ -152,7 +153,7 @@ export default function HypeManager() {
       return res.json();
     },
     onSuccess: () => {
-      toast.success("HYPE post created! Followers have been notified.");
+      toast.success("HYPE post created! Use 'FYR IT OUT!' to notify your followers.");
       setShowPostDialog(false);
       setSelectedTemplate(null);
       setPostMessage("");
@@ -196,22 +197,25 @@ export default function HypeManager() {
     },
   });
 
-  const handleFYR = async () => {
+  // Update types for FYR notifications
+  type FyrUpdateType = 'hype_post' | 'stats' | 'highlights' | 'event' | 'general';
+  
+  const handleFYR = async (updateType: FyrUpdateType = 'general', hypePostId?: string) => {
     if (!user?.id) {
       console.log("[FYR] No user ID");
       toast.error("Please log in first");
       return;
     }
 
-    console.log("[FYR] Starting FYR request for user:", user.id);
+    console.log("[FYR] Starting FYR request for user:", user.id, "updateType:", updateType);
     setIsFyring(true);
     try {
       const res = await fetch(`/api/athletes/${user.id}/fyr?userId=${user.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: `${user.name || user.username} just sent a FYR!`,
-          body: "Check out their HYPE card now!",
+          updateType,
+          hypePostId,
         }),
       });
 
@@ -225,9 +229,17 @@ export default function HypeManager() {
 
       queryClient.invalidateQueries({ queryKey: ["/api/athletes", user.id, "followers", "count"] });
 
+      const updateTypeLabels: Record<FyrUpdateType, string> = {
+        hype_post: 'HYPE Post',
+        stats: 'Stats',
+        highlights: 'Highlight',
+        event: 'Event',
+        general: 'update',
+      };
+
       if (data.successCount > 0) {
         console.log("[FYR] Success! Sent to", data.successCount, "followers");
-        toast.success(`FYR sent to ${data.successCount} follower${data.successCount > 1 ? "s" : ""}!`);
+        toast.success(`${updateTypeLabels[updateType]} notification sent to ${data.successCount} follower${data.successCount > 1 ? "s" : ""}!`);
       } else if (data.failureCount > 0) {
         console.log("[FYR] Failure count:", data.failureCount);
         toast.error(`Failed to send notifications. ${data.failureCount} failed.`);
@@ -392,21 +404,100 @@ export default function HypeManager() {
           <div className="mb-6 flex gap-3">
             <Card className="flex-1 bg-gradient-to-br from-orange-900/50 to-zinc-900 border-orange-700/50">
               <CardContent className="p-4 flex items-center gap-3">
-                <Button
-                  onClick={handleFYR}
-                  disabled={isFyring || !followerData?.count}
-                  size="sm"
-                  className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold"
-                  data-testid="button-fyr"
-                >
-                  {isFyring ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <><img src={logoImage} alt="STATFYR" className="h-4 w-4 mr-1 object-contain" /> FYR IT!</>
-                  )}
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      disabled={isFyring || !followerData?.count}
+                      size="sm"
+                      className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold"
+                      data-testid="button-fyr"
+                    >
+                      {isFyring ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>
+                          <img src={logoImage} alt="STATFYR" className="h-4 w-4 mr-1 object-contain" /> 
+                          FYR IT OUT!
+                          <ChevronDown className="h-3 w-3 ml-1" />
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">
+                      What would you like to share?
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        const latestPost = hypePosts[0];
+                        if (latestPost?.id) {
+                          handleFYR('hype_post', latestPost.id);
+                        } else {
+                          toast.error("Create a HYPE post first before sharing it!");
+                        }
+                      }}
+                      className="cursor-pointer"
+                      disabled={!hypePosts.length}
+                      data-testid="fyr-hype-post"
+                    >
+                      <Flame className="h-4 w-4 mr-2 text-orange-500" />
+                      <div>
+                        <div className="font-medium">HYPE Post</div>
+                        <div className="text-xs text-muted-foreground">
+                          {hypePosts.length ? "Share your latest HYPE post" : "Create a post first"}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleFYR('stats')}
+                      className="cursor-pointer"
+                      data-testid="fyr-stats"
+                    >
+                      <BarChart3 className="h-4 w-4 mr-2 text-blue-500" />
+                      <div>
+                        <div className="font-medium">Stats Update</div>
+                        <div className="text-xs text-muted-foreground">Share your latest stats</div>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleFYR('highlights')}
+                      className="cursor-pointer"
+                      data-testid="fyr-highlights"
+                    >
+                      <Play className="h-4 w-4 mr-2 text-purple-500" />
+                      <div>
+                        <div className="font-medium">Highlight</div>
+                        <div className="text-xs text-muted-foreground">Share a new video highlight</div>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleFYR('event')}
+                      className="cursor-pointer"
+                      data-testid="fyr-event"
+                    >
+                      <Calendar className="h-4 w-4 mr-2 text-green-500" />
+                      <div>
+                        <div className="font-medium">Event</div>
+                        <div className="text-xs text-muted-foreground">Share an upcoming event</div>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => handleFYR('general')}
+                      className="cursor-pointer"
+                      data-testid="fyr-general"
+                    >
+                      <img src={logoImage} alt="STATFYR" className="h-4 w-4 mr-2 object-contain" />
+                      <div>
+                        <div className="font-medium">General Update</div>
+                        <div className="text-xs text-muted-foreground">Just let them know to check in</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <span className="text-xs text-[#fcfcfc]">
-                  Sends a message to your followers that your HYPE Card has been updated.
+                  Notify your {followerData?.count || 0} followers about updates
                 </span>
               </CardContent>
             </Card>
