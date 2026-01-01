@@ -239,6 +239,7 @@ export default function ShareableHypeCard(props: any) {
   const [spotlightPost, setSpotlightPost] = useState<HypePost | null>(null);
   const [spotlightLoading, setSpotlightLoading] = useState(false);
   const [displayedPostId, setDisplayedPostId] = useState<string | null>(null); // Track which postId is currently being displayed
+  const [expandedPost, setExpandedPost] = useState<HypePost | null>(null); // For tap-to-expand in list
   const queryClient = useQueryClient();
   
   // Derive showSpotlightModal from whether we have a postId to display
@@ -945,6 +946,105 @@ export default function ShareableHypeCard(props: any) {
         )}
       </AnimatePresence>
 
+      {/* Expanded HYPE Post Modal - For tapping posts in the list */}
+      <AnimatePresence>
+        {expandedPost && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overscroll-none"
+            style={{ touchAction: 'none' }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setExpandedPost(null);
+              }
+            }}
+            onTouchMove={(e) => e.preventDefault()}
+            data-testid="expanded-post-modal-overlay"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm max-h-[85vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Card className="bg-gradient-to-b from-slate-800 to-slate-900 border-slate-700 overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Header */}
+                  <div className="flex items-center justify-between p-4 border-b border-slate-700">
+                    <div className="flex items-center gap-2">
+                      <Flame className="h-5 w-5 text-orange-500" />
+                      <span className="font-display font-bold text-white">HYPE Post</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setExpandedPost(null)}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        setExpandedPost(null);
+                      }}
+                      className="h-10 w-10 p-0 text-slate-400 hover:text-white hover:bg-slate-700/50 active:bg-slate-600/50"
+                      style={{ touchAction: 'manipulation' }}
+                      data-testid="button-close-expanded-post"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  
+                  {/* Full-size Template Image */}
+                  <div className="relative aspect-square">
+                    <img
+                      src={HYPE_TEMPLATE_IMAGES[expandedPost.templateImage] || clutchImg}
+                      alt={expandedPost.templateImage}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  </div>
+                  
+                  {/* Message */}
+                  <div className="p-4 space-y-3">
+                    <p className="text-white text-base leading-relaxed">{expandedPost.message}</p>
+                    
+                    {/* Video indicator */}
+                    {expandedPost.highlightId && (
+                      <div className="flex items-center gap-2 text-orange-400 text-sm bg-orange-500/10 p-2 rounded-lg">
+                        <Video className="h-4 w-4" />
+                        <span>Video attached - view in Highlights</span>
+                      </div>
+                    )}
+                    
+                    {/* Timestamp */}
+                    <p className="text-slate-500 text-sm">
+                      {format(new Date(expandedPost.createdAt), "MMMM d, yyyy 'at' h:mm a")}
+                    </p>
+                  </div>
+                  
+                  {/* Close button */}
+                  <div className="p-4 border-t border-slate-700">
+                    <Button
+                      onClick={() => setExpandedPost(null)}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        setExpandedPost(null);
+                      }}
+                      variant="outline"
+                      className="w-full border-slate-600 text-white hover:bg-slate-700 py-3"
+                      style={{ touchAction: 'manipulation' }}
+                      data-testid="button-close-expanded-post-footer"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <main className="max-w-sm mx-auto px-4 pt-6">
         {/* HYPE Card - Trading Card Style */}
         <Card className="bg-gradient-to-b from-slate-800/90 to-slate-900/90 border-cyan-500/40 overflow-hidden rounded-2xl" data-testid="hype-card">
@@ -1122,7 +1222,17 @@ export default function ShareableHypeCard(props: any) {
                           </Button>
                         </div>
                         {hypePosts.slice(0, 3).map((post: HypePost) => (
-                          <div key={post.id} className="flex gap-3 p-2 bg-slate-800/50 rounded-lg">
+                          <div 
+                            key={post.id} 
+                            className="flex gap-3 p-2 bg-slate-800/50 rounded-lg cursor-pointer hover:bg-slate-700/50 active:bg-slate-600/50 transition-colors"
+                            onClick={() => setExpandedPost(post)}
+                            onTouchEnd={(e) => {
+                              e.preventDefault();
+                              setExpandedPost(post);
+                            }}
+                            style={{ touchAction: 'manipulation' }}
+                            data-testid={`hype-post-${post.id}`}
+                          >
                             <img
                               src={HYPE_TEMPLATE_IMAGES[post.templateImage] || clutchImg}
                               alt=""
@@ -1131,7 +1241,7 @@ export default function ShareableHypeCard(props: any) {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm text-white line-clamp-2">{post.message}</p>
                               <p className="text-xs text-slate-500 mt-1">
-                                {format(new Date(post.createdAt), "MMM d")}
+                                {format(new Date(post.createdAt), "MMM d")} • Tap to view
                               </p>
                             </div>
                           </div>
