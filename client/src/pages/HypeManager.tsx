@@ -68,6 +68,7 @@ export default function HypeManager() {
   const [selectedHighlightId, setSelectedHighlightId] = useState<string | null>(null);
   const [isFyring, setIsFyring] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [showAllComments, setShowAllComments] = useState(false);
 
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/share/athlete/${user?.id}` : "";
 
@@ -169,6 +170,22 @@ export default function HypeManager() {
     },
     onError: () => {
       toast.error("Failed to delete HYPE post");
+    },
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: async (commentId: string) => {
+      const res = await fetch(`/api/athletes/${user?.id}/profile-comments/${commentId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete comment");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Comment deleted");
+      queryClient.invalidateQueries({ queryKey: ["/api/athletes", user?.id, "profile-comments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/athletes", user?.id, "engagement"] });
+    },
+    onError: () => {
+      toast.error("Failed to delete comment");
     },
   });
 
@@ -323,7 +340,7 @@ export default function HypeManager() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {profileComments.slice(0, 5).map((comment) => (
+                  {(showAllComments ? profileComments : profileComments.slice(0, 3)).map((comment) => (
                     <div
                       key={comment.id}
                       className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700"
@@ -331,17 +348,46 @@ export default function HypeManager() {
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-semibold text-cyan-400 text-sm">{comment.visitorName}</span>
-                        <span className="text-xs text-zinc-500">
-                          {format(new Date(comment.createdAt), "MMM d, yyyy")}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-500">
+                            {format(new Date(comment.createdAt), "MMM d, yyyy")}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteCommentMutation.mutate(comment.id)}
+                            disabled={deleteCommentMutation.isPending}
+                            className="h-6 w-6 p-0 text-zinc-500 hover:text-red-500 hover:bg-red-500/10"
+                            data-testid={`button-delete-comment-${comment.id}`}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                       <p className="text-white text-sm">{comment.message}</p>
                     </div>
                   ))}
-                  {profileComments.length > 5 && (
-                    <p className="text-center text-xs text-zinc-500">
-                      + {profileComments.length - 5} more messages
-                    </p>
+                  {!showAllComments && profileComments.length > 3 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAllComments(true)}
+                      className="w-full text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10"
+                      data-testid="button-see-more-comments"
+                    >
+                      See More ({profileComments.length - 3} more)
+                    </Button>
+                  )}
+                  {showAllComments && profileComments.length > 3 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAllComments(false)}
+                      className="w-full text-zinc-400 hover:text-zinc-300 hover:bg-zinc-500/10"
+                      data-testid="button-show-less-comments"
+                    >
+                      Show Less
+                    </Button>
                   )}
                 </div>
               </CardContent>

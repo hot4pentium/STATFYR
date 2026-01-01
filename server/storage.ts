@@ -1495,6 +1495,13 @@ export class DatabaseStorage implements IStorage {
     return comment;
   }
 
+  async deleteProfileComment(commentId: string, athleteId: string): Promise<boolean> {
+    const result = await db
+      .delete(profileComments)
+      .where(and(eq(profileComments.id, commentId), eq(profileComments.athleteId, athleteId)));
+    return true;
+  }
+
   // FCM Token methods
   async saveFcmToken(userId: string, token: string, deviceInfo?: string): Promise<FcmToken> {
     const existing = await db

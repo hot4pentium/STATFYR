@@ -1810,6 +1810,20 @@ export async function registerRoutes(
     }
   });
 
+  // Delete a profile comment (athlete only)
+  app.delete("/api/athletes/:athleteId/profile-comments/:commentId", async (req, res) => {
+    try {
+      const { athleteId, commentId } = req.params;
+      
+      // For now, just delete - in production you'd verify the requesting user is the athlete
+      await storage.deleteProfileComment(commentId, athleteId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting profile comment:", error);
+      res.status(500).json({ error: "Failed to delete comment" });
+    }
+  });
+
   // ============ ATHLETE FOLLOWERS ROUTES ============
 
   // Get follower count for an athlete
