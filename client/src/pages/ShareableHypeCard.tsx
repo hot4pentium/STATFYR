@@ -13,6 +13,32 @@ import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
+
+// Platform detection helpers (for PWA install prompts)
+function isIOS(): boolean {
+  if (typeof window === 'undefined') return false;
+  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || '';
+  return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
+}
+
+function isAndroid(): boolean {
+  if (typeof window === 'undefined') return false;
+  const userAgent = navigator.userAgent || '';
+  return /android/i.test(userAgent);
+}
+
+function isChrome(): boolean {
+  if (typeof window === 'undefined') return false;
+  const userAgent = navigator.userAgent || '';
+  return /chrome/i.test(userAgent) && !/edge|edg/i.test(userAgent);
+}
+
+function isStandalonePWA(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         (window.navigator as any).standalone === true;
+}
+
 import hypeCardBg from "@assets/hype_card_BG_1767219165965.png";
 import clutchImg from "@assets/clutch_1766970267487.png";
 import dominationImg from "@assets/domination_1766970267487.png";
