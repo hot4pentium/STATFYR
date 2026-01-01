@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -84,7 +84,6 @@ export default function ChatPage() {
   const [activeChannel, setActiveChannel] = useState("general");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [showMemberSelector, setShowMemberSelector] = useState(false);
   const [chatMode, setChatMode] = useState<"channels" | "dm">("dm");
@@ -181,11 +180,10 @@ export default function ChatPage() {
     refetchInterval: 30000, // Refresh every 30 seconds to pick up new members
   });
 
-  // Filter out current user from team members
-  useEffect(() => {
-    if (teamMembersData.length > 0 && user?.id) {
-      setTeamMembers(teamMembersData.filter((m: TeamMember) => m.userId !== user.id));
-    }
+  // Filter out current user from team members - compute directly from data
+  const teamMembers = useMemo(() => {
+    if (!teamMembersData || !user?.id) return [];
+    return teamMembersData.filter((m: TeamMember) => m.userId !== user.id);
   }, [teamMembersData, user?.id]);
 
   // Fetch DM messages when conversation is selected
