@@ -1984,6 +1984,86 @@ export async function registerRoutes(
     }
   });
 
+  // Debug endpoint to test sending to ALL OneSignal subscribers
+  app.post("/api/debug/onesignal/test-send", async (req, res) => {
+    try {
+      const appId = process.env.ONESIGNAL_APP_ID;
+      const restApiKey = process.env.ONESIGNAL_REST_API_KEY;
+      
+      if (!appId || !restApiKey) {
+        return res.json({ error: "OneSignal not configured" });
+      }
+      
+      // Send to ALL subscribed users using segment
+      const response = await fetch('https://onesignal.com/api/v1/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${restApiKey}`,
+        },
+        body: JSON.stringify({
+          app_id: appId,
+          included_segments: ['Subscribed Users'],
+          headings: { en: 'Test Notification' },
+          contents: { en: 'This is a test from the debug endpoint' },
+        }),
+      });
+      
+      const result = await response.json();
+      console.log('[OneSignal Debug] Test send result:', JSON.stringify(result, null, 2));
+      
+      res.json({
+        httpStatus: response.status,
+        id: result.id,
+        recipients: result.recipients,
+        errors: result.errors
+      });
+    } catch (error: any) {
+      console.error('[OneSignal Debug] Test send error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Debug endpoint to check OneSignal status
+  app.get("/api/debug/onesignal", async (req, res) => {
+    try {
+      const appId = process.env.ONESIGNAL_APP_ID;
+      const restApiKey = process.env.ONESIGNAL_REST_API_KEY;
+      
+      if (!appId || !restApiKey) {
+        return res.json({ 
+          configured: false, 
+          error: "OneSignal credentials not configured",
+          appIdSet: !!appId,
+          restApiKeySet: !!restApiKey
+        });
+      }
+      
+      // Try to get app info from OneSignal
+      const response = await fetch(`https://onesignal.com/api/v1/apps/${appId}`, {
+        headers: {
+          'Authorization': `Basic ${restApiKey}`,
+        },
+      });
+      
+      const result = await response.json();
+      console.log('[OneSignal Debug] App info:', JSON.stringify(result, null, 2));
+      
+      res.json({
+        configured: true,
+        appId: appId.substring(0, 8) + '...',
+        httpStatus: response.status,
+        appName: result.name,
+        players: result.players,
+        messageable_players: result.messageable_players,
+        errors: result.errors
+      });
+    } catch (error: any) {
+      console.error('[OneSignal Debug] Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // FYR - Send push notification to all athlete followers
   // Now supports updateType: 'hype_post' | 'stats' | 'highlights' | 'event' | 'general'
   app.post("/api/athletes/:athleteId/fyr", async (req, res) => {
