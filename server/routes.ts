@@ -2184,30 +2184,31 @@ export async function registerRoutes(
       let notificationData: any = { athleteId, type: 'fyr' };
       
       // Customize notification based on update type
+      // Use descriptive titles to avoid iOS showing duplicate "from {name}"
       switch (updateType) {
         case 'hype_post':
-          title = `${athleteName}`;
-          body = `Just dropped a new HYPE Post!`;
+          title = `New HYPE Post`;
+          body = `${athleteName} just dropped a new post!`;
           if (hypePostId) {
             hypeCardUrl = `${baseUrl}/share/athlete/${athleteId}/post/${hypePostId}`;
             notificationData = { athleteId, hypePostId, type: 'hype_post' };
           }
           break;
         case 'stats':
-          title = `${athleteName}`;
-          body = `Updated their stats - check it out!`;
+          title = `Stats Update`;
+          body = `${athleteName} updated their stats!`;
           break;
         case 'highlights':
-          title = `${athleteName}`;
-          body = `Just posted a new highlight!`;
+          title = `New Highlight`;
+          body = `${athleteName} just posted a highlight!`;
           break;
         case 'event':
-          title = `${athleteName}`;
-          body = `Has an upcoming event!`;
+          title = `Upcoming Event`;
+          body = `${athleteName} has a new event!`;
           break;
         default:
-          title = `${athleteName}`;
-          body = `Just FYR'd - check it out!`;
+          title = `FYR Alert`;
+          body = `${athleteName} just FYR'd!`;
           break;
       }
       

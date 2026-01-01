@@ -74,9 +74,12 @@ export async function sendPushToPlayers(
       url: payload.url,
       data: payload.data,
       web_push_topic: topic,
+      // Explicitly set no subtitle to avoid iOS duplication
+      subtitle: undefined,
     };
     console.log('[OneSignal] Sending with topic:', topic);
     console.log('[OneSignal] Sending to player IDs:', playerIds);
+    console.log('[OneSignal] Notification data:', JSON.stringify(payload.data));
     
     const response = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
