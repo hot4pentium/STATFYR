@@ -200,3 +200,86 @@ export async function sendPushToSegment(
 export function isConfigured(): boolean {
   return !!(ONESIGNAL_APP_ID && ONESIGNAL_REST_API_KEY);
 }
+
+interface EmailPayload {
+  subject: string;
+  body: string;
+  fromName?: string;
+  preheader?: string;
+}
+
+export async function sendEmailToAddress(
+  email: string,
+  payload: EmailPayload
+): Promise<{ success: boolean; error?: string }> {
+  if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+    console.error('[OneSignal Email] Missing APP_ID or REST_API_KEY');
+    return { success: false, error: 'OneSignal not configured' };
+  }
+
+  try {
+    const response = await fetch('https://onesignal.com/api/v1/notifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
+      },
+      body: JSON.stringify({
+        app_id: ONESIGNAL_APP_ID,
+        include_email_tokens: [email],
+        email_subject: payload.subject,
+        email_body: payload.body,
+        email_from_name: payload.fromName || 'STATFYR',
+        email_preheader: payload.preheader,
+      }),
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('[OneSignal Email] API error:', result);
+      return { success: false, error: result.errors?.[0] || 'Failed to send email' };
+    }
+
+    console.log('[OneSignal Email] Sent to:', email, 'ID:', result.id);
+    return { success: true };
+  } catch (error: any) {
+    console.error('[OneSignal Email] Send error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function sendChatNotificationEmail(
+  recipientEmail: string,
+  senderName: string,
+  messagePreview: string,
+  chatUrl: string
+): Promise<{ success: boolean; error?: string }> {
+  const truncatedPreview = messagePreview.length > 100 
+    ? messagePreview.substring(0, 100) + '...' 
+    : messagePreview;
+
+  const emailBody = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5;">
+      <div style="max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h2 style="margin: 0 0 16px; color: #1a1a1a; font-size: 20px;">New Message from ${senderName}</h2>
+        <p style="margin: 0 0 20px; color: #666; font-size: 16px; line-height: 1.5;">"${truncatedPreview}"</p>
+        <a href="${chatUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Message</a>
+        <p style="margin: 20px 0 0; color: #999; font-size: 12px;">STATFYR - Team Management Made Easy</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  return sendEmailToAddress(recipientEmail, {
+    subject: `New message from ${senderName}`,
+    body: emailBody,
+    preheader: truncatedPreview,
+  });
+}

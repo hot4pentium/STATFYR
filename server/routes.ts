@@ -2447,6 +2447,178 @@ export async function registerRoutes(
     }
   });
 
+  // ============ DIRECT MESSAGE ROUTES ============
+
+  // Get user's conversations for a team
+  app.get("/api/teams/:teamId/conversations", async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      if (!userId) {
+        return res.status(400).json({ error: "userId is required" });
+      }
+      
+      // Verify user is a member of this team
+      const membership = await storage.getTeamMembership(req.params.teamId, userId);
+      if (!membership) {
+        return res.status(403).json({ error: "You are not a member of this team" });
+      }
+      
+      const conversations = await storage.getUserConversations(userId, req.params.teamId);
+      res.json(conversations);
+    } catch (error) {
+      console.error("Error getting conversations:", error);
+      res.status(500).json({ error: "Failed to get conversations" });
+    }
+  });
+
+  // Get messages in a specific conversation
+  app.get("/api/teams/:teamId/conversations/:otherUserId/messages", async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      if (!userId) {
+        return res.status(400).json({ error: "userId is required" });
+      }
+      
+      // Verify both users are members of this team
+      const userMembership = await storage.getTeamMembership(req.params.teamId, userId);
+      const otherMembership = await storage.getTeamMembership(req.params.teamId, req.params.otherUserId);
+      if (!userMembership) {
+        return res.status(403).json({ error: "You are not a member of this team" });
+      }
+      if (!otherMembership) {
+        return res.status(400).json({ error: "Other user is not a member of this team" });
+      }
+      
+      const messages = await storage.getConversation(
+        req.params.teamId,
+        userId,
+        req.params.otherUserId,
+        parseInt(req.query.limit as string) || 50
+      );
+      res.json(messages);
+    } catch (error) {
+      console.error("Error getting messages:", error);
+      res.status(500).json({ error: "Failed to get messages" });
+    }
+  });
+
+  // Send a direct message
+  app.post("/api/teams/:teamId/messages", async (req, res) => {
+    try {
+      const { senderId, recipientId, content } = req.body;
+      if (!senderId || !recipientId || !content) {
+        return res.status(400).json({ error: "senderId, recipientId, and content are required" });
+      }
+      
+      // Verify both sender and recipient are members of this team
+      const senderMembership = await storage.getTeamMembership(req.params.teamId, senderId);
+      const recipientMembership = await storage.getTeamMembership(req.params.teamId, recipientId);
+      if (!senderMembership) {
+        return res.status(403).json({ error: "Sender is not a member of this team" });
+      }
+      if (!recipientMembership) {
+        return res.status(400).json({ error: "Recipient is not a member of this team" });
+      }
+
+      const message = await storage.createDirectMessage({
+        teamId: req.params.teamId,
+        senderId,
+        recipientId,
+        content,
+      });
+
+      // Check recipient's notification preferences and send email if enabled
+      const prefs = await storage.getNotificationPreferences(recipientId);
+      const shouldSendEmail = prefs?.emailOnMessage !== false; // Default to true
+
+      if (shouldSendEmail && message.recipient.email) {
+        try {
+          const { sendChatNotificationEmail } = await import('./onesignal');
+          const chatUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'https://statfyr.replit.app'}/chat`;
+          await sendChatNotificationEmail(
+            message.recipient.email,
+            message.sender.name || message.sender.username,
+            content,
+            chatUrl
+          );
+        } catch (err) {
+          console.error('[Chat] Email notification failed:', err);
+        }
+      }
+
+      res.status(201).json(message);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
+  // Mark conversation as read
+  app.post("/api/teams/:teamId/conversations/:otherUserId/read", async (req, res) => {
+    try {
+      const userId = req.body.userId as string;
+      if (!userId) {
+        return res.status(400).json({ error: "userId is required" });
+      }
+      
+      // Verify user is a member of this team
+      const membership = await storage.getTeamMembership(req.params.teamId, userId);
+      if (!membership) {
+        return res.status(403).json({ error: "You are not a member of this team" });
+      }
+      
+      const [minId, maxId] = [userId, req.params.otherUserId].sort();
+      const conversationKey = `${req.params.teamId}:${minId}-${maxId}`;
+      
+      await storage.markConversationRead(userId, conversationKey);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking conversation read:", error);
+      res.status(500).json({ error: "Failed to mark conversation read" });
+    }
+  });
+
+  // Get user's total unread message count
+  app.get("/api/users/:userId/unread-count", async (req, res) => {
+    try {
+      const count = await storage.getUserUnreadMessageCount(req.params.userId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error getting unread count:", error);
+      res.status(500).json({ error: "Failed to get unread count" });
+    }
+  });
+
+  // ============ NOTIFICATION PREFERENCES ROUTES ============
+
+  // Get user's notification preferences
+  app.get("/api/users/:userId/notification-preferences", async (req, res) => {
+    try {
+      const prefs = await storage.getNotificationPreferences(req.params.userId);
+      // Return defaults if no preferences set
+      res.json(prefs || {
+        emailOnMessage: true,
+        pushOnMessage: true,
+        emailOnHype: false,
+        pushOnHype: true,
+      });
+    } catch (error) {
+      console.error("Error getting notification preferences:", error);
+      res.status(500).json({ error: "Failed to get notification preferences" });
+    }
+  });
+
+  // Update user's notification preferences
+  app.put("/api/users/:userId/notification-preferences", async (req, res) => {
+    try {
+      const prefs = await storage.upsertNotificationPreferences(req.params.userId, req.body);
+      res.json(prefs);
+    } catch (error) {
+      console.error("Error updating notification preferences:", error);
+      res.status(500).json({ error: "Failed to update notification preferences" });
+    }
+  });
+
   // ============ SHOUTOUTS ROUTES ============
   
   app.get("/api/games/:gameId/shoutouts", async (req, res) => {

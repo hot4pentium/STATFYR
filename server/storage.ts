@@ -3,7 +3,7 @@ import {
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
   liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
-  impersonationSessions, hypes, athleteHypeTotals,
+  impersonationSessions, hypes, athleteHypeTotals, directMessages, messageReads, notificationPreferences,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -32,7 +32,10 @@ import {
   type HypePost, type InsertHypePost,
   type ImpersonationSession, type InsertImpersonationSession,
   type Hype, type InsertHype,
-  type AthleteHypeTotal, type InsertAthleteHypeTotal
+  type AthleteHypeTotal, type InsertAthleteHypeTotal,
+  type DirectMessage, type InsertDirectMessage,
+  type MessageRead, type InsertMessageRead,
+  type NotificationPreferences, type UpdateNotificationPreferences
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql, or, ilike } from "drizzle-orm";
@@ -211,6 +214,17 @@ export interface IStorage {
   getAthleteEventHypeCount(athleteId: string, eventId: string): Promise<number>;
   getAthleteSeasonHypeTotal(athleteId: string, teamId: string): Promise<number>;
   getEventHypesByAthlete(eventId: string): Promise<{ athleteId: string; athleteName: string; avatar: string | null; hypeCount: number }[]>;
+  
+  // Direct Message methods
+  getConversation(teamId: string, userId1: string, userId2: string, limit?: number): Promise<(DirectMessage & { sender: Omit<User, 'password'>; recipient: Omit<User, 'password'> })[]>;
+  getUserConversations(userId: string, teamId: string): Promise<{ otherUser: Omit<User, 'password'>; lastMessage: DirectMessage; unreadCount: number }[]>;
+  createDirectMessage(data: InsertDirectMessage): Promise<DirectMessage>;
+  getUserUnreadMessageCount(userId: string): Promise<number>;
+  markConversationRead(userId: string, conversationKey: string): Promise<void>;
+  
+  // Notification Preferences methods
+  getNotificationPreferences(userId: string): Promise<NotificationPreferences | undefined>;
+  upsertNotificationPreferences(userId: string, data: UpdateNotificationPreferences): Promise<NotificationPreferences>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -305,14 +319,16 @@ export class DatabaseStorage implements IStorage {
     const teamSessions = await db.select().from(liveEngagementSessions).where(eq(liveEngagementSessions.teamId, id));
     const sessionIds = teamSessions.map(s => s.id);
     
-    // Delete shoutouts, tap events, and tap totals for team sessions
+    // Delete shoutouts and tap events for team sessions
     if (sessionIds.length > 0) {
       for (const sessionId of sessionIds) {
         await db.delete(shoutouts).where(eq(shoutouts.sessionId, sessionId));
         await db.delete(liveTapEvents).where(eq(liveTapEvents.sessionId, sessionId));
-        await db.delete(liveTapTotals).where(eq(liveTapTotals.sessionId, sessionId));
       }
     }
+    
+    // Delete tap totals for team
+    await db.delete(liveTapTotals).where(eq(liveTapTotals.teamId, id));
     
     // Delete live engagement sessions
     await db.delete(liveEngagementSessions).where(eq(liveEngagementSessions.teamId, id));
@@ -1870,6 +1886,162 @@ export class DatabaseStorage implements IStorage {
       avatar: r.avatar,
       hypeCount: r.hypeCount,
     }));
+  }
+
+  // Direct Message methods
+  private getConversationKey(teamId: string, userId1: string, userId2: string): string {
+    const [minId, maxId] = [userId1, userId2].sort();
+    return `${teamId}:${minId}-${maxId}`;
+  }
+
+  async getConversation(teamId: string, userId1: string, userId2: string, limit: number = 50): Promise<(DirectMessage & { sender: Omit<User, 'password'>; recipient: Omit<User, 'password'> })[]> {
+    const messages = await db
+      .select()
+      .from(directMessages)
+      .where(
+        and(
+          eq(directMessages.teamId, teamId),
+          or(
+            and(eq(directMessages.senderId, userId1), eq(directMessages.recipientId, userId2)),
+            and(eq(directMessages.senderId, userId2), eq(directMessages.recipientId, userId1))
+          )
+        )
+      )
+      .orderBy(desc(directMessages.createdAt))
+      .limit(limit);
+
+    const messagesWithUsers = await Promise.all(
+      messages.map(async (msg) => {
+        const [sender] = await db.select().from(users).where(eq(users.id, msg.senderId));
+        const [recipient] = await db.select().from(users).where(eq(users.id, msg.recipientId));
+        const { password: _sp, ...senderWithoutPassword } = sender;
+        const { password: _rp, ...recipientWithoutPassword } = recipient;
+        return { ...msg, sender: senderWithoutPassword, recipient: recipientWithoutPassword };
+      })
+    );
+
+    return messagesWithUsers.reverse();
+  }
+
+  async getUserConversations(userId: string, teamId: string): Promise<{ otherUser: Omit<User, 'password'>; lastMessage: DirectMessage; unreadCount: number }[]> {
+    // Get all messages for this user in this team
+    const allMessages = await db
+      .select()
+      .from(directMessages)
+      .where(
+        and(
+          eq(directMessages.teamId, teamId),
+          or(eq(directMessages.senderId, userId), eq(directMessages.recipientId, userId))
+        )
+      )
+      .orderBy(desc(directMessages.createdAt));
+
+    // Group by conversation partner
+    const conversationMap = new Map<string, { messages: DirectMessage[]; otherUserId: string }>();
+    for (const msg of allMessages) {
+      const otherUserId = msg.senderId === userId ? msg.recipientId : msg.senderId;
+      if (!conversationMap.has(otherUserId)) {
+        conversationMap.set(otherUserId, { messages: [], otherUserId });
+      }
+      conversationMap.get(otherUserId)!.messages.push(msg);
+    }
+
+    // Get last read timestamps
+    const readRecords = await db
+      .select()
+      .from(messageReads)
+      .where(eq(messageReads.userId, userId));
+    
+    const readMap = new Map<string, Date>();
+    for (const record of readRecords) {
+      readMap.set(record.conversationKey, record.lastReadAt!);
+    }
+
+    // Build result
+    const result: { otherUser: Omit<User, 'password'>; lastMessage: DirectMessage; unreadCount: number }[] = [];
+    const conversationEntries = Array.from(conversationMap.entries());
+    for (let i = 0; i < conversationEntries.length; i++) {
+      const [otherUserId, data] = conversationEntries[i];
+      const [otherUser] = await db.select().from(users).where(eq(users.id, otherUserId));
+      if (!otherUser) continue;
+
+      const { password: _, ...otherUserWithoutPassword } = otherUser;
+      const lastMessage = data.messages[0];
+      const conversationKey = this.getConversationKey(teamId, userId, otherUserId);
+      const lastReadAt = readMap.get(conversationKey) || new Date(0);
+
+      // Count unread messages (messages from other user after lastReadAt)
+      const unreadCount = data.messages.filter(
+        (msg: DirectMessage) => msg.senderId === otherUserId && msg.createdAt! > lastReadAt
+      ).length;
+
+      result.push({ otherUser: otherUserWithoutPassword, lastMessage, unreadCount });
+    }
+
+    // Sort by last message time
+    result.sort((a, b) => (b.lastMessage.createdAt?.getTime() || 0) - (a.lastMessage.createdAt?.getTime() || 0));
+    return result;
+  }
+
+  async createDirectMessage(data: InsertDirectMessage): Promise<DirectMessage & { sender: Omit<User, 'password'>; recipient: Omit<User, 'password'> }> {
+    const [message] = await db.insert(directMessages).values(data).returning();
+    
+    // Hydrate sender and recipient
+    const [sender] = await db.select().from(users).where(eq(users.id, message.senderId));
+    const [recipient] = await db.select().from(users).where(eq(users.id, message.recipientId));
+    const { password: _sp, ...senderWithoutPassword } = sender;
+    const { password: _rp, ...recipientWithoutPassword } = recipient;
+    
+    return { ...message, sender: senderWithoutPassword, recipient: recipientWithoutPassword };
+  }
+
+  async getUserUnreadMessageCount(userId: string): Promise<number> {
+    // Get all teams user is member of
+    const memberships = await db.select().from(teamMembers).where(eq(teamMembers.userId, userId));
+    let totalUnread = 0;
+
+    for (const membership of memberships) {
+      const conversations = await this.getUserConversations(userId, membership.teamId);
+      totalUnread += conversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
+    }
+
+    return totalUnread;
+  }
+
+  async markConversationRead(userId: string, conversationKey: string): Promise<void> {
+    // Use upsert pattern - delete existing and insert new
+    await db
+      .delete(messageReads)
+      .where(and(eq(messageReads.userId, userId), eq(messageReads.conversationKey, conversationKey)));
+    
+    await db.insert(messageReads).values({ userId, conversationKey, lastReadAt: new Date() });
+  }
+
+  // Notification Preferences methods
+  async getNotificationPreferences(userId: string): Promise<NotificationPreferences | undefined> {
+    const [prefs] = await db
+      .select()
+      .from(notificationPreferences)
+      .where(eq(notificationPreferences.userId, userId));
+    return prefs || undefined;
+  }
+
+  async upsertNotificationPreferences(userId: string, data: UpdateNotificationPreferences): Promise<NotificationPreferences> {
+    const existing = await this.getNotificationPreferences(userId);
+    if (existing) {
+      const [updated] = await db
+        .update(notificationPreferences)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(notificationPreferences.userId, userId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(notificationPreferences)
+        .values({ userId, ...data })
+        .returning();
+      return created;
+    }
   }
 }
 

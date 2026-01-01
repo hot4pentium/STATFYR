@@ -6,11 +6,14 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Send, ArrowLeft, Bell, BellOff, Hash, Users, MessageSquare, Check } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Send, ArrowLeft, Bell, BellOff, Hash, Users, MessageSquare, Check, Mail, Settings } from "lucide-react";
 import { Link } from "wouter";
 import { useNotifications } from "@/lib/notificationContext";
 import { useUser } from "@/lib/userContext";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface ChatUser {
   id: string;
@@ -18,6 +21,7 @@ interface ChatUser {
   lastName: string;
   name: string;
   avatar?: string | null;
+  email?: string;
 }
 
 interface TeamMember {
@@ -43,12 +47,37 @@ interface ChatMessage {
   user: ChatUser;
 }
 
+interface DirectMessage {
+  id: string;
+  teamId: string;
+  senderId: string;
+  recipientId: string;
+  content: string;
+  createdAt: string;
+  sender: ChatUser;
+  recipient: ChatUser;
+}
+
+interface Conversation {
+  otherUser: ChatUser;
+  lastMessage: DirectMessage;
+  unreadCount: number;
+}
+
+interface NotificationPreferences {
+  emailOnMessage: boolean;
+  pushOnMessage: boolean;
+  emailOnHype: boolean;
+  pushOnHype: boolean;
+}
+
 const CHANNELS = ["general", "announcements", "tactics"];
 
 export default function ChatPage() {
   const { notificationsEnabled, permissionDenied, enableNotifications } = useNotifications();
   const { user, currentTeam } = useUser();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isEnabling, setIsEnabling] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -58,6 +87,10 @@ export default function ChatPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [showMemberSelector, setShowMemberSelector] = useState(false);
+  const [chatMode, setChatMode] = useState<"channels" | "dm">("dm");
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [dmMessages, setDmMessages] = useState<DirectMessage[]>([]);
+  const [showSettings, setShowSettings] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -71,6 +104,63 @@ export default function ChatPage() {
       default: return "/";
     }
   };
+
+  // Fetch notification preferences
+  const { data: notifPrefs } = useQuery<NotificationPreferences>({
+    queryKey: ["notification-preferences", user?.id],
+    queryFn: async () => {
+      if (!user?.id) throw new Error("No user");
+      const res = await fetch(`/api/users/${user.id}/notification-preferences`);
+      if (!res.ok) throw new Error("Failed to fetch preferences");
+      return res.json();
+    },
+    enabled: !!user?.id,
+  });
+
+  // Update notification preferences
+  const updatePrefsMutation = useMutation({
+    mutationFn: async (prefs: Partial<NotificationPreferences>) => {
+      if (!user?.id) throw new Error("No user");
+      const res = await fetch(`/api/users/${user.id}/notification-preferences`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(prefs),
+      });
+      if (!res.ok) throw new Error("Failed to update preferences");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notification-preferences", user?.id] });
+      toast({ title: "Preferences updated" });
+    },
+  });
+
+  // Fetch conversations
+  const { data: conversations = [], refetch: refetchConversations } = useQuery<Conversation[]>({
+    queryKey: ["conversations", currentTeam?.id, user?.id],
+    queryFn: async () => {
+      if (!currentTeam?.id || !user?.id) return [];
+      const res = await fetch(`/api/teams/${currentTeam.id}/conversations?userId=${user.id}`);
+      if (!res.ok) throw new Error("Failed to fetch conversations");
+      return res.json();
+    },
+    enabled: !!currentTeam?.id && !!user?.id,
+    refetchInterval: 10000,
+  });
+
+  // Calculate total unread count
+  const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
+
+  // Update app badge when unread count changes
+  useEffect(() => {
+    if ('setAppBadge' in navigator && totalUnread >= 0) {
+      if (totalUnread > 0) {
+        navigator.setAppBadge(totalUnread).catch(() => {});
+      } else {
+        navigator.clearAppBadge?.().catch(() => {});
+      }
+    }
+  }, [totalUnread]);
 
   const handleEnableNotifications = async () => {
     setIsEnabling(true);
@@ -97,9 +187,40 @@ export default function ChatPage() {
     fetchMembers();
   }, [currentTeam, user?.id]);
 
-  // Fetch messages when channel or team changes
+  // Fetch DM messages when conversation is selected
   useEffect(() => {
-    if (!currentTeam) return;
+    if (!currentTeam || !user || !selectedConversation) return;
+    
+    const fetchDmMessages = async () => {
+      try {
+        const res = await fetch(
+          `/api/teams/${currentTeam.id}/conversations/${selectedConversation}/messages?userId=${user.id}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setDmMessages(data);
+          
+          // Mark as read
+          await fetch(`/api/teams/${currentTeam.id}/conversations/${selectedConversation}/read`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: user.id }),
+          });
+          refetchConversations();
+        }
+      } catch (error) {
+        console.error("Error fetching DM messages:", error);
+      }
+    };
+    
+    fetchDmMessages();
+    const interval = setInterval(fetchDmMessages, 5000);
+    return () => clearInterval(interval);
+  }, [currentTeam, user, selectedConversation, refetchConversations]);
+
+  // Fetch channel messages
+  useEffect(() => {
+    if (!currentTeam || chatMode !== "channels") return;
     
     const fetchMessages = async () => {
       setIsLoading(true);
@@ -117,54 +238,47 @@ export default function ChatPage() {
     };
     
     fetchMessages();
-  }, [currentTeam, activeChannel]);
+  }, [currentTeam, activeChannel, chatMode]);
 
-  // Set up WebSocket connection
-  useEffect(() => {
-    if (!currentTeam || !user) return;
-    
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws/chat?teamId=${currentTeam.id}&userId=${user.id}`;
-    
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
-    
-    ws.onopen = () => {
-      console.log("WebSocket connected");
-    };
-    
-    ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        if (message.type === "new_message" && message.data.channel === activeChannel) {
-          setMessages((prev) => [...prev, message.data]);
-        }
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
-      }
-    };
-    
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-    
-    ws.onclose = () => {
-      console.log("WebSocket disconnected");
-    };
-    
-    return () => {
-      ws.close();
-    };
-  }, [currentTeam, activeChannel, user]);
-
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, dmMessages]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendDM = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !user || !currentTeam || !selectedConversation) return;
+    
+    setIsSending(true);
+    try {
+      const res = await fetch(`/api/teams/${currentTeam.id}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          senderId: user.id,
+          recipientId: selectedConversation,
+          content: newMessage.trim(),
+        }),
+      });
+      
+      if (res.ok) {
+        const msg = await res.json();
+        setDmMessages((prev) => [...prev, msg]);
+        setNewMessage("");
+        refetchConversations();
+      } else {
+        toast({ title: "Error", description: "Failed to send message", variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to send message", variant: "destructive" });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleSendChannelMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !user || !currentTeam) return;
     
@@ -189,18 +303,10 @@ export default function ChatPage() {
           });
         }
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to send message",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "Failed to send message", variant: "destructive" });
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send message",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to send message", variant: "destructive" });
     } finally {
       setIsSending(false);
     }
@@ -208,7 +314,12 @@ export default function ChatPage() {
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    if (isToday) {
+      return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    }
+    return date.toLocaleDateString([], { month: "short", day: "numeric" });
   };
 
   const getInitials = (name: string) => {
@@ -230,63 +341,13 @@ export default function ChatPage() {
     setSelectedMembers(newSelected);
   };
 
-  const selectAll = () => {
-    setSelectedMembers(new Set(teamMembers.map((m) => m.userId)));
+  const getConversationUser = (userId: string) => {
+    return conversations.find((c) => c.otherUser.id === userId)?.otherUser;
   };
 
-  const selectCoachesStaff = () => {
-    const coaches = teamMembers.filter((m) => m.role === "coach" || m.role === "staff");
-    setSelectedMembers(new Set(coaches.map((m) => m.userId)));
+  const startNewConversation = (memberId: string) => {
+    setSelectedConversation(memberId);
   };
-
-  const clearSelection = () => {
-    setSelectedMembers(new Set());
-  };
-
-  // Gate chat access behind notification permission
-  if (!notificationsEnabled) {
-    return (
-      <Layout>
-        <div className="h-[calc(100vh-140px)] flex items-center justify-center">
-          <Card className="w-full max-w-md text-center p-8">
-            <div className="mx-auto mb-6 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              {permissionDenied ? (
-                <BellOff className="h-8 w-8 text-destructive" />
-              ) : (
-                <Bell className="h-8 w-8 text-primary" />
-              )}
-            </div>
-            <CardTitle className="text-2xl mb-4">
-              {permissionDenied ? "Notifications Blocked" : "Enable Notifications"}
-            </CardTitle>
-            <p className="text-muted-foreground mb-6">
-              {permissionDenied 
-                ? "You've blocked notifications for this site. To use chat, please enable notifications in your browser settings and refresh the page."
-                : "To participate in team chat, you need to enable notifications. This ensures you never miss important messages from your team."
-              }
-            </p>
-            {!permissionDenied && (
-              <Button 
-                onClick={handleEnableNotifications} 
-                disabled={isEnabling}
-                className="w-full"
-                data-testid="button-enable-notifications"
-              >
-                <Bell className="mr-2 h-4 w-4" />
-                {isEnabling ? "Enabling..." : "Enable Notifications"}
-              </Button>
-            )}
-            <Link href={getDashboardPath()}>
-              <Button variant="ghost" className="w-full mt-2" data-testid="button-go-back">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Go Back
-              </Button>
-            </Link>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
 
   if (!currentTeam) {
     return (
@@ -313,283 +374,357 @@ export default function ChatPage() {
     <Layout>
       <div className="h-[calc(100vh-140px)] flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
-        <div className="flex items-center gap-3">
-          <Link href={getDashboardPath()}>
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-display font-bold uppercase tracking-tight text-foreground">Team Chat</h1>
-            <p className="text-sm text-muted-foreground">{currentTeam.name}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href={getDashboardPath()}>
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-display font-bold uppercase tracking-tight text-foreground">
+                Messages
+                {totalUnread > 0 && (
+                  <span className="ml-2 text-sm bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
+                    {totalUnread}
+                  </span>
+                )}
+              </h1>
+              <p className="text-sm text-muted-foreground">{currentTeam.name}</p>
+            </div>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowSettings(!showSettings)}
+            data-testid="button-settings"
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
         </div>
 
-        {/* Horizontal Coach Chat Card */}
-        {isCoach && (
-          <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 p-4">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <MessageSquare className="h-5 w-5 text-primary" />
-                </div>
+        {/* Settings Panel */}
+        {showSettings && (
+          <Card className="p-4 bg-card border-white/5">
+            <h3 className="font-display font-bold uppercase text-sm mb-4 flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Notification Preferences
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-display font-bold uppercase text-sm">Quick Message</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {selectedMembers.size > 0 
-                      ? `${selectedMembers.size} member${selectedMembers.size > 1 ? "s" : ""} selected`
-                      : "Select recipients below"
-                    }
-                  </p>
+                  <p className="font-medium">Email for new messages</p>
+                  <p className="text-sm text-muted-foreground">Get an email when someone messages you</p>
                 </div>
+                <Switch
+                  checked={notifPrefs?.emailOnMessage ?? true}
+                  onCheckedChange={(checked) => updatePrefsMutation.mutate({ emailOnMessage: checked })}
+                  data-testid="switch-email-message"
+                />
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={selectAll}
-                  className="border-primary/30 hover:bg-primary/10"
-                  data-testid="button-select-all"
-                >
-                  <Users className="h-4 w-4 mr-1" />
-                  All
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={selectCoachesStaff}
-                  className="border-primary/30 hover:bg-primary/10"
-                  data-testid="button-select-coaches"
-                >
-                  Coach/Staff
-                </Button>
-                {selectedMembers.size > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearSelection}
-                    className="text-muted-foreground"
-                    data-testid="button-clear-selection"
-                  >
-                    Clear
-                  </Button>
-                )}
-                <Button
-                  variant={showMemberSelector ? "secondary" : "outline"}
-                  size="sm"
-                  onClick={() => setShowMemberSelector(!showMemberSelector)}
-                  className="border-primary/30"
-                  data-testid="button-toggle-members"
-                >
-                  <Users className="h-4 w-4 mr-1" />
-                  {showMemberSelector ? "Hide" : "Select Members"}
-                </Button>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Push for new messages</p>
+                  <p className="text-sm text-muted-foreground">Get push notifications for messages</p>
+                </div>
+                <Switch
+                  checked={notifPrefs?.pushOnMessage ?? true}
+                  onCheckedChange={(checked) => updatePrefsMutation.mutate({ pushOnMessage: checked })}
+                  data-testid="switch-push-message"
+                />
               </div>
             </div>
           </Card>
         )}
 
-        {/* Member Selector Panel */}
-        {(showMemberSelector || !isCoach) && (
-          <Card className="bg-card border-white/5 p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-display font-bold uppercase text-sm flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Select Recipients
-              </h3>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={selectAll}
-                  data-testid="button-select-all-panel"
-                >
-                  All
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={selectCoachesStaff}
-                  data-testid="button-select-coaches-panel"
-                >
-                  Coach/Staff
-                </Button>
-                {selectedMembers.size > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearSelection}
-                    data-testid="button-clear-panel"
-                  >
-                    Clear ({selectedMembers.size})
-                  </Button>
-                )}
-              </div>
-            </div>
-            <ScrollArea className="max-h-40">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                {teamMembers.map((member) => (
-                  <label
-                    key={member.userId}
-                    className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
-                      selectedMembers.has(member.userId)
-                        ? "bg-primary/10 border border-primary/30"
-                        : "bg-white/5 border border-transparent hover:bg-white/10"
-                    }`}
-                    data-testid={`member-select-${member.userId}`}
-                  >
-                    <Checkbox
-                      checked={selectedMembers.has(member.userId)}
-                      onCheckedChange={() => toggleMember(member.userId)}
-                    />
-                    <Avatar className="h-6 w-6">
-                      {member.user.avatar && <AvatarImage src={member.user.avatar} />}
-                      <AvatarFallback className="text-xs">
-                        {getInitials(member.user.name || `${member.user.firstName} ${member.user.lastName}`)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {member.user.name || `${member.user.firstName} ${member.user.lastName}`}
-                      </p>
-                      <p className="text-xs text-muted-foreground capitalize">{member.role}</p>
-                    </div>
-                    {selectedMembers.has(member.userId) && (
-                      <Check className="h-4 w-4 text-primary flex-shrink-0" />
-                    )}
-                  </label>
-                ))}
-              </div>
-            </ScrollArea>
-          </Card>
-        )}
-
-        <div className="flex gap-6 flex-1 overflow-hidden">
-          {/* Channels List */}
-          <Card className="w-64 bg-card border-white/5 flex-col hidden md:flex">
-            <div className="p-4 border-b border-white/5">
-              <h3 className="font-display uppercase tracking-wide text-sm font-bold">Channels</h3>
-            </div>
-            <ScrollArea className="flex-1">
-              <div className="p-2 space-y-1">
-                {CHANNELS.map((channel) => (
-                  <button
-                    key={channel}
-                    onClick={() => setActiveChannel(channel)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-colors ${
-                      activeChannel === channel
-                        ? "bg-primary/10 text-primary"
-                        : "hover:bg-white/5 text-muted-foreground"
-                    }`}
-                    data-testid={`channel-${channel}`}
-                  >
-                    <Hash className="h-4 w-4" />
-                    <span className="font-medium">{channel}</span>
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
+        <div className="flex gap-4 flex-1 overflow-hidden">
+          {/* Sidebar - Conversations & Team Members */}
+          <Card className="w-80 bg-card border-white/5 flex flex-col hidden md:flex">
+            <Tabs value={chatMode} onValueChange={(v) => setChatMode(v as "channels" | "dm")} className="flex flex-col h-full">
+              <TabsList className="grid w-full grid-cols-2 m-2">
+                <TabsTrigger value="dm" className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Direct
+                  {totalUnread > 0 && (
+                    <span className="bg-primary text-primary-foreground text-xs px-1.5 rounded-full">
+                      {totalUnread}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="channels" className="flex items-center gap-2">
+                  <Hash className="h-4 w-4" />
+                  Channels
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="dm" className="flex-1 overflow-hidden m-0">
+                <ScrollArea className="h-full">
+                  <div className="p-2 space-y-1">
+                    <p className="px-3 py-2 text-xs text-muted-foreground uppercase font-bold">Recent</p>
+                    {conversations.map((conv) => (
+                      <button
+                        key={conv.otherUser.id}
+                        onClick={() => setSelectedConversation(conv.otherUser.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-left transition-colors ${
+                          selectedConversation === conv.otherUser.id
+                            ? "bg-primary/10 text-primary"
+                            : "hover:bg-white/5 text-foreground"
+                        }`}
+                        data-testid={`conversation-${conv.otherUser.id}`}
+                      >
+                        <Avatar className="h-8 w-8">
+                          {conv.otherUser.avatar && <AvatarImage src={conv.otherUser.avatar} />}
+                          <AvatarFallback>{getInitials(conv.otherUser.name || "?")}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium truncate">{conv.otherUser.name}</span>
+                            {conv.unreadCount > 0 && (
+                              <span className="bg-primary text-primary-foreground text-xs px-1.5 rounded-full">
+                                {conv.unreadCount}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {conv.lastMessage.content}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                    
+                    <p className="px-3 py-2 text-xs text-muted-foreground uppercase font-bold mt-4">Team Members</p>
+                    {teamMembers.filter(m => !conversations.find(c => c.otherUser.id === m.userId)).map((member) => (
+                      <button
+                        key={member.userId}
+                        onClick={() => startNewConversation(member.userId)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-left transition-colors ${
+                          selectedConversation === member.userId
+                            ? "bg-primary/10 text-primary"
+                            : "hover:bg-white/5 text-foreground"
+                        }`}
+                        data-testid={`member-${member.userId}`}
+                      >
+                        <Avatar className="h-8 w-8">
+                          {member.user.avatar && <AvatarImage src={member.user.avatar} />}
+                          <AvatarFallback>{getInitials(member.user.name || `${member.user.firstName} ${member.user.lastName}`)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium truncate block">{member.user.name || `${member.user.firstName} ${member.user.lastName}`}</span>
+                          <span className="text-xs text-muted-foreground capitalize">{member.role}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+              
+              <TabsContent value="channels" className="flex-1 overflow-hidden m-0">
+                <ScrollArea className="h-full">
+                  <div className="p-2 space-y-1">
+                    {CHANNELS.map((channel) => (
+                      <button
+                        key={channel}
+                        onClick={() => setActiveChannel(channel)}
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-colors ${
+                          activeChannel === channel
+                            ? "bg-primary/10 text-primary"
+                            : "hover:bg-white/5 text-muted-foreground"
+                        }`}
+                        data-testid={`channel-${channel}`}
+                      >
+                        <Hash className="h-4 w-4" />
+                        <span className="font-medium">{channel}</span>
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
           </Card>
 
           {/* Chat Area */}
           <Card className="flex-1 bg-card border-white/5 flex flex-col overflow-hidden">
-            {/* Channel Header */}
-            <div className="p-4 border-b border-white/5 flex items-center gap-3 bg-white/[0.02]">
-              <Hash className="h-5 w-5 text-muted-foreground" />
-              <span className="font-display text-lg font-bold uppercase">{activeChannel}</span>
-              
-              {/* Selected members indicator */}
-              {selectedMembers.size > 0 && (
-                <div className="ml-auto flex items-center gap-2 text-sm text-primary">
-                  <Users className="h-4 w-4" />
-                  <span>Sending to {selectedMembers.size} member{selectedMembers.size > 1 ? "s" : ""}</span>
-                </div>
-              )}
-              
-              {/* Mobile channel selector */}
-              <div className={`md:hidden ${selectedMembers.size > 0 ? "" : "ml-auto"}`}>
-                <select
-                  value={activeChannel}
-                  onChange={(e) => setActiveChannel(e.target.value)}
-                  className="bg-background border border-white/10 rounded px-2 py-1 text-sm"
-                  data-testid="select-channel-mobile"
-                >
-                  {CHANNELS.map((channel) => (
-                    <option key={channel} value={channel}>
-                      #{channel}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <ScrollArea className="flex-1 p-4 md:p-6" ref={scrollRef}>
-              {isLoading ? (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground">Loading messages...</p>
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex gap-3 ${message.userId === user?.id ? "flex-row-reverse" : ""}`}
-                      data-testid={`message-${message.id}`}
-                    >
-                      <Avatar className="h-8 w-8 flex-shrink-0">
-                        {message.user.avatar && <AvatarImage src={message.user.avatar} />}
-                        <AvatarFallback>{getInitials(message.user.name || `${message.user.firstName} ${message.user.lastName}`)}</AvatarFallback>
+            {chatMode === "dm" ? (
+              <>
+                {selectedConversation ? (
+                  <>
+                    {/* DM Header */}
+                    <div className="p-4 border-b border-white/5 flex items-center gap-3 bg-white/[0.02]">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="md:hidden"
+                        onClick={() => setSelectedConversation(null)}
+                      >
+                        <ArrowLeft className="h-5 w-5" />
+                      </Button>
+                      <Avatar className="h-8 w-8">
+                        {getConversationUser(selectedConversation)?.avatar && (
+                          <AvatarImage src={getConversationUser(selectedConversation)!.avatar!} />
+                        )}
+                        <AvatarFallback>
+                          {getInitials(getConversationUser(selectedConversation)?.name || 
+                            teamMembers.find(m => m.userId === selectedConversation)?.user.name || "?")}
+                        </AvatarFallback>
                       </Avatar>
-                      <div className={`flex-1 ${message.userId === user?.id ? "text-right" : ""}`}>
-                        <div className={`flex items-center gap-2 mb-1 ${message.userId === user?.id ? "justify-end" : ""}`}>
-                          <span className="font-medium text-sm">
-                            {message.userId === user?.id ? "You" : message.user.name || `${message.user.firstName} ${message.user.lastName}`}
-                          </span>
-                          <span className="text-xs text-muted-foreground">{formatTime(message.createdAt)}</span>
-                        </div>
-                        <div
-                          className={`inline-block p-3 rounded-lg text-sm max-w-[80%] ${
-                            message.userId === user?.id
-                              ? "bg-primary text-primary-foreground rounded-tr-none"
-                              : "bg-white/5 rounded-tl-none"
-                          }`}
-                        >
-                          {message.content}
-                        </div>
-                      </div>
+                      <span className="font-display text-lg font-bold">
+                        {getConversationUser(selectedConversation)?.name ||
+                          teamMembers.find(m => m.userId === selectedConversation)?.user.name ||
+                          teamMembers.find(m => m.userId === selectedConversation)?.user.firstName + " " + teamMembers.find(m => m.userId === selectedConversation)?.user.lastName}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
 
-            {/* Message Input */}
-            <form onSubmit={handleSendMessage} className="p-4 bg-white/[0.02] border-t border-white/5">
-              <div className="flex gap-2">
-                <Input
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  className="bg-background/50 border-white/10 focus-visible:ring-primary"
-                  placeholder={selectedMembers.size > 0 ? `Message ${selectedMembers.size} selected member${selectedMembers.size > 1 ? "s" : ""}...` : `Message #${activeChannel}...`}
-                  disabled={isSending}
-                  data-testid="input-message"
-                />
-                <Button
-                  type="submit"
-                  size="icon"
-                  disabled={!newMessage.trim() || isSending}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                  data-testid="button-send-message"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </form>
+                    {/* DM Messages */}
+                    <ScrollArea className="flex-1 p-4 md:p-6" ref={scrollRef}>
+                      {dmMessages.length === 0 ? (
+                        <div className="flex items-center justify-center h-full">
+                          <p className="text-muted-foreground">No messages yet. Say hello!</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {dmMessages.map((message) => (
+                            <div
+                              key={message.id}
+                              className={`flex gap-3 ${message.senderId === user?.id ? "flex-row-reverse" : ""}`}
+                              data-testid={`dm-${message.id}`}
+                            >
+                              <Avatar className="h-8 w-8 flex-shrink-0">
+                                {message.sender?.avatar && <AvatarImage src={message.sender.avatar} />}
+                                <AvatarFallback>{getInitials(message.sender?.name || "?")}</AvatarFallback>
+                              </Avatar>
+                              <div className={`flex-1 ${message.senderId === user?.id ? "text-right" : ""}`}>
+                                <div className={`flex items-center gap-2 mb-1 ${message.senderId === user?.id ? "justify-end" : ""}`}>
+                                  <span className="font-medium text-sm">
+                                    {message.senderId === user?.id ? "You" : message.sender?.name}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">{formatTime(message.createdAt)}</span>
+                                </div>
+                                <div
+                                  className={`inline-block p-3 rounded-lg text-sm max-w-[80%] ${
+                                    message.senderId === user?.id
+                                      ? "bg-primary text-primary-foreground rounded-tr-none"
+                                      : "bg-white/5 rounded-tl-none"
+                                  }`}
+                                >
+                                  {message.content}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </ScrollArea>
+
+                    {/* DM Input */}
+                    <form onSubmit={handleSendDM} className="p-4 bg-white/[0.02] border-t border-white/5">
+                      <div className="flex gap-2">
+                        <Input
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          className="bg-background/50 border-white/10 focus-visible:ring-primary"
+                          placeholder="Type a message..."
+                          disabled={isSending}
+                          data-testid="input-dm"
+                        />
+                        <Button
+                          type="submit"
+                          size="icon"
+                          disabled={!newMessage.trim() || isSending}
+                          className="bg-primary text-primary-foreground hover:bg-primary/90"
+                          data-testid="button-send-dm"
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </form>
+                  </>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                      <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="font-display font-bold text-lg mb-2">Select a conversation</h3>
+                      <p className="text-muted-foreground">Choose a team member to start messaging</p>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Channel Header */}
+                <div className="p-4 border-b border-white/5 flex items-center gap-3 bg-white/[0.02]">
+                  <Hash className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-display text-lg font-bold uppercase">{activeChannel}</span>
+                </div>
+
+                {/* Channel Messages */}
+                <ScrollArea className="flex-1 p-4 md:p-6" ref={scrollRef}>
+                  {isLoading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-muted-foreground">Loading messages...</p>
+                    </div>
+                  ) : messages.length === 0 ? (
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {messages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`flex gap-3 ${message.userId === user?.id ? "flex-row-reverse" : ""}`}
+                          data-testid={`message-${message.id}`}
+                        >
+                          <Avatar className="h-8 w-8 flex-shrink-0">
+                            {message.user.avatar && <AvatarImage src={message.user.avatar} />}
+                            <AvatarFallback>{getInitials(message.user.name || `${message.user.firstName} ${message.user.lastName}`)}</AvatarFallback>
+                          </Avatar>
+                          <div className={`flex-1 ${message.userId === user?.id ? "text-right" : ""}`}>
+                            <div className={`flex items-center gap-2 mb-1 ${message.userId === user?.id ? "justify-end" : ""}`}>
+                              <span className="font-medium text-sm">
+                                {message.userId === user?.id ? "You" : message.user.name || `${message.user.firstName} ${message.user.lastName}`}
+                              </span>
+                              <span className="text-xs text-muted-foreground">{formatTime(message.createdAt)}</span>
+                            </div>
+                            <div
+                              className={`inline-block p-3 rounded-lg text-sm max-w-[80%] ${
+                                message.userId === user?.id
+                                  ? "bg-primary text-primary-foreground rounded-tr-none"
+                                  : "bg-white/5 rounded-tl-none"
+                              }`}
+                            >
+                              {message.content}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+
+                {/* Channel Input */}
+                <form onSubmit={handleSendChannelMessage} className="p-4 bg-white/[0.02] border-t border-white/5">
+                  <div className="flex gap-2">
+                    <Input
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      className="bg-background/50 border-white/10 focus-visible:ring-primary"
+                      placeholder={`Message #${activeChannel}...`}
+                      disabled={isSending}
+                      data-testid="input-message"
+                    />
+                    <Button
+                      type="submit"
+                      size="icon"
+                      disabled={!newMessage.trim() || isSending}
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
+                      data-testid="button-send-message"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </form>
+              </>
+            )}
           </Card>
         </div>
       </div>

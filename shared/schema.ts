@@ -988,3 +988,94 @@ export const insertAthleteHypeTotalSchema = createInsertSchema(athleteHypeTotals
 
 export type InsertAthleteHypeTotal = z.infer<typeof insertAthleteHypeTotalSchema>;
 export type AthleteHypeTotal = typeof athleteHypeTotals.$inferSelect;
+
+// Direct Messages - 1-on-1 messages between team members
+export const directMessages = pgTable("direct_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  recipientId: varchar("recipient_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const directMessagesRelations = relations(directMessages, ({ one }) => ({
+  team: one(teams, {
+    fields: [directMessages.teamId],
+    references: [teams.id],
+  }),
+  sender: one(users, {
+    fields: [directMessages.senderId],
+    references: [users.id],
+  }),
+  recipient: one(users, {
+    fields: [directMessages.recipientId],
+    references: [users.id],
+  }),
+}));
+
+// Message Read Status - tracks which messages have been read
+export const messageReads = pgTable("message_reads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  conversationKey: text("conversation_key").notNull(), // format: "teamId:minUserId-maxUserId"
+  lastReadAt: timestamp("last_read_at").notNull().defaultNow(),
+});
+
+export const messageReadsRelations = relations(messageReads, ({ one }) => ({
+  user: one(users, {
+    fields: [messageReads.userId],
+    references: [users.id],
+  }),
+}));
+
+// User Notification Preferences
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id).unique(),
+  emailOnMessage: boolean("email_on_message").notNull().default(true),
+  pushOnMessage: boolean("push_on_message").notNull().default(true),
+  emailOnHype: boolean("email_on_hype").notNull().default(false),
+  pushOnHype: boolean("push_on_hype").notNull().default(true),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const notificationPreferencesRelations = relations(notificationPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [notificationPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
+// Direct Message schemas
+export const insertDirectMessageSchema = createInsertSchema(directMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertDirectMessage = z.infer<typeof insertDirectMessageSchema>;
+export type DirectMessage = typeof directMessages.$inferSelect;
+
+// Message Read schemas
+export const insertMessageReadSchema = createInsertSchema(messageReads).omit({
+  id: true,
+});
+
+export type InsertMessageRead = z.infer<typeof insertMessageReadSchema>;
+export type MessageRead = typeof messageReads.$inferSelect;
+
+// Notification Preferences schemas
+export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const updateNotificationPreferencesSchema = createInsertSchema(notificationPreferences).omit({
+  id: true,
+  userId: true,
+  updatedAt: true,
+}).partial();
+
+export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
+export type UpdateNotificationPreferences = z.infer<typeof updateNotificationPreferencesSchema>;
+export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
