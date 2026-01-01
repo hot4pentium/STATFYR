@@ -2029,16 +2029,17 @@ export async function registerRoutes(
           : '';
       
       // Build URL and message based on update type
+      // IMPORTANT: Each notification must have unique content to prevent iOS from collapsing duplicates
       let hypeCardUrl = `${baseUrl}/share/athlete/${athleteId}`;
       let title = `${athleteName} just FYR'd!`;
-      let body = `Tap to see their latest updates`;
+      let body = `Check out what ${athleteName} has to share!`;
       let notificationData: any = { athleteId, type: 'fyr' };
       
-      // Customize notification based on update type - keep it simple, name only in title
+      // Customize notification based on update type - include athlete name in body for uniqueness
       switch (updateType) {
         case 'hype_post':
           title = `New HYPE Post from ${athleteName}!`;
-          body = `Tap to check it out`;
+          body = `Check out what ${athleteName} has to share!`;
           if (hypePostId) {
             hypeCardUrl = `${baseUrl}/share/athlete/${athleteId}/post/${hypePostId}`;
             notificationData = { athleteId, hypePostId, type: 'hype_post' };
@@ -2046,15 +2047,15 @@ export async function registerRoutes(
           break;
         case 'stats':
           title = `${athleteName} updated their Stats!`;
-          body = `Tap to see the numbers`;
+          body = `See ${athleteName}'s latest numbers!`;
           break;
         case 'highlights':
           title = `New Highlight from ${athleteName}!`;
-          body = `Tap to watch`;
+          body = `Watch ${athleteName}'s latest highlight!`;
           break;
         case 'event':
           title = `${athleteName} has a new Event!`;
-          body = `Tap for details`;
+          body = `Check out ${athleteName}'s upcoming event!`;
           break;
         default:
           // Keep the default generic message
