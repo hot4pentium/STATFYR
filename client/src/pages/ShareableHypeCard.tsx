@@ -283,6 +283,55 @@ export default function ShareableHypeCard(props: any) {
       setLocation(`/share/athlete/${athleteId}`);
     }
   };
+  
+  // Listen for deep link messages from service worker (for iOS Safari PWA)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !athleteId) return;
+    
+    // Check localStorage for any pending deep link (fallback for when BroadcastChannel misses)
+    const pendingDeepLinkKey = 'pending-hype-deep-link';
+    const storedDeepLink = localStorage.getItem(pendingDeepLinkKey);
+    if (storedDeepLink) {
+      try {
+        const data = JSON.parse(storedDeepLink);
+        // Only process if it's for this athlete and recent (within 30 seconds)
+        if (data.athleteId === athleteId && data.hypePostId && (Date.now() - data.timestamp) < 30000) {
+          console.log('[HYPE Card] Found pending deep link in localStorage:', data.hypePostId);
+          localStorage.removeItem(pendingDeepLinkKey);
+          // Navigate to the post route
+          if (!routePostId) {
+            setLocation(`/share/athlete/${athleteId}/post/${data.hypePostId}`);
+          }
+        } else {
+          // Clear old/irrelevant deep links
+          localStorage.removeItem(pendingDeepLinkKey);
+        }
+      } catch (e) {
+        localStorage.removeItem(pendingDeepLinkKey);
+      }
+    }
+    
+    // Set up BroadcastChannel to receive deep link messages from service worker
+    try {
+      const channel = new BroadcastChannel('hype-deep-link');
+      channel.onmessage = (event) => {
+        const data = event.data;
+        console.log('[HYPE Card] Received deep link message:', data);
+        
+        if (data.type === 'HYPE_POST_DEEP_LINK' && data.athleteId === athleteId && data.hypePostId) {
+          console.log('[HYPE Card] Navigating to post from service worker message:', data.hypePostId);
+          // Navigate to the post route
+          setLocation(`/share/athlete/${athleteId}/post/${data.hypePostId}`);
+        }
+      };
+      
+      return () => {
+        channel.close();
+      };
+    } catch (e) {
+      console.warn('[HYPE Card] BroadcastChannel not supported');
+    }
+  }, [athleteId, routePostId, setLocation]);
 
   // Persist liked state in localStorage to prevent spam
   const likeStorageKey = `profile-liked-${athleteId}`;

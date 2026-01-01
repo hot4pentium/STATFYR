@@ -1,4 +1,5 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
+import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -8,6 +9,7 @@ import { ThemeProvider } from "next-themes";
 import { UserProvider } from "./lib/userContext";
 import { PWAProvider } from "./lib/pwaContext";
 import { NotificationProvider } from "./lib/notificationContext";
+import { setNavigationCallback, initOneSignal, getPendingDeepLink } from "./lib/onesignal";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
@@ -42,6 +44,28 @@ import SupporterHypeHub from "@/pages/SupporterHypeHub";
 import AthleteHypeCardPage from "@/pages/AthleteHypeCardPage";
 
 function Router() {
+  const [, setLocation] = useLocation();
+  
+  // Set up OneSignal navigation callback for handling notification clicks
+  useEffect(() => {
+    // Initialize OneSignal and set up navigation callback
+    initOneSignal().then(() => {
+      // Set the navigation callback so notification clicks can navigate
+      setNavigationCallback((path: string) => {
+        console.log('[App] OneSignal navigation callback triggered:', path);
+        setLocation(path);
+      });
+      
+      // Check for any pending deep link from a notification that was clicked before the callback was set
+      const pendingLink = getPendingDeepLink();
+      if (pendingLink) {
+        const path = `/share/athlete/${pendingLink.athleteId}/post/${pendingLink.hypePostId}`;
+        console.log('[App] Found pending deep link, navigating:', path);
+        setLocation(path);
+      }
+    });
+  }, [setLocation]);
+  
   return (
     <Switch>
       <Route path="/" component={LandingPage} />

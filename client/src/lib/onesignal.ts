@@ -3,6 +3,33 @@ const ONESIGNAL_APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID || '';
 let initialized = false;
 let OneSignal: any = null;
 
+// Store pending deep link from notification click
+let pendingDeepLink: { athleteId: string; hypePostId: string } | null = null;
+
+// Navigation callback for handling notification clicks
+let navigationCallback: ((path: string) => void) | null = null;
+
+export function setNavigationCallback(callback: (path: string) => void) {
+  navigationCallback = callback;
+  // If there's a pending deep link, navigate immediately
+  if (pendingDeepLink) {
+    const path = `/share/athlete/${pendingDeepLink.athleteId}/post/${pendingDeepLink.hypePostId}`;
+    console.log('[OneSignal] Navigating to pending deep link:', path);
+    callback(path);
+    pendingDeepLink = null;
+  }
+}
+
+export function getPendingDeepLink(): { athleteId: string; hypePostId: string } | null {
+  const link = pendingDeepLink;
+  pendingDeepLink = null;
+  return link;
+}
+
+export function clearPendingDeepLink() {
+  pendingDeepLink = null;
+}
+
 // Dynamically load OneSignal to prevent crashes on unsupported browsers
 async function loadOneSignal() {
   if (OneSignal) return OneSignal;
@@ -104,6 +131,28 @@ export async function initOneSignal(): Promise<boolean> {
           autoPrompt: false,
         },
       },
+    });
+    
+    // Add notification click handler to capture deep link data
+    sdk.Notifications.addEventListener('click', (event: any) => {
+      console.log('[OneSignal] Notification clicked:', event);
+      const data = event?.notification?.additionalData || event?.result?.additionalData || {};
+      console.log('[OneSignal] Notification data:', data);
+      
+      if (data.athleteId && data.hypePostId) {
+        const path = `/share/athlete/${data.athleteId}/post/${data.hypePostId}`;
+        console.log('[OneSignal] Deep link path:', path);
+        
+        if (navigationCallback) {
+          // Navigate immediately if callback is set
+          console.log('[OneSignal] Navigating via callback');
+          navigationCallback(path);
+        } else {
+          // Store for later if app hasn't set callback yet
+          console.log('[OneSignal] Storing pending deep link');
+          pendingDeepLink = { athleteId: data.athleteId, hypePostId: data.hypePostId };
+        }
+      }
     });
     
     initialized = true;
