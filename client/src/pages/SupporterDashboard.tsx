@@ -46,6 +46,8 @@ export default function SupporterDashboard() {
   const [isManagedAthleteCardFlipped, setIsManagedAthleteCardFlipped] = useState(false);
   const [isHypeCardEnlarged, setIsHypeCardEnlarged] = useState(false);
   const [isUploadingAthleteAvatar, setIsUploadingAthleteAvatar] = useState(false);
+  const [joinTeamCode, setJoinTeamCode] = useState("");
+  const [isJoiningTeam, setIsJoiningTeam] = useState(false);
   const queryClient = useQueryClient();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   
@@ -930,9 +932,6 @@ export default function SupporterDashboard() {
         return null;
     }
   };
-
-  const [joinTeamCode, setJoinTeamCode] = useState("");
-  const [isJoiningTeam, setIsJoiningTeam] = useState(false);
 
   const handleJoinTeamWithCode = async () => {
     if (!joinTeamCode.trim() || !user) return;

@@ -37,6 +37,8 @@ export default function AthleteDashboard() {
   const [hypeCardTab, setHypeCardTab] = useState<HypeCardTab>("events");
   const [isFyring, setIsFyring] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [joinTeamCode, setJoinTeamCode] = useState("");
+  const [isJoiningTeam, setIsJoiningTeam] = useState(false);
   const queryClient = useQueryClient();
   const heroRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -215,9 +217,6 @@ export default function AthleteDashboard() {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const [joinTeamCode, setJoinTeamCode] = useState("");
-  const [isJoiningTeam, setIsJoiningTeam] = useState(false);
 
   const handleJoinTeamWithCode = async () => {
     if (!joinTeamCode.trim() || !user) return;
