@@ -2018,12 +2018,28 @@ export async function registerRoutes(
       const result = await response.json();
       console.log('[OneSignal Debug] Test player result:', JSON.stringify(result, null, 2));
       
+      // Get notification outcome if we have an ID
+      let outcome = null;
+      if (result.id) {
+        try {
+          await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds for delivery
+          const outcomeRes = await fetch(`https://onesignal.com/api/v1/notifications/${result.id}?app_id=${appId}`, {
+            headers: { 'Authorization': `Basic ${restApiKey}` }
+          });
+          outcome = await outcomeRes.json();
+          console.log('[OneSignal Debug] Notification outcome:', JSON.stringify(outcome, null, 2));
+        } catch (e) {
+          console.log('[OneSignal Debug] Could not get outcome:', e);
+        }
+      }
+      
       res.json({
         playerId,
         httpStatus: response.status,
         id: result.id,
         recipients: result.recipients,
-        errors: result.errors
+        errors: result.errors,
+        outcome
       });
     } catch (error: any) {
       console.error('[OneSignal Debug] Test player error:', error);
