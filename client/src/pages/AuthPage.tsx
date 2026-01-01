@@ -418,7 +418,27 @@ export default function AuthPage() {
                     data-testid="input-email"
                   />
                   {errors.email && (
-                    <p className="text-xs text-red-500">{errors.email}</p>
+                    <p className="text-xs text-red-500">
+                      {errors.email.includes("already registered") ? (
+                        <>
+                          This email is already registered.{" "}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLoginData(prev => ({ ...prev, email: formData.email }));
+                              setAuthMode("login");
+                              setErrors({});
+                            }}
+                            className="text-primary hover:underline font-medium"
+                            data-testid="link-signin-from-error"
+                          >
+                            Sign in instead
+                          </button>
+                        </>
+                      ) : (
+                        errors.email
+                      )}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
