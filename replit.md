@@ -38,7 +38,7 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **StatTracker System**: Live game statistics tracking with individual/team modes, sport-specific presets, position-to-stat mapping, and real-time updates.
 - **Live Engagement Sessions (Game Day Live)**: Allows supporters to send shoutouts and taps during live events, tied to calendar events.
 - **Badge & Theme System**: Awards badges based on supporter engagement (taps), unlocking custom dashboard themes.
-- **Shareable Athlete Profiles**: Publicly accessible, read-only profiles displaying athlete stats, highlights, recent cheers, and allowing public likes/comments.
+- **Shareable Athlete Profiles**: Publicly accessible, read-only profiles displaying athlete stats, highlights, recent cheers, and allowing public likes/comments. Features a HYPE Post Spotlight Modal that opens immediately when arriving from a push notification with `?hypePostId=` parameter, showing the specific post in a full-screen modal with a "View HYPE Card" button.
 - **Admin Dashboard**: Centralized view for managing teams and users (security limitations noted).
 - **PWA Features**: Service worker for offline support and update notifications.
 - **Push Notifications**: OneSignal Web Push for cross-platform notifications (works on iOS Safari PWA, Android, and desktop).
