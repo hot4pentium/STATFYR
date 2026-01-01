@@ -88,7 +88,9 @@ export async function sendPushToPlayers(
     });
 
     const result = await response.json();
+    console.log('[OneSignal] HTTP status:', response.status);
     console.log('[OneSignal] API response:', JSON.stringify(result, null, 2));
+    console.log('[OneSignal] Response keys:', Object.keys(result));
     
     // Parse the response - OneSignal returns recipients count and errors object
     const recipients = result.recipients || 0;
