@@ -168,24 +168,24 @@ export default function ChatPage() {
     setIsEnabling(false);
   };
 
-  // Fetch team members
+  // Fetch team members with React Query
+  const { data: teamMembersData = [] } = useQuery<TeamMember[]>({
+    queryKey: ["team-members", currentTeam?.id],
+    queryFn: async () => {
+      if (!currentTeam?.id) return [];
+      const res = await fetch(`/api/teams/${currentTeam.id}/members`);
+      if (!res.ok) throw new Error("Failed to fetch members");
+      return res.json();
+    },
+    enabled: !!currentTeam?.id,
+  });
+
+  // Filter out current user from team members
   useEffect(() => {
-    if (!currentTeam) return;
-    
-    const fetchMembers = async () => {
-      try {
-        const res = await fetch(`/api/teams/${currentTeam.id}/members`);
-        if (res.ok) {
-          const data = await res.json();
-          setTeamMembers(data.filter((m: TeamMember) => m.userId !== user?.id));
-        }
-      } catch (error) {
-        console.error("Error fetching team members:", error);
-      }
-    };
-    
-    fetchMembers();
-  }, [currentTeam, user?.id]);
+    if (teamMembersData.length > 0 && user?.id) {
+      setTeamMembers(teamMembersData.filter((m: TeamMember) => m.userId !== user.id));
+    }
+  }, [teamMembersData, user?.id]);
 
   // Fetch DM messages when conversation is selected
   useEffect(() => {
@@ -439,7 +439,7 @@ export default function ChatPage() {
 
         <div className="flex gap-4 flex-1 overflow-hidden">
           {/* Sidebar - Conversations & Team Members */}
-          <Card className="w-80 bg-card border-white/5 flex flex-col hidden md:flex">
+          <Card className={`bg-card border-white/5 flex flex-col ${selectedConversation && chatMode === 'dm' ? 'hidden md:flex md:w-80' : 'w-full md:w-80'}`}>
             <Tabs value={chatMode} onValueChange={(v) => setChatMode(v as "channels" | "dm")} className="flex flex-col h-full">
               <TabsList className="grid w-full grid-cols-2 m-2">
                 <TabsTrigger value="dm" className="flex items-center gap-2">
@@ -543,7 +543,7 @@ export default function ChatPage() {
           </Card>
 
           {/* Chat Area */}
-          <Card className="flex-1 bg-card border-white/5 flex flex-col overflow-hidden">
+          <Card className={`flex-1 bg-card border-white/5 flex-col overflow-hidden ${!selectedConversation && chatMode === 'dm' ? 'hidden md:flex' : 'flex'}`}>
             {chatMode === "dm" ? (
               <>
                 {selectedConversation ? (
