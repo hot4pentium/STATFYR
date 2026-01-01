@@ -242,36 +242,63 @@ export default function ShareableHypeCard(props: any) {
   
   // Check URL for hypePostId parameter (from notification click) - triggers spotlight modal
   useEffect(() => {
-    if (typeof window !== 'undefined' && athleteId) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const postId = urlParams.get('hypePostId');
-      if (postId) {
-        // Immediately show the modal with loading state
-        setShowSpotlightModal(true);
-        setSpotlightLoading(true);
+    const checkForHypePostId = () => {
+      if (typeof window !== 'undefined' && athleteId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('hypePostId');
+        console.log('[HYPE Card] Checking for hypePostId:', postId, 'Current URL:', window.location.href);
         
-        // Fetch the specific post
-        getSingleHypePost(postId).then((post) => {
-          if (post) {
-            setSpotlightPost(post);
-          } else {
-            toast.error("This HYPE post is no longer available");
+        if (postId && !showSpotlightModal) {
+          console.log('[HYPE Card] Found hypePostId, opening spotlight modal');
+          // Immediately show the modal with loading state
+          setShowSpotlightModal(true);
+          setSpotlightLoading(true);
+          
+          // Fetch the specific post
+          getSingleHypePost(postId).then((post) => {
+            if (post) {
+              console.log('[HYPE Card] Post loaded:', post.id);
+              setSpotlightPost(post);
+            } else {
+              console.log('[HYPE Card] Post not found');
+              toast.error("This HYPE post is no longer available");
+              setShowSpotlightModal(false);
+            }
+            setSpotlightLoading(false);
+          }).catch((err) => {
+            console.error('[HYPE Card] Error loading post:', err);
+            toast.error("Failed to load HYPE post");
             setShowSpotlightModal(false);
-          }
-          setSpotlightLoading(false);
-        }).catch(() => {
-          toast.error("Failed to load HYPE post");
-          setShowSpotlightModal(false);
-          setSpotlightLoading(false);
-        });
-        
-        // Clear the URL parameter
-        const url = new URL(window.location.href);
-        url.searchParams.delete('hypePostId');
-        window.history.replaceState({}, '', url.toString());
+            setSpotlightLoading(false);
+          });
+          
+          // Clear the URL parameter
+          const url = new URL(window.location.href);
+          url.searchParams.delete('hypePostId');
+          window.history.replaceState({}, '', url.toString());
+        }
       }
-    }
-  }, [athleteId]);
+    };
+    
+    // Check immediately
+    checkForHypePostId();
+    
+    // Also check after a short delay (for PWA launch scenarios)
+    const timeoutId = setTimeout(checkForHypePostId, 100);
+    
+    // Listen for visibility changes (when app comes to foreground from notification)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkForHypePostId();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [athleteId, showSpotlightModal]);
 
   // Persist liked state in localStorage to prevent spam
   const likeStorageKey = `profile-liked-${athleteId}`;
