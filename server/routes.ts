@@ -2180,7 +2180,7 @@ export async function registerRoutes(
             ? `https://${process.env.REPLIT_DEV_DOMAIN}`
             : '';
         
-        const hypeCardUrl = `${baseUrl}/share/athlete/${parsed.athleteId}`;
+        const hypeCardUrl = `${baseUrl}/share/athlete/${parsed.athleteId}?hypePostId=${post.id}`;
         const title = `New HYPE from ${athleteName}!`;
         const body = parsed.message.length > 60 ? parsed.message.substring(0, 57) + '...' : parsed.message;
         console.log('[HYPE] Notification URL:', hypeCardUrl);

@@ -225,7 +225,21 @@ export default function ShareableHypeCard(props: any) {
   const [activeTab, setActiveTab] = useState<HypeTab | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerFcmToken, setFollowerFcmToken] = useState<string | null>(null);
+  const [showHypePostsDropdown, setShowHypePostsDropdown] = useState(false);
+  const [highlightedPostId, setHighlightedPostId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  
+  // Check URL for hypePostId parameter (from notification click)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const postId = urlParams.get('hypePostId');
+      if (postId) {
+        setShowHypePostsDropdown(true);
+        setHighlightedPostId(postId);
+      }
+    }
+  }, []);
 
   // Persist liked state in localStorage to prevent spam
   const likeStorageKey = `profile-liked-${athleteId}`;
@@ -700,6 +714,78 @@ export default function ShareableHypeCard(props: any) {
       </header>
 
       <main className="max-w-sm mx-auto px-4 pt-6">
+        {/* HYPE Posts Dropdown - Shows when arriving from notification */}
+        <AnimatePresence>
+          {showHypePostsDropdown && hypePosts.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-4"
+            >
+              <Card className="bg-gradient-to-b from-orange-500/20 to-slate-900/90 border-orange-500/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Flame className="h-5 w-5 text-orange-500" />
+                      <span className="font-display font-bold text-white">Latest HYPE Posts</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowHypePostsDropdown(false);
+                        setHighlightedPostId(null);
+                        // Clear the URL parameter
+                        if (typeof window !== 'undefined') {
+                          const url = new URL(window.location.href);
+                          url.searchParams.delete('hypePostId');
+                          window.history.replaceState({}, '', url.toString());
+                        }
+                      }}
+                      className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-700/50"
+                      data-testid="button-close-hype-dropdown"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  <div className="space-y-3 max-h-80 overflow-y-auto">
+                    {hypePosts.map((post: HypePost) => (
+                      <div
+                        key={post.id}
+                        className={`flex gap-3 p-3 rounded-lg transition-all ${
+                          highlightedPostId === post.id
+                            ? "bg-orange-500/30 border border-orange-500/50 ring-2 ring-orange-500/30"
+                            : "bg-slate-800/70 border border-slate-700/50"
+                        }`}
+                        data-testid={`hype-post-${post.id}`}
+                      >
+                        <img
+                          src={HYPE_TEMPLATE_IMAGES[post.templateImage] || clutchImg}
+                          alt=""
+                          className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white line-clamp-3">{post.message}</p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {format(new Date(post.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                          </p>
+                          {post.highlightId && (
+                            <div className="flex items-center gap-1 mt-1 text-xs text-orange-400">
+                              <Video className="h-3 w-3" />
+                              <span>Video attached</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* HYPE Card - Trading Card Style */}
         <Card className="bg-gradient-to-b from-slate-800/90 to-slate-900/90 border-cyan-500/40 overflow-hidden rounded-2xl" data-testid="hype-card">
           <CardContent className="p-0">
