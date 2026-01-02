@@ -79,7 +79,7 @@ import {
   getTeamAggregateStats, getAdvancedTeamStats, getLiveSessionByEvent, createLiveSessionForEvent,
   startLiveSession, endLiveSession, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount,
   getManagedAthletes, getSupporterBadges, getAllBadges, getSupporterTapTotal, getActiveLiveSessions,
-  getUserTeams, joinTeamByCode,
+  getUserTeams, joinTeamByCode, getTeamEngagementStats,
   type Team, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup,
   type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession, type ManagedAthlete
 } from "@/lib/api";
@@ -105,7 +105,7 @@ const quickAccessCards: QuickAccessCard[] = [
   { id: "stats", name: "Stats", description: "Track team and player statistics.", icon: BarChart3, color: "text-orange-500", roles: ["coach", "athlete"] },
   { id: "stattracker", name: "StatTracker", description: "Live game stat tracking.", icon: Activity, color: "text-orange-500", roles: ["coach"] },
   { id: "highlights", name: "Highlights", description: "Team video highlights.", icon: Video, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
-  { id: "gamedaylive", name: "Game Day Live", description: "Live engagement sessions.", icon: Radio, color: "text-orange-500", roles: ["supporter"] },
+  { id: "teamengagement", name: "Team Engagement", description: "See team's total taps & shoutouts.", icon: Heart, color: "text-orange-500", roles: ["supporter"] },
   { id: "chat", name: "Team Chat", description: "Message your team.", icon: MessageSquare, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
 ];
 
@@ -256,8 +256,14 @@ export default function UnifiedDashboard() {
   const { data: activeSessions = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "live-sessions", "active"],
     queryFn: () => currentTeam ? getActiveLiveSessions(currentTeam.id) : Promise.resolve([]),
-    enabled: !!currentTeam && selectedCard === "gamedaylive",
+    enabled: !!currentTeam,
     refetchInterval: 5000,
+  });
+
+  const { data: teamEngagementStats } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "engagement-stats"],
+    queryFn: () => currentTeam ? getTeamEngagementStats(currentTeam.id) : Promise.resolve({ totalTaps: 0, totalShoutouts: 0 }),
+    enabled: !!currentTeam && selectedCard === "teamengagement",
   });
 
   const { data: athleteStats } = useQuery({
@@ -1045,36 +1051,48 @@ export default function UnifiedDashboard() {
             )}
           </div>
         )}
-        {selectedCard === "gamedaylive" && (
+        {selectedCard === "teamengagement" && (
           <div className="space-y-4">
-            {activeSessions.length > 0 ? (
-              activeSessions.map((session: LiveEngagementSession) => (
-                <Card key={session.id} className="bg-gradient-to-r from-red-600/20 to-orange-600/20 border-red-500/30">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-red-500/20 flex items-center justify-center animate-pulse">
-                        <Radio className="h-6 w-6 text-red-500" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold">Live Session Active</p>
-                        <p className="text-sm text-muted-foreground">Tap to send cheers to your team!</p>
-                      </div>
-                      <Button onClick={() => setLocation(`/game-day-live/${session.id}`)}>
-                        Join <ChevronRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                <CardContent className="p-6 text-center text-muted-foreground">
-                  <Radio className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No live sessions right now</p>
-                  <p className="text-sm mt-1">Check back during game time!</p>
+            <Card className="bg-gradient-to-r from-pink-500/20 to-red-500/20 border-pink-500/30">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-pink-500 to-red-500 flex items-center justify-center">
+                    <Heart className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-display font-bold uppercase">Team Engagement</h3>
+                    <p className="text-sm text-muted-foreground">Total supporter activity this season</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="bg-gradient-to-br from-orange-500/20 to-yellow-500/20 border-orange-500/30">
+                <CardContent className="p-6 text-center">
+                  <Zap className="h-10 w-10 mx-auto mb-2 text-orange-500" />
+                  <p className="text-4xl font-display font-bold text-orange-500">
+                    {teamEngagementStats?.totalTaps?.toLocaleString() || 0}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">Total Taps</p>
                 </CardContent>
               </Card>
-            )}
+              <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-500/30">
+                <CardContent className="p-6 text-center">
+                  <MessageSquare className="h-10 w-10 mx-auto mb-2 text-purple-500" />
+                  <p className="text-4xl font-display font-bold text-purple-500">
+                    {teamEngagementStats?.totalShoutouts?.toLocaleString() || 0}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">Shoutouts</p>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+              <CardContent className="p-4 text-center text-muted-foreground">
+                <p className="text-sm">Join Game Day Live sessions to add to the count!</p>
+              </CardContent>
+            </Card>
           </div>
         )}
         {selectedCard === "stattracker" && (

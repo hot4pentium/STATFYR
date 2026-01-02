@@ -173,6 +173,9 @@ export interface IStorage {
   createSessionShoutout(data: { sessionId: string; supporterId: string; athleteId: string; message: string }): Promise<Shoutout>;
   createSessionTapEvent(data: { sessionId: string; supporterId: string; teamId: string; tapCount: number }): Promise<LiveTapEvent>;
   
+  // Team engagement stats
+  getTeamEngagementStats(teamId: string): Promise<{ totalTaps: number; totalShoutouts: number }>;
+  
   // Profile Likes and Comments (public interactions)
   getProfileLikes(athleteId: string): Promise<ProfileLike[]>;
   getProfileLikeCount(athleteId: string): Promise<number>;
@@ -1480,6 +1483,26 @@ export class DatabaseStorage implements IStorage {
       tapCount: data.tapCount,
     }).returning();
     return event;
+  }
+
+  async getTeamEngagementStats(teamId: string): Promise<{ totalTaps: number; totalShoutouts: number }> {
+    // Get total taps from liveTapTotals for the team
+    const [tapsResult] = await db
+      .select({ total: sql<number>`COALESCE(SUM(${liveTapTotals.totalTaps}), 0)` })
+      .from(liveTapTotals)
+      .where(eq(liveTapTotals.teamId, teamId));
+    
+    // Get total shoutouts from sessions for this team
+    const [shoutoutsResult] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(shoutouts)
+      .innerJoin(liveEngagementSessions, eq(shoutouts.sessionId, liveEngagementSessions.id))
+      .where(eq(liveEngagementSessions.teamId, teamId));
+    
+    return {
+      totalTaps: Number(tapsResult?.total || 0),
+      totalShoutouts: Number(shoutoutsResult?.count || 0),
+    };
   }
 
   // Profile Likes and Comments implementations

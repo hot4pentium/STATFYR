@@ -699,6 +699,12 @@ export async function getSupporterTapTotal(supporterId: string, teamId: string, 
   return res.json();
 }
 
+export async function getTeamEngagementStats(teamId: string): Promise<{ totalTaps: number; totalShoutouts: number }> {
+  const res = await fetch(`/api/teams/${teamId}/engagement-stats`);
+  if (!res.ok) throw new Error("Failed to get team engagement stats");
+  return res.json();
+}
+
 // ============ BADGES ============
 
 export interface BadgeDefinition {

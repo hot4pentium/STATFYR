@@ -3235,6 +3235,17 @@ export async function registerRoutes(
     }
   });
 
+  // Get team engagement stats (total taps and shoutouts)
+  app.get("/api/teams/:teamId/engagement-stats", async (req, res) => {
+    try {
+      const stats = await storage.getTeamEngagementStats(req.params.teamId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting team engagement stats:", error);
+      res.status(500).json({ error: "Failed to get engagement stats" });
+    }
+  });
+
   // Get roster for a session (athletes on team)
   app.get("/api/live-sessions/:sessionId/roster", async (req, res) => {
     try {
