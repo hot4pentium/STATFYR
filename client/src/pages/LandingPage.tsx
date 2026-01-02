@@ -291,6 +291,7 @@ export default function LandingPage() {
       {/* Features Section - Coaches (Light theme with gradient bg) */}
       <section id="features" className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-emerald-100 to-white" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-gray-950 to-transparent" />
         
         {/* Decorative elements */}
@@ -431,6 +432,7 @@ export default function LandingPage() {
       {/* Features Section - Supporters (Gradient mesh) */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-cyan-50 to-emerald-50" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-blue-200/50 to-transparent rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-emerald-200/40 to-transparent rounded-full blur-3xl" />
         
