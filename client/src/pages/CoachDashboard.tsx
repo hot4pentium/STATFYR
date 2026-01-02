@@ -562,14 +562,14 @@ export default function CoachDashboard() {
     },
   ];
 
-  const coachWelcomeModal: WelcomeModal = {
+  const coachWelcomeModal: WelcomeModal = useMemo(() => ({
     title: "Welcome, Coach!",
     subtitle: `Ready to lead ${currentTeam?.name || "your team"}`,
     description: "Your command center is all set up! Let us give you a quick tour so you can start managing your team like a pro.",
     buttonText: "Show Me Around"
-  };
+  }), [currentTeam?.name]);
 
-  const coachTourSteps: TourStep[] = [
+  const coachTourSteps: TourStep[] = useMemo(() => [
     {
       target: '[data-testid="card-roster"]',
       title: "Team Roster",
@@ -600,7 +600,7 @@ export default function CoachDashboard() {
       description: "Upload and share video highlights of great plays and memorable moments with your team.",
       position: "bottom"
     }
-  ];
+  ], []);
 
   const renderContent = () => {
     switch(selectedCard) {
