@@ -127,16 +127,6 @@ export default function LandingPage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.2 }}
           >
-            <motion.div 
-              className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-5 py-2 text-sm text-white/80 mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <Sparkles className="h-4 w-4 text-emerald-400" />
-              The Future of Team Management
-            </motion.div>
-            
             <div className="flex items-center justify-center gap-4 mb-8">
               <img 
                 src={logoImage} 
