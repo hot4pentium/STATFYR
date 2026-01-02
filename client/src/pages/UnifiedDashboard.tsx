@@ -1382,6 +1382,52 @@ export default function UnifiedDashboard() {
     }
   ], []);
 
+  const coachWelcomeModal: WelcomeModal = useMemo(() => ({
+    title: "Welcome, Coach!",
+    subtitle: `Ready to lead ${currentTeam?.name || "your team"}`,
+    description: "Your command center is all set up! Let us give you a quick tour so you can start managing your team like a pro.",
+    buttonText: "Show Me Around"
+  }), [currentTeam?.name]);
+
+  const coachTourSteps: TourStep[] = useMemo(() => [
+    {
+      target: '[data-testid="card-roster"]',
+      title: "Team Roster",
+      description: "Manage your team members, assign jersey numbers, and set positions. Athletes and supporters can join using your team code.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-schedule"]',
+      title: "Schedule & Events",
+      description: "Create and manage practices, games, and team events. Set locations, times, and assign snack duties.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-stattracker"]',
+      title: "StatTracker",
+      description: "Track live game statistics for your athletes. Record plays, manage lineups, and monitor performance in real-time.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-playmaker"]',
+      title: "PlayMaker",
+      description: "Design custom plays with our canvas tool. Draw formations, add player icons, and save plays to your playbook.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-highlights"]',
+      title: "Team Highlights",
+      description: "Upload and share video highlights of great plays and memorable moments with your team.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="button-settings-menu"]',
+      title: "Team Settings",
+      description: "Manage your team settings, update your profile, and customize your experience.",
+      position: "bottom"
+    }
+  ], []);
+
   return (
     <>
       {user?.id && userRole === "athlete" && (
@@ -1389,6 +1435,13 @@ export default function UnifiedDashboard() {
           steps={athleteTourSteps} 
           storageKey={`unified-athlete-onboarding-${user.id}`}
           welcomeModal={athleteWelcomeModal}
+        />
+      )}
+      {user?.id && userRole === "coach" && currentTeam && (
+        <OnboardingTour 
+          steps={coachTourSteps} 
+          storageKey={`unified-coach-onboarding-${user.id}`}
+          welcomeModal={coachWelcomeModal}
         />
       )}
       <DashboardBackground />
