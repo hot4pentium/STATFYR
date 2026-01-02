@@ -769,7 +769,7 @@ export default function UnifiedDashboard() {
               }).map((event) => (
                 <Card 
                   key={event.id} 
-                  className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all min-w-[200px] max-w-[220px] flex-shrink-0 snap-start"
+                  className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all min-w-[240px] max-w-[280px] flex-shrink-0 snap-start"
                 >
                   <CardContent className="p-3">
                     <div className="flex items-center gap-2 mb-2">
@@ -786,21 +786,21 @@ export default function UnifiedDashboard() {
                       </p>
                     )}
                     {((event as any).drinksAthleteId || (event as any).snacksAthleteId) && (
-                      <div className="flex flex-wrap gap-1 mt-2">
+                      <div className="mt-2 pt-2 border-t border-white/10 space-y-1">
                         {(event as any).drinksAthleteId && (() => {
                           const athlete = teamMembers.find((m: TeamMember) => m.userId === (event as any).drinksAthleteId);
                           return athlete ? (
-                            <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full">
-                              🥤 {athlete.user.firstName || athlete.user.username}
-                            </span>
+                            <p className="text-xs text-muted-foreground">
+                              <span className="text-blue-400">🥤 Drinks:</span> {athlete.user.firstName} {athlete.user.lastName}
+                            </p>
                           ) : null;
                         })()}
                         {(event as any).snacksAthleteId && (() => {
                           const athlete = teamMembers.find((m: TeamMember) => m.userId === (event as any).snacksAthleteId);
                           return athlete ? (
-                            <span className="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-full">
-                              🍿 {athlete.user.firstName || athlete.user.username}
-                            </span>
+                            <p className="text-xs text-muted-foreground">
+                              <span className="text-orange-400">🍿 Snacks:</span> {athlete.user.firstName} {athlete.user.lastName}
+                            </p>
                           ) : null;
                         })()}
                       </div>
