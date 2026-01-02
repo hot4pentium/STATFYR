@@ -5,12 +5,14 @@ import { useTheme } from "next-themes";
 import logoImage from "@assets/red_logo-removebg-preview_1766535816909.png";
 import dashboardScreenshot from "@assets/Screenshot_2026-01-01_at_9.48.07_PM_1767322113880.png";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Users, CalendarClock, ClipboardList, BarChart3, 
   Trophy, Shield, Radio, Hand, Award, Bell, 
   Video, MessageSquare, Target, ChevronRight,
   Zap, Heart, Star, Smartphone, Download, Share,
-  Wifi, WifiOff, Home, Plus, Sparkles, ArrowRight
+  Wifi, WifiOff, Home, Plus, Sparkles, ArrowRight,
+  Check, Info
 } from "lucide-react";
 
 
@@ -85,6 +87,7 @@ function FloatingShape({ className }: { className: string; delay?: number }) {
 export default function LandingPage() {
   const [, setLocation] = useLocation();
   const { setTheme } = useTheme();
+  const [showPWAModal, setShowPWAModal] = useState(false);
 
   useEffect(() => {
     setTheme("light");
@@ -214,9 +217,19 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 rounded-full px-4 py-2 text-sm font-medium mb-4 border border-emerald-500/20">
-              <Smartphone className="h-4 w-4" />
-              Progressive Web App
+            <div className="flex items-center justify-center gap-3 mb-4 flex-wrap">
+              <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 rounded-full px-4 py-2 text-sm font-medium border border-emerald-500/20">
+                <Smartphone className="h-4 w-4" />
+                Progressive Web App
+              </div>
+              <button 
+                onClick={() => setShowPWAModal(true)}
+                className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 text-sm font-medium transition-colors"
+                data-testid="button-pwa-learn-more"
+              >
+                <Info className="h-4 w-4" />
+                Learn More
+              </button>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
               Add STATF<span className="text-orange-500">Y</span>R to Your Home Screen
@@ -596,6 +609,60 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* PWA Learn More Modal */}
+      <Dialog open={showPWAModal} onOpenChange={setShowPWAModal}>
+        <DialogContent className="max-w-lg bg-gray-900 border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Why We Built a Progressive Web App</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-gray-300">
+            <p>
+              Our team management platform works right in your browser—no app store required. Install it on your phone or tablet in seconds and get the same fast, reliable experience as a native app, but with instant updates and zero download hassles.
+            </p>
+            <div>
+              <h4 className="font-semibold text-white mb-3">What does this mean for you?</h4>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-medium text-white">Instant access:</span>{" "}
+                    <span>No waiting for app store downloads or updates</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-medium text-white">Works everywhere:</span>{" "}
+                    <span>iPhone, Android, tablet, or desktop—one app fits all</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-medium text-white">Always current:</span>{" "}
+                    <span>New features arrive automatically, no manual updates needed</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-medium text-white">Lightweight:</span>{" "}
+                    <span>Takes up minimal space on your device</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-medium text-white">Secure:</span>{" "}
+                    <span>Built with the same technology that powers modern web banking</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
