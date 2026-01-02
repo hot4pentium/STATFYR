@@ -40,8 +40,8 @@ function FeatureCard({ icon, title, description, delay = 0, variant = "light" }:
     >
       <div className={`mb-4 p-3 rounded-2xl w-fit transition-transform duration-300 group-hover:scale-110 ${
         variant === "dark" || variant === "glass" 
-          ? "bg-gradient-to-br from-orange-500/20 to-red-500/20" 
-          : "bg-gradient-to-br from-orange-100 to-orange-50"
+          ? "bg-gradient-to-br from-emerald-500/20 to-cyan-500/20" 
+          : "bg-gradient-to-br from-emerald-100 to-emerald-50"
       }`}>
         {icon}
       </div>
@@ -64,7 +64,7 @@ function PWAStep({ number, icon, title, description }: { number: number; icon: R
       transition={{ duration: 0.5, delay: number * 0.15 }}
       className="flex items-start gap-4"
     >
-      <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-orange-500/30">
+      <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-emerald-500/30">
         {number}
       </div>
       <div className="flex-1">
@@ -99,22 +99,22 @@ export default function LandingPage() {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Animated mesh gradient background */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(249,115,22,0.3),rgba(0,0,0,0))]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_0%_100%,rgba(239,68,68,0.2),rgba(0,0,0,0))]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_100%_50%,rgba(249,115,22,0.15),rgba(0,0,0,0))]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(16,185,129,0.25),rgba(0,0,0,0))]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_0%_100%,rgba(59,130,246,0.2),rgba(0,0,0,0))]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_100%_50%,rgba(6,182,212,0.15),rgba(0,0,0,0))]" />
         </div>
         
         {/* Floating geometric shapes */}
         <FloatingShape 
-          className="absolute top-20 right-[20%] w-64 h-64 rounded-full bg-gradient-to-br from-orange-500/20 to-transparent blur-2xl"
+          className="absolute top-20 right-[20%] w-64 h-64 rounded-full bg-gradient-to-br from-emerald-500/20 to-transparent blur-2xl"
           delay={0}
         />
         <FloatingShape 
-          className="absolute bottom-32 left-[10%] w-80 h-80 rounded-full bg-gradient-to-tr from-red-500/15 to-transparent blur-3xl"
+          className="absolute bottom-32 left-[10%] w-80 h-80 rounded-full bg-gradient-to-tr from-blue-500/15 to-transparent blur-3xl"
           delay={2}
         />
         <FloatingShape 
-          className="absolute top-1/2 right-[5%] w-40 h-40 rounded-3xl bg-gradient-to-br from-orange-400/10 to-red-400/10 blur-xl rotate-12"
+          className="absolute top-1/2 right-[5%] w-40 h-40 rounded-3xl bg-gradient-to-br from-cyan-400/10 to-emerald-400/10 blur-xl rotate-12"
           delay={1}
         />
         
@@ -133,7 +133,7 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <Sparkles className="h-4 w-4 text-orange-400" />
+              <Sparkles className="h-4 w-4 text-emerald-400" />
               The Future of Team Management
             </motion.div>
             
@@ -141,10 +141,10 @@ export default function LandingPage() {
               <img 
                 src={logoImage} 
                 alt="STATFYR Logo" 
-                className="h-20 w-20 drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]"
+                className="h-20 w-20 drop-shadow-[0_0_30px_rgba(16,185,129,0.5)]"
               />
               <h1 className="text-6xl md:text-8xl tracking-tight text-white" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
-                STATF<span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">Y</span>R
+                STATF<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Y</span>R
               </h1>
             </div>
           </motion.div>
@@ -156,9 +156,9 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.5 }}
           >
             The complete team management app for{" "}
-            <span className="text-orange-400 font-semibold">coaches</span>,{" "}
+            <span className="text-emerald-400 font-semibold">coaches</span>,{" "}
             <span className="text-white font-semibold">athletes</span>, and{" "}
-            <span className="text-red-400 font-semibold">supporters</span>.
+            <span className="text-blue-400 font-semibold">supporters</span>.
           </motion.p>
           
           <motion.div 
@@ -169,7 +169,7 @@ export default function LandingPage() {
           >
             <button 
               onClick={goToAuth}
-              className="group text-lg px-10 py-5 gap-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl shadow-lg shadow-orange-500/30 font-medium inline-flex items-center justify-center hover:shadow-orange-500/50 transition-all duration-300 hover:scale-105" 
+              className="group text-lg px-10 py-5 gap-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-2xl shadow-lg shadow-emerald-500/30 font-medium inline-flex items-center justify-center hover:shadow-emerald-500/50 transition-all duration-300 hover:scale-105" 
               data-testid="button-get-started"
             >
               Get Started Free
@@ -191,7 +191,7 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 1 }}
           >
             <div className="text-center">
-              <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-300">Free</div>
+              <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-300">Free</div>
               <div className="text-sm text-gray-500">To Get Started</div>
             </div>
             <div className="text-center">
@@ -199,7 +199,7 @@ export default function LandingPage() {
               <div className="text-sm text-gray-500">Game Engagement</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">5+</div>
+              <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">5+</div>
               <div className="text-sm text-gray-500">Sports Supported</div>
             </div>
           </motion.div>
@@ -208,14 +208,14 @@ export default function LandingPage() {
         {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
           <div className="w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-bounce" />
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" />
           </div>
         </div>
       </section>
 
       {/* PWA Install Section - Gradient transition */}
       <section className="py-24 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 relative">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_50%_at_50%_50%,rgba(249,115,22,0.08),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_50%_at_50%_50%,rgba(16,185,129,0.08),transparent)]" />
         
         <div className="container mx-auto px-6 relative z-10">
           <motion.div
@@ -224,12 +224,12 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center gap-2 bg-orange-500/10 text-orange-400 rounded-full px-4 py-2 text-sm font-medium mb-4 border border-orange-500/20">
+            <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 rounded-full px-4 py-2 text-sm font-medium mb-4 border border-emerald-500/20">
               <Smartphone className="h-4 w-4" />
               Progressive Web App
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Add STATF<span className="text-orange-400">Y</span>R to Your Home Screen
+              Add STATF<span className="text-emerald-400">Y</span>R to Your Home Screen
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               Get the full app experience without downloading from an app store. Works on any device, even offline!
@@ -247,7 +247,7 @@ export default function LandingPage() {
               >
                 {/* Phone mockup with real screenshot */}
                 <div className="relative z-10">
-                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 to-red-500/30 rounded-[3rem] blur-2xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/30 to-cyan-500/30 rounded-[3rem] blur-2xl" />
                   <div className="relative bg-gray-800 rounded-[3rem] p-2 shadow-2xl border border-white/10">
                     <div className="rounded-[2.5rem] overflow-hidden">
                       <img 
@@ -290,12 +290,12 @@ export default function LandingPage() {
 
       {/* Features Section - Coaches (Light theme with gradient bg) */}
       <section id="features" className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-red-50" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-cyan-50" />
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-gray-950 to-transparent" />
         
         {/* Decorative elements */}
-        <div className="absolute top-40 right-0 w-96 h-96 bg-orange-200/40 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-0 w-80 h-80 bg-red-200/30 rounded-full blur-3xl" />
+        <div className="absolute top-40 right-0 w-96 h-96 bg-emerald-200/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-0 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl" />
         
         <div className="container mx-auto px-6 relative z-10">
           <motion.div
@@ -359,7 +359,7 @@ export default function LandingPage() {
 
       {/* Features Section - Athletes (Dark theme) */}
       <section className="py-24 bg-gray-950 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(249,115,22,0.15),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(16,185,129,0.15),transparent)]" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:48px_48px]" />
         
         <div className="container mx-auto px-6 relative z-10">
@@ -369,7 +369,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center gap-2 bg-orange-500/10 text-orange-400 rounded-full px-4 py-2 text-sm font-medium mb-4 border border-orange-500/20">
+            <div className="inline-flex items-center gap-2 bg-cyan-500/10 text-cyan-400 rounded-full px-4 py-2 text-sm font-medium mb-4 border border-cyan-500/20">
               <Trophy className="h-4 w-4" />
               For Athletes
             </div>
@@ -430,9 +430,9 @@ export default function LandingPage() {
 
       {/* Features Section - Supporters (Gradient mesh) */}
       <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50" />
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-red-200/50 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-orange-200/40 to-transparent rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-cyan-50 to-emerald-50" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-blue-200/50 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-emerald-200/40 to-transparent rounded-full blur-3xl" />
         
         <div className="container mx-auto px-6 relative z-10">
           <motion.div
@@ -441,7 +441,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center gap-2 bg-red-100 text-red-600 rounded-full px-4 py-2 text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-600 rounded-full px-4 py-2 text-sm font-medium mb-4">
               <Heart className="h-4 w-4" />
               For Supporters
             </div>
@@ -496,7 +496,7 @@ export default function LandingPage() {
 
       {/* Game Day Live Section - Dark with glow effects */}
       <section className="py-24 bg-gray-950 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(239,68,68,0.15),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.15),transparent_70%)]" />
         
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-5xl mx-auto">
@@ -508,7 +508,7 @@ export default function LandingPage() {
             >
               <div className="grid md:grid-cols-2">
                 <div className="p-10 flex flex-col justify-center">
-                  <div className="inline-flex items-center gap-2 bg-red-500/10 text-red-400 rounded-full px-4 py-2 text-sm font-medium mb-4 w-fit border border-red-500/20">
+                  <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 rounded-full px-4 py-2 text-sm font-medium mb-4 w-fit border border-emerald-500/20">
                     <Radio className="h-4 w-4" />
                     Game Day Live
                   </div>
@@ -520,7 +520,7 @@ export default function LandingPage() {
                   </p>
                   <div className="flex gap-4">
                     <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
-                      <div className="text-2xl font-bold text-orange-400">1,247</div>
+                      <div className="text-2xl font-bold text-emerald-400">1,247</div>
                       <div className="text-xs text-gray-500">Taps This Game</div>
                     </div>
                     <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
@@ -530,16 +530,16 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <div className="bg-gradient-to-br from-gray-900 to-black p-10 flex flex-col items-center justify-center relative overflow-hidden min-h-[350px]">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.4)_0%,transparent_60%)]" />
-                  <div className="text-sm text-red-400 font-bold mb-4 flex items-center gap-2 relative z-10">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-lg shadow-red-500/50" />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.4)_0%,transparent_60%)]" />
+                  <div className="text-sm text-emerald-400 font-bold mb-4 flex items-center gap-2 relative z-10">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50" />
                     LIVE NOW
                   </div>
                   <motion.div 
-                    className="w-36 h-36 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-2xl shadow-red-500/50 border-4 border-white/20 cursor-pointer relative z-10"
-                    whileHover={{ scale: 1.1, boxShadow: "0 0 60px rgba(239,68,68,0.6)" }}
+                    className="w-36 h-36 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-2xl shadow-emerald-500/50 border-4 border-white/20 cursor-pointer relative z-10"
+                    whileHover={{ scale: 1.1, boxShadow: "0 0 60px rgba(16,185,129,0.6)" }}
                     whileTap={{ scale: 0.95 }}
-                    animate={{ boxShadow: ["0 0 30px rgba(239,68,68,0.4)", "0 0 50px rgba(239,68,68,0.6)", "0 0 30px rgba(239,68,68,0.4)"] }}
+                    animate={{ boxShadow: ["0 0 30px rgba(16,185,129,0.4)", "0 0 50px rgba(16,185,129,0.6)", "0 0 30px rgba(16,185,129,0.4)"] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
                     <Hand className="h-16 w-16 text-white" />
@@ -555,7 +555,7 @@ export default function LandingPage() {
 
       {/* CTA Section - Vibrant gradient with particles */}
       <section className="py-28 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500 via-red-500 to-orange-600" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-cyan-500 to-blue-600" />
         <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:24px_24px]" />
         
         {/* Floating orbs */}
@@ -576,7 +576,7 @@ export default function LandingPage() {
               Join thousands of coaches, athletes, and supporters already using STATFYR.
             </p>
             <button 
-              className="group text-lg px-12 py-6 gap-3 bg-white text-orange-500 hover:bg-gray-100 rounded-2xl shadow-2xl font-bold inline-flex items-center justify-center transition-all duration-300 hover:scale-105" 
+              className="group text-lg px-12 py-6 gap-3 bg-white text-emerald-600 hover:bg-gray-100 rounded-2xl shadow-2xl font-bold inline-flex items-center justify-center transition-all duration-300 hover:scale-105" 
               onClick={goToAuth}
               data-testid="button-cta-get-started"
             >
@@ -596,7 +596,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img src={logoImage} alt="STATFYR" className="h-10 w-10" />
-              <span className="text-xl text-white font-bold">STATF<span className="text-orange-400">Y</span>R</span>
+              <span className="text-xl text-white font-bold">STATF<span className="text-emerald-400">Y</span>R</span>
             </div>
             <div className="text-gray-500 text-sm">
               &copy; {new Date().getFullYear()} STATFYR. All rights reserved.
