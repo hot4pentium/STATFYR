@@ -1543,6 +1543,38 @@ export default function UnifiedDashboard() {
                 </div>
               )}
               <div>
+                <Label>Bringing Drinks</Label>
+                <Select value={eventForm.drinksAthleteId || "none"} onValueChange={(v) => setEventForm({ ...eventForm, drinksAthleteId: v === "none" ? "" : v })}>
+                  <SelectTrigger data-testid="select-event-drinks">
+                    <SelectValue placeholder="Select athlete..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {athletes.map((athlete: TeamMember) => (
+                      <SelectItem key={athlete.id} value={athlete.userId}>
+                        {athlete.user.name || athlete.user.username}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Bringing Snacks</Label>
+                <Select value={eventForm.snacksAthleteId || "none"} onValueChange={(v) => setEventForm({ ...eventForm, snacksAthleteId: v === "none" ? "" : v })}>
+                  <SelectTrigger data-testid="select-event-snacks">
+                    <SelectValue placeholder="Select athlete..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {athletes.map((athlete: TeamMember) => (
+                      <SelectItem key={athlete.id} value={athlete.userId}>
+                        {athlete.user.name || athlete.user.username}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>Details</Label>
                 <Textarea value={eventForm.details} onChange={(e) => setEventForm({ ...eventForm, details: e.target.value })} placeholder="Additional details" />
               </div>
@@ -1552,10 +1584,19 @@ export default function UnifiedDashboard() {
               <Button onClick={() => {
                 const hrs = parseInt(eventForm.hour) + (eventForm.ampm === "PM" && eventForm.hour !== "12" ? 12 : 0) - (eventForm.ampm === "AM" && eventForm.hour === "12" ? 12 : 0);
                 const dateStr = `${eventForm.date}T${String(hrs).padStart(2, "0")}:${eventForm.minute}:00`;
+                const eventData = {
+                  type: eventForm.type,
+                  date: dateStr,
+                  location: eventForm.location || undefined,
+                  details: eventForm.details || undefined,
+                  opponent: eventForm.opponent || undefined,
+                  drinksAthleteId: eventForm.drinksAthleteId || undefined,
+                  snacksAthleteId: eventForm.snacksAthleteId || undefined
+                };
                 if (editingEvent) {
-                  updateEventMutation.mutate({ id: editingEvent.id, data: { type: eventForm.type, date: dateStr, location: eventForm.location || undefined, details: eventForm.details || undefined, opponent: eventForm.opponent || undefined } });
+                  updateEventMutation.mutate({ id: editingEvent.id, data: eventData });
                 } else {
-                  createEventMutation.mutate({ type: eventForm.type, date: dateStr, location: eventForm.location || undefined, details: eventForm.details || undefined, opponent: eventForm.opponent || undefined });
+                  createEventMutation.mutate(eventData);
                 }
               }}>
                 {editingEvent ? "Update" : "Create"}
