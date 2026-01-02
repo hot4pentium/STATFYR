@@ -1778,8 +1778,8 @@ export default function UnifiedDashboard() {
             </DialogHeader>
             {expandedPlay?.description && <p className="text-muted-foreground">{expandedPlay.description}</p>}
             {expandedPlay?.thumbnailData && (
-              <div className="rounded-lg overflow-hidden border">
-                <img src={expandedPlay.thumbnailData} alt={expandedPlay.name} className="w-full h-auto" />
+              <div className="rounded-lg overflow-hidden border max-h-[50vh] overflow-y-auto">
+                <img src={expandedPlay.thumbnailData} alt={expandedPlay.name} className="w-full h-auto max-h-[50vh] object-contain" />
               </div>
             )}
             {(userRole === "coach" || isStaff) && (
