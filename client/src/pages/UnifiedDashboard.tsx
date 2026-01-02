@@ -1585,6 +1585,46 @@ export default function UnifiedDashboard() {
                                   <Clock className="h-3 w-3 text-primary" />
                                   <span>{formatTextDate(nextGame.date, "time")}</span>
                                 </div>
+                                {/* Mobile: Show buttons inline with date */}
+                                {userRole === "supporter" && !isStaff && effectiveRole !== "coach" ? (
+                                  eventSessions[nextGame.id]?.status === "live" && (
+                                    <Button
+                                      size="sm"
+                                      className="sm:hidden font-bold gap-1 bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30 h-6 px-2 text-xs"
+                                      onClick={() => setLocation(`/supporter/game/${nextGame.id}`)}
+                                      data-testid="button-join-game-day-live-mobile"
+                                    >
+                                      <Zap className="h-3 w-3" />
+                                      JOIN
+                                    </Button>
+                                  )
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    className={`sm:hidden font-bold gap-1 h-6 px-2 text-xs ${
+                                      eventSessions[nextGame.id]?.status === "live"
+                                        ? "bg-red-500 hover:bg-red-600 text-white"
+                                        : "bg-green-500 hover:bg-green-600 text-white"
+                                    }`}
+                                    onClick={() => handleToggleGameDayLive(nextGame)}
+                                    disabled={loadingSessionForEvent === nextGame.id}
+                                    data-testid="button-game-day-live-mobile"
+                                  >
+                                    {loadingSessionForEvent === nextGame.id ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : eventSessions[nextGame.id]?.status === "live" ? (
+                                      <>
+                                        <Radio className="h-3 w-3" />
+                                        STOP
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Radio className="h-3 w-3" />
+                                        START
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
                               </div>
                             </>
                           ) : (
@@ -1599,7 +1639,7 @@ export default function UnifiedDashboard() {
                           )}
                         </div>
                         
-                        <div className="flex flex-col items-center gap-1">
+                        <div className="hidden sm:flex flex-col items-center gap-1">
                           {nextGame ? (
                             <>
                               {/* Supporters only see Join button when session is live - Staff/Coaches get Start/Stop controls */}
