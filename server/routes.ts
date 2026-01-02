@@ -2405,26 +2405,41 @@ export async function registerRoutes(
         content,
       });
 
-      // Check recipient's notification preferences and send email if enabled
-      const prefs = await storage.getNotificationPreferences(recipientId);
-      const shouldSendEmail = prefs?.emailOnMessage !== false; // Default to true
+      // Return immediately, then process email notification asynchronously
+      res.status(201).json(message);
 
-      if (shouldSendEmail && message.recipient.email) {
+      // Smart email notification: delay and check if recipient is actively chatting
+      const teamId = req.params.teamId;
+      setTimeout(async () => {
         try {
-          const { sendDirectMessageEmail } = await import('./emailService');
-          await sendDirectMessageEmail(
-            message.recipient.email,
-            message.recipient.name || message.recipient.username,
-            message.sender.name || message.sender.username,
-            content,
-            req.params.teamId
-          );
+          // Check if recipient is actively viewing conversation with sender
+          const isRecipientActive = await storage.isUserActiveInConversation(recipientId, senderId);
+          if (isRecipientActive) {
+            console.log('[Chat] Skipping email - recipient is actively viewing conversation');
+            return;
+          }
+
+          // Check recipient's notification preferences
+          const prefs = await storage.getNotificationPreferences(recipientId);
+          const shouldSendEmail = prefs?.emailOnMessage !== false; // Default to true
+
+          if (shouldSendEmail && message.recipient.email) {
+            const { sendDirectMessageEmail } = await import('./emailService');
+            await sendDirectMessageEmail(
+              message.recipient.email,
+              message.recipient.name || message.recipient.username,
+              message.sender.name || message.sender.username,
+              content,
+              teamId
+            );
+            console.log('[Chat] Email sent to', message.recipient.email);
+          }
         } catch (err) {
           console.error('[Chat] Email notification failed:', err);
         }
-      }
+      }, 5000); // Wait 5 seconds before checking and sending
 
-      res.status(201).json(message);
+      return;
     } catch (error) {
       console.error("Error sending message:", error);
       res.status(500).json({ error: "Failed to send message" });
@@ -2464,6 +2479,51 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error getting unread count:", error);
       res.status(500).json({ error: "Failed to get unread count" });
+    }
+  });
+
+  // ============ CHAT PRESENCE ROUTES ============
+  
+  // Update user's chat presence (heartbeat while viewing a conversation)
+  app.post("/api/teams/:teamId/presence", async (req, res) => {
+    try {
+      const { userId, conversationWithUserId } = req.body;
+      if (!userId || !conversationWithUserId) {
+        return res.status(400).json({ error: "userId and conversationWithUserId are required" });
+      }
+      
+      await storage.updateChatPresence(userId, req.params.teamId, conversationWithUserId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating chat presence:", error);
+      res.status(500).json({ error: "Failed to update presence" });
+    }
+  });
+  
+  // Remove user's chat presence (when leaving conversation)
+  app.delete("/api/teams/:teamId/presence", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: "userId is required" });
+      }
+      
+      await storage.removeChatPresence(userId, req.params.teamId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing chat presence:", error);
+      res.status(500).json({ error: "Failed to remove presence" });
+    }
+  });
+  
+  // Check if user is actively viewing a conversation with us
+  app.get("/api/presence/:userId/active-with/:otherUserId", async (req, res) => {
+    try {
+      const isActive = await storage.isUserActiveInConversation(req.params.userId, req.params.otherUserId);
+      res.json({ isActive });
+    } catch (error) {
+      console.error("Error checking presence:", error);
+      res.status(500).json({ error: "Failed to check presence" });
     }
   });
 
