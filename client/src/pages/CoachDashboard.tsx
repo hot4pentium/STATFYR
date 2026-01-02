@@ -32,6 +32,32 @@ import { format, isSameDay, startOfMonth } from "date-fns";
 import { MapPin, Clock, Utensils, Coffee } from "lucide-react";
 import { SPORT_POSITIONS } from "@/lib/sportConstants";
 
+// Helper to parse text date "2026-01-02 05:00 PM" to Date object
+const parseTextDate = (dateStr: string): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split(" ");
+  if (parts.length < 3) return null;
+  const [datePart, timePart, ampm] = parts;
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
+  let hour24 = hour;
+  if (ampm === "PM" && hour !== 12) hour24 += 12;
+  if (ampm === "AM" && hour === 12) hour24 = 0;
+  return new Date(year, month - 1, day, hour24, minute);
+};
+
+// Helper to format text date for display
+const formatTextDate = (dateStr: string, formatType: "date" | "time" | "full" = "full"): string => {
+  const parsed = parseTextDate(dateStr);
+  if (!parsed) return dateStr;
+  if (formatType === "date") return format(parsed, "EEEE, MMM d, yyyy");
+  if (formatType === "time") {
+    const parts = dateStr.split(" ");
+    return parts.length >= 3 ? `${parts[1]} ${parts[2]}` : "";
+  }
+  return format(parsed, "EEEE, MMM d, yyyy") + " at " + (dateStr.split(" ").slice(1).join(" "));
+};
+
 export default function CoachDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, setCurrentTeam, logout } = useUser();
@@ -357,39 +383,21 @@ export default function CoachDashboard() {
   const openEditEvent = (event: Event) => {
     setEditingEvent(event);
     
-    // Parse the event date - handle both ISO strings and Date objects
-    let eventDate: Date;
-    if (typeof event.date === 'string') {
-      // If it's an ISO string (ends with Z), parse directly
-      // If it's a timestamp without Z, append Z to treat as UTC
-      const dateStr = event.date.endsWith('Z') ? event.date : event.date + 'Z';
-      eventDate = new Date(dateStr);
-    } else {
-      eventDate = new Date(event.date);
-    }
+    // Parse text date format: "2026-01-02 05:00 PM"
+    const dateStr = event.date || "";
+    const parts = dateStr.split(" ");
+    const datePart = parts[0] || "";
+    const timePart = parts[1] || "09:00";
+    const ampmPart = parts[2] || "AM";
     
-    // Get local time components
-    let hours = eventDate.getHours();
-    const ampm = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12 || 12;
-    const formattedHour = hours.toString().padStart(2, "0");
-    
-    // Round minutes to nearest 15
-    const rawMinutes = eventDate.getMinutes();
-    const roundedMinutes = Math.round(rawMinutes / 15) * 15 % 60;
-    const formattedMinute = roundedMinutes.toString().padStart(2, "0");
-    
-    const year = eventDate.getFullYear();
-    const month = (eventDate.getMonth() + 1).toString().padStart(2, "0");
-    const day = eventDate.getDate().toString().padStart(2, "0");
-    const localDateString = `${year}-${month}-${day}`;
+    const [hour, minute] = timePart.split(":");
     
     setEventForm({
       type: event.type,
-      date: localDateString,
-      hour: formattedHour,
-      minute: formattedMinute,
-      ampm: ampm,
+      date: datePart,
+      hour: hour || "09",
+      minute: minute || "00",
+      ampm: ampmPart,
       location: event.location || "",
       details: event.details || "",
       opponent: (event as any).opponent || "",
@@ -405,20 +413,12 @@ export default function CoachDashboard() {
       return;
     }
     
-    // Convert 12-hour time to 24-hour format and create full datetime with local timezone
-    let hour24 = parseInt(eventForm.hour, 10);
-    if (eventForm.ampm === "PM" && hour24 !== 12) {
-      hour24 += 12;
-    } else if (eventForm.ampm === "AM" && hour24 === 12) {
-      hour24 = 0;
-    }
-    // Create a local date and convert to ISO string to preserve timezone
-    const localDate = new Date(eventForm.date + "T" + `${hour24.toString().padStart(2, "0")}:${eventForm.minute}:00`);
-    const fullDateTime = localDate.toISOString();
+    // Format date as text string for storage (e.g., "2026-01-02 05:00 PM")
+    const dateText = `${eventForm.date} ${eventForm.hour}:${eventForm.minute} ${eventForm.ampm}`;
     
     const data = {
       type: eventForm.type,
-      date: fullDateTime,
+      date: dateText,
       location: eventForm.location || undefined,
       details: eventForm.details || undefined,
       opponent: eventForm.opponent || undefined,
@@ -476,8 +476,15 @@ export default function CoachDashboard() {
   const nextGame = useMemo(() => {
     const now = new Date();
     const upcomingGames = teamEvents
-      .filter((e: Event) => e.type?.toLowerCase() === "game" && new Date(e.date) >= now)
-      .sort((a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      .filter((e: Event) => {
+        const eventDate = parseTextDate(e.date);
+        return e.type?.toLowerCase() === "game" && eventDate && eventDate >= now;
+      })
+      .sort((a: Event, b: Event) => {
+        const dateA = parseTextDate(a.date);
+        const dateB = parseTextDate(b.date);
+        return (dateA?.getTime() || 0) - (dateB?.getTime() || 0);
+      });
     return upcomingGames[0] || null;
   }, [teamEvents]);
 
@@ -736,7 +743,10 @@ export default function CoachDashboard() {
             
             {/* Next Game Card */}
             {(() => {
-              const upcomingEvents = eventsWithDates.filter((e: Event) => new Date(e.date) >= new Date()).sort((a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime());
+              const upcomingEvents = eventsWithDates.filter((e: Event) => {
+                const d = parseTextDate(e.date);
+                return d && d >= new Date();
+              }).sort((a: Event, b: Event) => (parseTextDate(a.date)?.getTime() || 0) - (parseTextDate(b.date)?.getTime() || 0));
               const nextGame = upcomingEvents[0];
               return nextGame ? (
                 <Card className="bg-gradient-to-br from-primary/20 to-primary/5 border-primary/30 mb-6" data-testid="next-game-card">
@@ -748,11 +758,11 @@ export default function CoachDashboard() {
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
                             <CalendarClock className="h-4 w-4 text-primary" />
-                            <span>{format(new Date(nextGame.date), "EEEE, MMM d")}</span>
+                            <span>{formatTextDate(nextGame.date, "date")}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-primary" />
-                            <span>{format(new Date(nextGame.date), "h:mm a")}</span>
+                            <span>{formatTextDate(nextGame.date, "time")}</span>
                           </div>
                           {nextGame.location && (
                             <div className="flex items-center gap-2">
@@ -834,11 +844,11 @@ export default function CoachDashboard() {
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                                 <div className="flex items-center gap-2 text-muted-foreground">
                                   <CalendarClock className="h-4 w-4 text-primary" />
-                                  <span>{format(new Date(event.date), "EEEE, MMM d, yyyy")}</span>
+                                  <span>{formatTextDate(event.date, "date")}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-muted-foreground">
                                   <Clock className="h-4 w-4 text-primary" />
-                                  <span>{format(new Date(event.date), "h:mm a")}</span>
+                                  <span>{formatTextDate(event.date, "time")}</span>
                                 </div>
                                 {event.location && (
                                   <div className="flex items-center gap-2 text-muted-foreground sm:col-span-2">
@@ -1613,11 +1623,11 @@ export default function CoachDashboard() {
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <CalendarClock className="h-4 w-4 text-primary" />
-                        <span>{format(new Date(nextGame.date), "EEEE, MMM d")}</span>
+                        <span>{formatTextDate(nextGame.date, "date")}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-primary" />
-                        <span>{format(new Date(nextGame.date), "h:mm a")}</span>
+                        <span>{formatTextDate(nextGame.date, "time")}</span>
                       </div>
                       {nextGame.location && (
                         <div className="flex items-center gap-2">
@@ -2205,7 +2215,7 @@ export default function CoachDashboard() {
             <DialogTitle>Set Starting Lineup</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            {lineupEvent?.title} - {lineupEvent?.date ? format(new Date(lineupEvent.date), "MMM d, yyyy") : ""}
+            {lineupEvent?.title} - {lineupEvent?.date ? formatTextDate(lineupEvent.date, "date") : ""}
           </p>
           
           {(() => {

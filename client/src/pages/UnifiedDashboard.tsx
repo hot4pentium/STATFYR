@@ -8,6 +8,34 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
+// Helper to parse text date "2026-01-02 05:00 PM" to Date object
+const parseTextDate = (dateStr: string): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split(" ");
+  if (parts.length < 3) return null;
+  const [datePart, timePart, ampm] = parts;
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
+  let hour24 = hour;
+  if (ampm === "PM" && hour !== 12) hour24 += 12;
+  if (ampm === "AM" && hour === 12) hour24 = 0;
+  return new Date(year, month - 1, day, hour24, minute);
+};
+
+// Helper to format text date for display
+const formatTextDate = (dateStr: string, formatType: "date" | "time" | "month" | "day" | "full" = "full"): string => {
+  const parsed = parseTextDate(dateStr);
+  if (!parsed) return dateStr;
+  if (formatType === "date") return format(parsed, "EEEE, MMM d, yyyy");
+  if (formatType === "month") return format(parsed, "MMM");
+  if (formatType === "day") return format(parsed, "d");
+  if (formatType === "time") {
+    const parts = dateStr.split(" ");
+    return parts.length >= 3 ? `${parts[1]} ${parts[2]}` : "";
+  }
+  return format(parsed, "MMM d, h:mm a");
+};
+
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -261,7 +289,10 @@ export default function UnifiedDashboard() {
 
   const upcomingEvents = useMemo(() => {
     const now = new Date();
-    return teamEvents.filter((e: Event) => new Date(e.date) >= now).slice(0, 5);
+    return teamEvents.filter((e: Event) => {
+      const d = parseTextDate(e.date);
+      return d && d >= now;
+    }).slice(0, 5);
   }, [teamEvents]);
 
   // Get the currently selected managed athlete
@@ -415,21 +446,25 @@ export default function UnifiedDashboard() {
   };
 
   const populateEventForm = (event: Event) => {
-    const d = new Date(event.date);
-    const h = d.getHours();
-    const hour = String(h % 12 || 12).padStart(2, "0");
-    const ampm = h >= 12 ? "PM" : "AM";
+    // Parse text date format: "2026-01-02 05:00 PM"
+    const dateStr = event.date || "";
+    const parts = dateStr.split(" ");
+    const datePart = parts[0] || "";
+    const timePart = parts[1] || "09:00";
+    const ampmPart = parts[2] || "AM";
+    const [hour, minute] = timePart.split(":");
+    
     setEventForm({
       type: event.type,
-      date: format(d, "yyyy-MM-dd"),
-      hour,
-      minute: String(d.getMinutes()).padStart(2, "0"),
-      ampm,
+      date: datePart,
+      hour: hour || "09",
+      minute: minute || "00",
+      ampm: ampmPart,
       location: event.location || "",
       details: event.details || "",
       opponent: event.opponent || "",
-      drinksAthleteId: "",
-      snacksAthleteId: ""
+      drinksAthleteId: (event as any).drinksAthleteId || "",
+      snacksAthleteId: (event as any).snacksAthleteId || ""
     });
   };
 
@@ -534,14 +569,14 @@ export default function UnifiedDashboard() {
     <Card key={event.id} className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all">
       <CardContent className="p-4 flex items-center gap-3">
         <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex flex-col items-center justify-center shrink-0">
-          <span className="text-xs text-muted-foreground uppercase">{format(new Date(event.date), "MMM")}</span>
-          <span className="text-xl font-display font-bold">{format(new Date(event.date), "d")}</span>
+          <span className="text-xs text-muted-foreground uppercase">{formatTextDate(event.date, "month")}</span>
+          <span className="text-xl font-display font-bold">{formatTextDate(event.date, "day")}</span>
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-bold truncate">{event.title}</p>
           <p className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
             <Clock className="h-3 w-3" />
-            {format(new Date(event.date), "h:mm a")}
+            {formatTextDate(event.date, "time")}
             {event.location && (
               <>
                 <span className="mx-1">•</span>
@@ -584,20 +619,7 @@ export default function UnifiedDashboard() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => {
                 setEditingEvent(event);
-                const d = new Date(event.date);
-                const hrs = d.getHours();
-                setEventForm({
-                  type: event.type || "Practice",
-                  date: format(d, "yyyy-MM-dd"),
-                  hour: String(hrs % 12 || 12).padStart(2, "0"),
-                  minute: String(d.getMinutes()).padStart(2, "0"),
-                  ampm: hrs >= 12 ? "PM" : "AM",
-                  location: event.location || "",
-                  details: event.details || "",
-                  opponent: event.opponent || "",
-                  drinksAthleteId: (event as any).drinksAthleteId || "",
-                  snacksAthleteId: (event as any).snacksAthleteId || ""
-                });
+                populateEventForm(event);
                 setIsEventModalOpen(true);
               }}>
                 <Pencil className="h-4 w-4 mr-2" /> Edit
@@ -765,7 +787,7 @@ export default function UnifiedDashboard() {
               {[...upcomingEvents].sort((a, b) => {
                 if (a.type === "Game" && b.type !== "Game") return -1;
                 if (a.type !== "Game" && b.type === "Game") return 1;
-                return new Date(a.date).getTime() - new Date(b.date).getTime();
+                return (parseTextDate(a.date)?.getTime() || 0) - (parseTextDate(b.date)?.getTime() || 0);
               }).map((event) => (
                 <Card 
                   key={event.id} 
@@ -779,7 +801,7 @@ export default function UnifiedDashboard() {
                       {event.type === "Game" && <Trophy className="h-3 w-3 text-primary" />}
                     </div>
                     <p className="font-semibold text-sm truncate">{event.title}</p>
-                    <p className="text-xs text-muted-foreground">{format(new Date(event.date), "MMM d, h:mm a")}</p>
+                    <p className="text-xs text-muted-foreground">{formatTextDate(event.date)}</p>
                     {event.location && (
                       <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 truncate">
                         <MapPin className="h-3 w-3" /> {event.location}
@@ -1622,11 +1644,11 @@ export default function UnifiedDashboard() {
             <DialogFooter>
               <Button variant="outline" onClick={() => { setIsEventModalOpen(false); resetEventForm(); }}>Cancel</Button>
               <Button onClick={() => {
-                const hrs = parseInt(eventForm.hour) + (eventForm.ampm === "PM" && eventForm.hour !== "12" ? 12 : 0) - (eventForm.ampm === "AM" && eventForm.hour === "12" ? 12 : 0);
-                const dateStr = `${eventForm.date}T${String(hrs).padStart(2, "0")}:${eventForm.minute}:00`;
+                // Format date as text string for storage (e.g., "2026-01-02 05:00 PM")
+                const dateText = `${eventForm.date} ${eventForm.hour}:${eventForm.minute} ${eventForm.ampm}`;
                 const eventData = {
                   type: eventForm.type,
-                  date: dateStr,
+                  date: dateText,
                   location: eventForm.location || undefined,
                   details: eventForm.details || undefined,
                   opponent: eventForm.opponent || undefined,
