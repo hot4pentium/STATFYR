@@ -41,7 +41,11 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **Shareable Athlete Profiles**: Publicly accessible, read-only profiles displaying athlete stats, highlights, recent cheers, and allowing public likes/comments. Features a HYPE Post Spotlight Modal that opens immediately when arriving from a push notification with `?hypePostId=` parameter, showing the specific post in a full-screen modal with a "View HYPE Card" button.
 - **Admin Dashboard**: Centralized view for managing teams and users (security limitations noted).
 - **PWA Features**: Service worker for offline support and update notifications.
-- **Push Notifications**: OneSignal Web Push for cross-platform notifications (works on iOS Safari PWA, Android, and desktop).
+- **Email Notifications**: Resend API with verified domain (noreply@statfyr.com) for HYPE posts, direct messages, team chat, and events.
+- **Unread Message Indicators**: Floating chat button on dashboards with glow effect and badge when unread messages exist. Team Chat card on CoachDashboard has green glow styling when unread count > 0.
+
+## In Progress
+- **Glowing Team Chat Card**: Styling is in place (ring-2 ring-green-500 animate-pulse) but data fetching for unread count needs debugging. The conversations endpoint returns correct unreadCount but the React Query isn't triggering the glow effect on the dashboard.
 
 ### Design Patterns
 - Path aliases (`@/`, `@shared/`) for organized imports.
