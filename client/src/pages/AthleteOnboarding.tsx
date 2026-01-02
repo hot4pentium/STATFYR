@@ -86,17 +86,19 @@ export default function AthleteOnboarding() {
         </div>
 
         <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
-          <CardHeader className="text-center space-y-4">
-            <div className="flex justify-center mb-4">
-              <div className="h-16 w-16 bg-primary rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.5)]">
-                <Shield className="text-primary-foreground h-9 w-9" />
+          {!joinedTeam && (
+            <CardHeader className="text-center space-y-4">
+              <div className="flex justify-center mb-4">
+                <div className="h-16 w-16 bg-primary rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.5)]">
+                  <Shield className="text-primary-foreground h-9 w-9" />
+                </div>
               </div>
-            </div>
-            <CardTitle className="font-display text-2xl uppercase tracking-wide">Join Your Team</CardTitle>
-            <CardDescription>
-              Enter your team code to get started as an athlete
-            </CardDescription>
-          </CardHeader>
+              <CardTitle className="font-display text-2xl uppercase tracking-wide">Join Your Team</CardTitle>
+              <CardDescription>
+                Enter your team code to get started as an athlete
+              </CardDescription>
+            </CardHeader>
+          )}
 
           <CardContent className="space-y-6">
             {!joinedTeam ? (
