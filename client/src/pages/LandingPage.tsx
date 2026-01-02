@@ -144,7 +144,7 @@ export default function LandingPage() {
                 className="h-20 w-20 drop-shadow-[0_0_30px_rgba(16,185,129,0.5)]"
               />
               <h1 className="text-6xl md:text-8xl tracking-tight text-white" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
-                STATF<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Y</span>R
+                STATF<span className="text-orange-500">Y</span>R
               </h1>
             </div>
           </motion.div>
@@ -229,7 +229,7 @@ export default function LandingPage() {
               Progressive Web App
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Add STATF<span className="text-emerald-400">Y</span>R to Your Home Screen
+              Add STATF<span className="text-orange-500">Y</span>R to Your Home Screen
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               Get the full app experience without downloading from an app store. Works on any device, even offline!
@@ -596,7 +596,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img src={logoImage} alt="STATFYR" className="h-10 w-10" />
-              <span className="text-xl text-white font-bold">STATF<span className="text-emerald-400">Y</span>R</span>
+              <span className="text-xl text-white font-bold">STATF<span className="text-orange-500">Y</span>R</span>
             </div>
             <div className="text-gray-500 text-sm">
               &copy; {new Date().getFullYear()} STATFYR. All rights reserved.
