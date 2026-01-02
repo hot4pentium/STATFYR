@@ -19,18 +19,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { VideoUploader } from "@/components/VideoUploader";
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
-// Helper to parse text date "2026-01-02 05:00 PM" to Date object
+// Helper to parse text date - supports both "2026-01-02 05:00 PM" and "2026-01-02 17:00:00" formats
 const parseTextDate = (dateStr: string): Date | null => {
   if (!dateStr) return null;
-  const parts = dateStr.split(" ");
-  if (parts.length < 3) return null;
-  const [datePart, timePart, ampm] = parts;
-  const [year, month, day] = datePart.split("-").map(Number);
-  const [hour, minute] = timePart.split(":").map(Number);
-  let hour24 = hour;
-  if (ampm === "PM" && hour !== 12) hour24 += 12;
-  if (ampm === "AM" && hour === 12) hour24 = 0;
-  return new Date(year, month - 1, day, hour24, minute);
+  const parts = dateStr.trim().split(" ");
+  if (parts.length < 2) return null;
+  const datePart = parts[0];
+  const timePart = parts[1];
+  const ampm = parts[2];
+  const dateParts = datePart.split("-").map(Number);
+  if (dateParts.length < 3) return null;
+  const [year, month, day] = dateParts;
+  const timeParts = timePart.split(":").map(Number);
+  let hour = timeParts[0] || 0;
+  const minute = timeParts[1] || 0;
+  if (ampm === "PM" && hour !== 12) hour += 12;
+  if (ampm === "AM" && hour === 12) hour = 0;
+  return new Date(year, month - 1, day, hour, minute);
 };
 
 // Helper to format text date for display
