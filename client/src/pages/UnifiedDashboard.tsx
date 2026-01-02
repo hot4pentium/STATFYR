@@ -1550,9 +1550,16 @@ export default function UnifiedDashboard() {
                   </div>
                 )}
 
-                {/* Permanent Game Day Live Card - Coaches & Staff Only */}
-                {(effectiveRole === "coach") && (
-                  <Card className="relative overflow-hidden border-2 border-primary/30 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 mb-4" data-testid="game-day-live-card">
+                {/* Permanent Game Day Live Card - All roles with access */}
+                {(effectiveRole === "coach" || userRole === "supporter" || isStaff) && (
+                  <Card 
+                    className={`relative overflow-hidden border-2 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 mb-4 transition-all duration-500 ${
+                      nextGame && eventSessions[nextGame.id]?.status === "live" 
+                        ? "border-green-500 ring-2 ring-green-500/50 animate-pulse shadow-lg shadow-green-500/30" 
+                        : "border-primary/30"
+                    }`} 
+                    data-testid="game-day-live-card"
+                  >
                     <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
                     <CardContent className="relative z-10 p-4">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -1595,48 +1602,74 @@ export default function UnifiedDashboard() {
                         <div className="flex flex-col items-center gap-1">
                           {nextGame ? (
                             <>
-                              <Button
-                                size="default"
-                                className={`min-w-[140px] font-bold gap-2 transition-all ${
-                                  eventSessions[nextGame.id]?.status === "live"
-                                    ? "bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-lg shadow-red-500/30"
-                                    : "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30"
-                                }`}
-                                onClick={() => handleToggleGameDayLive(nextGame)}
-                                disabled={loadingSessionForEvent === nextGame.id}
-                                data-testid="button-game-day-live"
-                              >
-                                {loadingSessionForEvent === nextGame.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : eventSessions[nextGame.id]?.status === "live" ? (
-                                  <>
-                                    <Radio className="h-4 w-4" />
-                                    STOP LIVE
-                                  </>
+                              {/* Supporters only see Join button when session is live */}
+                              {userRole === "supporter" && !isStaff ? (
+                                eventSessions[nextGame.id]?.status === "live" ? (
+                                  <Button
+                                    size="default"
+                                    className="min-w-[140px] font-bold gap-2 bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30"
+                                    onClick={() => setLocation(`/supporter/game/${nextGame.id}`)}
+                                    data-testid="button-join-game-day-live"
+                                  >
+                                    <Zap className="h-4 w-4" />
+                                    JOIN LIVE
+                                  </Button>
                                 ) : (
-                                  <>
-                                    <Radio className="h-4 w-4" />
-                                    START LIVE
-                                  </>
-                                )}
-                              </Button>
-                              <span className="text-xs text-muted-foreground text-center">
-                                {eventSessions[nextGame.id]?.status === "live" 
-                                  ? "Supporters are cheering!" 
-                                  : "Enable engagement"}
-                              </span>
+                                  <div className="text-center">
+                                    <p className="text-xs text-muted-foreground">
+                                      Session not started yet
+                                    </p>
+                                  </div>
+                                )
+                              ) : (
+                                /* Coaches and Staff see Start/Stop buttons */
+                                <Button
+                                  size="default"
+                                  className={`min-w-[140px] font-bold gap-2 transition-all ${
+                                    eventSessions[nextGame.id]?.status === "live"
+                                      ? "bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-lg shadow-red-500/30"
+                                      : "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30"
+                                  }`}
+                                  onClick={() => handleToggleGameDayLive(nextGame)}
+                                  disabled={loadingSessionForEvent === nextGame.id}
+                                  data-testid="button-game-day-live"
+                                >
+                                  {loadingSessionForEvent === nextGame.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : eventSessions[nextGame.id]?.status === "live" ? (
+                                    <>
+                                      <Radio className="h-4 w-4" />
+                                      STOP LIVE
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Radio className="h-4 w-4" />
+                                      START LIVE
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                              {(effectiveRole === "coach" || isStaff) && (
+                                <span className="text-xs text-muted-foreground text-center">
+                                  {eventSessions[nextGame.id]?.status === "live" 
+                                    ? "Supporters are cheering!" 
+                                    : "Enable engagement"}
+                                </span>
+                              )}
                             </>
                           ) : (
-                            <Button
-                              size="default"
-                              variant="outline"
-                              className="min-w-[140px] font-bold gap-2"
-                              onClick={() => { setSelectedCard("schedule"); setIsEventModalOpen(true); }}
-                              data-testid="button-add-game"
-                            >
-                              <Plus className="h-4 w-4" />
-                              Add Game
-                            </Button>
+                            (effectiveRole === "coach" || isStaff) ? (
+                              <Button
+                                size="default"
+                                variant="outline"
+                                className="min-w-[140px] font-bold gap-2"
+                                onClick={() => { setSelectedCard("schedule"); setIsEventModalOpen(true); }}
+                                data-testid="button-add-game"
+                              >
+                                <Plus className="h-4 w-4" />
+                                Add Game
+                              </Button>
+                            ) : null
                           )}
                         </div>
                       </div>

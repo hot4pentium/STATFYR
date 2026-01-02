@@ -275,6 +275,55 @@ export async function sendTeamChatEmail(
   }
 }
 
+export async function sendGameDayLiveEmail(
+  recipientEmail: string,
+  recipientName: string,
+  teamName: string,
+  opponent: string | null,
+  eventDate: string,
+  eventId: string
+): Promise<EmailResult> {
+  if (!process.env.RESEND_API_KEY) {
+    console.log('[Email] Resend not configured, skipping email');
+    return { success: false, error: 'Email service not configured' };
+  }
+
+  try {
+    const gameTitle = opponent ? `vs ${opponent}` : 'Game Day';
+    const content = `
+      <h2 style="margin: 0 0 16px; color: #fff; font-size: 20px;">Game Day Live is NOW ACTIVE!</h2>
+      <div style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 8px; padding: 16px; margin-bottom: 16px; text-align: center;">
+        <p style="margin: 0; color: #fff; font-size: 24px; font-weight: 700;">${gameTitle}</p>
+        <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">${teamName}</p>
+      </div>
+      <p style="margin: 0 0 16px; color: #ccc; font-size: 16px; line-height: 1.5;">
+        The game is starting! Join now to cheer on your team with taps and shoutouts.
+      </p>
+      <div style="background: #222; border-radius: 8px; padding: 16px; text-align: center;">
+        <p style="margin: 0; color: #f97316; font-weight: 600;">Open the STATFYR app to join Game Day Live!</p>
+      </div>
+    `;
+
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: recipientEmail,
+      subject: `LIVE NOW: ${teamName} ${gameTitle}`,
+      html: getBaseTemplate(content),
+    });
+
+    if (error) {
+      console.error('[Email] Send error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('[Email] Game Day Live notification sent to:', recipientEmail);
+    return { success: true };
+  } catch (error: any) {
+    console.error('[Email] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export function isConfigured(): boolean {
   return !!process.env.RESEND_API_KEY;
 }

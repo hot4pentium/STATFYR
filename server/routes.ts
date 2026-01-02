@@ -3045,6 +3045,38 @@ export async function registerRoutes(
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
       }
+      
+      // Send email notifications to all supporters in the team
+      (async () => {
+        try {
+          const { sendGameDayLiveEmail } = await import('./emailService');
+          const event = session.eventId ? await storage.getEvent(session.eventId) : null;
+          const team = await storage.getTeam(session.teamId);
+          const members = await storage.getTeamMembers(session.teamId);
+          const supporters = members.filter(m => m.role === "supporter" && m.user?.email);
+          
+          const eventDate = event?.date || '';
+          const opponent = event?.opponent || null;
+          const teamName = team?.name || 'Your Team';
+          
+          for (const supporter of supporters) {
+            if (supporter.user?.email) {
+              sendGameDayLiveEmail(
+                supporter.user.email,
+                supporter.user.name || supporter.user.firstName || 'Supporter',
+                teamName,
+                opponent,
+                eventDate,
+                session.eventId || ''
+              ).catch(err => console.error('[Email] Failed to send Game Day Live email:', err));
+            }
+          }
+          console.log(`[GameDayLive] Sent email notifications to ${supporters.length} supporters`);
+        } catch (err) {
+          console.error('[GameDayLive] Error sending email notifications:', err);
+        }
+      })();
+      
       res.json(session);
     } catch (error) {
       console.error("Error starting live session:", error);
