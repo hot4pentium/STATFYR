@@ -314,7 +314,7 @@ export default function AthleteHypeCardPage() {
                 <span className="text-xs font-display font-bold text-slate-500 tracking-widest">HYPE CARD™</span>
                 <span className="text-xs text-cyan-500/70 font-mono">
                   {currentMembership?.jerseyNumber ? `#${currentMembership.jerseyNumber}` : currentMembership?.position || ""}
-                  {currentTeam && ` • ${currentTeam.name.slice(0, 3).toUpperCase()}`}
+                  {currentTeam && ` • ${currentTeam.name}`}
                 </span>
               </div>
             </CardContent>
