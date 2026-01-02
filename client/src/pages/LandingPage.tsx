@@ -290,7 +290,7 @@ export default function LandingPage() {
 
       {/* Features Section - Coaches (Light theme with gradient bg) */}
       <section id="features" className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-cyan-50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-100 to-white" />
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-gray-950 to-transparent" />
         
         {/* Decorative elements */}
