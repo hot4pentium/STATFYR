@@ -1428,6 +1428,46 @@ export default function UnifiedDashboard() {
     }
   ], []);
 
+  const supporterWelcomeModal: WelcomeModal = useMemo(() => ({
+    title: "Welcome, Supporter!",
+    subtitle: `You're cheering for ${currentTeam?.name || "the team"}`,
+    description: "You're all set to support your athletes! Let us show you around so you can stay connected and cheer them on.",
+    buttonText: "Let's Go!"
+  }), [currentTeam?.name]);
+
+  const supporterTourSteps: TourStep[] = useMemo(() => [
+    {
+      target: '[data-testid="card-schedule"]',
+      title: "Team Schedule",
+      description: "View upcoming games and practices. When a game is live, you'll see a banner to join and cheer!",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-roster"]',
+      title: "Team Roster",
+      description: "See all team members including athletes, coaches, and fellow supporters.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="game-day-live-card"]',
+      title: "Game Day Live",
+      description: "When a game is live, join to send taps and shoutouts! Earn badges by cheering for your team.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-highlights"]',
+      title: "Team Highlights",
+      description: "Watch video highlights from games and practices.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="button-settings-menu"]',
+      title: "Your Settings",
+      description: "Update your profile and manage your notification preferences.",
+      position: "bottom"
+    }
+  ], []);
+
   return (
     <>
       {user?.id && userRole === "athlete" && (
@@ -1442,6 +1482,13 @@ export default function UnifiedDashboard() {
           steps={coachTourSteps} 
           storageKey={`unified-coach-onboarding-${user.id}`}
           welcomeModal={coachWelcomeModal}
+        />
+      )}
+      {user?.id && userRole === "supporter" && currentTeam && (
+        <OnboardingTour 
+          steps={supporterTourSteps} 
+          storageKey={`unified-supporter-onboarding-${user.id}`}
+          welcomeModal={supporterWelcomeModal}
         />
       )}
       <DashboardBackground />
