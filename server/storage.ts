@@ -35,7 +35,9 @@ import {
   type AthleteHypeTotal, type InsertAthleteHypeTotal,
   type DirectMessage, type InsertDirectMessage,
   type MessageRead, type InsertMessageRead,
-  type NotificationPreferences, type UpdateNotificationPreferences
+  type NotificationPreferences, type UpdateNotificationPreferences,
+  type ChatPresence, type InsertChatPresence,
+  chatPresence
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql, or, ilike } from "drizzle-orm";
@@ -220,6 +222,11 @@ export interface IStorage {
   createDirectMessage(data: InsertDirectMessage): Promise<DirectMessage>;
   getUserUnreadMessageCount(userId: string): Promise<number>;
   markConversationRead(userId: string, conversationKey: string): Promise<void>;
+  
+  // Chat Presence methods
+  updateChatPresence(userId: string, teamId: string, conversationWithUserId: string): Promise<void>;
+  removeChatPresence(userId: string, teamId: string): Promise<void>;
+  isUserActiveInConversation(userId: string, conversationWithUserId: string, withinSeconds?: number): Promise<boolean>;
   
   // Notification Preferences methods
   getNotificationPreferences(userId: string): Promise<NotificationPreferences | undefined>;
@@ -2010,6 +2017,43 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  // Chat Presence methods
+  async updateChatPresence(userId: string, teamId: string, conversationWithUserId: string): Promise<void> {
+    // Delete any existing presence for this user/team combo
+    await db
+      .delete(chatPresence)
+      .where(and(eq(chatPresence.userId, userId), eq(chatPresence.teamId, teamId)));
+    
+    // Insert new presence record
+    await db.insert(chatPresence).values({
+      userId,
+      teamId,
+      conversationWithUserId,
+      lastSeenAt: new Date(),
+    });
+  }
+
+  async removeChatPresence(userId: string, teamId: string): Promise<void> {
+    await db
+      .delete(chatPresence)
+      .where(and(eq(chatPresence.userId, userId), eq(chatPresence.teamId, teamId)));
+  }
+
+  async isUserActiveInConversation(userId: string, conversationWithUserId: string, withinSeconds: number = 15): Promise<boolean> {
+    const cutoff = new Date(Date.now() - withinSeconds * 1000);
+    const [presence] = await db
+      .select()
+      .from(chatPresence)
+      .where(
+        and(
+          eq(chatPresence.userId, userId),
+          eq(chatPresence.conversationWithUserId, conversationWithUserId),
+          gte(chatPresence.lastSeenAt, cutoff)
+        )
+      );
+    return !!presence;
   }
 }
 

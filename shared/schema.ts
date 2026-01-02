@@ -1074,3 +1074,35 @@ export const updateNotificationPreferencesSchema = createInsertSchema(notificati
 export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
 export type UpdateNotificationPreferences = z.infer<typeof updateNotificationPreferencesSchema>;
 export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
+
+// Chat Presence - tracks which users are actively viewing a conversation
+export const chatPresence = pgTable("chat_presence", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  conversationWithUserId: varchar("conversation_with_user_id").references(() => users.id),
+  lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+});
+
+export const chatPresenceRelations = relations(chatPresence, ({ one }) => ({
+  user: one(users, {
+    fields: [chatPresence.userId],
+    references: [users.id],
+  }),
+  team: one(teams, {
+    fields: [chatPresence.teamId],
+    references: [teams.id],
+  }),
+  conversationWith: one(users, {
+    fields: [chatPresence.conversationWithUserId],
+    references: [users.id],
+  }),
+}));
+
+export const insertChatPresenceSchema = createInsertSchema(chatPresence).omit({
+  id: true,
+  lastSeenAt: true,
+});
+
+export type InsertChatPresence = z.infer<typeof insertChatPresenceSchema>;
+export type ChatPresence = typeof chatPresence.$inferSelect;
