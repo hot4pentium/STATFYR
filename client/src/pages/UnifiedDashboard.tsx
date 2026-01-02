@@ -144,6 +144,8 @@ export default function UnifiedDashboard() {
   const [joinTeamCode, setJoinTeamCode] = useState("");
   const [isJoiningTeam, setIsJoiningTeam] = useState(false);
   const [playingHighlight, setPlayingHighlight] = useState<HighlightVideo | null>(null);
+  const [eventSessions, setEventSessions] = useState<Record<string, LiveEngagementSession | null>>({});
+  const [loadingSessionForEvent, setLoadingSessionForEvent] = useState<string | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -294,6 +296,65 @@ export default function UnifiedDashboard() {
       return d && d >= now;
     }).slice(0, 5);
   }, [teamEvents]);
+
+  // Get the next upcoming game for Game Day Live
+  const nextGame = useMemo(() => {
+    const now = new Date();
+    const games = teamEvents.filter((e: Event) => {
+      const d = parseTextDate(e.date);
+      return d && d >= now && e.type === "Game";
+    });
+    games.sort((a: Event, b: Event) => {
+      const da = parseTextDate(a.date);
+      const db = parseTextDate(b.date);
+      return (da?.getTime() || 0) - (db?.getTime() || 0);
+    });
+    return games[0] || null;
+  }, [teamEvents]);
+
+  // Fetch session status for next game
+  useEffect(() => {
+    if (!nextGame || !currentTeam) return;
+    const fetchSession = async () => {
+      try {
+        const session = await getLiveSessionByEvent(nextGame.id);
+        setEventSessions(prev => ({ ...prev, [nextGame.id]: session }));
+      } catch {
+        setEventSessions(prev => ({ ...prev, [nextGame.id]: null }));
+      }
+    };
+    fetchSession();
+    const interval = setInterval(fetchSession, 5000);
+    return () => clearInterval(interval);
+  }, [nextGame?.id, currentTeam?.id]);
+
+  // Handler for toggling Game Day Live session
+  const handleToggleGameDayLive = async (event: Event) => {
+    if (!currentTeam) return;
+    setLoadingSessionForEvent(event.id);
+    try {
+      const existingSession = eventSessions[event.id];
+      if (existingSession?.status === "live") {
+        await endLiveSession(currentTeam.id, existingSession.id!);
+        setEventSessions(prev => ({ ...prev, [event.id]: { ...existingSession, status: "ended" } }));
+        toast.success("Game Day Live session ended");
+      } else if (existingSession) {
+        await startLiveSession(currentTeam.id, existingSession.id!);
+        setEventSessions(prev => ({ ...prev, [event.id]: { ...existingSession, status: "live" } }));
+        toast.success("Game Day Live session started!");
+      } else {
+        const eventDate = parseTextDate(event.date) || new Date();
+        const newSession = await createLiveSessionForEvent(event.id, currentTeam.id, eventDate);
+        await startLiveSession(currentTeam.id, newSession.id!);
+        setEventSessions(prev => ({ ...prev, [event.id]: { ...newSession, status: "live" } }));
+        toast.success("Game Day Live session created and started!");
+      }
+    } catch (err) {
+      toast.error("Failed to toggle live session");
+    } finally {
+      setLoadingSessionForEvent(null);
+    }
+  };
 
   // Get the currently selected managed athlete
   const selectedManagedAthlete = useMemo(() => {
@@ -1479,6 +1540,100 @@ export default function UnifiedDashboard() {
                       </CardContent>
                     </Card>
                   </div>
+                )}
+
+                {/* Permanent Game Day Live Card - Coaches & Staff Only */}
+                {(effectiveRole === "coach") && (
+                  <Card className="relative overflow-hidden border-2 border-primary/30 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 mb-4" data-testid="game-day-live-card">
+                    <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+                    <CardContent className="relative z-10 p-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Radio className="h-4 w-4 text-primary" />
+                            <span className="text-xs uppercase tracking-wider text-primary font-bold">Game Day Live</span>
+                            {nextGame && eventSessions[nextGame.id]?.status === "live" && (
+                              <Badge variant="destructive" className="animate-pulse text-xs">LIVE</Badge>
+                            )}
+                          </div>
+                          {nextGame ? (
+                            <>
+                              <h3 className="text-lg font-display font-bold">
+                                {nextGame.opponent ? `vs ${nextGame.opponent}` : nextGame.title}
+                              </h3>
+                              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <CalendarClock className="h-3 w-3 text-primary" />
+                                  <span>{formatTextDate(nextGame.date, "date")}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3 text-primary" />
+                                  <span>{formatTextDate(nextGame.date, "time")}</span>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <h3 className="text-base font-display font-bold text-muted-foreground">
+                                No upcoming games
+                              </h3>
+                              <p className="text-xs text-muted-foreground">
+                                Create a game event to enable live supporter engagement
+                              </p>
+                            </>
+                          )}
+                        </div>
+                        
+                        <div className="flex flex-col items-center gap-1">
+                          {nextGame ? (
+                            <>
+                              <Button
+                                size="default"
+                                className={`min-w-[140px] font-bold gap-2 transition-all ${
+                                  eventSessions[nextGame.id]?.status === "live"
+                                    ? "bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-lg shadow-red-500/30"
+                                    : "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30"
+                                }`}
+                                onClick={() => handleToggleGameDayLive(nextGame)}
+                                disabled={loadingSessionForEvent === nextGame.id}
+                                data-testid="button-game-day-live"
+                              >
+                                {loadingSessionForEvent === nextGame.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : eventSessions[nextGame.id]?.status === "live" ? (
+                                  <>
+                                    <Radio className="h-4 w-4" />
+                                    STOP LIVE
+                                  </>
+                                ) : (
+                                  <>
+                                    <Radio className="h-4 w-4" />
+                                    START LIVE
+                                  </>
+                                )}
+                              </Button>
+                              <span className="text-xs text-muted-foreground text-center">
+                                {eventSessions[nextGame.id]?.status === "live" 
+                                  ? "Supporters are cheering!" 
+                                  : "Enable engagement"}
+                              </span>
+                            </>
+                          ) : (
+                            <Button
+                              size="default"
+                              variant="outline"
+                              className="min-w-[140px] font-bold gap-2"
+                              onClick={() => { setSelectedCard("schedule"); setIsEventModalOpen(true); }}
+                              data-testid="button-add-game"
+                            >
+                              <Plus className="h-4 w-4" />
+                              Add Game
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
 
                 <div className="flex items-center gap-3 mb-4 landscape:mb-5 flex-wrap">
