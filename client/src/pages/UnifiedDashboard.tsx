@@ -785,6 +785,26 @@ export default function UnifiedDashboard() {
                         <MapPin className="h-3 w-3" /> {event.location}
                       </p>
                     )}
+                    {((event as any).drinksAthleteId || (event as any).snacksAthleteId) && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {(event as any).drinksAthleteId && (() => {
+                          const athlete = teamMembers.find((m: TeamMember) => m.userId === (event as any).drinksAthleteId);
+                          return athlete ? (
+                            <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full">
+                              🥤 {athlete.user.firstName || athlete.user.username}
+                            </span>
+                          ) : null;
+                        })()}
+                        {(event as any).snacksAthleteId && (() => {
+                          const athlete = teamMembers.find((m: TeamMember) => m.userId === (event as any).snacksAthleteId);
+                          return athlete ? (
+                            <span className="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-full">
+                              🍿 {athlete.user.firstName || athlete.user.username}
+                            </span>
+                          ) : null;
+                        })()}
+                      </div>
+                    )}
                     {(userRole === "coach" || isStaff) && (
                       <div className="flex gap-1 mt-2">
                         <Button size="sm" variant="ghost" className="h-6 px-2" onClick={() => { setEditingEvent(event); populateEventForm(event); setIsEventModalOpen(true); }}>
