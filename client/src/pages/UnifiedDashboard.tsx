@@ -1342,8 +1342,55 @@ export default function UnifiedDashboard() {
     );
   }
 
+  const athleteWelcomeModal: WelcomeModal = {
+    title: "Welcome, Athlete!",
+    subtitle: `You're part of ${currentTeam?.name || "the team"}`,
+    description: "You're all set up and ready to go! Let us show you around so you can make the most of your dashboard.",
+    buttonText: "Let's Go!"
+  };
+
+  const athleteTourSteps: TourStep[] = [
+    {
+      target: '[data-testid="card-schedule"]',
+      title: "Stay Up to Date",
+      description: "Check the schedule regularly to stay informed about upcoming practices, games, and team events.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-hype-portal"]',
+      title: "Your HYPE Portal",
+      description: "Post updates and fire up your followers! This is where you share your journey with fans and family.",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-hype-card"]',
+      title: "Your HYPE Card",
+      description: "View and share your personal player card. See your stats, highlights, and shoutouts from supporters!",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="card-playbook"]',
+      title: "Study the Playbook",
+      description: "Review team plays and strategies. Check back often to learn new formations!",
+      position: "bottom"
+    },
+    {
+      target: '[data-testid="button-settings-menu"]',
+      title: "Personalize Your Profile",
+      description: "Head to Settings to update your avatar and name. Make your profile stand out!",
+      position: "bottom"
+    }
+  ];
+
   return (
     <>
+      {user?.id && userRole === "athlete" && (
+        <OnboardingTour 
+          steps={athleteTourSteps} 
+          storageKey={`unified-athlete-onboarding-${user.id}`}
+          welcomeModal={athleteWelcomeModal}
+        />
+      )}
       <DashboardBackground />
       <div className="relative z-10 min-h-screen">
         {/* Hero Section */}
