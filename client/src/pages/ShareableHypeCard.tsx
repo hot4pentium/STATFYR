@@ -537,6 +537,17 @@ export default function ShareableHypeCard(props: any) {
     enabled: !!teamId,
   });
 
+  // Fetch team engagement stats (total taps and shoutouts)
+  const { data: teamEngagement } = useQuery({
+    queryKey: ["/api/teams", teamId, "engagement-stats"],
+    queryFn: async () => {
+      const res = await fetch(`/api/teams/${teamId}/engagement-stats`);
+      if (!res.ok) return { totalTaps: 0, totalShoutouts: 0 };
+      return res.json();
+    },
+    enabled: !!teamId,
+  });
+
   // Get upcoming events (next 3 future events)
   const upcomingEvents = useMemo(() => {
     const now = new Date();
@@ -1318,6 +1329,36 @@ export default function ShareableHypeCard(props: any) {
                   </Card>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Team Support Stats */}
+        {teamEngagement && (teamEngagement.totalTaps > 0 || teamEngagement.totalShoutouts > 0) && (
+          <div className="mb-6">
+            <h3 className="text-lg font-display font-bold mb-3 flex items-center gap-2">
+              <Users className="h-5 w-5 text-pink-500" />
+              Team Support
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              <Card className="bg-gradient-to-br from-orange-500/20 to-yellow-500/20 border-orange-500/30">
+                <CardContent className="p-4 text-center">
+                  <Zap className="h-8 w-8 mx-auto mb-1 text-orange-500" />
+                  <div className="text-3xl font-bold text-orange-500">
+                    {teamEngagement.totalTaps.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Total Taps</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-500/30">
+                <CardContent className="p-4 text-center">
+                  <MessageCircle className="h-8 w-8 mx-auto mb-1 text-purple-500" />
+                  <div className="text-3xl font-bold text-purple-500">
+                    {teamEngagement.totalShoutouts.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Shoutouts</div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         )}
