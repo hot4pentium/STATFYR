@@ -7,6 +7,20 @@ import { Plus, MapPin, Clock, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 
+// Helper to parse text date "2026-01-02 05:00 PM" to Date object
+const parseTextDate = (dateStr: string): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split(" ");
+  if (parts.length < 3) return null;
+  const [datePart, timePart, ampm] = parts;
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
+  let hour24 = hour;
+  if (ampm === "PM" && hour !== 12) hour24 += 12;
+  if (ampm === "AM" && hour === 12) hour24 = 0;
+  return new Date(year, month - 1, day, hour24, minute);
+};
+
 export default function EventsPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
 
@@ -50,8 +64,8 @@ export default function EventsPage() {
                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary group-hover:bg-primary/80 transition-colors" />
                  <CardContent className="p-6 flex flex-col md:flex-row gap-6 items-start md:items-center">
                    <div className="flex flex-col items-center justify-center min-w-[80px] p-3 bg-background/50 rounded-lg border border-white/5">
-                      <span className="text-xs font-bold text-primary uppercase tracking-wider">{new Date(event.date).toLocaleString('default', {month: 'short'})}</span>
-                      <span className="text-3xl font-display font-bold">{new Date(event.date).getDate()}</span>
+                      <span className="text-xs font-bold text-primary uppercase tracking-wider">{parseTextDate(event.date)?.toLocaleString('default', {month: 'short'}) || ''}</span>
+                      <span className="text-3xl font-display font-bold">{parseTextDate(event.date)?.getDate() || ''}</span>
                    </div>
                    
                    <div className="flex-1 space-y-1">
@@ -62,7 +76,7 @@ export default function EventsPage() {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
-                          {new Date(event.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          {parseTextDate(event.date)?.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) || ''}
                         </div>
                         <div className="flex items-center gap-1">
                            <MapPin className="h-4 w-4" />

@@ -23,6 +23,32 @@ import { usePWA } from "@/lib/pwaContext";
 import { TeamBadge } from "@/components/TeamBadge";
 import { TeamHeroCard } from "@/components/dashboard/TeamHeroCard";
 
+// Helper to parse text date "2026-01-02 05:00 PM" to Date object
+const parseTextDate = (dateStr: string): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split(" ");
+  if (parts.length < 3) return null;
+  const [datePart, timePart, ampm] = parts;
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
+  let hour24 = hour;
+  if (ampm === "PM" && hour !== 12) hour24 += 12;
+  if (ampm === "AM" && hour === 12) hour24 = 0;
+  return new Date(year, month - 1, day, hour24, minute);
+};
+
+// Helper to format text date for display
+const formatTextDate = (dateStr: string, formatType: "date" | "time" | "full" = "full"): string => {
+  const parsed = parseTextDate(dateStr);
+  if (!parsed) return dateStr;
+  if (formatType === "date") return format(parsed, "EEEE, MMM d, yyyy");
+  if (formatType === "time") {
+    const parts = dateStr.split(" ");
+    return parts.length >= 3 ? `${parts[1]} ${parts[2]}` : "";
+  }
+  return format(parsed, "EEEE, MMM d, yyyy") + " at " + (dateStr.split(" ").slice(1).join(" "));
+};
+
 function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
   return <span className={`px-2 py-1 rounded text-xs font-bold ${className}`}>{children}</span>;
 }
@@ -347,10 +373,10 @@ export default function SupporterDashboard() {
     switch(selectedCard) {
       case "schedule":
         const eventsWithDates = teamEvents.filter((e: Event) => e.date);
-        const eventDates = eventsWithDates.map((e: Event) => new Date(e.date));
+        const eventDates = eventsWithDates.map((e: Event) => parseTextDate(e.date)).filter(Boolean) as Date[];
         const filteredEvents = selectedDate 
-          ? eventsWithDates.filter((e: Event) => isSameDay(new Date(e.date), selectedDate))
-          : [...eventsWithDates].sort((a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          ? eventsWithDates.filter((e: Event) => { const d = parseTextDate(e.date); return d && isSameDay(d, selectedDate); })
+          : [...eventsWithDates].sort((a: Event, b: Event) => (parseTextDate(a.date)?.getTime() || 0) - (parseTextDate(b.date)?.getTime() || 0));
         
         const getAthleteName = (athleteId: string | null | undefined) => {
           if (!athleteId) return null;
@@ -377,7 +403,7 @@ export default function SupporterDashboard() {
             
             {/* Next Game Card */}
             {(() => {
-              const upcomingEvents = eventsWithDates.filter((e: Event) => new Date(e.date) >= new Date()).sort((a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime());
+              const upcomingEvents = eventsWithDates.filter((e: Event) => { const d = parseTextDate(e.date); return d && d >= new Date(); }).sort((a: Event, b: Event) => (parseTextDate(a.date)?.getTime() || 0) - (parseTextDate(b.date)?.getTime() || 0));
               const nextGame = upcomingEvents[0];
               return nextGame ? (
                 <Card className="bg-gradient-to-br from-primary/20 to-primary/5 border-primary/30 mb-6" data-testid="next-game-card">
@@ -389,11 +415,11 @@ export default function SupporterDashboard() {
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
                             <CalendarIcon className="h-4 w-4 text-primary" />
-                            <span>{format(new Date(nextGame.date), "EEEE, MMM d")}</span>
+                            <span>{formatTextDate(nextGame.date, "date")}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-primary" />
-                            <span>{format(new Date(nextGame.date), "h:mm a")}</span>
+                            <span>{formatTextDate(nextGame.date, "time")}</span>
                           </div>
                           {nextGame.location && (
                             <div className="flex items-center gap-2">
@@ -446,11 +472,11 @@ export default function SupporterDashboard() {
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                                 <div className="flex items-center gap-2 text-muted-foreground">
                                   <CalendarIcon className="h-4 w-4 text-primary" />
-                                  <span>{format(new Date(event.date), "EEEE, MMM d, yyyy")}</span>
+                                  <span>{formatTextDate(event.date, "date")}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-muted-foreground">
                                   <Clock className="h-4 w-4 text-primary" />
-                                  <span>{format(new Date(event.date), "h:mm a")}</span>
+                                  <span>{formatTextDate(event.date, "time")}</span>
                                 </div>
                                 {event.location && (
                                   <div className="flex items-center gap-2 text-muted-foreground sm:col-span-2">

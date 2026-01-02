@@ -19,6 +19,32 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { VideoUploader } from "@/components/VideoUploader";
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
+// Helper to parse text date "2026-01-02 05:00 PM" to Date object
+const parseTextDate = (dateStr: string): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split(" ");
+  if (parts.length < 3) return null;
+  const [datePart, timePart, ampm] = parts;
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
+  let hour24 = hour;
+  if (ampm === "PM" && hour !== 12) hour24 += 12;
+  if (ampm === "AM" && hour === 12) hour24 = 0;
+  return new Date(year, month - 1, day, hour24, minute);
+};
+
+// Helper to format text date for display
+const formatTextDate = (dateStr: string, formatType: "date" | "time" | "full" = "full"): string => {
+  const parsed = parseTextDate(dateStr);
+  if (!parsed) return dateStr;
+  if (formatType === "date") return format(parsed, "EEEE, MMM d, yyyy");
+  if (formatType === "time") {
+    const parts = dateStr.split(" ");
+    return parts.length >= 3 ? `${parts[1]} ${parts[2]}` : "";
+  }
+  return format(parsed, "EEEE, MMM d, yyyy") + " at " + (dateStr.split(" ").slice(1).join(" "));
+};
+
 type SectionType = "schedule" | "roster" | "stats" | "highlights" | "playbook" | "hype-card" | null;
 
 type HypeCardTab = "events" | "stats" | "highlights" | "shoutouts";
@@ -97,7 +123,7 @@ export default function AthleteDashboard() {
 
   const upcomingEvents = useMemo(() => {
     const now = new Date();
-    return teamEvents.filter((e: Event) => new Date(e.date) >= now);
+    return teamEvents.filter((e: Event) => { const d = parseTextDate(e.date); return d && d >= now; });
   }, [teamEvents]);
 
   const { data: teamHighlights = [], refetch: refetchHighlights } = useQuery({
@@ -637,11 +663,11 @@ export default function AthleteDashboard() {
                                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
                                   <div className="flex items-center gap-2">
                                     <CalendarIcon className="h-4 w-4 text-primary" />
-                                    <span>{format(new Date(event.date), "EEE, MMM d")}</span>
+                                    <span>{formatTextDate(event.date, "date")}</span>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <Clock className="h-4 w-4 text-primary" />
-                                    <span>{format(new Date(event.date), "h:mm a")}</span>
+                                    <span>{formatTextDate(event.date, "time")}</span>
                                   </div>
                                   {event.location && (
                                     <div className="flex items-center gap-2">
