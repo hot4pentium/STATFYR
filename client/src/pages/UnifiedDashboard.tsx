@@ -1602,8 +1602,8 @@ export default function UnifiedDashboard() {
                         <div className="flex flex-col items-center gap-1">
                           {nextGame ? (
                             <>
-                              {/* Supporters only see Join button when session is live */}
-                              {userRole === "supporter" && !isStaff ? (
+                              {/* Supporters only see Join button when session is live - Staff/Coaches get Start/Stop controls */}
+                              {userRole === "supporter" && !isStaff && effectiveRole !== "coach" ? (
                                 eventSessions[nextGame.id]?.status === "live" ? (
                                   <Button
                                     size="default"
