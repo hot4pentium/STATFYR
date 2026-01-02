@@ -550,6 +550,26 @@ export default function UnifiedDashboard() {
               </>
             )}
           </p>
+          {((event as any).drinksAthleteId || (event as any).snacksAthleteId) && (
+            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
+              {(event as any).drinksAthleteId && (() => {
+                const athlete = teamMembers.find((m: TeamMember) => m.userId === (event as any).drinksAthleteId);
+                return athlete ? (
+                  <span className="flex items-center gap-1 bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full">
+                    🥤 {athlete.user.name || athlete.user.username}
+                  </span>
+                ) : null;
+              })()}
+              {(event as any).snacksAthleteId && (() => {
+                const athlete = teamMembers.find((m: TeamMember) => m.userId === (event as any).snacksAthleteId);
+                return athlete ? (
+                  <span className="flex items-center gap-1 bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded-full">
+                    🍿 {athlete.user.name || athlete.user.username}
+                  </span>
+                ) : null;
+              })()}
+            </div>
+          )}
         </div>
         <Badge variant={event.type === "Game" ? "default" : "secondary"} className="shrink-0">
           {event.type}
@@ -575,8 +595,8 @@ export default function UnifiedDashboard() {
                   location: event.location || "",
                   details: event.details || "",
                   opponent: event.opponent || "",
-                  drinksAthleteId: "",
-                  snacksAthleteId: ""
+                  drinksAthleteId: (event as any).drinksAthleteId || "",
+                  snacksAthleteId: (event as any).snacksAthleteId || ""
                 });
                 setIsEventModalOpen(true);
               }}>
