@@ -343,17 +343,17 @@ export default function UnifiedDashboard() {
     try {
       const existingSession = eventSessions[event.id];
       if (existingSession?.status === "live") {
-        await endLiveSession(currentTeam.id, existingSession.id!);
+        await endLiveSession(existingSession.id!);
         setEventSessions(prev => ({ ...prev, [event.id]: { ...existingSession, status: "ended" } }));
         toast.success("Game Day Live session ended");
       } else if (existingSession) {
-        await startLiveSession(currentTeam.id, existingSession.id!);
+        await startLiveSession(existingSession.id!);
         setEventSessions(prev => ({ ...prev, [event.id]: { ...existingSession, status: "live" } }));
         toast.success("Game Day Live session started!");
       } else {
         const eventDate = parseTextDate(event.date) || new Date();
         const newSession = await createLiveSessionForEvent(event.id, currentTeam.id, eventDate);
-        await startLiveSession(currentTeam.id, newSession.id!);
+        await startLiveSession(newSession.id!);
         setEventSessions(prev => ({ ...prev, [event.id]: { ...newSession, status: "live" } }));
         toast.success("Game Day Live session created and started!");
       }
