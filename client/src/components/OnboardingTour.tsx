@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { X, ChevronRight, ChevronLeft, Sparkles } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, Sparkles, Smartphone, Download, Check, Plus } from "lucide-react";
 
 export interface TourStep {
   target: string;
@@ -30,7 +30,34 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  const isIOS = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+  }, []);
+
+  const isAndroid = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return /Android/.test(navigator.userAgent);
+  }, []);
+
+  const isStandalone = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(display-mode: standalone)').matches || 
+           (window.navigator as any).standalone === true;
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
 
   useEffect(() => {
     const hasCompleted = localStorage.getItem(storageKey);
@@ -85,14 +112,37 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
   };
 
   const handleSkip = () => {
-    handleComplete();
+    finishOnboarding();
   };
 
   const handleComplete = () => {
     localStorage.setItem(storageKey, "true");
     setIsVisible(false);
     setShowWelcome(false);
+    if (!isStandalone && (isIOS || isAndroid || deferredPrompt)) {
+      setShowInstallPrompt(true);
+    } else {
+      onComplete?.();
+    }
+  };
+
+  const finishOnboarding = () => {
+    localStorage.setItem(storageKey, "true");
+    setIsVisible(false);
+    setShowWelcome(false);
+    setShowInstallPrompt(false);
     onComplete?.();
+  };
+
+  const handleAndroidInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    }
+    finishOnboarding();
   };
 
   const handleStartTour = () => {
@@ -138,11 +188,147 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
               </button>
               <button
                 className="py-2 px-4 text-sm text-muted-foreground hover:text-foreground"
-                onClick={handleComplete}
+                onClick={finishOnboarding}
                 data-testid="button-skip-welcome"
               >
                 I'll explore on my own
               </button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (showInstallPrompt) {
+    return (
+      <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-gradient-to-br from-card via-card to-emerald-500/5 border-emerald-500/30 shadow-2xl shadow-emerald-500/20">
+          <CardContent className="p-6 text-center">
+            <div className="mb-5">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                <Smartphone className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            
+            <h2 className="text-2xl font-bold mb-2">
+              Install STATFYR
+            </h2>
+            
+            <p className="text-muted-foreground mb-6 text-sm">
+              Add STATFYR to your home screen for the best experience with push notifications and quick access!
+            </p>
+
+            {isIOS && (
+              <div className="space-y-3 mb-6 text-left">
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex-shrink-0 w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="5" y="8" width="14" height="12" rx="2" />
+                      <path d="M12 2v10M8 6l4-4 4 4" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">1</span>
+                      <span className="font-medium text-sm">Tap Share</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">At the bottom of Safari</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex-shrink-0 w-10 h-10 bg-muted rounded-lg flex items-center justify-center border border-border">
+                    <div className="relative">
+                      <div className="w-5 h-5 border-2 border-foreground rounded-md" />
+                      <Plus className="w-3 h-3 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">2</span>
+                      <span className="font-medium text-sm">Add to Home Screen</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Scroll down in the menu</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex-shrink-0 w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
+                    <Check className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">3</span>
+                      <span className="font-medium text-sm">Tap "Add"</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Confirm in the top right</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isAndroid && deferredPrompt && (
+              <Button
+                onClick={handleAndroidInstall}
+                className="w-full mb-4 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-bold py-3"
+                data-testid="button-install-android"
+              >
+                <Download className="h-5 w-5 mr-2" />
+                Install App
+              </Button>
+            )}
+
+            {isAndroid && !deferredPrompt && (
+              <div className="space-y-3 mb-6 text-left">
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex-shrink-0 w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                    <span className="text-lg">⋮</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">1</span>
+                      <span className="font-medium text-sm">Tap Menu</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Three dots at the top right</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex-shrink-0 w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
+                    <Download className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">2</span>
+                      <span className="font-medium text-sm">Install App</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Or "Add to Home Screen"</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!isIOS && !isAndroid && deferredPrompt && (
+              <Button
+                onClick={handleAndroidInstall}
+                className="w-full mb-4 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-bold py-3"
+                data-testid="button-install-desktop"
+              >
+                <Download className="h-5 w-5 mr-2" />
+                Install App
+              </Button>
+            )}
+            
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                onClick={finishOnboarding}
+                className="w-full"
+                data-testid="button-skip-install"
+              >
+                {isIOS ? "Got it!" : "Maybe Later"}
+              </Button>
             </div>
           </CardContent>
         </Card>
