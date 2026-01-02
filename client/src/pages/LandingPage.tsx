@@ -304,7 +304,7 @@ export default function LandingPage() {
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="relative h-[450px] flex items-center justify-center"
+                className="relative h-[560px] flex items-center justify-center"
               >
                 {/* Phone mockup with real screenshot */}
                 <div className="relative z-10">
@@ -314,7 +314,7 @@ export default function LandingPage() {
                       <img 
                         src={dashboardScreenshot} 
                         alt="STATFYR Coach Dashboard" 
-                        className="w-[240px] h-auto rounded-[2.5rem]"
+                        className="w-[260px] h-[520px] object-cover object-top rounded-[2.5rem]"
                       />
                     </div>
                   </div>
