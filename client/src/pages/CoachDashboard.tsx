@@ -2317,10 +2317,15 @@ export default function CoachDashboard() {
       {/* Floating Chat Button */}
       <Link href="/chat">
         <button
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 flex items-center justify-center transition-transform hover:scale-105 z-50"
+          className={`fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 flex items-center justify-center transition-transform hover:scale-105 z-50 ${unreadCount > 0 ? 'animate-pulse ring-4 ring-green-500/50 shadow-green-500/50 shadow-xl' : ''}`}
           data-testid="button-floating-chat"
         >
           <MessageSquare className="h-6 w-6" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold pointer-events-none">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
         </button>
       </Link>
     </>
