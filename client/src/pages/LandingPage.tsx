@@ -305,35 +305,16 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 className="relative h-[450px] flex items-center justify-center"
               >
-                {/* Phone mockup with glow */}
+                {/* Phone mockup with real screenshot */}
                 <div className="relative z-10">
                   <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 to-red-500/30 rounded-[3rem] blur-2xl" />
-                  <div className="relative bg-gray-800 rounded-[3rem] p-3 shadow-2xl border border-white/10">
-                    <div className="bg-gradient-to-b from-gray-900 to-gray-950 rounded-[2.5rem] overflow-hidden">
-                      <div className="h-6 bg-black rounded-t-[2.5rem] flex items-center justify-center">
-                        <div className="w-16 h-4 bg-gray-900 rounded-full" />
-                      </div>
-                      <div className="p-4 min-h-[340px]">
-                        <div className="flex items-center gap-3 mb-5">
-                          <img src={logoImage} alt="STATFYR" className="h-10 w-10" />
-                          <div>
-                            <div className="font-bold text-white text-sm">STATFYR</div>
-                            <div className="text-[10px] text-gray-500">Team Management</div>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-                            <div className="text-[10px] text-orange-400 font-medium mb-1">NEXT GAME</div>
-                            <div className="font-bold text-white text-sm">vs Eagles</div>
-                            <div className="text-xs text-gray-500">Tomorrow, 6:00 PM</div>
-                          </div>
-                          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-                            <div className="text-[10px] text-green-400 font-medium mb-1">TEAM RECORD</div>
-                            <div className="font-bold text-white text-sm">8-2</div>
-                            <div className="text-xs text-gray-500">Season 2024</div>
-                          </div>
-                        </div>
-                      </div>
+                  <div className="relative bg-gray-800 rounded-[3rem] p-2 shadow-2xl border border-white/10">
+                    <div className="rounded-[2.5rem] overflow-hidden">
+                      <img 
+                        src="/attached_assets/Screenshot_2026-01-01_at_9.48.07_PM_1767322113880.png" 
+                        alt="STATFYR Coach Dashboard" 
+                        className="w-[240px] h-auto rounded-[2.5rem]"
+                      />
                     </div>
                   </div>
                 </div>
