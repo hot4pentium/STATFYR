@@ -154,6 +154,7 @@ export default function UnifiedDashboard() {
   const [playingHighlight, setPlayingHighlight] = useState<HighlightVideo | null>(null);
   const [eventSessions, setEventSessions] = useState<Record<string, LiveEngagementSession | null>>({});
   const [loadingSessionForEvent, setLoadingSessionForEvent] = useState<string | null>(null);
+  const [confirmStartEvent, setConfirmStartEvent] = useState<Event | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -339,14 +340,35 @@ export default function UnifiedDashboard() {
   // Handler for toggling Game Day Live session
   const handleToggleGameDayLive = async (event: Event) => {
     if (!currentTeam) return;
-    setLoadingSessionForEvent(event.id);
-    try {
-      const existingSession = eventSessions[event.id];
-      if (existingSession?.status === "live") {
+    const existingSession = eventSessions[event.id];
+    
+    // If session is live, stop it directly
+    if (existingSession?.status === "live") {
+      setLoadingSessionForEvent(event.id);
+      try {
         await endLiveSession(existingSession.id!);
         setEventSessions(prev => ({ ...prev, [event.id]: { ...existingSession, status: "ended" } }));
         toast.success("Game Day Live session ended");
-      } else if (existingSession) {
+      } catch (err) {
+        toast.error("Failed to end live session");
+      } finally {
+        setLoadingSessionForEvent(null);
+      }
+    } else {
+      // Show confirmation dialog before starting
+      setConfirmStartEvent(event);
+    }
+  };
+
+  // Confirm starting Game Day Live session
+  const handleConfirmStartGameDayLive = async () => {
+    if (!confirmStartEvent || !currentTeam) return;
+    const event = confirmStartEvent;
+    setConfirmStartEvent(null);
+    setLoadingSessionForEvent(event.id);
+    try {
+      const existingSession = eventSessions[event.id];
+      if (existingSession) {
         await startLiveSession(existingSession.id!);
         setEventSessions(prev => ({ ...prev, [event.id]: { ...existingSession, status: "live" } }));
         toast.success("Game Day Live session started!");
@@ -358,7 +380,7 @@ export default function UnifiedDashboard() {
         toast.success("Game Day Live session created and started!");
       }
     } catch (err) {
-      toast.error("Failed to toggle live session");
+      toast.error("Failed to start live session");
     } finally {
       setLoadingSessionForEvent(null);
     }
@@ -1913,6 +1935,30 @@ export default function UnifiedDashboard() {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={() => deleteConfirmEvent && deleteEventMutation.mutate(deleteConfirmEvent.id)}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Game Day Live Start Confirmation */}
+        <AlertDialog open={!!confirmStartEvent} onOpenChange={(open) => !open && setConfirmStartEvent(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Radio className="h-5 w-5 text-green-500" />
+                Start Game Day Live?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Is the game starting? This will notify all supporters that the live session is active and they can start sending cheers.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Not Yet</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleConfirmStartGameDayLive}
+                className="bg-green-500 hover:bg-green-600"
+              >
+                Yes, Start Live
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
