@@ -379,7 +379,7 @@ export default function LandingPage() {
             <FeatureCard
               icon={<MessageSquare className="h-6 w-6 text-pink-500" />}
               title="Team Chat"
-              description="Real-time messaging with channels for announcements, tactics, and general chat."
+              description="In-app messaging with channels for announcements, tactics, and general chat."
               delay={0.5}
             />
           </div>
