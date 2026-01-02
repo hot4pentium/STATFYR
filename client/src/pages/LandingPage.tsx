@@ -314,7 +314,7 @@ export default function LandingPage() {
                       <img 
                         src={dashboardScreenshot} 
                         alt="STATFYR Coach Dashboard" 
-                        className="w-[260px] h-[520px] object-cover object-top rounded-[2.5rem]"
+                        className="w-[260px] h-[520px] object-contain bg-gray-900 rounded-[2.5rem]"
                       />
                     </div>
                   </div>
