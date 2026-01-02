@@ -173,6 +173,12 @@ export async function getTeamEvents(teamId: string): Promise<Event[]> {
   return res.json();
 }
 
+export async function getEvent(eventId: string): Promise<Event | null> {
+  const res = await fetch(`/api/events/${eventId}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
 export async function createEvent(teamId: string, data: {
   title: string;
   type: string;

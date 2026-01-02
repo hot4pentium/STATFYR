@@ -601,6 +601,18 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/events/:eventId", async (req, res) => {
+    try {
+      const event = await storage.getEvent(req.params.eventId);
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      res.json(event);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get event" });
+    }
+  });
+
   app.patch("/api/events/:eventId", async (req, res) => {
     try {
       const parsed = updateEventSchema.parse(req.body);
@@ -2985,8 +2997,8 @@ export async function registerRoutes(
         
         // Only auto-create for game events
         if (event.type === "Game") {
-          const scheduledStart = parseEventDate(event.date);
-          const scheduledEnd = parseEventDate(event.endDate);
+          const scheduledStart = parseEventDate(event.date) || new Date();
+          const scheduledEnd = parseEventDate(event.endDate) || new Date();
           session = await storage.createLiveSession({
             eventId: event.id,
             teamId: event.teamId,
@@ -3020,8 +3032,8 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Session already exists for this event" });
       }
       
-      const scheduledStart = parseEventDate(event.date);
-      const scheduledEnd = parseEventDate(event.endDate);
+      const scheduledStart = parseEventDate(event.date) || new Date();
+      const scheduledEnd = parseEventDate(event.endDate) || new Date();
       const session = await storage.createLiveSession({
         eventId: event.id,
         teamId: event.teamId,

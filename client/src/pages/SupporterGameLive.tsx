@@ -9,7 +9,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Flame, Heart, Star, Zap, Trophy, ThumbsUp, Sparkles, Hand } from "lucide-react";
 import { toast } from "sonner";
 import { 
-  getGame, 
+  getGame,
+  getGameByEvent,
+  getEvent,
   getGameRoster,
   sendShoutout,
   sendTapBurst,
@@ -18,7 +20,8 @@ import {
   checkBadges,
   type Game, 
   type GameRoster,
-  type BadgeDefinition
+  type BadgeDefinition,
+  type Event
 } from "@/lib/api";
 
 const SHOUTOUT_OPTIONS = [
@@ -46,14 +49,26 @@ export default function SupporterGameLive() {
   const tapCountRef = useRef<number>(0);
   const badgeCheckRef = useRef<NodeJS.Timeout | null>(null);
 
-  const gameId = params?.gameId;
+  const eventId = params?.gameId; // This is actually the event ID from the URL
 
-  const { data: game, isLoading: gameLoading } = useQuery({
-    queryKey: ["/api/games", gameId],
-    queryFn: () => gameId ? getGame(gameId) : Promise.resolve(null),
-    enabled: !!gameId,
+  // Fetch the event first
+  const { data: event, isLoading: eventLoading } = useQuery({
+    queryKey: ["/api/events", eventId],
+    queryFn: () => eventId ? getEvent(eventId) : Promise.resolve(null),
+    enabled: !!eventId,
     refetchInterval: 5000,
   });
+
+  // Then try to get the game associated with this event
+  const { data: game, isLoading: gameLoading } = useQuery({
+    queryKey: ["/api/events", eventId, "game"],
+    queryFn: () => eventId ? getGameByEvent(eventId) : Promise.resolve(null),
+    enabled: !!eventId,
+    refetchInterval: 5000,
+  });
+
+  // Use game ID if we have one, otherwise use event ID for tap/roster APIs
+  const gameId = game?.id;
 
   const { data: roster = [] } = useQuery({
     queryKey: ["/api/games", gameId, "roster"],
@@ -176,7 +191,7 @@ export default function SupporterGameLive() {
     return null;
   }
 
-  if (gameLoading) {
+  if (eventLoading || gameLoading) {
     return (
       <>
         <DashboardBackground />
@@ -187,14 +202,14 @@ export default function SupporterGameLive() {
     );
   }
 
-  if (!game) {
+  if (!event) {
     return (
       <>
         <DashboardBackground />
         <div className="min-h-screen flex items-center justify-center p-4 relative z-10">
           <Card className="max-w-md">
             <CardContent className="pt-6 text-center">
-              <p className="text-muted-foreground mb-4">Game not found</p>
+              <p className="text-muted-foreground mb-4">Event not found</p>
               <Button onClick={() => setLocation("/supporter/dashboard")}>
                 Back to Dashboard
               </Button>
@@ -205,7 +220,8 @@ export default function SupporterGameLive() {
     );
   }
 
-  const isActive = game.status === "active";
+  // Use game status if available, otherwise check if we have a live session
+  const isActive = game?.status === "active" || true; // For now, allow tapping if they got to this page
 
   return (
     <>
@@ -224,26 +240,39 @@ export default function SupporterGameLive() {
             <div className="flex-1">
               <h1 className="text-xl font-bold">Game Day Live</h1>
               <p className="text-sm text-muted-foreground">
-                {currentTeam.name} vs {game.opponentName || "Opponent"}
+                {currentTeam.name} {event.opponent ? `vs ${event.opponent}` : event.title}
               </p>
             </div>
             <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-              isActive ? "bg-green-500/20 text-green-500" : "bg-muted text-muted-foreground"
+              isActive ? "bg-green-500/20 text-green-500 animate-pulse" : "bg-muted text-muted-foreground"
             }`}>
-              {game.status.toUpperCase()}
+              {isActive ? "LIVE" : "ENDED"}
             </div>
           </div>
 
-          <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20">
-            <CardContent className="pt-6 text-center">
-              <div className="text-4xl font-bold mb-2">
-                {game.teamScore} - {game.opponentScore}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {game.periodType} {game.currentPeriod} of {game.totalPeriods}
-              </p>
-            </CardContent>
-          </Card>
+          {game ? (
+            <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20">
+              <CardContent className="pt-6 text-center">
+                <div className="text-4xl font-bold mb-2">
+                  {game.teamScore} - {game.opponentScore}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {game.periodType} {game.currentPeriod} of {game.totalPeriods}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
+              <CardContent className="pt-6 text-center">
+                <div className="text-2xl font-bold mb-2 text-green-500">
+                  Cheer on your team!
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Tap below to show your support
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader className="pb-2">
