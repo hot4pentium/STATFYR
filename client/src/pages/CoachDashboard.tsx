@@ -1746,9 +1746,19 @@ export default function CoachDashboard() {
               </Card>
 
               {/* Activity / Chat */}
-              <Card className="border-slate-300 dark:border-white/5 bg-slate-200 dark:bg-card/80 backdrop-blur-sm shadow-lg shadow-black/10 dark:shadow-none">
+              <Card 
+                className={`border-slate-300 dark:border-white/5 bg-slate-200 dark:bg-card/80 backdrop-blur-sm shadow-lg shadow-black/10 dark:shadow-none cursor-pointer transition-all ${unreadCount > 0 ? 'ring-2 ring-green-500 animate-pulse shadow-green-500/30 shadow-xl' : ''}`}
+                onClick={() => setLocation("/chat")}
+              >
                 <CardHeader>
-                  <CardTitle className="font-display uppercase tracking-wide">Recent Activity</CardTitle>
+                  <CardTitle className="font-display uppercase tracking-wide flex items-center gap-2">
+                    Team Chat
+                    {unreadCount > 0 && (
+                      <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 font-bold">
+                        {unreadCount > 9 ? '9+' : unreadCount} new
+                      </span>
+                    )}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                    <div className="space-y-6">
