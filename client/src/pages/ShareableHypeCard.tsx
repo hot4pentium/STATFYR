@@ -1431,40 +1431,6 @@ export default function ShareableHypeCard(props: any) {
           </div>
         )}
 
-        {/* Engagement Display */}
-        <div className="mt-6 mb-4">
-          <Card className="bg-slate-800/80 border-slate-600/50">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-center gap-6">
-                <div className="flex items-center gap-2 text-pink-400">
-                  <Heart className="h-5 w-5 fill-current" />
-                  <span className="text-lg font-bold">{likesData?.count || 0}</span>
-                  <span className="text-sm text-slate-400">likes</span>
-                </div>
-                <div className="w-px h-6 bg-slate-600" />
-                <div className="flex items-center gap-2 text-cyan-400">
-                  <MessageCircle className="h-5 w-5" />
-                  <span className="text-lg font-bold">{comments.length}</span>
-                  <span className="text-sm text-slate-400">messages</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          {isFollowing && (
-            <div className="flex justify-end mt-2">
-              <button
-                onClick={handleUnfollow}
-                disabled={isFollowLoading}
-                className="text-xs hover:text-red-400 transition-colors flex items-center gap-1 text-[#3d3939]"
-                data-testid="button-unsubscribe-small"
-              >
-                <BellOff className="h-3 w-3" />
-                Unsubscribe
-              </button>
-            </div>
-          )}
-        </div>
-
         {/* Like & Comment Section */}
         <div className="mb-6">
           <Card className="bg-slate-800/80 border-slate-600/50">
