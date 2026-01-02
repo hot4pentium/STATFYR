@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Flame, ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Video, Heart, MessageCircle, ChevronDown, BarChart3, Calendar, Play } from "lucide-react";
+import { Flame, ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Video, Heart, MessageCircle, ChevronDown, BarChart3, Calendar, Play, Zap, Users } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -120,6 +120,17 @@ export default function HypeManager() {
   const { data: highlights = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "highlights", "all"],
     queryFn: () => currentTeam ? getAllTeamHighlights(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam,
+  });
+
+  const { data: teamEngagement } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "engagement-stats"],
+    queryFn: async () => {
+      if (!currentTeam) return { totalTaps: 0, totalShoutouts: 0 };
+      const res = await fetch(`/api/teams/${currentTeam.id}/engagement-stats`);
+      if (!res.ok) return { totalTaps: 0, totalShoutouts: 0 };
+      return res.json();
+    },
     enabled: !!currentTeam,
   });
 
@@ -421,6 +432,36 @@ export default function HypeManager() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Team Support Stats */}
+          {teamEngagement && (teamEngagement.totalTaps > 0 || teamEngagement.totalShoutouts > 0) && (
+            <Card className="bg-zinc-900/80 border-zinc-700 mb-6">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg text-white flex items-center gap-2">
+                  <Users className="h-5 w-5 text-pink-500" />
+                  Team Support
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-gradient-to-br from-orange-500/20 to-yellow-500/20 rounded-lg border border-orange-500/30 text-center">
+                    <Zap className="h-6 w-6 mx-auto mb-1 text-orange-500" />
+                    <div className="text-2xl font-bold text-orange-500">
+                      {teamEngagement.totalTaps.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-zinc-400 uppercase tracking-wider">Total Taps</div>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg border border-purple-500/30 text-center">
+                    <MessageCircle className="h-6 w-6 mx-auto mb-1 text-purple-500" />
+                    <div className="text-2xl font-bold text-purple-500">
+                      {teamEngagement.totalShoutouts.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-zinc-400 uppercase tracking-wider">Shoutouts</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {profileComments.length > 0 && (
             <Card className="bg-zinc-900/80 border-zinc-700 mb-6">
