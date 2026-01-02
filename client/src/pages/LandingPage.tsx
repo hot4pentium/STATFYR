@@ -608,27 +608,19 @@ export default function LandingPage() {
                     Game Day Live
                   </div>
                   <h3 className="text-3xl font-bold text-white mb-4">
-                    Real-Time Fan Engagement
+                    Live Taps During Games
                   </h3>
                   <p className="text-gray-400 mb-6">
-                    Tap to cheer during live games! Every tap counts towards your season total and unlocks badges. Send shoutouts to your favorite athletes.
+                    Send live taps during games to show your support! Every tap counts towards your season total and unlocks exclusive badges.
                   </p>
-                  <div className="flex gap-6">
-                    <div className="text-center">
-                      <div className="text-3xl">🔥</div>
-                      <div className="text-xs text-gray-500">Fire</div>
+                  <div className="flex gap-4">
+                    <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
+                      <div className="text-2xl font-bold text-orange-400">1,247</div>
+                      <div className="text-xs text-gray-500">Taps This Game</div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-3xl">💪</div>
-                      <div className="text-xs text-gray-500">Strong</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl">⭐</div>
-                      <div className="text-xs text-gray-500">Star</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl">❤️</div>
-                      <div className="text-xs text-gray-500">Love</div>
+                    <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
+                      <div className="text-2xl font-bold text-yellow-400">Gold</div>
+                      <div className="text-xs text-gray-500">Badge Earned</div>
                     </div>
                   </div>
                 </div>
@@ -647,8 +639,8 @@ export default function LandingPage() {
                   >
                     <Hand className="h-16 w-16 text-white" />
                   </motion.div>
-                  <div className="text-xl font-bold mt-4 text-white relative z-10">TAP TO CHEER!</div>
-                  <div className="text-sm text-gray-400 mt-1 relative z-10">1,247 taps this game</div>
+                  <div className="text-xl font-bold mt-4 text-white relative z-10">SEND A TAP!</div>
+                  <div className="text-sm text-gray-400 mt-1 relative z-10">Show your support live</div>
                 </div>
               </div>
             </motion.div>
