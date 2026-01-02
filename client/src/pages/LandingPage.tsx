@@ -342,23 +342,7 @@ export default function LandingPage() {
                   description="Open STATFYR directly from your home screen. No browser needed!"
                 />
 
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.6 }}
-                  className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-2xl p-4 border border-green-500/20"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-500/20 rounded-xl">
-                      <WifiOff className="h-5 w-5 text-green-400" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-white">Works Offline</div>
-                      <div className="text-sm text-gray-400">Access your team data even without internet</div>
-                    </div>
-                  </div>
-                </motion.div>
+                
               </div>
             </div>
           </div>
