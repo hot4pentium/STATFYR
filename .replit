@@ -49,3 +49,6 @@ integrations = ["javascript_database:1.0.0", "javascript_object_storage:2.0.0"]
 VAPID_PRIVATE_KEY = "ac17vpNlkgd6L3lrgkWyGqoBVdMPBnEK74zFliEbddw"
 WEBPUSH_VAPID_PUBLIC_KEY = "BBKE7w1t8L2C1uT9yMIZNGa_27C5xzkl62isWjBbYUcCJ42S8-xkDnt4mvxCdLOc48txZt8xkEOWWm6LcTvkWnc"
 VITE_ONESIGNAL_APP_ID = "44ab9a8d-6849-493b-aba2-dee1e7ed0f41"
+
+[objectStorage]
+defaultBucketID = "replit-objstore-e9fb6c66-0e44-4cad-a531-536d88300c72"
