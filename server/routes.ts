@@ -2951,6 +2951,26 @@ export async function registerRoutes(
     }
   });
 
+  // Helper to parse text date string to Date object
+  const parseEventDate = (dateStr: string | Date | null): Date | null => {
+    if (!dateStr) return null;
+    if (dateStr instanceof Date) return dateStr;
+    const parts = dateStr.trim().split(" ");
+    if (parts.length < 2) return null;
+    const datePart = parts[0];
+    const timePart = parts[1];
+    const ampm = parts[2];
+    const dateParts = datePart.split("-").map(Number);
+    if (dateParts.length < 3) return null;
+    const [year, month, day] = dateParts;
+    const timeParts = timePart.split(":").map(Number);
+    let hour = timeParts[0] || 0;
+    const minute = timeParts[1] || 0;
+    if (ampm === "PM" && hour !== 12) hour += 12;
+    if (ampm === "AM" && hour === 12) hour = 0;
+    return new Date(year, month - 1, day, hour, minute);
+  };
+
   // Get or create session for an event (auto-creates if event exists and is a game type)
   app.get("/api/events/:eventId/live-session", async (req, res) => {
     try {
@@ -2965,12 +2985,14 @@ export async function registerRoutes(
         
         // Only auto-create for game events
         if (event.type === "Game") {
+          const scheduledStart = parseEventDate(event.date);
+          const scheduledEnd = parseEventDate(event.endDate);
           session = await storage.createLiveSession({
             eventId: event.id,
             teamId: event.teamId,
             status: "scheduled",
-            scheduledStart: event.date,
-            scheduledEnd: event.endDate || null,
+            scheduledStart: scheduledStart,
+            scheduledEnd: scheduledEnd,
           });
         } else {
           return res.status(404).json({ error: "No live session for this event" });
@@ -2998,12 +3020,14 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Session already exists for this event" });
       }
       
+      const scheduledStart = parseEventDate(event.date);
+      const scheduledEnd = parseEventDate(event.endDate);
       const session = await storage.createLiveSession({
         eventId: event.id,
         teamId: event.teamId,
         status: "scheduled",
-        scheduledStart: event.date,
-        scheduledEnd: event.endDate || null,
+        scheduledStart: scheduledStart,
+        scheduledEnd: scheduledEnd,
       });
       
       res.json(session);
@@ -3212,14 +3236,18 @@ export async function registerRoutes(
       for (const event of gameEvents) {
         let session = await storage.getLiveSessionByEvent(event.id);
         
+        // Parse event dates
+        const eventStartDate = parseEventDate(event.date);
+        const eventEndDate = parseEventDate(event.endDate);
+        
         // Auto-create session if within 15 min of start
-        if (!session && event.date <= autoStartWindow && event.date >= now) {
+        if (!session && eventStartDate && eventStartDate <= autoStartWindow && eventStartDate >= now) {
           session = await storage.createLiveSession({
             eventId: event.id,
             teamId: event.teamId,
             status: "scheduled",
-            scheduledStart: event.date,
-            scheduledEnd: event.endDate || null,
+            scheduledStart: eventStartDate,
+            scheduledEnd: eventEndDate,
           });
         }
         
