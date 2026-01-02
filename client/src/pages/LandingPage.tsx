@@ -13,7 +13,6 @@ import {
   Wifi, WifiOff, Home, Plus, Sparkles, ArrowRight
 } from "lucide-react";
 
-const SUPPORTED_SPORTS = ["Baseball", "Basketball", "Football", "Soccer", "Volleyball"];
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -79,48 +78,17 @@ function PWAStep({ number, icon, title, description }: { number: number; icon: R
   );
 }
 
-function FloatingShape({ className, delay = 0 }: { className: string; delay?: number }) {
-  return (
-    <motion.div
-      className={className}
-      animate={{
-        y: [0, -20, 0],
-        rotate: [0, 5, -5, 0],
-      }}
-      transition={{
-        duration: 6,
-        delay,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-    />
-  );
+function FloatingShape({ className }: { className: string; delay?: number }) {
+  return <div className={className} />;
 }
 
 export default function LandingPage() {
   const [, setLocation] = useLocation();
   const { setTheme } = useTheme();
-  const [currentSportIndex, setCurrentSportIndex] = useState(0);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     setTheme("light");
   }, [setTheme]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSportIndex((prev) => (prev + 1) % SUPPORTED_SPORTS.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
 
   const goToAuth = () => setLocation("/auth");
 
@@ -153,15 +121,6 @@ export default function LandingPage() {
         {/* Grid pattern overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
         
-        {/* Interactive glow following mouse */}
-        <div 
-          className="absolute w-96 h-96 rounded-full bg-gradient-to-r from-orange-500/10 to-red-500/10 blur-3xl pointer-events-none transition-all duration-300"
-          style={{
-            left: mousePosition.x - 192,
-            top: mousePosition.y - 192,
-          }}
-        />
-        
         <div className="relative z-10 container mx-auto px-6 text-center py-20">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -179,12 +138,10 @@ export default function LandingPage() {
             </motion.div>
             
             <div className="flex items-center justify-center gap-4 mb-8">
-              <motion.img 
+              <img 
                 src={logoImage} 
                 alt="STATFYR Logo" 
                 className="h-20 w-20 drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]"
-                animate={{ rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
               />
               <h1 className="text-6xl md:text-8xl tracking-tight text-white" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
                 STATF<span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">Y</span>R
@@ -242,36 +199,18 @@ export default function LandingPage() {
               <div className="text-sm text-gray-500">Game Engagement</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400 h-10 overflow-hidden">
-                <motion.div
-                  key={currentSportIndex}
-                  initial={{ y: 40, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -40, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {SUPPORTED_SPORTS[currentSportIndex]}
-                </motion.div>
-              </div>
-              <div className="text-sm text-gray-500">Multi-Sport Support</div>
+              <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">5+</div>
+              <div className="text-sm text-gray-500">Sports Supported</div>
             </div>
           </motion.div>
         </div>
         
         {/* Scroll indicator */}
-        <motion.div 
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
           <div className="w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-2">
-            <motion.div 
-              className="w-1.5 h-1.5 rounded-full bg-orange-400"
-              animate={{ y: [0, 12, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+            <div className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-bounce" />
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* PWA Install Section - Gradient transition */}
