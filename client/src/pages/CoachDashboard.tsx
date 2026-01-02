@@ -1603,77 +1603,103 @@ export default function CoachDashboard() {
             </div>
           )}
 
-          {/* Next Game Card - Prominent Game Day Live Controls */}
-          {nextGame && (
-            <Card className="relative overflow-hidden border-2 border-primary/30 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10" data-testid="hero-next-game-card">
-              <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-              <CardContent className="relative z-10 p-6">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Trophy className="h-5 w-5 text-primary" />
-                      <span className="text-xs uppercase tracking-wider text-primary font-bold">Next Game</span>
-                      {eventSessions[nextGame.id]?.status === "live" && (
-                        <Badge variant="destructive" className="animate-pulse">LIVE</Badge>
-                      )}
-                    </div>
-                    <h3 className="text-2xl font-display font-bold mb-2">
-                      {nextGame.opponent ? `vs ${nextGame.opponent}` : nextGame.title}
-                    </h3>
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <CalendarClock className="h-4 w-4 text-primary" />
-                        <span>{formatTextDate(nextGame.date, "date")}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-primary" />
-                        <span>{formatTextDate(nextGame.date, "time")}</span>
-                      </div>
-                      {nextGame.location && (
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-primary" />
-                          <span>{nextGame.location}</span>
-                        </div>
-                      )}
-                    </div>
+          {/* Permanent Game Day Live Card */}
+          <Card className="relative overflow-hidden border-2 border-primary/30 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 mb-6" data-testid="game-day-live-card">
+            <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+            <CardContent className="relative z-10 p-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Radio className="h-5 w-5 text-primary" />
+                    <span className="text-xs uppercase tracking-wider text-primary font-bold">Game Day Live</span>
+                    {nextGame && eventSessions[nextGame.id]?.status === "live" && (
+                      <Badge variant="destructive" className="animate-pulse">LIVE</Badge>
+                    )}
                   </div>
-                  
-                  <div className="flex flex-col items-center gap-2">
+                  {nextGame ? (
+                    <>
+                      <h3 className="text-2xl font-display font-bold mb-2">
+                        {nextGame.opponent ? `vs ${nextGame.opponent}` : nextGame.title}
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <CalendarClock className="h-4 w-4 text-primary" />
+                          <span>{formatTextDate(nextGame.date, "date")}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-primary" />
+                          <span>{formatTextDate(nextGame.date, "time")}</span>
+                        </div>
+                        {nextGame.location && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-primary" />
+                            <span>{nextGame.location}</span>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-xl font-display font-bold mb-2 text-muted-foreground">
+                        No upcoming games scheduled
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Create a game event to enable live supporter engagement
+                      </p>
+                    </>
+                  )}
+                </div>
+                
+                <div className="flex flex-col items-center gap-2">
+                  {nextGame ? (
+                    <>
+                      <Button
+                        size="lg"
+                        className={`min-w-[180px] h-14 text-lg font-bold gap-3 transition-all ${
+                          eventSessions[nextGame.id]?.status === "live"
+                            ? "bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-lg shadow-red-500/30"
+                            : "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30"
+                        }`}
+                        onClick={() => handleToggleGameDayLive(nextGame)}
+                        disabled={loadingSessionForEvent === nextGame.id}
+                        data-testid="button-game-day-live"
+                      >
+                        {loadingSessionForEvent === nextGame.id ? (
+                          <Loader2 className="h-6 w-6 animate-spin" />
+                        ) : eventSessions[nextGame.id]?.status === "live" ? (
+                          <>
+                            <Radio className="h-6 w-6" />
+                            STOP LIVE
+                          </>
+                        ) : (
+                          <>
+                            <Radio className="h-6 w-6" />
+                            START LIVE
+                          </>
+                        )}
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        {eventSessions[nextGame.id]?.status === "live" 
+                          ? "Supporters are cheering!" 
+                          : "Enable supporter engagement"}
+                      </span>
+                    </>
+                  ) : (
                     <Button
                       size="lg"
-                      className={`min-w-[180px] h-14 text-lg font-bold gap-3 transition-all ${
-                        eventSessions[nextGame.id]?.status === "live"
-                          ? "bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-lg shadow-red-500/30"
-                          : "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30"
-                      }`}
-                      onClick={() => handleToggleGameDayLive(nextGame)}
-                      disabled={loadingSessionForEvent === nextGame.id}
-                      data-testid="button-hero-game-day-live"
+                      variant="outline"
+                      className="min-w-[180px] h-14 text-lg font-bold gap-3"
+                      onClick={() => { setSelectedCard("events"); openAddEvent(); }}
+                      data-testid="button-add-game"
                     >
-                      {loadingSessionForEvent === nextGame.id ? (
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                      ) : eventSessions[nextGame.id]?.status === "live" ? (
-                        <>
-                          <Radio className="h-6 w-6" />
-                          STOP LIVE
-                        </>
-                      ) : (
-                        <>
-                          <Radio className="h-6 w-6" />
-                          START LIVE
-                        </>
-                      )}
+                      <Plus className="h-6 w-6" />
+                      Add Game
                     </Button>
-                    <span className="text-xs text-muted-foreground">
-                      {eventSessions[nextGame.id]?.status === "live" 
-                        ? "Supporters are cheering!" 
-                        : "Enable supporter engagement"}
-                    </span>
-                  </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Stats Grid */}
           {!selectedCard && (
