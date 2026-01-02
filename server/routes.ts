@@ -590,8 +590,6 @@ export async function registerRoutes(
       const parsed = insertEventSchema.parse({
         ...req.body,
         teamId: req.params.teamId,
-        date: new Date(req.body.date),
-        endDate: req.body.endDate ? new Date(req.body.endDate) : null
       });
       const event = await storage.createEvent(parsed);
       res.json(event);
@@ -605,11 +603,7 @@ export async function registerRoutes(
 
   app.patch("/api/events/:eventId", async (req, res) => {
     try {
-      const data: Record<string, unknown> = { ...req.body };
-      if (data.date) data.date = new Date(data.date as string);
-      if (data.endDate) data.endDate = new Date(data.endDate as string);
-      
-      const parsed = updateEventSchema.parse(data);
+      const parsed = updateEventSchema.parse(req.body);
       const event = await storage.updateEvent(req.params.eventId, parsed);
       if (!event) {
         return res.status(404).json({ error: "Event not found" });
