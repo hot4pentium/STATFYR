@@ -705,6 +705,23 @@ export async function getTeamEngagementStats(teamId: string): Promise<{ totalTap
   return res.json();
 }
 
+export interface TopTapper {
+  supporterId: string;
+  totalTaps: number;
+  supporter: {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl?: string | null;
+  };
+}
+
+export async function getTopTappers(teamId: string, limit: number = 5): Promise<TopTapper[]> {
+  const res = await fetch(`/api/teams/${teamId}/top-tappers?limit=${limit}`);
+  if (!res.ok) throw new Error("Failed to get top tappers");
+  return res.json();
+}
+
 // ============ BADGES ============
 
 export interface BadgeDefinition {

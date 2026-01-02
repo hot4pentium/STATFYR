@@ -175,6 +175,7 @@ export interface IStorage {
   
   // Team engagement stats
   getTeamEngagementStats(teamId: string): Promise<{ totalTaps: number; totalShoutouts: number }>;
+  getTopTappers(teamId: string, limit?: number): Promise<{ supporterId: string; totalTaps: number; supporter: Omit<User, 'password'> }[]>;
   
   // Profile Likes and Comments (public interactions)
   getProfileLikes(athleteId: string): Promise<ProfileLike[]>;
@@ -1503,6 +1504,32 @@ export class DatabaseStorage implements IStorage {
       totalTaps: Number(tapsResult?.total || 0),
       totalShoutouts: Number(shoutoutsResult?.count || 0),
     };
+  }
+
+  async getTopTappers(teamId: string, limit: number = 5): Promise<{ supporterId: string; totalTaps: number; supporter: Omit<User, 'password'> }[]> {
+    const topTappers = await db
+      .select({
+        supporterId: liveTapTotals.supporterId,
+        totalTaps: liveTapTotals.totalTaps,
+      })
+      .from(liveTapTotals)
+      .where(eq(liveTapTotals.teamId, teamId))
+      .orderBy(desc(liveTapTotals.totalTaps))
+      .limit(limit);
+    
+    const result: { supporterId: string; totalTaps: number; supporter: Omit<User, 'password'> }[] = [];
+    for (const tapper of topTappers) {
+      const supporter = await this.getUser(tapper.supporterId);
+      if (supporter) {
+        const { password, ...safeSupporter } = supporter;
+        result.push({
+          supporterId: tapper.supporterId,
+          totalTaps: tapper.totalTaps,
+          supporter: safeSupporter,
+        });
+      }
+    }
+    return result;
   }
 
   // Profile Likes and Comments implementations

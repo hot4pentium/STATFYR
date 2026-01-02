@@ -3246,6 +3246,18 @@ export async function registerRoutes(
     }
   });
 
+  // Get top tappers leaderboard for a team
+  app.get("/api/teams/:teamId/top-tappers", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 5;
+      const topTappers = await storage.getTopTappers(req.params.teamId, limit);
+      res.json(topTappers);
+    } catch (error) {
+      console.error("Error getting top tappers:", error);
+      res.status(500).json({ error: "Failed to get top tappers" });
+    }
+  });
+
   // Get roster for a session (athletes on team)
   app.get("/api/live-sessions/:sessionId/roster", async (req, res) => {
     try {

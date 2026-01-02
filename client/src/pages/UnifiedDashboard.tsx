@@ -79,9 +79,10 @@ import {
   getTeamAggregateStats, getAdvancedTeamStats, getLiveSessionByEvent, createLiveSessionForEvent,
   startLiveSession, endLiveSession, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount,
   getManagedAthletes, getSupporterBadges, getAllBadges, getSupporterTapTotal, getActiveLiveSessions,
-  getUserTeams, joinTeamByCode, getTeamEngagementStats,
+  getUserTeams, joinTeamByCode, getTeamEngagementStats, getTopTappers,
   type Team, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup,
-  type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession, type ManagedAthlete
+  type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession, type ManagedAthlete,
+  type TopTapper
 } from "@/lib/api";
 import { SPORT_POSITIONS } from "@/lib/sportConstants";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend } from "recharts";
@@ -263,6 +264,12 @@ export default function UnifiedDashboard() {
   const { data: teamEngagementStats } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "engagement-stats"],
     queryFn: () => currentTeam ? getTeamEngagementStats(currentTeam.id) : Promise.resolve({ totalTaps: 0, totalShoutouts: 0 }),
+    enabled: !!currentTeam && selectedCard === "teamengagement",
+  });
+
+  const { data: topTappers = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "top-tappers"],
+    queryFn: () => currentTeam ? getTopTappers(currentTeam.id, 5) : Promise.resolve([]),
     enabled: !!currentTeam && selectedCard === "teamengagement",
   });
 
@@ -1087,10 +1094,64 @@ export default function UnifiedDashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Top Tappers Leaderboard */}
+            <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Award className="h-5 w-5 text-yellow-500" />
+                  <h4 className="font-display font-bold uppercase">Top Tappers</h4>
+                </div>
+                {topTappers.length > 0 ? (
+                  <div className="space-y-2">
+                    {topTappers.map((tapper: TopTapper, index: number) => {
+                      const rankColors = [
+                        "bg-gradient-to-r from-yellow-500/30 to-amber-500/30 border-yellow-500/50",
+                        "bg-gradient-to-r from-slate-300/30 to-slate-400/30 border-slate-400/50",
+                        "bg-gradient-to-r from-orange-700/30 to-orange-600/30 border-orange-600/50",
+                      ];
+                      const rankIcons = ["🥇", "🥈", "🥉"];
+                      const isTopThree = index < 3;
+                      
+                      return (
+                        <div
+                          key={tapper.supporterId}
+                          className={`flex items-center gap-3 p-3 rounded-lg ${
+                            isTopThree ? rankColors[index] : "bg-muted/30"
+                          } border ${isTopThree ? "" : "border-white/10"}`}
+                          data-testid={`leaderboard-row-${index}`}
+                        >
+                          <span className="text-lg font-bold w-8 text-center">
+                            {isTopThree ? rankIcons[index] : `#${index + 1}`}
+                          </span>
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={tapper.supporter.avatarUrl || undefined} />
+                            <AvatarFallback className="text-xs">
+                              {tapper.supporter.name?.charAt(0) || "?"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="flex-1 font-medium truncate">
+                            {tapper.supporter.name}
+                          </span>
+                          <div className="flex items-center gap-1 text-orange-500">
+                            <Zap className="h-4 w-4" />
+                            <span className="font-bold">{tapper.totalTaps.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground text-sm py-4">
+                    No taps recorded yet. Be the first!
+                  </p>
+                )}
+              </CardContent>
+            </Card>
             
             <Card className="bg-card/80 backdrop-blur-sm border-white/10">
               <CardContent className="p-4 text-center text-muted-foreground">
-                <p className="text-sm">Join Game Day Live sessions to add to the count!</p>
+                <p className="text-sm">Join Game Day Live sessions to climb the leaderboard!</p>
               </CardContent>
             </Card>
           </div>
