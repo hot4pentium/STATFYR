@@ -1192,11 +1192,13 @@ export default function SupporterDashboard() {
           </div>
         </header>
 
-        <OnboardingTour 
-          steps={supporterTourSteps} 
-          storageKey={`supporter-onboarding-completed-${user?.id}`}
-          welcomeModal={supporterWelcomeModal}
-        />
+        {user?.id && (
+          <OnboardingTour 
+            steps={supporterTourSteps} 
+            storageKey={`supporter-onboarding-completed-${user.id}`}
+            welcomeModal={supporterWelcomeModal}
+          />
+        )}
 
         {/* Main Content */}
         <main className="max-w-4xl mx-auto px-4 py-4 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

@@ -1490,11 +1490,13 @@ export default function CoachDashboard() {
           </div>
         </header>
 
-        <OnboardingTour 
-          steps={coachTourSteps} 
-          storageKey={`coach-onboarding-completed-${user?.id}`}
-          welcomeModal={coachWelcomeModal}
-        />
+        {user?.id && (
+          <OnboardingTour 
+            steps={coachTourSteps} 
+            storageKey={`coach-onboarding-completed-${user.id}`}
+            welcomeModal={coachWelcomeModal}
+          />
+        )}
 
         {/* Main Content */}
         <main className="max-w-4xl mx-auto px-4 py-4">

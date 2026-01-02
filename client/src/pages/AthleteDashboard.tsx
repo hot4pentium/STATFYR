@@ -439,11 +439,13 @@ export default function AthleteDashboard() {
 
   return (
     <>
-      <OnboardingTour 
-        steps={athleteTourSteps} 
-        storageKey={`athlete-onboarding-completed-${user?.id}`}
-        welcomeModal={athleteWelcomeModal}
-      />
+      {user?.id && (
+        <OnboardingTour 
+          steps={athleteTourSteps} 
+          storageKey={`athlete-onboarding-completed-${user.id}`}
+          welcomeModal={athleteWelcomeModal}
+        />
+      )}
       <DashboardBackground />
       <div className="min-h-screen relative z-10">
         {/* Header Bar */}
