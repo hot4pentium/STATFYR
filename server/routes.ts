@@ -2492,6 +2492,12 @@ export async function registerRoutes(
         return res.status(400).json({ error: "userId and conversationWithUserId are required" });
       }
       
+      // Verify user is a member of this team
+      const membership = await storage.getTeamMembership(req.params.teamId, userId);
+      if (!membership) {
+        return res.status(403).json({ error: "User is not a member of this team" });
+      }
+      
       await storage.updateChatPresence(userId, req.params.teamId, conversationWithUserId);
       res.json({ success: true });
     } catch (error) {
@@ -2506,6 +2512,12 @@ export async function registerRoutes(
       const { userId } = req.body;
       if (!userId) {
         return res.status(400).json({ error: "userId is required" });
+      }
+      
+      // Verify user is a member of this team
+      const membership = await storage.getTeamMembership(req.params.teamId, userId);
+      if (!membership) {
+        return res.status(403).json({ error: "User is not a member of this team" });
       }
       
       await storage.removeChatPresence(userId, req.params.teamId);

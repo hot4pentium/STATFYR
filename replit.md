@@ -42,10 +42,17 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **Admin Dashboard**: Centralized view for managing teams and users (security limitations noted).
 - **PWA Features**: Service worker for offline support and update notifications.
 - **Email Notifications**: Resend API with verified domain (noreply@statfyr.com) for HYPE posts, direct messages, team chat, and events.
+- **Smart Email Delivery**: Direct message emails are delayed by 5 seconds and skipped if the recipient is actively viewing the conversation. Uses `chatPresence` table to track active conversations with 15-second TTL and 10-second heartbeat from frontend.
 - **Unread Message Indicators**: Floating chat button on dashboards with glow effect and badge when unread messages exist. Team Chat card on CoachDashboard has green glow styling when unread count > 0.
 
 ## In Progress
 - **Glowing Team Chat Card**: Styling is in place (ring-2 ring-green-500 animate-pulse) but data fetching for unread count needs debugging. The conversations endpoint returns correct unreadCount but the React Query isn't triggering the glow effect on the dashboard.
+
+### Chat Presence System
+- **Table**: `chatPresence` tracks userId, teamId, conversationWithUserId, lastSeenAt
+- **API Endpoints**: POST/DELETE `/api/teams/:teamId/presence` for heartbeats
+- **Frontend**: ChatPage sends heartbeat every 10 seconds while viewing a DM conversation
+- **Email Logic**: 5-second delay before sending, checks if recipient is active (lastSeenAt within 15s)
 
 ### Design Patterns
 - Path aliases (`@/`, `@shared/`) for organized imports.
