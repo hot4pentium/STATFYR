@@ -356,12 +356,28 @@ export default function CoachDashboard() {
 
   const openEditEvent = (event: Event) => {
     setEditingEvent(event);
-    const eventDate = new Date(event.date);
+    
+    // Parse the event date - handle both ISO strings and Date objects
+    let eventDate: Date;
+    if (typeof event.date === 'string') {
+      // If it's an ISO string (ends with Z), parse directly
+      // If it's a timestamp without Z, append Z to treat as UTC
+      const dateStr = event.date.endsWith('Z') ? event.date : event.date + 'Z';
+      eventDate = new Date(dateStr);
+    } else {
+      eventDate = new Date(event.date);
+    }
+    
+    // Get local time components
     let hours = eventDate.getHours();
     const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12 || 12;
     const formattedHour = hours.toString().padStart(2, "0");
-    const formattedMinute = eventDate.getMinutes().toString().padStart(2, "0");
+    
+    // Round minutes to nearest 15
+    const rawMinutes = eventDate.getMinutes();
+    const roundedMinutes = Math.round(rawMinutes / 15) * 15 % 60;
+    const formattedMinute = roundedMinutes.toString().padStart(2, "0");
     
     const year = eventDate.getFullYear();
     const month = (eventDate.getMonth() + 1).toString().padStart(2, "0");
