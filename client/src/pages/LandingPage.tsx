@@ -612,17 +612,18 @@ export default function LandingPage() {
 
       {/* PWA Learn More Modal */}
       <Dialog open={showPWAModal} onOpenChange={setShowPWAModal}>
-        <DialogContent className="max-w-lg bg-gray-900 border-white/10 text-white">
+        <DialogContent className="max-w-2xl bg-gray-900 border-white/10 text-white max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">Why We Built a Progressive Web App</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 text-gray-300">
+          <div className="space-y-6 text-gray-300">
             <p>
               Our team management platform works right in your browser—no app store required. Install it on your phone or tablet in seconds and get the same fast, reliable experience as a native app, but with instant updates and zero download hassles.
             </p>
+            
             <div>
               <h4 className="font-semibold text-white mb-3">What does this mean for you?</h4>
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 <li className="flex items-start gap-3">
                   <Check className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
                   <div>
@@ -659,6 +660,93 @@ export default function LandingPage() {
                   </div>
                 </li>
               </ul>
+            </div>
+
+            {/* Comparison Table */}
+            <div>
+              <h4 className="font-semibold text-white mb-3">PWA vs Traditional App Store Apps</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left py-2 pr-4 font-semibold text-white">Feature</th>
+                      <th className="text-left py-2 pr-4 font-semibold text-emerald-400">Our PWA</th>
+                      <th className="text-left py-2 font-semibold text-gray-400">Traditional Apps</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    <tr>
+                      <td className="py-2 pr-4 font-medium text-white">Installation</td>
+                      <td className="py-2 pr-4 text-gray-300">Add to home screen in 10 seconds</td>
+                      <td className="py-2 text-gray-400">Download from app store, wait for install</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4 font-medium text-white">Updates</td>
+                      <td className="py-2 pr-4 text-gray-300">Automatic, instant</td>
+                      <td className="py-2 text-gray-400">Manual approval process, user must update</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4 font-medium text-white">Storage space</td>
+                      <td className="py-2 pr-4 text-gray-300">Minimal (~5-10 MB)</td>
+                      <td className="py-2 text-gray-400">Often 50-200+ MB</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4 font-medium text-white">Availability</td>
+                      <td className="py-2 pr-4 text-gray-300">Works on any device with a browser</td>
+                      <td className="py-2 text-gray-400">Separate builds for iOS/Android</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4 font-medium text-white">Offline access</td>
+                      <td className="py-2 pr-4 text-emerald-400">Core features work offline</td>
+                      <td className="py-2 text-gray-400">Works offline</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4 font-medium text-white">Home screen icon</td>
+                      <td className="py-2 pr-4 text-emerald-400">Looks like any other app</td>
+                      <td className="py-2 text-gray-400">Native app icon</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4 font-medium text-white">Cost to you</td>
+                      <td className="py-2 pr-4 text-gray-300">Free, no app store fees</td>
+                      <td className="py-2 text-gray-400">Free (we absorb the costs)</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4 font-medium text-white">Notifications</td>
+                      <td className="py-2 pr-4 text-gray-300">Push notifications</td>
+                      <td className="py-2 text-gray-400">Push notifications</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Installation Instructions */}
+            <div>
+              <h4 className="font-semibold text-white mb-4">How to Install (It's Easy!)</h4>
+              
+              <div className="space-y-4">
+                <div>
+                  <h5 className="font-medium text-white mb-2">On iPhone/iPad:</h5>
+                  <ol className="list-decimal list-inside space-y-1 text-gray-300 ml-2">
+                    <li>Open this site in Safari</li>
+                    <li>Tap the Share button (square with arrow)</li>
+                    <li>Scroll down and tap "Add to Home Screen"</li>
+                    <li>Tap "Add" in the top right</li>
+                    <li>Done! Find the app icon on your home screen</li>
+                  </ol>
+                </div>
+                
+                <div>
+                  <h5 className="font-medium text-white mb-2">On Android:</h5>
+                  <ol className="list-decimal list-inside space-y-1 text-gray-300 ml-2">
+                    <li>Open this site in Chrome</li>
+                    <li>Tap the three dots menu (top right)</li>
+                    <li>Tap "Add to Home Screen" or "Install App"</li>
+                    <li>Tap "Install"</li>
+                    <li>Done! Find the app icon in your app drawer</li>
+                  </ol>
+                </div>
+              </div>
             </div>
           </div>
         </DialogContent>
