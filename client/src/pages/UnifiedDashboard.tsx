@@ -1342,14 +1342,14 @@ export default function UnifiedDashboard() {
     );
   }
 
-  const athleteWelcomeModal: WelcomeModal = {
+  const athleteWelcomeModal: WelcomeModal = useMemo(() => ({
     title: "Welcome, Athlete!",
     subtitle: `You're part of ${currentTeam?.name || "the team"}`,
     description: "You're all set up and ready to go! Let us show you around so you can make the most of your dashboard.",
     buttonText: "Let's Go!"
-  };
+  }), [currentTeam?.name]);
 
-  const athleteTourSteps: TourStep[] = [
+  const athleteTourSteps: TourStep[] = useMemo(() => [
     {
       target: '[data-testid="card-schedule"]',
       title: "Stay Up to Date",
@@ -1380,7 +1380,7 @@ export default function UnifiedDashboard() {
       description: "Head to Settings to update your avatar and name. Make your profile stand out!",
       position: "bottom"
     }
-  ];
+  ], []);
 
   return (
     <>
