@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import logoImage from "@assets/red_logo-removebg-preview_1766535816909.png";
+import dashboardScreenshot from "@assets/Screenshot_2026-01-01_at_9.48.07_PM_1767322113880.png";
 import { Button } from "@/components/ui/button";
 import { 
   Users, CalendarClock, ClipboardList, BarChart3, 
@@ -311,7 +312,7 @@ export default function LandingPage() {
                   <div className="relative bg-gray-800 rounded-[3rem] p-2 shadow-2xl border border-white/10">
                     <div className="rounded-[2.5rem] overflow-hidden">
                       <img 
-                        src="/attached_assets/Screenshot_2026-01-01_at_9.48.07_PM_1767322113880.png" 
+                        src={dashboardScreenshot} 
                         alt="STATFYR Coach Dashboard" 
                         className="w-[240px] h-auto rounded-[2.5rem]"
                       />
