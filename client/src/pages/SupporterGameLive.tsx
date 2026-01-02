@@ -18,10 +18,14 @@ import {
   getGameTapCount,
   getSupporterTapTotal,
   checkBadges,
+  getEventLiveSession,
+  sendSessionTaps,
+  getSessionTapCount,
   type Game, 
   type GameRoster,
   type BadgeDefinition,
-  type Event
+  type Event,
+  type LiveEngagementSession
 } from "@/lib/api";
 
 const SHOUTOUT_OPTIONS = [
@@ -67,8 +71,17 @@ export default function SupporterGameLive() {
     refetchInterval: 5000,
   });
 
+  // Get the live session for this event
+  const { data: liveSession } = useQuery({
+    queryKey: ["/api/events", eventId, "live-session"],
+    queryFn: () => eventId ? getEventLiveSession(eventId) : Promise.resolve(null),
+    enabled: !!eventId,
+    refetchInterval: 5000,
+  });
+
   // Use game ID if we have one, otherwise use event ID for tap/roster APIs
   const gameId = game?.id;
+  const sessionId = liveSession?.id;
 
   const { data: roster = [] } = useQuery({
     queryKey: ["/api/games", gameId, "roster"],
@@ -76,10 +89,11 @@ export default function SupporterGameLive() {
     enabled: !!gameId,
   });
 
+  // Use session-based tap count when we have a live session
   const { data: tapCountData } = useQuery({
-    queryKey: ["/api/games", gameId, "taps"],
-    queryFn: () => gameId ? getGameTapCount(gameId) : Promise.resolve({ count: 0 }),
-    enabled: !!gameId,
+    queryKey: ["/api/live-sessions", sessionId, "taps"],
+    queryFn: () => sessionId ? getSessionTapCount(sessionId) : Promise.resolve({ count: 0 }),
+    enabled: !!sessionId,
     refetchInterval: 5000,
   });
 
@@ -119,13 +133,22 @@ export default function SupporterGameLive() {
 
   const flushTaps = useCallback(async () => {
     const currentCount = tapCountRef.current;
-    if (currentCount > 0 && user && gameId) {
+    // Use session ID for taps (preferred) or game ID as fallback
+    if (currentCount > 0 && user && (sessionId || gameId)) {
       const tapsToSend = Math.floor(currentCount / 3);
       if (tapsToSend > 0) {
         try {
-          const response = await sendTapBurst(gameId, user.id, tapsToSend);
-          setSeasonTotal(response.seasonTotal);
-          setGameTapCount(response.gameTapCount);
+          if (sessionId) {
+            // Use session-based taps
+            const response = await sendSessionTaps(sessionId, user.id, tapsToSend);
+            setSeasonTotal(response.seasonTotal);
+            setGameTapCount(response.sessionTapCount);
+          } else if (gameId) {
+            // Fallback to game-based taps
+            const response = await sendTapBurst(gameId, user.id, tapsToSend);
+            setSeasonTotal(response.seasonTotal);
+            setGameTapCount(response.gameTapCount);
+          }
           const remainder = currentCount % 3;
           tapCountRef.current = remainder;
           setLocalTapCount(remainder);
@@ -143,14 +166,10 @@ export default function SupporterGameLive() {
         }
       }
     }
-  }, [user, gameId, checkForBadges]);
+  }, [user, sessionId, gameId, checkForBadges]);
 
   const handleTap = () => {
-    if (game?.status !== "active") {
-      toast.error("Game is not active");
-      return;
-    }
-    
+    // Allow tapping if we have an event (live session is active) or game is active
     setIsTapping(true);
     tapCountRef.current += 1;
     const newCount = tapCountRef.current;
@@ -172,11 +191,6 @@ export default function SupporterGameLive() {
 
   const handleShoutout = async (athleteId: string, message: string) => {
     if (!user || !gameId) return;
-    
-    if (game?.status !== "active") {
-      toast.error("Game is not active");
-      return;
-    }
 
     try {
       await sendShoutout(gameId, user.id, athleteId, message);
