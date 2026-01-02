@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2, Bell, Share2, Flame, ExternalLink, Copy } from "lucide-react";
+import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2, Bell, Share2, Flame, ExternalLink, Copy, MessageSquare } from "lucide-react";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
@@ -135,22 +135,26 @@ export default function AthleteDashboard() {
 
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // Fetch conversations to get unread count
+  const { data: conversationsData } = useQuery({
+    queryKey: ["conversations-unread", currentTeam?.id, user?.id],
+    queryFn: async () => {
+      if (!currentTeam?.id || !user?.id) return [];
+      const res = await fetch(`/api/teams/${currentTeam.id}/conversations?userId=${user.id}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!currentTeam?.id && !!user?.id,
+    refetchInterval: 10000,
+  });
+
+  // Update unread count when conversations data changes
   useEffect(() => {
-    if (!user) return;
-    
-    const fetchUnreadCount = async () => {
-      try {
-        const count = await getUnreadMessageCount(user.id);
-        setUnreadCount(count);
-      } catch (error) {
-        console.error("Failed to fetch unread count:", error);
-      }
-    };
-    
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 15000);
-    return () => clearInterval(interval);
-  }, [user]);
+    if (conversationsData && Array.isArray(conversationsData)) {
+      const total = conversationsData.reduce((sum: number, conv: any) => sum + (conv.unreadCount || 0), 0);
+      setUnreadCount(total);
+    }
+  }, [conversationsData]);
 
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/athlete/${user?.id}` : '';
 
