@@ -71,7 +71,7 @@ function PWAStep({ number, icon, title, description }: { number: number; icon: R
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
           {icon}
-          <h4 className="font-bold text-white">{title}</h4>
+          <h4 className="font-bold text-[#8d97a8]">{title}</h4>
         </div>
         <p className="text-gray-300 text-sm">{description}</p>
       </div>
