@@ -217,6 +217,40 @@ export default function ChatPage() {
     return () => clearInterval(interval);
   }, [currentTeam, user, selectedConversation, refetchConversations]);
 
+  // Send presence heartbeats while viewing a DM conversation
+  useEffect(() => {
+    if (!currentTeam || !user || !selectedConversation || chatMode !== 'dm') return;
+    
+    const sendHeartbeat = async () => {
+      try {
+        await fetch(`/api/teams/${currentTeam.id}/presence`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.id,
+            conversationWithUserId: selectedConversation,
+          }),
+        });
+      } catch (error) {
+        console.error("Error sending presence heartbeat:", error);
+      }
+    };
+    
+    // Send immediately and then every 10 seconds
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 10000);
+    
+    // Cleanup: remove presence when leaving conversation
+    return () => {
+      clearInterval(interval);
+      fetch(`/api/teams/${currentTeam.id}/presence`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      }).catch(console.error);
+    };
+  }, [currentTeam, user, selectedConversation, chatMode]);
+
   // Fetch channel messages
   useEffect(() => {
     if (!currentTeam || chatMode !== "channels") return;
