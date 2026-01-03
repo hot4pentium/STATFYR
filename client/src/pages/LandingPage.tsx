@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { useTheme } from "next-themes";
 import logoImage from "@assets/red_logo-removebg-preview_1766535816909.png";
 import dashboardScreenshot from "@assets/Screenshot_2026-01-01_at_9.48.07_PM_1767322113880.png";
 import { Button } from "@/components/ui/button";
@@ -86,12 +85,7 @@ function FloatingShape({ className }: { className: string; delay?: number }) {
 
 export default function LandingPage() {
   const [, setLocation] = useLocation();
-  const { setTheme } = useTheme();
   const [showPWAModal, setShowPWAModal] = useState(false);
-
-  useEffect(() => {
-    setTheme("light");
-  }, [setTheme]);
 
   const goToAuth = () => setLocation("/auth");
 
