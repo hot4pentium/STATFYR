@@ -316,63 +316,70 @@ export default function AuthPage() {
                 </p>
               </div>
               
-              <div className="relative py-2">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/20" />
+              <div 
+                className="relative rounded-xl p-5 border border-white/10"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+                  backgroundImage: `
+                    linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%),
+                    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")
+                  `
+                }}
+              >
+                <div className="text-center mb-4">
+                  <span className="inline-block px-4 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                    New here?
+                  </span>
                 </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-card px-4 text-sm font-medium text-foreground">New here?</span>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <p className="text-center text-sm text-muted-foreground mb-2">
+                <p className="text-center text-sm text-muted-foreground mb-4">
                   Choose your role to get started
                 </p>
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
-                onClick={() => selectRoleForSignup('coach')}
-                disabled={loading}
-                data-testid="button-coach"
-              >
-                <Clipboard className="mr-4 h-6 w-6" />
-                <div className="flex flex-col items-start">
-                  <span className="font-bold">Coach</span>
-                  <span className="text-xs font-normal opacity-80">Manage roster, tactics & stats</span>
-                </div>
-              </Button>
+                <div className="space-y-3">
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
+                    onClick={() => selectRoleForSignup('coach')}
+                    disabled={loading}
+                    data-testid="button-coach"
+                  >
+                    <Clipboard className="mr-4 h-6 w-6" />
+                    <div className="flex flex-col items-start">
+                      <span className="font-bold">Coach</span>
+                      <span className="text-xs font-normal opacity-80">Manage roster, tactics & stats</span>
+                    </div>
+                  </Button>
 
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
-                onClick={() => selectRoleForSignup('athlete')}
-                disabled={loading}
-                data-testid="button-athlete"
-              >
-                <User className="mr-4 h-6 w-6" />
-                <div className="flex flex-col items-start">
-                  <span className="font-bold">Athlete</span>
-                  <span className="text-xs font-normal opacity-80">View schedule & performance</span>
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
+                    onClick={() => selectRoleForSignup('athlete')}
+                    disabled={loading}
+                    data-testid="button-athlete"
+                  >
+                    <User className="mr-4 h-6 w-6" />
+                    <div className="flex flex-col items-start">
+                      <span className="font-bold">Athlete</span>
+                      <span className="text-xs font-normal opacity-80">View schedule & performance</span>
+                    </div>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
+                    onClick={() => selectRoleForSignup('supporter')}
+                    disabled={loading}
+                    data-testid="button-supporter"
+                  >
+                    <Users className="mr-4 h-6 w-6" />
+                    <div className="flex flex-col items-start">
+                      <span className="font-bold">Supporter</span>
+                      <span className="text-xs font-normal opacity-80">Follow team updates</span>
+                    </div>
+                  </Button>
                 </div>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
-                onClick={() => selectRoleForSignup('supporter')}
-                disabled={loading}
-                data-testid="button-supporter"
-              >
-                <Users className="mr-4 h-6 w-6" />
-                <div className="flex flex-col items-start">
-                  <span className="font-bold">Supporter</span>
-                  <span className="text-xs font-normal opacity-80">Follow team updates</span>
-                </div>
-              </Button>
               </div>
             </CardContent>
           </Card>
