@@ -121,7 +121,7 @@ export default function UnifiedDashboard() {
   const { user, currentTeam, setCurrentTeam, logout } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
   const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const queryClient = useQueryClient();
 
   const [mounted, setMounted] = useState(false);
@@ -1528,10 +1528,10 @@ export default function UnifiedDashboard() {
                   <Button 
                     size="icon" 
                     variant="ghost" 
-                    onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                     data-testid="button-theme-toggle"
                   >
-                    {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                    {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                   </Button>
                 )}
                 
