@@ -567,9 +567,7 @@ export default function LandingPage() {
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
               Cheer From Anywhere
             </h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Can't make the game? Your support still matters. Tap, cheer, and earn rewards!
-            </p>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">Your support matters. Tap, cheer, and earn rewards!</p>
           </motion.div>
 
           {/* Top Row of Feature Cards */}
