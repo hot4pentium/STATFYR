@@ -125,14 +125,6 @@ export default function UnifiedDashboard() {
   const queryClient = useQueryClient();
 
   const [mounted, setMounted] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<string | undefined>(undefined);
-  
-  // Sync currentTheme with resolvedTheme only after mounted
-  useEffect(() => {
-    if (mounted && resolvedTheme) {
-      setCurrentTheme(resolvedTheme);
-    }
-  }, [mounted, resolvedTheme]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
@@ -1532,18 +1524,14 @@ export default function UnifiedDashboard() {
                 )}
                 
                 {/* Theme Toggle */}
-                {mounted && currentTheme && (
+                {mounted && (
                   <Button 
                     size="icon" 
                     variant="ghost" 
-                    onClick={() => {
-                      const newTheme = currentTheme === "dark" ? "light" : "dark";
-                      setCurrentTheme(newTheme);
-                      setTheme(newTheme);
-                    }}
+                    onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
                     data-testid="button-theme-toggle"
                   >
-                    {currentTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                    {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                   </Button>
                 )}
                 
