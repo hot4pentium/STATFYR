@@ -92,7 +92,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 overflow-x-hidden">
-      
       {/* Hero Section - Dark with animated gradient */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Animated mesh gradient background */}
@@ -200,7 +199,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* PWA Install Section - Gradient transition */}
       <section className="py-12 md:py-16 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 relative">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_50%_at_50%_50%,rgba(16,185,129,0.08),transparent)]" />
@@ -310,7 +308,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* Features Section - Coaches (Split hero layout) */}
       <section id="features" className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-emerald-100 to-white" />
@@ -416,7 +413,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* Features Section - Athletes (Bento Grid) */}
       <section className="py-24 bg-gray-950 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(6,182,212,0.15),transparent)]" />
@@ -463,9 +459,7 @@ export default function LandingPage() {
                 {/* Text content */}
                 <div className="flex flex-col justify-center">
                   <h3 className="text-2xl font-bold text-white mb-2">HYPE Card</h3>
-                  <p className="text-gray-400 text-sm mb-4">
-                    Your shareable athlete profile with stats, highlights, and team info. Share with scouts and fans!
-                  </p>
+                  <p className="text-gray-400 text-sm mb-4">Your shareable athlete profile with stats, highlights, and team info. Followers can install your HYPE card as an app to their home screen. They will always your most recent updates.</p>
                   <div className="flex flex-wrap gap-2">
                     <span className="px-2.5 py-1 rounded-full bg-white/10 text-cyan-400 text-xs font-medium">Stats</span>
                     <span className="px-2.5 py-1 rounded-full bg-white/10 text-purple-400 text-xs font-medium">Highlights</span>
@@ -554,7 +548,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* Features Section - Supporters (Engagement Hub Layout) */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50" />
@@ -743,7 +736,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* Game Day Live Section - Dark with glow effects */}
       <section className="py-24 bg-gray-950 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.15),transparent_70%)]" />
@@ -802,7 +794,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* CTA Section - Vibrant gradient with particles */}
       <section className="py-28 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-cyan-500 to-blue-600" />
@@ -839,7 +830,6 @@ export default function LandingPage() {
           </motion.div>
         </div>
       </section>
-
       {/* Footer - Minimal dark */}
       <footer className="py-12 bg-gray-950 border-t border-white/5">
         <div className="container mx-auto px-6">
@@ -854,7 +844,6 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-
       {/* PWA Learn More Modal */}
       <Dialog open={showPWAModal} onOpenChange={setShowPWAModal}>
         <DialogContent className="max-w-2xl bg-gray-900 border-white/10 text-white max-h-[90vh] overflow-y-auto">
