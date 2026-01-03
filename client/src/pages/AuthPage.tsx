@@ -14,7 +14,7 @@ import { useTheme } from "next-themes";
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
-  const { setUser, setCurrentTeam } = useUser();
+  const { user, setUser, setCurrentTeam, isLoading: isUserLoading } = useUser();
   const { setTheme, resolvedTheme } = useTheme();
   const previousTheme = useRef<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
@@ -47,35 +47,40 @@ export default function AuthPage() {
     }
   }, [preselectedRole]);
   
-  // Track if we've already processed a Firebase user to prevent duplicate syncs
-  const hasProcessedFirebaseUser = useRef(false);
+  // Track if we've already processed a Firebase redirect to prevent duplicate syncs
+  const hasProcessedRedirect = useRef(false);
   
-  // Check for redirect result from social login on mobile
+  // If user is already logged in (from userContext), redirect them to their dashboard
+  // Wait for userContext to finish loading before redirecting
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      if (redirectTo) {
+        setLocation(redirectTo);
+      } else if (user.role === 'coach') {
+        setLocation("/dashboard");
+      } else if (user.role === 'athlete') {
+        setLocation("/athlete/dashboard");
+      } else {
+        setLocation("/supporter/dashboard");
+      }
+    }
+  }, [user, isUserLoading, redirectTo, setLocation]);
+  
+  // Check for redirect result from social login - handles new users with role selection
   useEffect(() => {
     async function handleRedirectResult() {
+      if (hasProcessedRedirect.current) return;
+      
       const result = await checkRedirectResult();
-      if (result.user && !hasProcessedFirebaseUser.current) {
-        hasProcessedFirebaseUser.current = true;
+      if (result.user) {
+        hasProcessedRedirect.current = true;
         await handleFirebaseUser(result.user);
       } else if (result.error) {
         setErrors({ submit: result.error });
       }
     }
     handleRedirectResult();
-  }, []);
-  
-  // Listen for Firebase auth state changes - catches users who are already logged in
-  useEffect(() => {
-    const unsubscribe = onFirebaseAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser && !hasProcessedFirebaseUser.current && !loading) {
-        console.log('[Auth] Firebase user detected via state change:', firebaseUser.email);
-        hasProcessedFirebaseUser.current = true;
-        await handleFirebaseUser(firebaseUser);
-      }
-    });
-    
-    return () => unsubscribe();
-  }, [selectedRole, redirectTo]);
+  }, [selectedRole]);
   
   const handleFirebaseUser = async (firebaseUser: FirebaseUser) => {
     setLoading(true);
