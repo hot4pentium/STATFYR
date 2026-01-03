@@ -7,19 +7,34 @@ import { User, Users, Clipboard, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
 import { registerUser, loginUser, getUserTeams, syncFirebaseUser } from "@/lib/api";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signInWithGoogle, signInWithApple, checkRedirectResult, type FirebaseUser } from "@/lib/firebase";
+import { useTheme } from "next-themes";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const { setUser, setCurrentTeam } = useUser();
+  const { setTheme, resolvedTheme } = useTheme();
+  const previousTheme = useRef<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [authMode, setAuthMode] = useState<"select" | "signup" | "login">("select");
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Force dark mode on auth pages, restore user preference when leaving
+  useEffect(() => {
+    previousTheme.current = resolvedTheme;
+    setTheme("dark");
+    
+    return () => {
+      if (previousTheme.current && previousTheme.current !== "dark") {
+        setTheme(previousTheme.current);
+      }
+    };
+  }, []);
 
   const searchParams = new URLSearchParams(searchString);
   const redirectTo = searchParams.get("redirect");
