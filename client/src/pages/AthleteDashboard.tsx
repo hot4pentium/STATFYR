@@ -552,7 +552,7 @@ export default function AthleteDashboard() {
 
           {/* HYPE Cards - Above Quick Access */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
-            {/* HYPE Portal Card */}
+            {/* HYPE Hub Card */}
             <Card 
               onClick={() => setLocation("/athlete/hype-portal")}
               className="bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
@@ -564,7 +564,7 @@ export default function AthleteDashboard() {
                 </div>
                 <div className="text-center">
                   <h3 className="font-display font-bold text-sm sm:text-lg uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
-                    HYPE Portal
+                    HYPE Hub
                   </h3>
                   <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
                     Post updates & fire up followers
@@ -1061,7 +1061,7 @@ export default function AthleteDashboard() {
                       </p>
                     )}
                     
-                    {/* HYPE Portal Link */}
+                    {/* HYPE Hub Link */}
                     <Link href="/athlete/hype-portal">
                       <Button
                         variant="outline"
@@ -1069,7 +1069,7 @@ export default function AthleteDashboard() {
                         data-testid="button-hype-portal"
                       >
                         <Flame className="h-4 w-4 mr-2" />
-                        Open HYPE Portal
+                        Open HYPE Hub
                       </Button>
                     </Link>
                   </div>

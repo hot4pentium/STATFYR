@@ -32,7 +32,7 @@ const roleData: RoleData[] = [
       { feature: "Team Settings", access: "Edit team name, sport, badge" },
       { feature: "Team Code", access: "Share for member recruitment" },
       { feature: "Game Day Live", access: "Create live engagement sessions" },
-      { feature: "HYPE Portal", access: "Not applicable" },
+      { feature: "HYPE Hub", access: "Not applicable" },
     ],
   },
   {
@@ -50,7 +50,7 @@ const roleData: RoleData[] = [
       { feature: "Team Settings", access: "NO ACCESS" },
       { feature: "Team Code", access: "View only" },
       { feature: "Game Day Live", access: "Create live engagement sessions" },
-      { feature: "HYPE Portal", access: "Not applicable" },
+      { feature: "HYPE Hub", access: "Not applicable" },
     ],
   },
   {
@@ -68,7 +68,7 @@ const roleData: RoleData[] = [
       { feature: "Team Settings", access: "NO ACCESS" },
       { feature: "Team Code", access: "View only" },
       { feature: "Game Day Live", access: "View shoutouts & taps" },
-      { feature: "HYPE Portal", access: "Create HYPE posts, share profile, QR codes" },
+      { feature: "HYPE Hub", access: "Create HYPE posts, share profile, QR codes" },
     ],
   },
   {
@@ -86,7 +86,7 @@ const roleData: RoleData[] = [
       { feature: "Team Settings", access: "NO ACCESS" },
       { feature: "Team Code", access: "NO ACCESS" },
       { feature: "Game Day Live", access: "Send shoutouts & taps" },
-      { feature: "HYPE Portal", access: "NO ACCESS" },
+      { feature: "HYPE Hub", access: "NO ACCESS" },
       { feature: "Managed Athletes", access: "Switch to view athlete profiles" },
       { feature: "Badge System", access: "Earn badges through engagement" },
       { feature: "Theme Unlocks", access: "Unlock themes via badge progression" },
@@ -286,7 +286,7 @@ export default function RoleCapabilitiesPDF() {
 
     const tiers = [
       { name: "Free Tier", color: [156, 163, 175], features: ["View roster", "View schedule", "View playbook", "Basic team chat"] },
-      { name: "Athlete Tier", color: [59, 130, 246], features: ["All Free features", "Personal stats tracking", "HYPE Portal & cards", "Highlight uploads", "QR code sharing"] },
+      { name: "Athlete Tier", color: [59, 130, 246], features: ["All Free features", "Personal stats tracking", "HYPE Hub & cards", "Highlight uploads", "QR code sharing"] },
       { name: "Coach/Staff Tier", color: [249, 115, 22], features: ["All Athlete features", "PlayMaker access", "StatTracker (live)", "Team management", "Event creation", "Game Day Live sessions"] },
       { name: "Supporter Premium", color: [168, 85, 247], features: ["Managed athlete profiles", "Badge progression", "Theme unlocks", "Enhanced engagement tools"] },
     ];

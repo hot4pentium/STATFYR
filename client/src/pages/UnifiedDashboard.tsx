@@ -1358,7 +1358,7 @@ export default function UnifiedDashboard() {
     },
     {
       target: '[data-testid="card-hype-portal"]',
-      title: "Your HYPE Portal",
+      title: "Your HYPE Hub",
       description: "Post updates and fire up your followers! This is where you share your journey with fans and family.",
       position: "bottom"
     },
@@ -1756,7 +1756,7 @@ export default function UnifiedDashboard() {
                 {/* HYPE Cards - Athletes Only - Above Quick Access */}
                 {userRole === "athlete" && (
                   <div className="mt-4 mb-4 landscape:mb-5 grid grid-cols-2 gap-3 landscape:gap-4">
-                    {/* HYPE Portal Card */}
+                    {/* HYPE Hub Card */}
                     <Card 
                       onClick={() => setLocation("/athlete/hype-portal")}
                       className="bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
@@ -1768,7 +1768,7 @@ export default function UnifiedDashboard() {
                         </div>
                         <div className="text-center">
                           <h3 className="font-display font-bold text-sm sm:text-lg landscape:text-xl uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
-                            HYPE Portal
+                            HYPE Hub
                           </h3>
                           <p className="hidden sm:block text-xs landscape:text-sm text-muted-foreground mt-0.5">
                             Post updates & fire up followers
