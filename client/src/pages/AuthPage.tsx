@@ -402,7 +402,7 @@ export default function AuthPage() {
               <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">Welcome Back</CardTitle>
               <CardDescription className="text-center">Sign in with your account</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               {/* Social login buttons */}
               <div className="space-y-3">
                 <Button
@@ -424,12 +424,12 @@ export default function AuthPage() {
                 </Button>
               </div>
               
-              <div className="relative">
+              <div className="relative py-3">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/10" />
+                  <span className="w-full border-t border-white/20" />
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card/50 px-2 text-muted-foreground">or with email</span>
+                <div className="relative flex justify-center">
+                  <span className="bg-card px-4 text-sm text-muted-foreground">or sign in with email</span>
                 </div>
               </div>
               
@@ -505,7 +505,7 @@ export default function AuthPage() {
               <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">Create Account</CardTitle>
               <CardDescription className="text-center">Choose how to sign up</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               {/* Social signup buttons */}
               <div className="space-y-3">
                 <Button
@@ -527,12 +527,12 @@ export default function AuthPage() {
                 </Button>
               </div>
               
-              <div className="relative">
+              <div className="relative py-3">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/10" />
+                  <span className="w-full border-t border-white/20" />
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card/50 px-2 text-muted-foreground">or with email</span>
+                <div className="relative flex justify-center">
+                  <span className="bg-card px-4 text-sm text-muted-foreground">or sign up with email</span>
                 </div>
               </div>
               
