@@ -57,7 +57,7 @@ type HypeCardTab = "events" | "stats" | "highlights" | "shoutouts";
 export default function AthleteDashboard() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
-  const { user, currentTeam, logout, setCurrentTeam } = useUser();
+  const { user, currentTeam, logout, setCurrentTeam, isLoading } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -285,10 +285,10 @@ export default function AthleteDashboard() {
   };
 
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       setLocation("/auth");
     }
-  }, [user, setLocation]);
+  }, [user, isLoading, setLocation]);
 
   const handleLogout = () => {
     logout();

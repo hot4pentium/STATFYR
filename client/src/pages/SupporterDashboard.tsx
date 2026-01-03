@@ -60,7 +60,7 @@ function Badge({ children, className }: { children: React.ReactNode; className?:
 
 export default function SupporterDashboard() {
   const [, setLocation] = useLocation();
-  const { user, currentTeam, logout, setCurrentTeam } = useUser();
+  const { user, currentTeam, logout, setCurrentTeam, isLoading } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -230,10 +230,10 @@ export default function SupporterDashboard() {
   }, [rosterTab, teamMembers, athletes, coaches, supporters]);
 
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       setLocation("/auth");
     }
-  }, [user, setLocation]);
+  }, [user, isLoading, setLocation]);
 
   useEffect(() => {
     if (selectedCard && contentRef.current) {

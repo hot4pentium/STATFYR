@@ -65,7 +65,7 @@ const formatTextDate = (dateStr: string, formatType: "date" | "time" | "full" = 
 
 export default function CoachDashboard() {
   const [, setLocation] = useLocation();
-  const { user, currentTeam, setCurrentTeam, logout } = useUser();
+  const { user, currentTeam, setCurrentTeam, logout, isLoading } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -444,10 +444,10 @@ export default function CoachDashboard() {
   }, []);
 
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       setLocation("/auth");
     }
-  }, [user, setLocation]);
+  }, [user, isLoading, setLocation]);
 
   useEffect(() => {
     if (user && !currentTeam && coachTeams) {
