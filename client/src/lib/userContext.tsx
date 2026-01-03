@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import type { User, Team } from "./api";
+import { syncFirebaseUser, getUserTeams } from "./api";
+import { onFirebaseAuthStateChanged, signOutFirebase } from "./firebase";
 
 interface UserContextType {
   user: User | null;
@@ -7,7 +9,7 @@ interface UserContextType {
   setUser: (user: User | null) => void;
   updateUser: (user: User) => void;
   setCurrentTeam: (team: Team | null) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   isImpersonating: boolean;
   setImpersonating: (impersonating: boolean) => void;
   originalAdmin: User | null;
@@ -38,9 +40,75 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return stored ? JSON.parse(stored) : null;
   });
 
-  // Mark loading as complete once initial state is loaded from localStorage
+  // Check Firebase auth state on app load and restore session if needed
   useEffect(() => {
-    setIsLoading(false);
+    let isMounted = true;
+    let listenerCalled = false;
+    
+    const unsubscribe = onFirebaseAuthStateChanged(async (firebaseUser) => {
+      listenerCalled = true;
+      if (!isMounted) return;
+      
+      if (firebaseUser) {
+        // Firebase user is logged in - sync with our backend
+        try {
+          const syncedUser = await syncFirebaseUser({
+            firebaseUid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
+          });
+          
+          if (isMounted) {
+            setUserState(syncedUser);
+            localStorage.setItem("user", JSON.stringify(syncedUser));
+            
+            // Restore team if not set
+            const storedTeam = localStorage.getItem("currentTeam");
+            if (!storedTeam) {
+              try {
+                const teams = await getUserTeams(syncedUser.id);
+                if (teams.length > 0 && isMounted) {
+                  setCurrentTeamState(teams[0]);
+                  localStorage.setItem("currentTeam", JSON.stringify(teams[0]));
+                }
+              } catch (e) {
+                console.log("Could not fetch teams");
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Failed to sync Firebase user:", error);
+        }
+      }
+      
+      if (isMounted) {
+        setIsLoading(false);
+      }
+    });
+    
+    // If Firebase isn't configured, the listener won't fire
+    // Set loading to false immediately if no listener callback after short delay
+    const quickTimeout = setTimeout(() => {
+      if (isMounted && !listenerCalled) {
+        // Firebase not configured or slow - use localStorage data and proceed
+        setIsLoading(false);
+      }
+    }, 500);
+    
+    // Fallback timeout - don't block forever if Firebase is slow
+    const timeout = setTimeout(() => {
+      if (isMounted) {
+        setIsLoading(false);
+      }
+    }, 3000);
+    
+    return () => {
+      isMounted = false;
+      unsubscribe();
+      clearTimeout(quickTimeout);
+      clearTimeout(timeout);
+    };
   }, []);
 
   const setImpersonating = (impersonating: boolean) => {
@@ -89,7 +157,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Sign out from Firebase if logged in
+    try {
+      await signOutFirebase();
+    } catch (e) {
+      console.log("Firebase signout error:", e);
+    }
+    
     // Clear local state
     setUserState(null);
     setCurrentTeamState(null);
