@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation, useSearch } from "wouter";
-import { User, Users, Clipboard, ArrowLeft } from "lucide-react";
+import { User, Users, Clipboard, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
 import { registerUser, loginUser, getUserTeams, syncFirebaseUser } from "@/lib/api";
@@ -17,6 +17,9 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [authMode, setAuthMode] = useState<"select" | "signup" | "login">("select");
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const searchParams = new URLSearchParams(searchString);
   const redirectTo = searchParams.get("redirect");
@@ -451,15 +454,25 @@ export default function AuthPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Password</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={loginData.password}
-                    onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
-                    className={errors.password ? "border-red-500" : ""}
-                    data-testid="input-login-password"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="login-password"
+                      type={showLoginPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={loginData.password}
+                      onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
+                      className={errors.password ? "border-red-500 pr-10" : "pr-10"}
+                      data-testid="input-login-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      data-testid="toggle-login-password"
+                    >
+                      {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   {errors.password && (
                     <p className="text-xs text-red-500">{errors.password}</p>
                   )}
@@ -604,30 +617,50 @@ export default function AuthPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Create a password (min 6 characters)"
-                    value={formData.password}
-                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    className={errors.password ? "border-red-500" : ""}
-                    data-testid="input-password"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showSignupPassword ? "text" : "password"}
+                      placeholder="Create a password (min 6 characters)"
+                      value={formData.password}
+                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                      className={errors.password ? "border-red-500 pr-10" : "pr-10"}
+                      data-testid="input-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      data-testid="toggle-signup-password"
+                    >
+                      {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   {errors.password && (
                     <p className="text-xs text-red-500">{errors.password}</p>
                   )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="Confirm your password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    className={errors.confirmPassword ? "border-red-500" : ""}
-                    data-testid="input-confirm-password"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm your password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      className={errors.confirmPassword ? "border-red-500 pr-10" : "pr-10"}
+                      data-testid="input-confirm-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      data-testid="toggle-confirm-password"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   {errors.confirmPassword && (
                     <p className="text-xs text-red-500">{errors.confirmPassword}</p>
                   )}
