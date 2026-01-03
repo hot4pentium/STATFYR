@@ -412,7 +412,7 @@ export default function AuthPage() {
                   type="button"
                   size="lg"
                   variant="outline"
-                  className="w-full h-12 text-base border-white/20 hover:bg-white/5"
+                  className="w-full h-12 text-base border-white/20 hover:bg-white/5 shadow-lg shadow-black/20"
                   onClick={handleGoogleSignIn}
                   disabled={loading}
                   data-testid="button-google-signin"
@@ -525,7 +525,7 @@ export default function AuthPage() {
                   type="button"
                   size="lg"
                   variant="outline"
-                  className="w-full h-12 text-base border-white/20 hover:bg-white/5"
+                  className="w-full h-12 text-base border-white/20 hover:bg-white/5 shadow-lg shadow-black/20"
                   onClick={handleGoogleSignIn}
                   disabled={loading}
                   data-testid="button-google-signup"
