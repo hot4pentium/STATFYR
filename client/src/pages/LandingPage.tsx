@@ -330,7 +330,7 @@ export default function LandingPage() {
               transition={{ duration: 0.8 }}
               className="relative"
             >
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-emerald-500/20 border border-white/50">
+              <div className="relative rounded-2xl overflow-hidden shadow-xl shadow-emerald-500/20 border border-white/50 max-w-[280px] mx-auto">
                 <img 
                   src={dashboardScreenshot} 
                   alt="Coach Dashboard" 
@@ -344,11 +344,11 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
-                className="absolute -top-4 -right-4 bg-white rounded-2xl shadow-xl p-4 border border-gray-100"
+                className="absolute top-2 right-2 md:right-8 bg-white rounded-xl shadow-lg px-3 py-2 border border-gray-100"
               >
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-emerald-500" />
-                  <span className="font-bold text-gray-900">Live Stats</span>
+                <div className="flex items-center gap-1.5">
+                  <BarChart3 className="h-4 w-4 text-emerald-500" />
+                  <span className="font-bold text-gray-900 text-sm">Live Stats</span>
                 </div>
               </motion.div>
               <motion.div
@@ -356,11 +356,11 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.5 }}
-                className="absolute -bottom-4 -left-4 bg-white rounded-2xl shadow-xl p-4 border border-gray-100"
+                className="absolute bottom-2 left-2 md:left-8 bg-white rounded-xl shadow-lg px-3 py-2 border border-gray-100"
               >
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-blue-500" />
-                  <span className="font-bold text-gray-900">Team Roster</span>
+                <div className="flex items-center gap-1.5">
+                  <Users className="h-4 w-4 text-blue-500" />
+                  <span className="font-bold text-gray-900 text-sm">Team Roster</span>
                 </div>
               </motion.div>
             </motion.div>
