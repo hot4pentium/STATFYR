@@ -320,7 +320,7 @@ export default function AuthPage() {
               </div>
               
               <div 
-                className="relative rounded-xl p-5 border border-white/10"
+                className="relative rounded-xl p-5 border border-white/10 shadow-lg shadow-black/30"
                 style={{
                   background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
                   backgroundImage: `
