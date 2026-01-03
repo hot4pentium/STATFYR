@@ -573,13 +573,12 @@ export default function LandingPage() {
           </motion.div>
 
           {/* Top Row of Feature Cards */}
-          <div className="max-w-4xl mx-auto mb-8">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="max-w-xl mx-auto mb-8">
+            <div className="grid grid-cols-2 gap-4">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
                 className="bg-gray-900/80 backdrop-blur rounded-2xl p-4 border border-white/10 hover:border-pink-500/30 transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -597,8 +596,8 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
-                className="bg-gray-900/80 backdrop-blur rounded-2xl p-4 border border-white/10 hover:border-purple-500/30 transition-colors col-span-2 md:col-span-1"
+                transition={{ delay: 0.1 }}
+                className="bg-gray-900/80 backdrop-blur rounded-2xl p-4 border border-white/10 hover:border-purple-500/30 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded-xl bg-purple-500/10">
