@@ -5,7 +5,6 @@ import { withRetry } from "./db";
 import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema, insertAthleteFollowerSchema, insertHypePostSchema, insertHypeSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
-import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { spawn } from "child_process";
 import path from "path";
 import fs from "fs";
@@ -28,16 +27,8 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
-  // Set up Replit Auth (OAuth2 with Google, email/password, etc.)
-  // Non-blocking setup to ensure server starts even if OIDC discovery is slow/unavailable
-  setupAuth(app)
-    .then(() => {
-      registerAuthRoutes(app);
-      console.log("Replit Auth initialized successfully");
-    })
-    .catch((err) => {
-      console.error("Replit Auth setup failed (OAuth login disabled):", err.message);
-    });
+  // Note: Authentication is handled via email/password (legacy) and will support
+  // Firebase Auth with Google/Apple sign-in for social login
 
   // Endpoint to provide Firebase config for service worker
   app.get("/api/firebase-config", (req, res) => {
@@ -133,6 +124,81 @@ export async function registerRoutes(
       }
       const errorMessage = error?.message || "Failed to register user";
       res.status(500).json({ error: `Failed to register user: ${errorMessage}` });
+    }
+  });
+
+  // Firebase Auth sync endpoint - creates or updates user from Firebase social login
+  app.post("/api/auth/firebase-sync", async (req, res) => {
+    try {
+      const { firebaseUid, email, displayName, photoURL, role } = req.body;
+      
+      if (!firebaseUid) {
+        return res.status(400).json({ error: "Firebase UID is required" });
+      }
+      
+      // Try to find existing user by Firebase UID (stored in id field) or by email
+      let user = await withRetry(() => storage.getUser(firebaseUid));
+      
+      if (!user && email) {
+        user = await withRetry(() => storage.getUserByEmail(email));
+        // If found by email but different ID, update the user's ID to Firebase UID
+        if (user && user.id !== firebaseUid) {
+          // User exists with different ID - this could be a legacy email/password user
+          // who is now signing in with social login. Update their profile.
+          const updated = await storage.updateUser(user.id, {
+            profileImageUrl: photoURL || user.profileImageUrl,
+            lastAccessedAt: new Date(),
+          });
+          const userToReturn = updated || user;
+          const { password: _, ...safeUser } = userToReturn;
+          return res.json(safeUser);
+        }
+      }
+      
+      if (user) {
+        // Update existing user
+        const updated = await storage.updateUser(user.id, {
+          email: email || user.email,
+          profileImageUrl: photoURL || user.profileImageUrl,
+          lastAccessedAt: new Date(),
+        });
+        const userToReturn = updated || user;
+        const { password: _, ...safeUser } = userToReturn;
+        return res.json(safeUser);
+      }
+      
+      // Create new user from Firebase data
+      const nameParts = (displayName || '').split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      const newUser = await withRetry(() => storage.createUser({
+        id: firebaseUid,
+        email: email || undefined,
+        firstName,
+        lastName,
+        name: displayName || '',
+        role: role || 'athlete',
+        profileImageUrl: photoURL || undefined,
+        // No password for social login users
+      }));
+      
+      // Register email with OneSignal for email notifications (don't block on this)
+      if (newUser.email) {
+        import('./onesignal').then(({ registerEmailWithOneSignal }) => {
+          registerEmailWithOneSignal(newUser.email!, newUser.id).catch(err => {
+            console.error('[Firebase Sync] OneSignal email registration failed:', err);
+          });
+        }).catch(err => {
+          console.error('[Firebase Sync] Failed to import OneSignal:', err);
+        });
+      }
+      
+      const { password: _, ...safeUser } = newUser;
+      res.json(safeUser);
+    } catch (error: any) {
+      console.error("Firebase sync error:", error);
+      res.status(500).json({ error: `Failed to sync user: ${error?.message || 'Unknown error'}` });
     }
   });
 

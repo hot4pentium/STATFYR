@@ -307,6 +307,7 @@ export const startingLineupPlayersRelations = relations(startingLineupPlayers, (
 }));
 
 export const insertUserSchema = createInsertSchema(users).pick({
+  id: true,
   username: true,
   password: true,
   role: true,
@@ -315,6 +316,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   name: true,
   avatar: true,
+  profileImageUrl: true,
   position: true,
   number: true,
   mustChangePassword: true,

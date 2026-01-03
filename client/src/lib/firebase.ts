@@ -1,5 +1,16 @@
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, isSupported, type Messaging } from 'firebase/messaging';
+import { 
+  getAuth, 
+  signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
+  GoogleAuthProvider, 
+  OAuthProvider,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  type User as FirebaseUser
+} from 'firebase/auth';
 
 // Platform detection helpers
 export function isIOS(): boolean {
@@ -91,10 +102,12 @@ export function getFirebaseConfigStatus(): { configured: boolean; missingKeys: s
 
 let app: ReturnType<typeof initializeApp> | null = null;
 let messaging: Messaging | null = null;
+let auth: ReturnType<typeof getAuth> | null = null;
 
 try {
   if (firebaseConfig.apiKey) {
     app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
     if (typeof window !== 'undefined' && 'Notification' in window) {
       messaging = getMessaging(app);
     }
@@ -102,6 +115,95 @@ try {
 } catch (error) {
   console.error('Firebase initialization error:', error);
 }
+
+// Auth providers
+const googleProvider = new GoogleAuthProvider();
+const appleProvider = new OAuthProvider('apple.com');
+appleProvider.addScope('email');
+appleProvider.addScope('name');
+
+// Firebase Auth functions
+export async function signInWithGoogle(): Promise<{ user: FirebaseUser | null; error?: string }> {
+  if (!auth) {
+    return { user: null, error: 'Firebase not configured' };
+  }
+  
+  try {
+    // Use redirect on mobile for better UX
+    if (isIOS() || isAndroid()) {
+      await signInWithRedirect(auth, googleProvider);
+      return { user: null }; // Will redirect, result handled on return
+    }
+    
+    const result = await signInWithPopup(auth, googleProvider);
+    return { user: result.user };
+  } catch (error: any) {
+    console.error('Google sign-in error:', error);
+    if (error.code === 'auth/popup-closed-by-user') {
+      return { user: null, error: 'Sign in was cancelled' };
+    }
+    return { user: null, error: error.message || 'Failed to sign in with Google' };
+  }
+}
+
+export async function signInWithApple(): Promise<{ user: FirebaseUser | null; error?: string }> {
+  if (!auth) {
+    return { user: null, error: 'Firebase not configured' };
+  }
+  
+  try {
+    // Use redirect on mobile for better UX
+    if (isIOS() || isAndroid()) {
+      await signInWithRedirect(auth, appleProvider);
+      return { user: null }; // Will redirect, result handled on return
+    }
+    
+    const result = await signInWithPopup(auth, appleProvider);
+    return { user: result.user };
+  } catch (error: any) {
+    console.error('Apple sign-in error:', error);
+    if (error.code === 'auth/popup-closed-by-user') {
+      return { user: null, error: 'Sign in was cancelled' };
+    }
+    return { user: null, error: error.message || 'Failed to sign in with Apple' };
+  }
+}
+
+export async function checkRedirectResult(): Promise<{ user: FirebaseUser | null; error?: string }> {
+  if (!auth) {
+    return { user: null };
+  }
+  
+  try {
+    const result = await getRedirectResult(auth);
+    if (result) {
+      return { user: result.user };
+    }
+    return { user: null };
+  } catch (error: any) {
+    console.error('Redirect result error:', error);
+    return { user: null, error: error.message };
+  }
+}
+
+export async function signOutFirebase(): Promise<void> {
+  if (auth) {
+    await firebaseSignOut(auth);
+  }
+}
+
+export function onFirebaseAuthStateChanged(callback: (user: FirebaseUser | null) => void): () => void {
+  if (!auth) {
+    return () => {};
+  }
+  return onAuthStateChanged(auth, callback);
+}
+
+export function getFirebaseAuth() {
+  return auth;
+}
+
+export type { FirebaseUser };
 
 async function registerFirebaseServiceWorker() {
   if (!('serviceWorker' in navigator)) return null;

@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import type { User, Team } from "./api";
-import { getUserTeams } from "./api";
 
 interface UserContextType {
   user: User | null;
@@ -39,52 +38,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return stored ? JSON.parse(stored) : null;
   });
 
-  // Check for OAuth session on startup
+  // Mark loading as complete once initial state is loaded from localStorage
   useEffect(() => {
-    async function checkOAuthSession() {
-      try {
-        const response = await fetch("/api/auth/user", { credentials: "include" });
-        if (response.ok) {
-          const oauthUser = await response.json();
-          const storedUser = localStorage.getItem("user");
-          const existingUser = storedUser ? JSON.parse(storedUser) : null;
-          
-          // Clear stale data if switching accounts or new OAuth login
-          if (!existingUser || existingUser.id !== oauthUser.id) {
-            // Different user - clear all stale state atomically
-            setCurrentTeamState(null);
-            localStorage.removeItem("currentTeam");
-            // Also clear impersonation/admin flags to prevent privilege leakage
-            setIsImpersonating(false);
-            setOriginalAdminState(null);
-            localStorage.removeItem("isImpersonating");
-            localStorage.removeItem("originalAdmin");
-          }
-          
-          // OAuth user found - sync to local state
-          setUserState(oauthUser);
-          localStorage.setItem("user", JSON.stringify(oauthUser));
-          
-          // Always fetch teams for OAuth users to ensure correct data
-          try {
-            const teams = await getUserTeams(oauthUser.id);
-            if (teams.length > 0) {
-              setCurrentTeamState(teams[0]);
-              localStorage.setItem("currentTeam", JSON.stringify(teams[0]));
-            }
-          } catch (e) {
-            // No teams yet - that's fine
-          }
-        }
-      } catch (error) {
-        // OAuth check failed - user will use localStorage or legacy login
-        console.log("No OAuth session found");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    
-    checkOAuthSession();
+    setIsLoading(false);
   }, []);
 
   const setImpersonating = (impersonating: boolean) => {
@@ -133,14 +89,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = async () => {
-    // Try OAuth logout first
-    try {
-      await fetch("/api/logout", { credentials: "include" });
-    } catch (e) {
-      // Ignore OAuth logout errors
-    }
-    
+  const logout = () => {
     // Clear local state
     setUserState(null);
     setCurrentTeamState(null);

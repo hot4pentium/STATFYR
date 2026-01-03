@@ -75,6 +75,17 @@ export async function loginUser(username: string, password: string): Promise<Use
   return res.json();
 }
 
+export async function syncFirebaseUser(data: {
+  firebaseUid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  role?: string;
+}): Promise<User> {
+  const res = await apiRequest("POST", "/api/auth/firebase-sync", data);
+  return res.json();
+}
+
 export async function getUser(id: string): Promise<User> {
   const res = await fetch(`/api/users/${id}`);
   if (!res.ok) throw new Error("Failed to get user");
