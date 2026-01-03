@@ -313,7 +313,7 @@ export default function HypeManager() {
             </Link>
             <h1 className="font-bold text-[#141414]" data-testid="text-page-title">
               <span className="font-marker text-[24px] text-orange-500">HYPE</span>
-              <span className="font-display text-[21px]"> Portal</span>
+              <span className="font-display text-[21px] text-[#e6e6e6]"> Portal</span>
             </h1>
             <div className="w-20" />
           </div>
