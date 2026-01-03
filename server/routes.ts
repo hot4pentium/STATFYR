@@ -5,6 +5,7 @@ import { withRetry } from "./db";
 import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema, insertAthleteFollowerSchema, insertHypePostSchema, insertHypeSchema } from "@shared/schema";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
+import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { spawn } from "child_process";
 import path from "path";
 import fs from "fs";
@@ -26,6 +27,17 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // Set up Replit Auth (OAuth2 with Google, email/password, etc.)
+  // Non-blocking setup to ensure server starts even if OIDC discovery is slow/unavailable
+  setupAuth(app)
+    .then(() => {
+      registerAuthRoutes(app);
+      console.log("Replit Auth initialized successfully");
+    })
+    .catch((err) => {
+      console.error("Replit Auth setup failed (OAuth login disabled):", err.message);
+    });
 
   // Endpoint to provide Firebase config for service worker
   app.get("/api/firebase-config", (req, res) => {
@@ -74,8 +86,16 @@ export async function registerRoutes(
     try {
       const parsed = insertUserSchema.parse(req.body);
       
+      // For email/password registration, username and password are required
+      if (!parsed.username) {
+        return res.status(400).json({ error: "Username is required" });
+      }
+      if (!parsed.password) {
+        return res.status(400).json({ error: "Password is required" });
+      }
+      
       // Check if username already exists (with retry for db wake-up)
-      const existingUsername = await withRetry(() => storage.getUserByUsername(parsed.username));
+      const existingUsername = await withRetry(() => storage.getUserByUsername(parsed.username!));
       if (existingUsername) {
         return res.status(400).json({ error: "Username already exists" });
       }
@@ -130,6 +150,11 @@ export async function registerRoutes(
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
+      // Check if user has a password (OAuth users may not have one)
+      if (!user.password) {
+        return res.status(401).json({ error: "This account uses social login. Please use Google or another provider to sign in." });
+      }
+      
       // Verify password with bcrypt
       const passwordMatch = await bcrypt.compare(password, user.password);
       if (!passwordMatch) {
@@ -158,6 +183,11 @@ export async function registerRoutes(
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Check if user has a password to change
+      if (!user.password) {
+        return res.status(400).json({ error: "This account uses social login and has no password to change" });
       }
       
       const passwordMatch = await bcrypt.compare(currentPassword, user.password);
@@ -1567,8 +1597,8 @@ export async function registerRoutes(
       try {
         const athlete = await storage.getUser(athleteId);
         if (athlete) {
-          athleteName = athlete.name || athlete.username;
-          athleteAvatar = athlete.avatar;
+          athleteName = athlete.name || athlete.username || "Athlete";
+          athleteAvatar = athlete.avatar || athlete.profileImageUrl;
           
           // Get team info for sport
           const memberships = await storage.getUserTeamMemberships(athleteId);
@@ -1923,7 +1953,7 @@ export async function registerRoutes(
         if (!prefs || prefs.emailOnFollow) {
           const athleteDisplayName = athlete.firstName && athlete.lastName 
             ? `${athlete.firstName} ${athlete.lastName}` 
-            : athlete.username;
+            : (athlete.username || athlete.name || "Athlete");
           await sendNewFollowerEmail(athlete.email, athleteDisplayName, followerName || "Someone");
         }
       }
@@ -2142,7 +2172,7 @@ export async function registerRoutes(
       
       const athleteName = athlete.firstName && athlete.lastName 
         ? `${athlete.firstName} ${athlete.lastName}` 
-        : athlete.name || athlete.username;
+        : (athlete.name || athlete.username || "Athlete");
       
       // Get the HYPE post message if available
       let postMessage = `Check out the latest from ${athleteName}!`;
@@ -2433,8 +2463,8 @@ export async function registerRoutes(
             const { sendDirectMessageEmail } = await import('./emailService');
             await sendDirectMessageEmail(
               message.recipient.email,
-              message.recipient.name || message.recipient.username,
-              message.sender.name || message.sender.username,
+              message.recipient.name || message.recipient.username || "Team Member",
+              message.sender.name || message.sender.username || "Team Member",
               content,
               teamId
             );

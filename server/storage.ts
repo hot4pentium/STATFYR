@@ -769,22 +769,23 @@ export class DatabaseStorage implements IStorage {
           let athleteData = athleteStatsMap.get(game_stats.athleteId);
           if (!athleteData) {
             const user = await this.getUser(game_stats.athleteId);
+            const fullName = user ? `${user.firstName} ${user.lastName}`.trim() : '';
             athleteData = {
               athleteId: game_stats.athleteId,
-              athleteName: user ? `${user.firstName} ${user.lastName}`.trim() || user.username : 'Unknown',
+              athleteName: fullName || user?.username || user?.name || 'Unknown',
               gamesPlayed: new Set(),
               stats: {},
               recentGames: []
             };
             athleteStatsMap.set(game_stats.athleteId, athleteData);
           }
-          athleteData.gamesPlayed.add(game.id);
-          athleteData.stats[key] = (athleteData.stats[key] || 0) + game_stats.value;
+          athleteData!.gamesPlayed.add(game.id);
+          athleteData!.stats[key] = (athleteData!.stats[key] || 0) + game_stats.value;
 
-          let gameEntry = athleteData.recentGames.find(g => g.gameId === game.id);
+          let gameEntry = athleteData!.recentGames.find(g => g.gameId === game.id);
           if (!gameEntry) {
             gameEntry = { gameId: game.id, date: game.createdAt?.toISOString() || '', stats: {} };
-            athleteData.recentGames.push(gameEntry);
+            athleteData!.recentGames.push(gameEntry);
           }
           gameEntry.stats[key] = (gameEntry.stats[key] || 0) + game_stats.value;
         }
@@ -796,7 +797,7 @@ export class DatabaseStorage implements IStorage {
 
       gameHistory.push({
         id: game.id,
-        date: event?.date?.toISOString() || game.createdAt?.toISOString() || '',
+        date: event?.date || game.createdAt?.toISOString() || '',
         opponent: game.opponentName || 'Opponent',
         teamScore: game.teamScore,
         opponentScore: game.opponentScore,
@@ -933,7 +934,7 @@ export class DatabaseStorage implements IStorage {
 
       gameHistory.push({
         gameId: game.id,
-        date: event?.date?.toISOString() || game.createdAt?.toISOString() || '',
+        date: event?.date || game.createdAt?.toISOString() || '',
         opponent: game.opponentName || 'Opponent',
         result,
         stats: gameStatsMap
@@ -1771,9 +1772,11 @@ export class DatabaseStorage implements IStorage {
         email: users.email,
         name: users.name,
         avatar: users.avatar,
+        profileImageUrl: users.profileImageUrl,
         position: users.position,
         number: users.number,
         createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
         lastAccessedAt: users.lastAccessedAt,
         mustChangePassword: users.mustChangePassword,
         isSuperAdmin: users.isSuperAdmin,

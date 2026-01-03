@@ -3,23 +3,10 @@ import { pgTable, text, varchar, integer, timestamp, boolean, jsonb } from "driz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  role: text("role").notNull().default("athlete"),
-  firstName: text("first_name").notNull().default(""),
-  lastName: text("last_name").notNull().default(""),
-  email: text("email").notNull().default(""),
-  name: text("name").notNull().default(""),
-  avatar: text("avatar"),
-  position: text("position"),
-  number: integer("number"),
-  createdAt: timestamp("created_at").defaultNow(),
-  lastAccessedAt: timestamp("last_accessed_at").defaultNow(),
-  mustChangePassword: boolean("must_change_password").notNull().default(false),
-  isSuperAdmin: boolean("is_super_admin").notNull().default(false),
-});
+// Import and re-export auth models (users table and sessions table for Replit Auth)
+import { users, sessions } from "./models/auth";
+export { users, sessions };
+export type { User, UpsertUser } from "./models/auth";
 
 export const usersRelations = relations(users, ({ many }) => ({
   teamMemberships: many(teamMembers),
@@ -393,7 +380,6 @@ export const updatePlaySchema = createInsertSchema(plays).omit({
 }).partial();
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
 export type InsertTeam = z.infer<typeof insertTeamSchema>;
 export type Team = typeof teams.$inferSelect;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;

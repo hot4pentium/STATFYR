@@ -21,7 +21,11 @@ Preferred communication style: Simple, everyday language.
 - **Database**: PostgreSQL with Drizzle ORM
 - **Schema Validation**: Zod with drizzle-zod
 - **API Pattern**: RESTful endpoints (`/api` prefix)
-- **Session Management**: Stateless (user stored in localStorage on client)
+- **Authentication**: Dual auth system:
+  - **Replit Auth (OAuth2)**: Login with Google, GitHub, X, Apple, or email/password via Replit's OIDC provider
+  - **Legacy Password Auth**: Existing email/password registration and login (`/api/auth/register`, `/api/auth/login`)
+  - Session management via PostgreSQL sessions table with 1-week TTL
+- **Session Management**: Server-side sessions for OAuth; localStorage for legacy password auth
 
 ### Data Model
 Core entities include Users, Teams, TeamMembers, and HighlightVideos.
@@ -84,3 +88,24 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **OneSignal**: Cross-platform push notifications (supports iOS Safari PWA, Android, desktop browsers).
 - **FFmpeg**: Video transcoding for highlights.
 - **Replit App Storage (GCS-backed)**: Video file hosting.
+- **Replit Auth**: OAuth2 authentication via Replit's OIDC provider, supporting Google, GitHub, Apple, X, and email/password login.
+
+## Authentication Architecture
+
+### Auth Routes
+- `/api/login` - OAuth flow via Replit (redirects to Replit OIDC provider)
+- `/api/logout` - OAuth logout (redirects to Replit end session endpoint)
+- `/api/auth/user` - Get current authenticated OAuth user
+- `/api/auth/register` - Legacy email/password registration
+- `/api/auth/login` - Legacy email/password login
+- `/api/auth/change-password` - Password change for legacy accounts
+
+### User Schema (shared/models/auth.ts)
+The users table supports both OAuth and password authentication:
+- OAuth users: Have `email`, `firstName`, `lastName`, `profileImageUrl` from Replit claims; `username` and `password` are null
+- Password users: Have `username`, `password`, `email`; `profileImageUrl` may be null
+- All users: Have `role`, `name`, `position`, `number`, and STATFYR-specific fields
+
+### Session Storage
+OAuth sessions stored in `sessions` table with sid/sess/expire columns.
+Legacy password auth uses localStorage on the client side.
