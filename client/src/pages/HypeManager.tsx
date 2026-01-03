@@ -306,7 +306,7 @@ export default function HypeManager() {
         <div className="container mx-auto px-4 py-6 max-w-4xl">
           <div className="flex items-center justify-between mb-6">
             <Link href="/athlete/dashboard">
-              <Button variant="ghost" size="sm" className="text-[#121010] hover:bg-white/10" data-testid="button-back">
+              <Button variant="ghost" size="sm" className="text-[#918a8a] hover:bg-white/10" data-testid="button-back">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
