@@ -246,7 +246,7 @@ export default function LandingPage() {
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/30 to-cyan-500/30 rounded-3xl blur-2xl" />
                   
                   {/* Desktop Monitor - Back */}
-                  <div className="relative hidden md:block -mr-6 z-10">
+                  <div className="relative -mr-6 z-10">
                     <div className="bg-gray-800 rounded-lg p-1 shadow-2xl border border-white/10">
                       <div className="bg-gray-900 rounded-md w-[140px] h-[90px] flex flex-col items-center justify-center">
                         <img src={logoImage} alt="STATFYR" className="h-8 w-8 mb-1" />
