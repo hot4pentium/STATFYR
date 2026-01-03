@@ -121,10 +121,18 @@ export default function UnifiedDashboard() {
   const { user, currentTeam, setCurrentTeam, logout } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
   const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const queryClient = useQueryClient();
 
   const [mounted, setMounted] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<string | undefined>(undefined);
+  
+  // Sync currentTheme with resolvedTheme only after mounted
+  React.useEffect(() => {
+    if (mounted && resolvedTheme) {
+      setCurrentTheme(resolvedTheme);
+    }
+  }, [mounted, resolvedTheme]);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
@@ -1524,14 +1532,18 @@ export default function UnifiedDashboard() {
                 )}
                 
                 {/* Theme Toggle */}
-                {mounted && (
+                {mounted && currentTheme && (
                   <Button 
                     size="icon" 
                     variant="ghost" 
-                    onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                    onClick={() => {
+                      const newTheme = currentTheme === "dark" ? "light" : "dark";
+                      setCurrentTheme(newTheme);
+                      setTheme(newTheme);
+                    }}
                     data-testid="button-theme-toggle"
                   >
-                    {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                    {currentTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                   </Button>
                 )}
                 
