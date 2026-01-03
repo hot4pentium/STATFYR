@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import logoImage from "@assets/red_logo-removebg-preview_1766535816909.png";
 import dashboardScreenshot from "@assets/Screenshot_2026-01-01_at_9.48.07_PM_1767322113880.png";
+import hypeCardImage from "@assets/image_1767476175340.png";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
@@ -442,26 +443,34 @@ export default function LandingPage() {
 
           {/* Bento Grid Layout */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-            {/* Large featured card - HYPE Card */}
+            {/* Large featured card - HYPE Card with image */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="col-span-2 row-span-2 bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-purple-500/20 rounded-3xl p-8 border border-cyan-500/30 relative overflow-hidden group"
+              className="col-span-2 row-span-2 bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-purple-500/20 rounded-3xl p-6 border border-cyan-500/30 relative overflow-hidden group"
             >
               <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl group-hover:bg-cyan-500/30 transition-colors" />
-              <div className="relative z-10">
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 w-fit mb-6 shadow-lg shadow-cyan-500/30">
-                  <Award className="h-10 w-10 text-white" />
+              <div className="relative z-10 flex gap-4 h-full">
+                {/* HYPE Card Image */}
+                <div className="flex-shrink-0">
+                  <img 
+                    src={hypeCardImage} 
+                    alt="HYPE Card Example" 
+                    className="w-[140px] h-auto rounded-2xl shadow-xl shadow-cyan-500/30 border border-white/20"
+                  />
                 </div>
-                <h3 className="text-3xl font-bold text-white mb-3">HYPE Card</h3>
-                <p className="text-gray-400 text-lg mb-6">
-                  Your shareable athlete profile with stats, highlights, and team info. Generate QR codes to share with scouts and fans.
-                </p>
-                <div className="flex gap-3">
-                  <span className="px-3 py-1.5 rounded-full bg-white/10 text-cyan-400 text-sm font-medium">Stats</span>
-                  <span className="px-3 py-1.5 rounded-full bg-white/10 text-purple-400 text-sm font-medium">Highlights</span>
-                  <span className="px-3 py-1.5 rounded-full bg-white/10 text-blue-400 text-sm font-medium">QR Share</span>
+                {/* Text content */}
+                <div className="flex flex-col justify-center">
+                  <h3 className="text-2xl font-bold text-white mb-2">HYPE Card</h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Your shareable athlete profile with stats, highlights, and team info. Share with scouts and fans!
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-2.5 py-1 rounded-full bg-white/10 text-cyan-400 text-xs font-medium">Stats</span>
+                    <span className="px-2.5 py-1 rounded-full bg-white/10 text-purple-400 text-xs font-medium">Highlights</span>
+                    <span className="px-2.5 py-1 rounded-full bg-white/10 text-blue-400 text-xs font-medium">QR Share</span>
+                  </div>
                 </div>
               </div>
             </motion.div>
