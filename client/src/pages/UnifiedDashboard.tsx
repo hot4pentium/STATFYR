@@ -1524,14 +1524,16 @@ export default function UnifiedDashboard() {
                 )}
                 
                 {/* Theme Toggle */}
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-                  data-testid="button-theme-toggle"
-                >
-                  {mounted && resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                </Button>
+                {mounted && (
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                    data-testid="button-theme-toggle"
+                  >
+                    {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  </Button>
+                )}
                 
                 {/* Notifications Bell */}
                 <Button 
