@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import type { User, Team } from "./api";
+import { getUserTeams } from "./api";
 
 interface UserContextType {
   user: User | null;
@@ -12,11 +13,13 @@ interface UserContextType {
   setImpersonating: (impersonating: boolean) => void;
   originalAdmin: User | null;
   setOriginalAdmin: (admin: User | null) => void;
+  isLoading: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
+  const [isLoading, setIsLoading] = useState(true);
   const [user, setUserState] = useState<User | null>(() => {
     const stored = localStorage.getItem("user");
     return stored ? JSON.parse(stored) : null;
@@ -35,6 +38,54 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem("originalAdmin");
     return stored ? JSON.parse(stored) : null;
   });
+
+  // Check for OAuth session on startup
+  useEffect(() => {
+    async function checkOAuthSession() {
+      try {
+        const response = await fetch("/api/auth/user", { credentials: "include" });
+        if (response.ok) {
+          const oauthUser = await response.json();
+          const storedUser = localStorage.getItem("user");
+          const existingUser = storedUser ? JSON.parse(storedUser) : null;
+          
+          // Clear stale data if switching accounts or new OAuth login
+          if (!existingUser || existingUser.id !== oauthUser.id) {
+            // Different user - clear all stale state atomically
+            setCurrentTeamState(null);
+            localStorage.removeItem("currentTeam");
+            // Also clear impersonation/admin flags to prevent privilege leakage
+            setIsImpersonating(false);
+            setOriginalAdminState(null);
+            localStorage.removeItem("isImpersonating");
+            localStorage.removeItem("originalAdmin");
+          }
+          
+          // OAuth user found - sync to local state
+          setUserState(oauthUser);
+          localStorage.setItem("user", JSON.stringify(oauthUser));
+          
+          // Always fetch teams for OAuth users to ensure correct data
+          try {
+            const teams = await getUserTeams(oauthUser.id);
+            if (teams.length > 0) {
+              setCurrentTeamState(teams[0]);
+              localStorage.setItem("currentTeam", JSON.stringify(teams[0]));
+            }
+          } catch (e) {
+            // No teams yet - that's fine
+          }
+        }
+      } catch (error) {
+        // OAuth check failed - user will use localStorage or legacy login
+        console.log("No OAuth session found");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    checkOAuthSession();
+  }, []);
 
   const setImpersonating = (impersonating: boolean) => {
     setIsImpersonating(impersonating);
@@ -82,11 +133,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setCurrentTeam(null);
-    setImpersonating(false);
-    setOriginalAdmin(null);
+  const logout = async () => {
+    // Try OAuth logout first
+    try {
+      await fetch("/api/logout", { credentials: "include" });
+    } catch (e) {
+      // Ignore OAuth logout errors
+    }
+    
+    // Clear local state
+    setUserState(null);
+    setCurrentTeamState(null);
+    setIsImpersonating(false);
+    setOriginalAdminState(null);
     localStorage.removeItem("user");
     localStorage.removeItem("currentTeam");
     localStorage.removeItem("isImpersonating");
@@ -104,7 +163,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       isImpersonating, 
       setImpersonating, 
       originalAdmin, 
-      setOriginalAdmin 
+      setOriginalAdmin,
+      isLoading
     }}>
       {children}
     </UserContext.Provider>
