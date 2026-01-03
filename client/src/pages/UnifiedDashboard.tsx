@@ -128,7 +128,7 @@ export default function UnifiedDashboard() {
   const [currentTheme, setCurrentTheme] = useState<string | undefined>(undefined);
   
   // Sync currentTheme with resolvedTheme only after mounted
-  React.useEffect(() => {
+  useEffect(() => {
     if (mounted && resolvedTheme) {
       setCurrentTheme(resolvedTheme);
     }
