@@ -301,23 +301,34 @@ export default function AuthPage() {
               <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">Get Started</CardTitle>
               <CardDescription className="text-center">New or returning user?</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Button 
-                size="lg" 
-                className="w-full h-14 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => setAuthMode("login")}
-                data-testid="button-login-option"
-              >
-                Sign In
-              </Button>
-              <div className="relative">
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <Button 
+                  size="lg" 
+                  className="w-full h-14 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+                  onClick={() => setAuthMode("login")}
+                  data-testid="button-login-option"
+                >
+                  Sign In
+                </Button>
+                <p className="text-center text-sm text-muted-foreground">
+                  Already have an account? Sign in above
+                </p>
+              </div>
+              
+              <div className="relative py-2">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/10" />
+                  <span className="w-full border-t border-white/20" />
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card/50 px-2 text-muted-foreground">or create new account</span>
+                <div className="relative flex justify-center">
+                  <span className="bg-card px-4 text-sm font-medium text-foreground">New here?</span>
                 </div>
               </div>
+              
+              <div className="space-y-3">
+                <p className="text-center text-sm text-muted-foreground mb-2">
+                  Choose your role to get started
+                </p>
               <Button 
                 size="lg" 
                 variant="outline"
@@ -362,6 +373,7 @@ export default function AuthPage() {
                   <span className="text-xs font-normal opacity-80">Follow team updates</span>
                 </div>
               </Button>
+              </div>
             </CardContent>
           </Card>
         )}
