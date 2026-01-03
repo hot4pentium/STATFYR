@@ -201,7 +201,7 @@ export default function LandingPage() {
       </section>
 
       {/* PWA Install Section - Gradient transition */}
-      <section className="py-24 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 relative">
+      <section className="py-12 md:py-16 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 relative">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_50%_at_50%_50%,rgba(16,185,129,0.08),transparent)]" />
         
         <div className="container mx-auto px-6 relative z-10">
@@ -209,7 +209,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-8"
           >
             <div className="flex items-center justify-center gap-3 mb-4 flex-wrap">
               <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 rounded-full px-4 py-2 text-sm font-medium border border-emerald-500/20">
@@ -234,48 +234,48 @@ export default function LandingPage() {
           </motion.div>
 
           <div className="max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="grid md:grid-cols-2 gap-6 items-center">
               {/* Device Mockup */}
               <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="relative h-[560px] flex items-center justify-center"
+                className="relative flex items-center justify-center"
               >
                 {/* Multi-device mockup with STATFYR branding */}
-                <div className="relative z-10 flex items-end justify-center gap-4">
+                <div className="relative z-10 flex items-end justify-center gap-2">
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/30 to-cyan-500/30 rounded-3xl blur-2xl" />
                   
                   {/* Desktop Monitor - Back */}
-                  <div className="relative hidden md:block -mr-8 z-10">
-                    <div className="bg-gray-800 rounded-xl p-1.5 shadow-2xl border border-white/10">
-                      <div className="bg-gray-900 rounded-lg w-[180px] h-[120px] flex flex-col items-center justify-center">
-                        <img src={logoImage} alt="STATFYR" className="h-12 w-12 mb-2" />
-                        <span className="text-white font-bold text-lg tracking-wide">STATFYR</span>
+                  <div className="relative hidden md:block -mr-6 z-10">
+                    <div className="bg-gray-800 rounded-lg p-1 shadow-2xl border border-white/10">
+                      <div className="bg-gray-900 rounded-md w-[140px] h-[90px] flex flex-col items-center justify-center">
+                        <img src={logoImage} alt="STATFYR" className="h-8 w-8 mb-1" />
+                        <span className="text-white font-bold text-sm tracking-wide">STATFYR</span>
                       </div>
                     </div>
-                    <div className="bg-gray-700 h-4 w-12 mx-auto rounded-b" />
-                    <div className="bg-gray-600 h-2 w-20 mx-auto rounded-b" />
+                    <div className="bg-gray-700 h-3 w-8 mx-auto rounded-b" />
+                    <div className="bg-gray-600 h-1.5 w-14 mx-auto rounded-b" />
                   </div>
 
                   {/* iPad - Middle */}
                   <div className="relative z-20">
-                    <div className="bg-gray-800 rounded-2xl p-1.5 shadow-2xl border border-white/10">
-                      <div className="bg-gray-900 rounded-xl w-[140px] h-[190px] flex flex-col items-center justify-center">
-                        <img src={logoImage} alt="STATFYR" className="h-14 w-14 mb-3" />
-                        <span className="text-white font-bold text-xl tracking-wide">STATFYR</span>
+                    <div className="bg-gray-800 rounded-xl p-1 shadow-2xl border border-white/10">
+                      <div className="bg-gray-900 rounded-lg w-[100px] h-[140px] flex flex-col items-center justify-center">
+                        <img src={logoImage} alt="STATFYR" className="h-10 w-10 mb-2" />
+                        <span className="text-white font-bold text-base tracking-wide">STATFYR</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Phone - Front */}
-                  <div className="relative -ml-8 z-30">
-                    <div className="bg-gray-800 rounded-[1.5rem] p-1 shadow-2xl border border-white/10">
-                      <div className="bg-gray-900 rounded-[1.25rem] w-[90px] h-[180px] flex flex-col items-center justify-center relative overflow-hidden">
+                  <div className="relative -ml-6 z-30">
+                    <div className="bg-gray-800 rounded-[1.25rem] p-0.5 shadow-2xl border border-white/10">
+                      <div className="bg-gray-900 rounded-[1rem] w-[70px] h-[140px] flex flex-col items-center justify-center relative overflow-hidden">
                         {/* Notch */}
-                        <div className="absolute top-1 left-1/2 -translate-x-1/2 w-10 h-2.5 bg-gray-800 rounded-full" />
-                        <img src={logoImage} alt="STATFYR" className="h-10 w-10 mb-2" />
-                        <span className="text-white font-bold text-sm tracking-wide">STATFYR</span>
+                        <div className="absolute top-0.5 left-1/2 -translate-x-1/2 w-8 h-2 bg-gray-800 rounded-full" />
+                        <img src={logoImage} alt="STATFYR" className="h-8 w-8 mb-1" />
+                        <span className="text-white font-bold text-xs tracking-wide">STATFYR</span>
                       </div>
                     </div>
                   </div>
@@ -283,7 +283,7 @@ export default function LandingPage() {
               </motion.div>
 
               {/* Install Steps */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <PWAStep
                   number={1}
                   icon={<Share className="h-5 w-5 text-gray-400" />}
