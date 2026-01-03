@@ -579,23 +579,6 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="bg-gray-900/80 backdrop-blur rounded-2xl p-4 border border-white/10 hover:border-orange-500/30 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-orange-500/10">
-                    <Hand className="h-5 w-5 text-orange-400" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-white text-sm">Live Taps</h4>
-                    <p className="text-xs text-gray-500">Cheer during games</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
                 className="bg-gray-900/80 backdrop-blur rounded-2xl p-4 border border-white/10 hover:border-pink-500/30 transition-colors"
               >
