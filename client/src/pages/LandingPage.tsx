@@ -242,16 +242,41 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 className="relative h-[560px] flex items-center justify-center"
               >
-                {/* Phone mockup with real screenshot */}
-                <div className="relative z-10">
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/30 to-cyan-500/30 rounded-[3rem] blur-2xl" />
-                  <div className="relative bg-gray-800 rounded-[3rem] p-2 shadow-2xl border border-white/10">
-                    <div className="rounded-[2.5rem] overflow-hidden">
-                      <img 
-                        src={dashboardScreenshot} 
-                        alt="STATFYR Coach Dashboard" 
-                        className="w-[260px] h-[520px] object-contain bg-gray-900 rounded-[2.5rem]"
-                      />
+                {/* Multi-device mockup with STATFYR branding */}
+                <div className="relative z-10 flex items-end justify-center gap-4">
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/30 to-cyan-500/30 rounded-3xl blur-2xl" />
+                  
+                  {/* Desktop Monitor - Back */}
+                  <div className="relative hidden md:block -mr-8 z-10">
+                    <div className="bg-gray-800 rounded-xl p-1.5 shadow-2xl border border-white/10">
+                      <div className="bg-gray-900 rounded-lg w-[180px] h-[120px] flex flex-col items-center justify-center">
+                        <img src={logoImage} alt="STATFYR" className="h-12 w-12 mb-2" />
+                        <span className="text-white font-bold text-lg tracking-wide">STATFYR</span>
+                      </div>
+                    </div>
+                    <div className="bg-gray-700 h-4 w-12 mx-auto rounded-b" />
+                    <div className="bg-gray-600 h-2 w-20 mx-auto rounded-b" />
+                  </div>
+
+                  {/* iPad - Middle */}
+                  <div className="relative z-20">
+                    <div className="bg-gray-800 rounded-2xl p-1.5 shadow-2xl border border-white/10">
+                      <div className="bg-gray-900 rounded-xl w-[140px] h-[190px] flex flex-col items-center justify-center">
+                        <img src={logoImage} alt="STATFYR" className="h-14 w-14 mb-3" />
+                        <span className="text-white font-bold text-xl tracking-wide">STATFYR</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Phone - Front */}
+                  <div className="relative -ml-8 z-30">
+                    <div className="bg-gray-800 rounded-[1.5rem] p-1 shadow-2xl border border-white/10">
+                      <div className="bg-gray-900 rounded-[1.25rem] w-[90px] h-[180px] flex flex-col items-center justify-center relative overflow-hidden">
+                        {/* Notch */}
+                        <div className="absolute top-1 left-1/2 -translate-x-1/2 w-10 h-2.5 bg-gray-800 rounded-full" />
+                        <img src={logoImage} alt="STATFYR" className="h-10 w-10 mb-2" />
+                        <span className="text-white font-bold text-sm tracking-wide">STATFYR</span>
+                      </div>
                     </div>
                   </div>
                 </div>
