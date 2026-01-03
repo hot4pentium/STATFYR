@@ -8,7 +8,7 @@ import generatedImage from '@assets/generated_images/abstract_sports_tactical_ba
 import { useUser } from "@/lib/userContext";
 import { registerUser, loginUser, getUserTeams, syncFirebaseUser } from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
-import { signInWithGoogle, signInWithApple, checkRedirectResult, type FirebaseUser } from "@/lib/firebase";
+import { signInWithGoogle, signInWithApple, checkRedirectResult, onFirebaseAuthStateChanged, type FirebaseUser } from "@/lib/firebase";
 import { useTheme } from "next-themes";
 
 export default function AuthPage() {
@@ -47,11 +47,15 @@ export default function AuthPage() {
     }
   }, [preselectedRole]);
   
+  // Track if we've already processed a Firebase user to prevent duplicate syncs
+  const hasProcessedFirebaseUser = useRef(false);
+  
   // Check for redirect result from social login on mobile
   useEffect(() => {
     async function handleRedirectResult() {
       const result = await checkRedirectResult();
-      if (result.user) {
+      if (result.user && !hasProcessedFirebaseUser.current) {
+        hasProcessedFirebaseUser.current = true;
         await handleFirebaseUser(result.user);
       } else if (result.error) {
         setErrors({ submit: result.error });
@@ -59,6 +63,19 @@ export default function AuthPage() {
     }
     handleRedirectResult();
   }, []);
+  
+  // Listen for Firebase auth state changes - catches users who are already logged in
+  useEffect(() => {
+    const unsubscribe = onFirebaseAuthStateChanged(async (firebaseUser) => {
+      if (firebaseUser && !hasProcessedFirebaseUser.current && !loading) {
+        console.log('[Auth] Firebase user detected via state change:', firebaseUser.email);
+        hasProcessedFirebaseUser.current = true;
+        await handleFirebaseUser(firebaseUser);
+      }
+    });
+    
+    return () => unsubscribe();
+  }, [selectedRole, redirectTo]);
   
   const handleFirebaseUser = async (firebaseUser: FirebaseUser) => {
     setLoading(true);
