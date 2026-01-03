@@ -285,7 +285,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section - Coaches (Light theme with gradient bg) */}
+      {/* Features Section - Coaches (Split hero layout) */}
       <section id="features" className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-emerald-100 to-white" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
@@ -296,69 +296,105 @@ export default function LandingPage() {
         <div className="absolute bottom-20 left-0 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl" />
         
         <div className="container mx-auto px-6 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-600 rounded-full px-4 py-2 text-sm font-medium mb-4">
-              <ClipboardList className="h-4 w-4" />
-              For Coaches
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Everything You Need to Lead
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Manage your team, track stats, design plays, and communicate - all in one place.
-            </p>
-          </motion.div>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left side - Dashboard Preview */}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="relative"
+            >
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-emerald-500/20 border border-white/50">
+                <img 
+                  src={dashboardScreenshot} 
+                  alt="Coach Dashboard" 
+                  className="w-full h-auto"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              </div>
+              {/* Floating stat badges */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                className="absolute -top-4 -right-4 bg-white rounded-2xl shadow-xl p-4 border border-gray-100"
+              >
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-emerald-500" />
+                  <span className="font-bold text-gray-900">Live Stats</span>
+                </div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5 }}
+                className="absolute -bottom-4 -left-4 bg-white rounded-2xl shadow-xl p-4 border border-gray-100"
+              >
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-500" />
+                  <span className="font-bold text-gray-900">Team Roster</span>
+                </div>
+              </motion.div>
+            </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard
-              icon={<Users className="h-6 w-6 text-blue-500" />}
-              title="Team Roster"
-              description="Manage your entire team with jersey numbers, positions, and contact info all in one place."
-              delay={0}
-            />
-            <FeatureCard
-              icon={<CalendarClock className="h-6 w-6 text-green-500" />}
-              title="Smart Scheduling"
-              description="Create games, practices, and events with automatic drink and snack duty assignments."
-              delay={0.1}
-            />
-            <FeatureCard
-              icon={<BarChart3 className="h-6 w-6 text-orange-500" />}
-              title="StatTracker"
-              description="Track live game statistics by player or team. See trends, ratios, and performance over time."
-              delay={0.2}
-            />
-            <FeatureCard
-              icon={<Video className="h-6 w-6 text-cyan-500" />}
-              title="Video Highlights"
-              description="Upload and share team highlights. Automatic video processing and thumbnail generation."
-              delay={0.3}
-            />
-            <FeatureCard
-              icon={<ClipboardList className="h-6 w-6 text-purple-500" />}
-              title="PlayMaker"
-              description="Draw and design plays with our interactive canvas. Share plays with your team."
-              delay={0.4}
-            />
-            <FeatureCard
-              icon={<MessageSquare className="h-6 w-6 text-pink-500" />}
-              title="Team Chat"
-              description="In-app messaging with channels for announcements, tactics, and general chat."
-              delay={0.5}
-            />
+            {/* Right side - Features list */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 rounded-full px-4 py-2 text-sm font-medium mb-6">
+                <ClipboardList className="h-4 w-4" />
+                For Coaches
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                Your Command Center
+              </h2>
+              <p className="text-xl text-gray-600 mb-8">
+                Everything you need to manage, track, and lead your team to victory.
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  { icon: Users, color: "text-blue-500", bg: "bg-blue-50", title: "Team Roster", desc: "Manage players, positions & jersey numbers" },
+                  { icon: CalendarClock, color: "text-green-500", bg: "bg-green-50", title: "Smart Scheduling", desc: "Games, practices & automatic duty assignments" },
+                  { icon: BarChart3, color: "text-orange-500", bg: "bg-orange-50", title: "StatTracker", desc: "Live game stats with trends & analytics" },
+                  { icon: ClipboardList, color: "text-purple-500", bg: "bg-purple-50", title: "PlayMaker", desc: "Draw plays on an interactive canvas" },
+                  { icon: Video, color: "text-cyan-500", bg: "bg-cyan-50", title: "Highlights", desc: "Upload, process & share team videos" },
+                  { icon: MessageSquare, color: "text-pink-500", bg: "bg-pink-50", title: "Team Chat", desc: "Real-time messaging & announcements" },
+                ].map((item, i) => (
+                  <motion.div
+                    key={item.title}
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-white/80 backdrop-blur border border-white/50 shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className={`p-3 rounded-xl ${item.bg}`}>
+                      <item.icon className={`h-6 w-6 ${item.color}`} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900">{item.title}</h4>
+                      <p className="text-sm text-gray-600">{item.desc}</p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-gray-400 ml-auto" />
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Features Section - Athletes (Dark theme) */}
+      {/* Features Section - Athletes (Bento Grid) */}
       <section className="py-24 bg-gray-950 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(16,185,129,0.15),transparent)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(6,182,212,0.15),transparent)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
         
         <div className="container mx-auto px-6 relative z-10">
           <motion.div
@@ -372,66 +408,125 @@ export default function LandingPage() {
               For Athletes
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Track Your Journey
+              Own Your Journey
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              See your stats, share your highlights, and stay connected with your team.
+              Your stats, your highlights, your story. All in one place.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard
-              icon={<Trophy className="h-6 w-6 text-yellow-400" />}
-              title="Personal Stats"
-              description="View your performance across all games. Track your progress and celebrate your wins."
-              delay={0}
-              variant="dark"
-            />
-            <FeatureCard
-              icon={<CalendarClock className="h-6 w-6 text-blue-400" />}
-              title="Team Schedule"
-              description="Never miss a game or practice. See all upcoming events with location and time details."
-              delay={0.1}
-              variant="dark"
-            />
-            <FeatureCard
-              icon={<Award className="h-6 w-6 text-purple-400" />}
-              title="Hype Card"
-              description="Your shareable athlete profile with stats, highlights, and team info."
-              delay={0.2}
-              variant="dark"
-            />
-            <FeatureCard
-              icon={<Target className="h-6 w-6 text-red-400" />}
-              title="Starting Lineups"
-              description="See when you're starting and your position for upcoming games."
-              delay={0.3}
-              variant="dark"
-            />
-            <FeatureCard
-              icon={<Video className="h-6 w-6 text-cyan-400" />}
-              title="Highlight Reel"
-              description="Watch team highlights and share your best moments with friends and family."
-              delay={0.4}
-              variant="dark"
-            />
-            <FeatureCard
-              icon={<Bell className="h-6 w-6 text-green-400" />}
-              title="Push Notifications"
-              description="Get notified about games, practices, and important team updates."
-              delay={0.5}
-              variant="dark"
-            />
+          {/* Bento Grid Layout */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
+            {/* Large featured card - HYPE Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="col-span-2 row-span-2 bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-purple-500/20 rounded-3xl p-8 border border-cyan-500/30 relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl group-hover:bg-cyan-500/30 transition-colors" />
+              <div className="relative z-10">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 w-fit mb-6 shadow-lg shadow-cyan-500/30">
+                  <Award className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-3xl font-bold text-white mb-3">HYPE Card</h3>
+                <p className="text-gray-400 text-lg mb-6">
+                  Your shareable athlete profile with stats, highlights, and team info. Generate QR codes to share with scouts and fans.
+                </p>
+                <div className="flex gap-3">
+                  <span className="px-3 py-1.5 rounded-full bg-white/10 text-cyan-400 text-sm font-medium">Stats</span>
+                  <span className="px-3 py-1.5 rounded-full bg-white/10 text-purple-400 text-sm font-medium">Highlights</span>
+                  <span className="px-3 py-1.5 rounded-full bg-white/10 text-blue-400 text-sm font-medium">QR Share</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Personal Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="col-span-1 bg-gray-900/80 rounded-3xl p-6 border border-white/10 hover:border-yellow-500/30 transition-colors group"
+            >
+              <div className="p-3 rounded-xl bg-yellow-500/10 w-fit mb-4 group-hover:bg-yellow-500/20 transition-colors">
+                <Trophy className="h-6 w-6 text-yellow-400" />
+              </div>
+              <h4 className="font-bold text-white mb-2">Personal Stats</h4>
+              <p className="text-sm text-gray-500">Track your performance across all games</p>
+            </motion.div>
+
+            {/* Team Schedule */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="col-span-1 bg-gray-900/80 rounded-3xl p-6 border border-white/10 hover:border-blue-500/30 transition-colors group"
+            >
+              <div className="p-3 rounded-xl bg-blue-500/10 w-fit mb-4 group-hover:bg-blue-500/20 transition-colors">
+                <CalendarClock className="h-6 w-6 text-blue-400" />
+              </div>
+              <h4 className="font-bold text-white mb-2">Schedule</h4>
+              <p className="text-sm text-gray-500">Never miss a game or practice</p>
+            </motion.div>
+
+            {/* Highlight Reel - Wide */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="col-span-2 bg-gradient-to-r from-gray-900 to-gray-900/80 rounded-3xl p-6 border border-white/10 hover:border-cyan-500/30 transition-colors group flex items-center gap-6"
+            >
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 group-hover:from-cyan-500/30 group-hover:to-purple-500/30 transition-colors">
+                <Video className="h-8 w-8 text-cyan-400" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white mb-1">Highlight Reel</h4>
+                <p className="text-sm text-gray-500">Watch and share your best moments with friends and family</p>
+              </div>
+            </motion.div>
+
+            {/* Push Notifications */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+              className="col-span-1 bg-gray-900/80 rounded-3xl p-6 border border-white/10 hover:border-green-500/30 transition-colors group"
+            >
+              <div className="p-3 rounded-xl bg-green-500/10 w-fit mb-4 group-hover:bg-green-500/20 transition-colors">
+                <Bell className="h-6 w-6 text-green-400" />
+              </div>
+              <h4 className="font-bold text-white mb-2">Notifications</h4>
+              <p className="text-sm text-gray-500">Stay updated on games & events</p>
+            </motion.div>
+
+            {/* Playbook */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5 }}
+              className="col-span-1 bg-gray-900/80 rounded-3xl p-6 border border-white/10 hover:border-purple-500/30 transition-colors group"
+            >
+              <div className="p-3 rounded-xl bg-purple-500/10 w-fit mb-4 group-hover:bg-purple-500/20 transition-colors">
+                <Target className="h-6 w-6 text-purple-400" />
+              </div>
+              <h4 className="font-bold text-white mb-2">Playbook</h4>
+              <p className="text-sm text-gray-500">Study team plays & strategies</p>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Features Section - Supporters (Gradient mesh) */}
+      {/* Features Section - Supporters (Engagement Hub Layout) */}
       <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-cyan-50 to-emerald-50" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-blue-200/50 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-emerald-200/40 to-transparent rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-gradient-to-br from-orange-200/40 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-1/4 w-[400px] h-[400px] bg-gradient-to-tr from-purple-200/40 to-transparent rounded-full blur-3xl" />
         
         <div className="container mx-auto px-6 relative z-10">
           <motion.div
@@ -440,7 +535,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-600 rounded-full px-4 py-2 text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-pink-100 text-orange-600 rounded-full px-4 py-2 text-sm font-medium mb-4 border border-orange-200">
               <Heart className="h-4 w-4" />
               For Supporters
             </div>
@@ -448,47 +543,169 @@ export default function LandingPage() {
               Cheer From Anywhere
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Can't be at the game? Show your support with live taps, shoutouts, and earn badges!
+              Can't make the game? Your support still matters. Tap, cheer, and earn rewards!
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard
-              icon={<Hand className="h-6 w-6 text-orange-500" />}
-              title="Live Taps"
-              description="Tap to cheer during live games. Every tap adds to your season total and earns badges."
-              delay={0}
-            />
-            <FeatureCard
-              icon={<Heart className="h-6 w-6 text-red-500" />}
-              title="Send Shoutouts"
-              description="Send quick cheers to individual athletes during games. Show them you're watching!"
-              delay={0.1}
-            />
-            <FeatureCard
-              icon={<Award className="h-6 w-6 text-yellow-500" />}
-              title="Earn Badges"
-              description="Unlock Bronze, Silver, Gold, and Legend badges as you rack up taps throughout the season."
-              delay={0.2}
-            />
-            <FeatureCard
-              icon={<Star className="h-6 w-6 text-purple-500" />}
-              title="Theme Unlocks"
-              description="Each badge unlocks a new dashboard theme. Show off your dedication with custom styles."
-              delay={0.3}
-            />
-            <FeatureCard
-              icon={<Bell className="h-6 w-6 text-blue-500" />}
-              title="Game Notifications"
-              description="Get notified when games go live so you never miss a chance to cheer."
-              delay={0.4}
-            />
-            <FeatureCard
-              icon={<Users className="h-6 w-6 text-green-500" />}
-              title="Managed Athletes"
-              description="Parents can create and manage athlete profiles for younger players."
-              delay={0.5}
-            />
+          {/* Engagement Hub - Central tap button with features around it */}
+          <div className="max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-8 items-center">
+              {/* Left Column - Features */}
+              <div className="space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-lg shadow-orange-100 border border-orange-100 hover:shadow-xl transition-shadow"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-orange-100 to-orange-50">
+                      <Hand className="h-6 w-6 text-orange-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">Live Taps</h4>
+                      <p className="text-sm text-gray-600">Tap to cheer during live games. Every tap counts!</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-lg shadow-pink-100 border border-pink-100 hover:shadow-xl transition-shadow"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-pink-100 to-pink-50">
+                      <Heart className="h-6 w-6 text-pink-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">Send Shoutouts</h4>
+                      <p className="text-sm text-gray-600">Quick cheers to athletes during games</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-lg shadow-purple-100 border border-purple-100 hover:shadow-xl transition-shadow"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-purple-100 to-purple-50">
+                      <Users className="h-6 w-6 text-purple-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">Managed Athletes</h4>
+                      <p className="text-sm text-gray-600">Parents manage profiles for young players</p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Center - Big Tap Button Visualization */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="flex flex-col items-center justify-center py-8"
+              >
+                <div className="relative">
+                  {/* Pulse rings */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 animate-ping opacity-20" style={{ animationDuration: '2s' }} />
+                  <div className="absolute inset-4 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 animate-ping opacity-30" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
+                  
+                  {/* Main button */}
+                  <div className="relative w-40 h-40 rounded-full bg-gradient-to-br from-orange-500 via-pink-500 to-purple-500 shadow-2xl shadow-orange-500/40 flex items-center justify-center">
+                    <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+                      <Zap className="h-16 w-16 text-white" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-8 text-center">
+                  <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-500">
+                    1,247
+                  </div>
+                  <div className="text-sm text-gray-500 font-medium">Taps This Season</div>
+                </div>
+
+                {/* Badge progression */}
+                <div className="flex gap-2 mt-6">
+                  <div className="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center" title="Bronze">
+                    <Check className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center" title="Silver">
+                    <Check className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center ring-2 ring-yellow-300" title="Gold - Current">
+                    <Award className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center" title="Legend - Locked">
+                    <Star className="h-4 w-4 text-gray-400" />
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Right Column - Features */}
+              <div className="space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-lg shadow-yellow-100 border border-yellow-100 hover:shadow-xl transition-shadow"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-yellow-100 to-yellow-50">
+                      <Award className="h-6 w-6 text-yellow-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">Earn Badges</h4>
+                      <p className="text-sm text-gray-600">Bronze, Silver, Gold & Legend tiers</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-lg shadow-indigo-100 border border-indigo-100 hover:shadow-xl transition-shadow"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-50">
+                      <Sparkles className="h-6 w-6 text-indigo-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">Theme Unlocks</h4>
+                      <p className="text-sm text-gray-600">Unlock custom dashboard themes</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-lg shadow-blue-100 border border-blue-100 hover:shadow-xl transition-shadow"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-100 to-blue-50">
+                      <Bell className="h-6 w-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">Game Alerts</h4>
+                      <p className="text-sm text-gray-600">Never miss a live game</p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
