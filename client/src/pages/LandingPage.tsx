@@ -548,200 +548,90 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-      {/* Features Section - Supporters (Engagement Hub Layout) */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:48px_48px]" />
-        <div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-gradient-to-br from-orange-200/40 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-1/4 w-[400px] h-[400px] bg-gradient-to-tr from-purple-200/40 to-transparent rounded-full blur-3xl" />
-        
-        <div className="container mx-auto px-6 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-pink-100 text-orange-600 rounded-full px-4 py-2 text-sm font-medium mb-4 border border-orange-200">
-              <Heart className="h-4 w-4" />
-              For Supporters
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Cheer From Anywhere
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Can't make the game? Your support still matters. Tap, cheer, and earn rewards!
-            </p>
-          </motion.div>
-
-          {/* Engagement Hub - Central tap button with features around it */}
-          <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-3 gap-8 items-center">
-              {/* Left Column - Features */}
-              <div className="space-y-6">
-                <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  className="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-lg shadow-orange-100 border border-orange-100 hover:shadow-xl transition-shadow"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-orange-100 to-orange-50">
-                      <Hand className="h-6 w-6 text-orange-500" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1">Live Taps</h4>
-                      <p className="text-sm text-gray-600">Tap to cheer during live games. Every tap counts!</p>
-                    </div>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-lg shadow-pink-100 border border-pink-100 hover:shadow-xl transition-shadow"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-pink-100 to-pink-50">
-                      <Heart className="h-6 w-6 text-pink-500" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1">Send Shoutouts</h4>
-                      <p className="text-sm text-gray-600">Quick cheers to athletes during games</p>
-                    </div>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-lg shadow-purple-100 border border-purple-100 hover:shadow-xl transition-shadow"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-purple-100 to-purple-50">
-                      <Users className="h-6 w-6 text-purple-500" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1">Managed Athletes</h4>
-                      <p className="text-sm text-gray-600">Parents manage profiles for young players</p>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Center - Big Tap Button Visualization */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                className="flex flex-col items-center justify-center py-8"
-              >
-                <div className="relative">
-                  {/* Pulse rings */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 animate-ping opacity-20" style={{ animationDuration: '2s' }} />
-                  <div className="absolute inset-4 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 animate-ping opacity-30" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
-                  
-                  {/* Main button */}
-                  <div className="relative w-40 h-40 rounded-full bg-gradient-to-br from-orange-500 via-pink-500 to-purple-500 shadow-2xl shadow-orange-500/40 flex items-center justify-center">
-                    <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
-                      <Zap className="h-16 w-16 text-white" />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-8 text-center">
-                  <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-500">
-                    1,247
-                  </div>
-                  <div className="text-sm text-gray-500 font-medium">Taps This Season</div>
-                </div>
-
-                {/* Badge progression */}
-                <div className="flex gap-2 mt-6">
-                  <div className="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center" title="Bronze">
-                    <Check className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center" title="Silver">
-                    <Check className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center ring-2 ring-yellow-300" title="Gold - Current">
-                    <Award className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center" title="Legend - Locked">
-                    <Star className="h-4 w-4 text-gray-400" />
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Right Column - Features */}
-              <div className="space-y-6">
-                <motion.div
-                  initial={{ opacity: 0, x: 30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  className="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-lg shadow-yellow-100 border border-yellow-100 hover:shadow-xl transition-shadow"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-yellow-100 to-yellow-50">
-                      <Award className="h-6 w-6 text-yellow-500" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1">Earn Badges</h4>
-                      <p className="text-sm text-gray-600">Bronze, Silver, Gold & Legend tiers</p>
-                    </div>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: 30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-lg shadow-indigo-100 border border-indigo-100 hover:shadow-xl transition-shadow"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-50">
-                      <Sparkles className="h-6 w-6 text-indigo-500" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1">Theme Unlocks</h4>
-                      <p className="text-sm text-gray-600">Unlock custom dashboard themes</p>
-                    </div>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: 30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-lg shadow-blue-100 border border-blue-100 hover:shadow-xl transition-shadow"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-100 to-blue-50">
-                      <Bell className="h-6 w-6 text-blue-500" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1">Game Alerts</h4>
-                      <p className="text-sm text-gray-600">Never miss a live game</p>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      {/* Game Day Live Section - Dark with glow effects */}
+      {/* Game Day Live Section - Consolidated Supporters Section */}
       <section className="py-24 bg-gray-950 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.15),transparent_70%)]" />
         
         <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-5xl mx-auto">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 rounded-full px-4 py-2 text-sm font-medium mb-4 border border-emerald-500/20">
+              <Heart className="h-4 w-4" />
+              For Supporters
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Cheer From Anywhere
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Can't make the game? Your support still matters. Tap, cheer, and earn rewards!
+            </p>
+          </motion.div>
+
+          {/* Top Row of Feature Cards */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="bg-gray-900/80 backdrop-blur rounded-2xl p-4 border border-white/10 hover:border-orange-500/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-orange-500/10">
+                    <Hand className="h-5 w-5 text-orange-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-sm">Live Taps</h4>
+                    <p className="text-xs text-gray-500">Cheer during games</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="bg-gray-900/80 backdrop-blur rounded-2xl p-4 border border-white/10 hover:border-pink-500/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-pink-500/10">
+                    <Heart className="h-5 w-5 text-pink-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-sm">Shoutouts</h4>
+                    <p className="text-xs text-gray-500">Quick cheers to athletes</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="bg-gray-900/80 backdrop-blur rounded-2xl p-4 border border-white/10 hover:border-purple-500/30 transition-colors col-span-2 md:col-span-1"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-purple-500/10">
+                    <Users className="h-5 w-5 text-purple-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-sm">Managed Athletes</h4>
+                    <p className="text-xs text-gray-500">Parents manage profiles</p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Main Game Day Live Card */}
+          <div className="max-w-5xl mx-auto mb-8">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -791,6 +681,64 @@ export default function LandingPage() {
                 </div>
               </div>
             </motion.div>
+          </div>
+
+          {/* Bottom Row of Feature Cards */}
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="bg-gray-900/80 backdrop-blur rounded-2xl p-4 border border-white/10 hover:border-yellow-500/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-yellow-500/10">
+                    <Award className="h-5 w-5 text-yellow-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-sm">Earn Badges</h4>
+                    <p className="text-xs text-gray-500">Bronze to Legend tiers</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="bg-gray-900/80 backdrop-blur rounded-2xl p-4 border border-white/10 hover:border-indigo-500/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-indigo-500/10">
+                    <Sparkles className="h-5 w-5 text-indigo-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-sm">Theme Unlocks</h4>
+                    <p className="text-xs text-gray-500">Custom dashboards</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="bg-gray-900/80 backdrop-blur rounded-2xl p-4 border border-white/10 hover:border-blue-500/30 transition-colors col-span-2 md:col-span-1"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-blue-500/10">
+                    <Bell className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-sm">Game Alerts</h4>
+                    <p className="text-xs text-gray-500">Never miss a game</p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </div>
         </div>
       </section>
