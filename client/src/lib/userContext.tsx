@@ -47,17 +47,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
     
     const unsubscribe = onFirebaseAuthStateChanged(async (firebaseUser) => {
       listenerCalled = true;
+      console.log('[UserContext] Firebase auth state changed:', firebaseUser?.email || 'null');
       if (!isMounted) return;
       
       if (firebaseUser) {
         // Firebase user is logged in - sync with our backend
         try {
+          console.log('[UserContext] Syncing Firebase user...');
           const syncedUser = await syncFirebaseUser({
             firebaseUid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: firebaseUser.displayName,
             photoURL: firebaseUser.photoURL,
           });
+          console.log('[UserContext] Sync complete, user:', syncedUser.email, 'role:', syncedUser.role);
           
           if (isMounted) {
             setUserState(syncedUser);

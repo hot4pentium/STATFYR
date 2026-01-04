@@ -51,18 +51,15 @@ export default function AuthPage() {
   const hasProcessedRedirect = useRef(false);
   
   // If user is already logged in (from userContext), redirect them to their dashboard
-  // Wait for userContext to finish loading before redirecting
   useEffect(() => {
-    if (!isUserLoading && user) {
-      if (redirectTo) {
-        setLocation(redirectTo);
-      } else if (user.role === 'coach') {
-        setLocation("/dashboard");
-      } else if (user.role === 'athlete') {
-        setLocation("/athlete/dashboard");
-      } else {
-        setLocation("/supporter/dashboard");
-      }
+    console.log('[AuthPage] Redirect check - isUserLoading:', isUserLoading, 'user:', user?.email, 'role:', user?.role);
+    if (user) {
+      const targetPath = redirectTo || 
+        (user.role === 'coach' ? '/dashboard' : 
+         user.role === 'athlete' ? '/athlete/dashboard' : 
+         '/supporter/dashboard');
+      console.log('[AuthPage] Redirecting to:', targetPath);
+      setLocation(targetPath);
     }
   }, [user, isUserLoading, redirectTo, setLocation]);
   
@@ -71,7 +68,9 @@ export default function AuthPage() {
     async function handleRedirectResult() {
       if (hasProcessedRedirect.current) return;
       
+      console.log('[AuthPage] Checking redirect result...');
       const result = await checkRedirectResult();
+      console.log('[AuthPage] Redirect result:', result.user?.email || 'null', result.error || '');
       if (result.user) {
         hasProcessedRedirect.current = true;
         await handleFirebaseUser(result.user);
