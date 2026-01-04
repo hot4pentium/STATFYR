@@ -28,7 +28,13 @@ export function PWAProvider({ children }: PWAProviderProps) {
     let intervalId: ReturnType<typeof setInterval> | null = null;
     let registration: ServiceWorkerRegistration | null = null;
 
+    let isFirstLoad = true;
     const handleControllerChange = () => {
+      // Skip reload on first load to prevent reload loops with skipWaiting
+      if (isFirstLoad) {
+        isFirstLoad = false;
+        return;
+      }
       // Only reload if the main service worker changed, not the Firebase messaging worker
       const controller = navigator.serviceWorker.controller;
       if (controller && controller.scriptURL.includes('service-worker.js')) {
