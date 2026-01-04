@@ -136,27 +136,61 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Firebase UID is required" });
       }
       
-      // Try to find existing user by Firebase UID (stored in id field) or by email
-      let user = await withRetry(() => storage.getUser(firebaseUid));
+      // PRIORITY: Check by EMAIL first to link social login to existing accounts
+      // If multiple users have the same email, pick the one with team memberships or coach role
+      let user = null;
       
-      if (!user && email) {
-        user = await withRetry(() => storage.getUserByEmail(email));
-        // If found by email but different ID, update the user's ID to Firebase UID
-        if (user && user.id !== firebaseUid) {
-          // User exists with different ID - this could be a legacy email/password user
-          // who is now signing in with social login. Update their profile.
-          const updated = await storage.updateUser(user.id, {
-            profileImageUrl: photoURL || user.profileImageUrl,
-            lastAccessedAt: new Date(),
-          });
-          const userToReturn = updated || user;
-          const { password: _, ...safeUser } = userToReturn;
-          return res.json(safeUser);
+      if (email) {
+        const usersWithEmail = await withRetry(() => storage.getUsersByEmail(email));
+        
+        if (usersWithEmail.length > 0) {
+          if (usersWithEmail.length === 1) {
+            // Only one user with this email - use it
+            user = usersWithEmail[0];
+          } else {
+            // Multiple users with same email - pick the best one deterministically
+            // Score each user: team membership count + role priority + ID format preference
+            const rolePriority: Record<string, number> = { 'coach': 100, 'staff': 50, 'athlete': 10, 'supporter': 1 };
+            
+            // Prefer standard UUIDs (36 chars with hyphens) over Firebase UIDs (28 chars, no hyphens)
+            const isStandardUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+            
+            const scored = await Promise.all(usersWithEmail.map(async (u) => {
+              const teams = await storage.getUserTeams(u.id);
+              const teamScore = teams.length * 1000; // Team membership is most important
+              const roleScore = rolePriority[u.role || 'supporter'] || 0;
+              // Prefer standard UUIDs (original accounts) over Firebase UIDs (social login duplicates)
+              const idScore = isStandardUUID(u.id) ? 10 : 0;
+              return { user: u, score: teamScore + roleScore + idScore };
+            }));
+            
+            // Sort by score descending, then by ID ascending for deterministic tiebreaker
+            scored.sort((a, b) => {
+              if (b.score !== a.score) return b.score - a.score;
+              // Deterministic tiebreaker: sort by ID lexicographically
+              return a.user.id.localeCompare(b.user.id);
+            });
+            user = scored[0].user;
+          }
+          
+          if (user) {
+            // Found existing user by email - update their profile and return
+            const updated = await storage.updateUser(user.id, {
+              profileImageUrl: photoURL || user.profileImageUrl,
+              lastAccessedAt: new Date(),
+            });
+            const userToReturn = updated || user;
+            const { password: _, ...safeUser } = userToReturn;
+            return res.json(safeUser);
+          }
         }
       }
       
+      // If not found by email, try by Firebase UID
+      user = await withRetry(() => storage.getUser(firebaseUid));
+      
       if (user) {
-        // Update existing user
+        // Update existing user found by Firebase UID
         const updated = await storage.updateUser(user.id, {
           email: email || user.email,
           profileImageUrl: photoURL || user.profileImageUrl,
@@ -167,7 +201,7 @@ export async function registerRoutes(
         return res.json(safeUser);
       }
       
-      // Create new user from Firebase data
+      // No existing user found - create new user from Firebase data
       const nameParts = (displayName || '').split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
