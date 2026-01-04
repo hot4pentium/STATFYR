@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'teampulse-v1.0.6';
+const CACHE_VERSION = 'teampulse-v1.0.7';
 const urlsToCache = [
   '/',
   '/index.html'
