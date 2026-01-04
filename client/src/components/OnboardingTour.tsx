@@ -152,7 +152,7 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
 
   if (showWelcome && welcomeModal) {
     return (
-      <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4">
         <Card className="w-full max-w-md bg-gradient-to-br from-card via-card to-orange-500/5 border-orange-500/30 shadow-2xl shadow-orange-500/20">
           <CardContent className="p-8 text-center">
             <div className="mb-6">
@@ -202,7 +202,7 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
 
   if (showInstallPrompt) {
     return (
-      <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4">
         <Card className="w-full max-w-md bg-gradient-to-br from-card via-card to-emerald-500/5 border-emerald-500/30 shadow-2xl shadow-emerald-500/20">
           <CardContent className="p-6 text-center">
             <div className="mb-5">
@@ -426,7 +426,7 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
       {isVisible && (
         <>
           <motion.div
-            className="fixed inset-0 bg-black/60 z-[100]"
+            className="fixed inset-0 bg-black/40 z-[100]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -444,7 +444,7 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
                 left: targetRect.left - 4,
                 width: targetRect.width + 8,
                 height: targetRect.height + 8,
-                boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.6)",
+                boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.4)",
               }}
             />
           )}

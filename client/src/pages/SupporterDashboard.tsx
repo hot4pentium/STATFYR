@@ -704,6 +704,7 @@ export default function SupporterDashboard() {
                         <video
                           src={video.publicUrl}
                           controls
+                          playsInline
                           preload="metadata"
                           className="w-full h-full object-contain"
                           poster={video.thumbnailKey || undefined}

@@ -816,7 +816,8 @@ export default function AthleteDashboard() {
                             {video.status === "ready" && video.publicUrl ? (
                               <video 
                                 src={video.publicUrl} 
-                                controls 
+                                controls
+                                playsInline
                                 className="w-full h-full object-contain"
                               />
                             ) : video.status === "processing" ? (

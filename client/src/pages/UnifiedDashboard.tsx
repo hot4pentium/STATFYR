@@ -804,9 +804,9 @@ export default function UnifiedDashboard() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
         
-        {/* Play button overlay */}
+        {/* Play button overlay - always visible on mobile, hover on desktop */}
         {hasVideo && (
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute inset-0 flex items-center justify-center opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity pointer-events-none">
             <div className="w-12 h-12 rounded-full bg-orange-500/90 flex items-center justify-center">
               <Video className="h-5 w-5 text-white ml-0.5" />
             </div>
@@ -2350,6 +2350,7 @@ export default function UnifiedDashboard() {
                   src={playingHighlight.publicUrl}
                   controls
                   autoPlay
+                  playsInline
                   className="w-full h-full"
                   poster={playingHighlight.thumbnailKey || undefined}
                 >
