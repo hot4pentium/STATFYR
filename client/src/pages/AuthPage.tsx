@@ -112,20 +112,26 @@ export default function AuthPage() {
       setPendingFirebaseUser(null);
       
       // Fetch user's teams and set the first one as current
+      let userTeams: any[] = [];
       try {
-        const teams = await getUserTeams(authenticatedUser.id);
-        if (teams.length > 0) {
-          setCurrentTeam(teams[0]);
+        userTeams = await getUserTeams(authenticatedUser.id);
+        if (userTeams.length > 0) {
+          setCurrentTeam(userTeams[0]);
         }
       } catch (teamError) {
         console.log("No teams found for user");
       }
       
-      // Redirect based on role
+      // Redirect based on role - coaches without teams need onboarding
       if (redirectTo) {
         setLocation(redirectTo);
       } else if (authenticatedUser.role === 'coach') {
-        setLocation("/dashboard");
+        // New coaches need to create a team first
+        if (userTeams.length === 0) {
+          setLocation("/coach/onboarding");
+        } else {
+          setLocation("/dashboard");
+        }
       } else if (authenticatedUser.role === 'athlete') {
         setLocation("/athlete/dashboard");
       } else {
