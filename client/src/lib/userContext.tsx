@@ -54,12 +54,26 @@ export function UserProvider({ children }: { children: ReactNode }) {
         // Firebase user is logged in - sync with our backend
         try {
           console.log('[UserContext] Syncing Firebase user...');
-          const syncedUser = await syncFirebaseUser({
+          const syncResult = await syncFirebaseUser({
             firebaseUid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: firebaseUser.displayName,
             photoURL: firebaseUser.photoURL,
           });
+          
+          // Check if this is a new user needing role selection
+          if ('needsRoleSelection' in syncResult && syncResult.needsRoleSelection) {
+            console.log('[UserContext] New user needs role selection, redirecting to auth...');
+            // Don't set user state - they need to complete registration
+            // The auth page will handle this
+            if (isMounted) {
+              setIsLoading(false);
+            }
+            return;
+          }
+          
+          // syncResult is a User object
+          const syncedUser = syncResult as User;
           console.log('[UserContext] Sync complete, user:', syncedUser.email, 'role:', syncedUser.role);
           
           if (isMounted) {
