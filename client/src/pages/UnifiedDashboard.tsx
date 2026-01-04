@@ -1238,14 +1238,6 @@ export default function UnifiedDashboard() {
     );
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   const handleJoinTeamWithCode = async () => {
     if (!joinTeamCode.trim() || !user) return;
     setIsJoiningTeam(true);
@@ -1259,88 +1251,6 @@ export default function UnifiedDashboard() {
       setIsJoiningTeam(false);
     }
   };
-
-  if (!currentTeam && userRole === "coach" && coachTeams && coachTeams.length > 0) {
-    return (
-      <>
-        <DashboardBackground />
-        <div className="relative z-10 min-h-screen p-4 flex items-center justify-center">
-          <Card className="max-w-md w-full bg-card/90 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Select a Team</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {coachTeams.map((team: any) => (
-                <Button
-                  key={team.id}
-                  variant="outline"
-                  className="w-full justify-start gap-3"
-                  onClick={() => setCurrentTeam(team)}
-                >
-                  <TeamBadge badgeId={team.badgeId} size="sm" fallbackInitials={team.name?.substring(0, 2)} teamColor={team.teamColor} />
-                  {team.name}
-                </Button>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      </>
-    );
-  }
-
-  if (!currentTeam && (userRole === "athlete" || userRole === "supporter")) {
-    return (
-      <>
-        <DashboardBackground />
-        <div className="min-h-screen relative z-10 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md border-white/10 bg-card/50 backdrop-blur-xl">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
-                {userRole === "athlete" ? <Trophy className="h-8 w-8 text-primary" /> : <Users className="h-8 w-8 text-primary" />}
-              </div>
-              <CardTitle className="font-display text-2xl uppercase tracking-wide">Join a Team</CardTitle>
-              <p className="text-muted-foreground text-sm mt-2">
-                Enter a team code to join as {userRole === "athlete" ? "an athlete" : "a supporter"}
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Input
-                  type="text"
-                  placeholder="Enter team code"
-                  value={joinTeamCode}
-                  onChange={(e) => setJoinTeamCode(e.target.value.toUpperCase())}
-                  className="text-center font-mono text-lg uppercase tracking-widest"
-                  maxLength={6}
-                  data-testid="input-join-team-code"
-                />
-              </div>
-              <Button
-                onClick={handleJoinTeamWithCode}
-                disabled={!joinTeamCode.trim() || isJoiningTeam}
-                className="w-full"
-                size="lg"
-                data-testid="button-join-team-submit"
-              >
-                {isJoiningTeam ? "Joining..." : "Join Team"}
-              </Button>
-              <div className="text-center pt-4 border-t border-white/10">
-                <p className="text-xs text-muted-foreground mb-2">Or scan a QR code from your team</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setLocation("/join/scan")}
-                  data-testid="button-scan-qr"
-                >
-                  Scan QR Code
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </>
-    );
-  }
 
   const athleteWelcomeModal: WelcomeModal = useMemo(() => ({
     title: "Welcome, Athlete!",
@@ -1467,6 +1377,97 @@ export default function UnifiedDashboard() {
       position: "bottom"
     }
   ], []);
+
+  // Early returns AFTER all hooks are defined (to avoid React hooks order violation)
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!currentTeam && userRole === "coach" && coachTeams && coachTeams.length > 0) {
+    return (
+      <>
+        <DashboardBackground />
+        <div className="relative z-10 min-h-screen p-4 flex items-center justify-center">
+          <Card className="max-w-md w-full bg-card/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Select a Team</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {coachTeams.map((team: any) => (
+                <Button
+                  key={team.id}
+                  variant="outline"
+                  className="w-full justify-start gap-3"
+                  onClick={() => setCurrentTeam(team)}
+                >
+                  <TeamBadge badgeId={team.badgeId} size="sm" fallbackInitials={team.name?.substring(0, 2)} teamColor={team.teamColor} />
+                  {team.name}
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    );
+  }
+
+  if (!currentTeam && (userRole === "athlete" || userRole === "supporter")) {
+    return (
+      <>
+        <DashboardBackground />
+        <div className="min-h-screen relative z-10 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md border-white/10 bg-card/50 backdrop-blur-xl">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                {userRole === "athlete" ? <Trophy className="h-8 w-8 text-primary" /> : <Users className="h-8 w-8 text-primary" />}
+              </div>
+              <CardTitle className="font-display text-2xl uppercase tracking-wide">Join a Team</CardTitle>
+              <p className="text-muted-foreground text-sm mt-2">
+                Enter a team code to join as {userRole === "athlete" ? "an athlete" : "a supporter"}
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  placeholder="Enter team code"
+                  value={joinTeamCode}
+                  onChange={(e) => setJoinTeamCode(e.target.value.toUpperCase())}
+                  className="text-center font-mono text-lg uppercase tracking-widest"
+                  maxLength={6}
+                  data-testid="input-join-team-code"
+                />
+              </div>
+              <Button
+                onClick={handleJoinTeamWithCode}
+                disabled={!joinTeamCode.trim() || isJoiningTeam}
+                className="w-full"
+                size="lg"
+                data-testid="button-join-team-submit"
+              >
+                {isJoiningTeam ? "Joining..." : "Join Team"}
+              </Button>
+              <div className="text-center pt-4 border-t border-white/10">
+                <p className="text-xs text-muted-foreground mb-2">Or scan a QR code from your team</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLocation("/join/scan")}
+                  data-testid="button-scan-qr"
+                >
+                  Scan QR Code
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
