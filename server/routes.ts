@@ -201,7 +201,15 @@ export async function registerRoutes(
         return res.json(safeUser);
       }
       
-      // No existing user found - create new user from Firebase data
+      // No existing user found - require role selection before creating account
+      if (!role) {
+        return res.status(200).json({ 
+          needsRoleSelection: true,
+          message: "Please select your role to continue"
+        });
+      }
+      
+      // Create new user from Firebase data with selected role
       const nameParts = (displayName || '').split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
@@ -212,7 +220,7 @@ export async function registerRoutes(
         firstName,
         lastName,
         name: displayName || '',
-        role: role || 'athlete',
+        role: role,
         profileImageUrl: photoURL || undefined,
         // No password for social login users
       }));

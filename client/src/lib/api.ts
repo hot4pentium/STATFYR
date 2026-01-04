@@ -75,13 +75,15 @@ export async function loginUser(username: string, password: string): Promise<Use
   return res.json();
 }
 
+export type FirebaseSyncResponse = User | { needsRoleSelection: true; message: string };
+
 export async function syncFirebaseUser(data: {
   firebaseUid: string;
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
   role?: string;
-}): Promise<User> {
+}): Promise<FirebaseSyncResponse> {
   const res = await apiRequest("POST", "/api/auth/firebase-sync", data);
   return res.json();
 }

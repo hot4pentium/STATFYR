@@ -6,7 +6,7 @@ import { useLocation, useSearch } from "wouter";
 import { User, Users, Clipboard, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
-import { registerUser, loginUser, getUserTeams, syncFirebaseUser } from "@/lib/api";
+import { registerUser, loginUser, getUserTeams, syncFirebaseUser, type User as UserType } from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
 import { signInWithGoogle, signInWithApple, checkRedirectResult, onFirebaseAuthStateChanged, type FirebaseUser } from "@/lib/firebase";
 import { useTheme } from "next-themes";
@@ -81,21 +81,39 @@ export default function AuthPage() {
     handleRedirectResult();
   }, [selectedRole]);
   
-  const handleFirebaseUser = async (firebaseUser: FirebaseUser) => {
+  // Store pending Firebase user when role selection is needed
+  const [pendingFirebaseUser, setPendingFirebaseUser] = useState<FirebaseUser | null>(null);
+  
+  const handleFirebaseUser = async (firebaseUser: FirebaseUser, roleOverride?: string) => {
     setLoading(true);
     try {
-      const user = await syncFirebaseUser({
+      const roleToUse = roleOverride || selectedRole || undefined;
+      const response = await syncFirebaseUser({
         firebaseUid: firebaseUser.uid,
         email: firebaseUser.email,
         displayName: firebaseUser.displayName,
         photoURL: firebaseUser.photoURL,
-        role: selectedRole || undefined,
+        role: roleToUse,
       });
-      setUser(user);
+      
+      // Check if role selection is needed (new user without role)
+      if ('needsRoleSelection' in response && response.needsRoleSelection) {
+        setPendingFirebaseUser(firebaseUser);
+        setAuthMode("signup"); // Show role selection
+        setLoading(false);
+        return;
+      }
+      
+      // At this point, response is a User (type narrowing)
+      const authenticatedUser = response as UserType;
+      
+      // User is authenticated
+      setUser(authenticatedUser);
+      setPendingFirebaseUser(null);
       
       // Fetch user's teams and set the first one as current
       try {
-        const teams = await getUserTeams(user.id);
+        const teams = await getUserTeams(authenticatedUser.id);
         if (teams.length > 0) {
           setCurrentTeam(teams[0]);
         }
@@ -106,9 +124,9 @@ export default function AuthPage() {
       // Redirect based on role
       if (redirectTo) {
         setLocation(redirectTo);
-      } else if (user.role === 'coach') {
+      } else if (authenticatedUser.role === 'coach') {
         setLocation("/dashboard");
-      } else if (user.role === 'athlete') {
+      } else if (authenticatedUser.role === 'athlete') {
         setLocation("/athlete/dashboard");
       } else {
         setLocation("/supporter/dashboard");
@@ -120,6 +138,16 @@ export default function AuthPage() {
       setLoading(false);
     }
   };
+  
+  // When role is selected and we have a pending Firebase user, complete the sign-up
+  useEffect(() => {
+    if (selectedRole && pendingFirebaseUser) {
+      const userToProcess = pendingFirebaseUser;
+      // Don't clear pendingFirebaseUser here - let handleFirebaseUser clear it on success
+      // This allows retry on failure
+      handleFirebaseUser(userToProcess, selectedRole);
+    }
+  }, [selectedRole]);
   
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -310,6 +338,13 @@ export default function AuthPage() {
   const selectRoleForSignup = (role: string) => {
     setSelectedRole(role);
     setAuthMode("signup");
+    
+    // If there's a pending Firebase user (from Google sign-in needing role selection),
+    // directly call handleFirebaseUser to complete the sign-up
+    // This also enables retry on same role if previous attempt failed
+    if (pendingFirebaseUser) {
+      handleFirebaseUser(pendingFirebaseUser, role);
+    }
   };
 
   return (
