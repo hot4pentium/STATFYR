@@ -813,6 +813,7 @@ export async function registerRoutes(
       const play = await storage.createPlay(parsed);
       res.json(play);
     } catch (error) {
+      console.error("Error creating play:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors });
       }

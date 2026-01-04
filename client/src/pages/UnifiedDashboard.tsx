@@ -509,7 +509,10 @@ export default function UnifiedDashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam?.id, "plays"] });
       toast.success("Play saved!");
     },
-    onError: () => toast.error("Failed to save play"),
+    onError: (error: any) => {
+      const message = error?.message || "Failed to save play";
+      toast.error(message);
+    },
   });
 
   const deletePlayMutation = useMutation({
