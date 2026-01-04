@@ -789,13 +789,19 @@ export async function registerRoutes(
   app.post("/api/teams/:teamId/plays", async (req, res) => {
     try {
       const { userId, ...playData } = req.body;
+      console.log(`[Play Create] teamId=${req.params.teamId}, userId=${userId}, playName=${playData.name}`);
+      
       if (!userId) {
+        console.log(`[Play Create] ERROR: No userId provided`);
         return res.status(400).json({ error: "User ID is required" });
       }
       
       // Validate user is team member with coach or staff role
       const membership = await storage.getTeamMembership(req.params.teamId, userId);
+      console.log(`[Play Create] Membership lookup: ${JSON.stringify(membership)}`);
+      
       if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        console.log(`[Play Create] ERROR: User role=${membership?.role || 'no membership'} - not authorized`);
         return res.status(403).json({ error: "Only coaches and staff can create plays" });
       }
       
