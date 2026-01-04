@@ -431,6 +431,13 @@ export default function UnifiedDashboard() {
     }
   }, [userRole, managedAthletes, userTeams, currentTeam, supporterOriginalTeam, setCurrentTeam]);
 
+  // Auto-select team for coaches with only one team
+  useEffect(() => {
+    if (userRole === "coach" && coachTeams && coachTeams.length === 1 && !currentTeam) {
+      setCurrentTeam(coachTeams[0]);
+    }
+  }, [userRole, coachTeams, currentTeam, setCurrentTeam]);
+
   // Handle view selection change for supporters
   const handleSupporterViewChange = (value: string) => {
     // Clear selected card when switching views to prevent accessing restricted content
@@ -1387,7 +1394,7 @@ export default function UnifiedDashboard() {
     );
   }
 
-  if (!currentTeam && userRole === "coach" && coachTeams && coachTeams.length > 0) {
+  if (!currentTeam && userRole === "coach" && coachTeams && coachTeams.length > 1) {
     return (
       <>
         <DashboardBackground />
