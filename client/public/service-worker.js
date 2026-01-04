@@ -1,9 +1,10 @@
-const CACHE_VERSION = 'teampulse-v1.0.8';
+const CACHE_VERSION = 'teampulse-v1.0.9';
 const urlsToCache = [
   '/index.html'
 ];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_VERSION)
       .then(cache => cache.addAll(urlsToCache))
