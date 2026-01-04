@@ -1,6 +1,5 @@
-const CACHE_VERSION = 'teampulse-v1.0.7';
+const CACHE_VERSION = 'teampulse-v1.0.8';
 const urlsToCache = [
-  '/',
   '/index.html'
 ];
 
@@ -52,7 +51,7 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          return caches.match('/') || caches.match('/index.html');
+          return caches.match('/index.html');
         })
     );
     return;
