@@ -835,6 +835,12 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Team not found" });
       }
       
+      // Validate role - only allow athlete, supporter, staff, or coach
+      const allowedRoles = ["athlete", "supporter", "staff", "coach"];
+      if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ error: "Invalid role. Must be athlete, supporter, staff, or coach." });
+      }
+      
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
         return res.status(400).json({ error: "A user with this email already exists" });
