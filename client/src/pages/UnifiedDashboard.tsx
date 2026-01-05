@@ -156,6 +156,12 @@ export default function UnifiedDashboard() {
   const [eventSessions, setEventSessions] = useState<Record<string, LiveEngagementSession | null>>({});
   const [loadingSessionForEvent, setLoadingSessionForEvent] = useState<string | null>(null);
   const [confirmStartEvent, setConfirmStartEvent] = useState<Event | null>(null);
+  
+  // Create member state
+  const [isCreateMemberOpen, setIsCreateMemberOpen] = useState(false);
+  const [createMemberForm, setCreateMemberForm] = useState({ firstName: "", lastName: "", email: "", role: "athlete" });
+  const [createdMemberInfo, setCreatedMemberInfo] = useState<{ name: string; tempPassword: string } | null>(null);
+  const [isCreatingMember, setIsCreatingMember] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -554,6 +560,40 @@ export default function UnifiedDashboard() {
     onError: () => toast.error("Failed to remove member"),
   });
 
+  const handleCreateMember = async () => {
+    if (!currentTeam || !user) return;
+    if (!createMemberForm.firstName || !createMemberForm.lastName || !createMemberForm.email) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    setIsCreatingMember(true);
+    try {
+      const res = await fetch(`/api/teams/${currentTeam.id}/create-member`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...createMemberForm, requesterId: user.id }),
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to create member");
+      }
+      const { user: newUser, tempPassword } = await res.json();
+      setCreatedMemberInfo({ name: `${newUser.firstName} ${newUser.lastName}`, tempPassword });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id, "members"] });
+      toast.success("Member created successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create member");
+    } finally {
+      setIsCreatingMember(false);
+    }
+  };
+
+  const resetCreateMemberForm = () => {
+    setCreateMemberForm({ firstName: "", lastName: "", email: "", role: "athlete" });
+    setCreatedMemberInfo(null);
+    setIsCreateMemberOpen(false);
+  };
+
   const resetEventForm = () => {
     setEventForm({ type: "Practice", date: "", hour: "09", minute: "00", ampm: "AM", location: "", details: "", opponent: "", drinksAthleteId: "", snacksAthleteId: "" });
     setEditingEvent(null);
@@ -864,6 +904,13 @@ export default function UnifiedDashboard() {
         </div>
         {selectedCard === "roster" && (
           <div className="space-y-4">
+            {(userRole === "coach" || isStaff) && (
+              <div className="flex justify-end">
+                <Button onClick={() => setIsCreateMemberOpen(true)} size="sm" className="gap-2" data-testid="button-create-member">
+                  <Plus className="h-4 w-4" /> Create Member
+                </Button>
+              </div>
+            )}
             <Tabs value={rosterTab} onValueChange={(v) => setRosterTab(v as typeof rosterTab)} className="w-full">
               <TabsList className="grid w-full grid-cols-4 bg-background/40">
                 <TabsTrigger value="all">All ({teamMembers.length})</TabsTrigger>
@@ -2356,6 +2403,91 @@ export default function UnifiedDashboard() {
                 >
                   Your browser does not support the video tag.
                 </video>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Create Member Dialog */}
+        <Dialog open={isCreateMemberOpen} onOpenChange={(open) => !open && resetCreateMemberForm()}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Create New Team Member</DialogTitle>
+            </DialogHeader>
+            {createdMemberInfo ? (
+              <div className="space-y-4 py-4">
+                <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-4">
+                  <h4 className="font-semibold text-green-600 mb-2">Member Created!</h4>
+                  <p className="text-sm mb-3">
+                    <strong>{createdMemberInfo.name}</strong> has been added to the team.
+                  </p>
+                  <div className="bg-background rounded p-3 border">
+                    <p className="text-xs text-muted-foreground mb-1">Temporary Password:</p>
+                    <p className="font-mono text-lg font-bold">{createdMemberInfo.tempPassword}</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Share this password with the user. They must change it on first login.
+                  </p>
+                </div>
+                <DialogFooter>
+                  <Button onClick={resetCreateMemberForm} data-testid="button-done-create-member">Done</Button>
+                </DialogFooter>
+              </div>
+            ) : (
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      value={createMemberForm.firstName}
+                      onChange={(e) => setCreateMemberForm((f) => ({ ...f, firstName: e.target.value }))}
+                      placeholder="John"
+                      data-testid="input-create-member-first-name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={createMemberForm.lastName}
+                      onChange={(e) => setCreateMemberForm((f) => ({ ...f, lastName: e.target.value }))}
+                      placeholder="Doe"
+                      data-testid="input-create-member-last-name"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={createMemberForm.email}
+                    onChange={(e) => setCreateMemberForm((f) => ({ ...f, email: e.target.value }))}
+                    placeholder="john.doe@example.com"
+                    data-testid="input-create-member-email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Select value={createMemberForm.role} onValueChange={(v) => setCreateMemberForm((f) => ({ ...f, role: v }))}>
+                    <SelectTrigger data-testid="select-create-member-role">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="athlete">Athlete</SelectItem>
+                      <SelectItem value="supporter">Supporter</SelectItem>
+                      <SelectItem value="staff">Staff</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={resetCreateMemberForm}>Cancel</Button>
+                  <Button onClick={handleCreateMember} disabled={isCreatingMember} data-testid="button-submit-create-member">
+                    {isCreatingMember && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Create Member
+                  </Button>
+                </DialogFooter>
               </div>
             )}
           </DialogContent>

@@ -618,6 +618,12 @@ export async function registerRoutes(
         return res.status(403).json({ error: "Only coaches and staff can create team members" });
       }
       
+      // Validate role - only allow athlete, supporter, or staff (not coach or admin)
+      const allowedRoles = ["athlete", "supporter", "staff"];
+      if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ error: "Invalid role. Must be athlete, supporter, or staff." });
+      }
+      
       const existingUser = await storage.getUserByEmail(email.trim().toLowerCase());
       if (existingUser) {
         return res.status(400).json({ error: "A user with this email already exists. They can join with the team code." });
