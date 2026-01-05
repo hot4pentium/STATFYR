@@ -44,7 +44,9 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **Badge & Theme System**: Awards badges based on supporter engagement (taps), unlocking custom dashboard themes.
 - **Shareable Athlete Profiles**: Publicly accessible, read-only profiles displaying athlete stats, highlights, recent cheers, and allowing public likes/comments. Features a HYPE Post Spotlight Modal that opens immediately when arriving from a push notification with `?hypePostId=` parameter, showing the specific post in a full-screen modal with a "View HYPE Card" button.
 - **Admin Dashboard**: Centralized view for managing teams and users (security limitations noted).
-- **PWA Features**: Service worker for offline support and update notifications.
+- **PWA Features**: Service worker (v1.1.5) for offline support and update notifications.
+- **Splash Screen Failsafe**: 5-second timeout in main.tsx ensures splash removal even if React fails to mount.
+- **Auth Persistence**: Explicitly set to browserLocalPersistence to keep users logged in across sessions.
 - **Email Notifications**: Resend API with verified domain (noreply@statfyr.com) for HYPE posts, direct messages, team chat, and events.
 - **Smart Email Delivery**: Direct message emails are delayed by 5 seconds and skipped if the recipient is actively viewing the conversation. Uses `chatPresence` table to track active conversations with 15-second TTL and 10-second heartbeat from frontend.
 - **Unread Message Indicators**: Floating chat button on dashboards with glow effect and badge when unread messages exist. Team Chat card on CoachDashboard has green glow styling when unread count > 0.
