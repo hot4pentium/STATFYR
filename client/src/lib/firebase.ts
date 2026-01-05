@@ -9,6 +9,8 @@ import {
   OAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  browserLocalPersistence,
+  setPersistence,
   type User as FirebaseUser
 } from 'firebase/auth';
 
@@ -108,6 +110,10 @@ try {
   if (firebaseConfig.apiKey) {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
+    // Explicitly set local persistence to keep users logged in across sessions
+    setPersistence(auth, browserLocalPersistence).catch((error) => {
+      console.warn('Failed to set auth persistence:', error);
+    });
     if (typeof window !== 'undefined' && 'Notification' in window) {
       messaging = getMessaging(app);
     }
