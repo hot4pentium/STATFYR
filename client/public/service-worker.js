@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'teampulse-v1.1.7';
+const CACHE_VERSION = 'statfyr-v1.0.8';
 const urlsToCache = [
   '/index.html'
 ];
