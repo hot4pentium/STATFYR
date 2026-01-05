@@ -28,23 +28,21 @@ export function PWAProvider({ children }: PWAProviderProps) {
     let intervalId: ReturnType<typeof setInterval> | null = null;
     let registration: ServiceWorkerRegistration | null = null;
 
-    let isFirstLoad = true;
     const handleControllerChange = () => {
-      // Skip reload on first load to prevent reload loops with skipWaiting
-      if (isFirstLoad) {
-        isFirstLoad = false;
-        return;
-      }
-      // Only reload if the main service worker changed, not the Firebase messaging worker
-      const controller = navigator.serviceWorker.controller;
-      if (controller && controller.scriptURL.includes('service-worker.js')) {
+      console.log('[PWA] Controller changed, reloading...');
+      window.location.reload();
+    };
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'SW_UPDATED') {
+        console.log('[PWA] Received SW_UPDATED message, version:', event.data.version);
         window.location.reload();
       }
     };
 
-    // Check for updates when app regains focus or becomes visible
     const checkForUpdate = () => {
       if (registration) {
+        console.log('[PWA] Checking for updates...');
         registration.update().catch(() => {});
       }
     };
@@ -61,38 +59,52 @@ export function PWAProvider({ children }: PWAProviderProps) {
 
     const registerSW = async () => {
       try {
-        registration = await navigator.serviceWorker.register('/service-worker.js');
+        registration = await navigator.serviceWorker.register('/service-worker.js', {
+          updateViaCache: 'none'
+        });
+
+        console.log('[PWA] Service worker registered');
 
         if (registration.waiting) {
-          setWaitingWorker(registration.waiting);
-          setUpdateAvailable(true);
+          console.log('[PWA] Update waiting, applying immediately...');
+          registration.waiting.postMessage('SKIP_WAITING');
         }
 
         registration.addEventListener('updatefound', () => {
+          console.log('[PWA] Update found!');
           const newWorker = registration!.installing;
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                setWaitingWorker(newWorker);
-                setUpdateAvailable(true);
+              console.log('[PWA] New worker state:', newWorker.state);
+              if (newWorker.state === 'installed') {
+                if (navigator.serviceWorker.controller) {
+                  console.log('[PWA] New version installed, auto-applying update...');
+                  newWorker.postMessage('SKIP_WAITING');
+                  setWaitingWorker(newWorker);
+                  setUpdateAvailable(true);
+                } else {
+                  console.log('[PWA] First install, content cached for offline');
+                }
               }
             });
           }
         });
 
-        // Check every 60 seconds while app is open
         intervalId = setInterval(() => {
           registration?.update().catch(() => {});
-        }, 60000);
+        }, 30000);
+
+        setTimeout(checkForUpdate, 2000);
 
       } catch (error) {
-        console.error('Service worker registration failed:', error);
+        console.error('[PWA] Service worker registration failed:', error);
       }
     };
 
     registerSW();
 
     navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+    navigator.serviceWorker.addEventListener('message', handleMessage);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
 
@@ -101,6 +113,7 @@ export function PWAProvider({ children }: PWAProviderProps) {
         clearInterval(intervalId);
       }
       navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+      navigator.serviceWorker.removeEventListener('message', handleMessage);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
     };
@@ -108,7 +121,11 @@ export function PWAProvider({ children }: PWAProviderProps) {
 
   const applyUpdate = () => {
     if (waitingWorker) {
+      console.log('[PWA] Applying update via user action...');
       waitingWorker.postMessage('SKIP_WAITING');
+    } else {
+      console.log('[PWA] No waiting worker, reloading page...');
+      window.location.reload();
     }
   };
 

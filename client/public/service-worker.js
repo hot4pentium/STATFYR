@@ -4,6 +4,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', (event) => {
+  console.log('[SW] Installing new version:', CACHE_VERSION);
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_VERSION)
@@ -12,14 +13,27 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating new version:', CACHE_VERSION);
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames
           .filter(cacheName => cacheName !== CACHE_VERSION)
-          .map(cacheName => caches.delete(cacheName))
+          .map(cacheName => {
+            console.log('[SW] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => {
+      console.log('[SW] Taking control of all clients');
+      return self.clients.claim();
+    }).then(() => {
+      return self.clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ type: 'SW_UPDATED', version: CACHE_VERSION });
+        });
+      });
+    })
   );
 });
 
@@ -28,17 +42,13 @@ self.addEventListener('fetch', (event) => {
   
   const url = new URL(event.request.url);
   
-  // Skip API routes
   if (url.pathname.startsWith('/api/')) return;
   
-  // Skip Vite HMR and dev resources
   if (url.pathname.startsWith('/vite-hmr') || 
       url.pathname.startsWith('/@') || 
       url.pathname.startsWith('/node_modules/') ||
       url.pathname.startsWith('/src/')) return;
   
-  // For navigation requests (HTML pages), use network-first
-  // In development, just pass through to the network
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -58,7 +68,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // For other assets, use network-first with cache fallback
   event.respondWith(
     fetch(event.request)
       .then(response => {
@@ -79,5 +88,8 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+  if (event.data === 'CHECK_VERSION') {
+    event.source.postMessage({ type: 'VERSION', version: CACHE_VERSION });
   }
 });
