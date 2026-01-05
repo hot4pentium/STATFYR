@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import type { User, Team } from "./api";
 import { syncFirebaseUser, getUserTeams } from "./api";
-import { onFirebaseAuthStateChanged, signOutFirebase } from "./firebase";
+import { onFirebaseAuthStateChanged, signOutFirebase, checkRedirectResult } from "./firebase";
 
 interface UserContextType {
   user: User | null;
@@ -15,6 +15,9 @@ interface UserContextType {
   originalAdmin: User | null;
   setOriginalAdmin: (admin: User | null) => void;
   isLoading: boolean;
+  // Flag for OAuth redirect users who need role selection
+  redirectNeedsRoleSelection: boolean;
+  clearRedirectNeedsRoleSelection: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -39,75 +42,143 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem("originalAdmin");
     return stored ? JSON.parse(stored) : null;
   });
+  
+  // Track if an OAuth redirect user needs role selection (for AuthPage to handle)
+  const [redirectNeedsRoleSelection, setRedirectNeedsRoleSelection] = useState(false);
+  const clearRedirectNeedsRoleSelection = () => setRedirectNeedsRoleSelection(false);
 
   // Check Firebase auth state on app load and restore session if needed
   useEffect(() => {
     let isMounted = true;
     let listenerCalled = false;
+    let redirectChecked = false;
+    // Track the UID we handled from redirect to skip only that first sync
+    let handledRedirectUid: string | null = null;
     
-    const unsubscribe = onFirebaseAuthStateChanged(async (firebaseUser) => {
-      listenerCalled = true;
-      console.log('[UserContext] Firebase auth state changed:', firebaseUser?.email || 'null');
+    // Helper to sync a Firebase user with our backend
+    const syncUser = async (firebaseUser: any) => {
+      try {
+        console.log('[UserContext] Syncing Firebase user...');
+        const syncResult = await syncFirebaseUser({
+          firebaseUid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+        });
+        
+        // Check if this is a new user needing role selection
+        if ('needsRoleSelection' in syncResult && syncResult.needsRoleSelection) {
+          console.log('[UserContext] New user needs role selection');
+          if (isMounted) {
+            setRedirectNeedsRoleSelection(true);
+          }
+          return null; // Let AuthPage handle role selection
+        }
+        
+        // syncResult is a User object
+        const syncedUser = syncResult as User;
+        console.log('[UserContext] Sync complete, user:', syncedUser.email, 'role:', syncedUser.role);
+        
+        if (isMounted) {
+          setUserState(syncedUser);
+          localStorage.setItem("user", JSON.stringify(syncedUser));
+          
+          // Restore team if not set
+          const storedTeam = localStorage.getItem("currentTeam");
+          if (!storedTeam) {
+            try {
+              const teams = await getUserTeams(syncedUser.id);
+              if (teams.length > 0 && isMounted) {
+                setCurrentTeamState(teams[0]);
+                localStorage.setItem("currentTeam", JSON.stringify(teams[0]));
+              }
+            } catch (e) {
+              console.log("Could not fetch teams");
+            }
+          }
+        }
+        return syncedUser;
+      } catch (error) {
+        console.error("Failed to sync Firebase user:", error);
+        return null;
+      }
+    };
+    
+    // Helper to clear all auth state (used on sign-out)
+    const clearAuthState = () => {
+      if (isMounted) {
+        setUserState(null);
+        setCurrentTeamState(null);
+        setIsImpersonating(false);
+        setOriginalAdminState(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("currentTeam");
+        localStorage.removeItem("isImpersonating");
+        localStorage.removeItem("originalAdmin");
+      }
+    };
+    
+    // FIRST: Check for redirect result from mobile OAuth (must happen before auth state listener)
+    const checkRedirect = async () => {
+      try {
+        console.log('[UserContext] Checking for OAuth redirect result...');
+        const result = await checkRedirectResult();
+        redirectChecked = true;
+        
+        if (result.user && isMounted) {
+          console.log('[UserContext] Found redirect user:', result.user.email);
+          handledRedirectUid = result.user.uid; // Remember this UID to skip duplicate sync
+          await syncUser(result.user);
+          if (isMounted) {
+            setIsLoading(false);
+          }
+          return true; // Redirect was handled
+        }
+      } catch (error) {
+        console.error('[UserContext] Redirect check error:', error);
+      }
+      return false;
+    };
+    
+    let cleanupFn: (() => void) | null = null;
+    
+    // Start redirect check immediately
+    checkRedirect().then(() => {
       if (!isMounted) return;
       
-      if (firebaseUser) {
-        // Firebase user is logged in - sync with our backend
-        try {
-          console.log('[UserContext] Syncing Firebase user...');
-          const syncResult = await syncFirebaseUser({
-            firebaseUid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName,
-            photoURL: firebaseUser.photoURL,
-          });
-          
-          // Check if this is a new user needing role selection
-          if ('needsRoleSelection' in syncResult && syncResult.needsRoleSelection) {
-            console.log('[UserContext] New user needs role selection, redirecting to auth...');
-            // Don't set user state - they need to complete registration
-            // The auth page will handle this
-            if (isMounted) {
-              setIsLoading(false);
-            }
-            return;
+      // ALWAYS set up auth state listener after redirect check completes
+      // This ensures future auth events (logout, token refresh, new sign-ins) are handled
+      const unsubscribe = onFirebaseAuthStateChanged(async (firebaseUser) => {
+        listenerCalled = true;
+        console.log('[UserContext] Firebase auth state changed:', firebaseUser?.email || 'null');
+        if (!isMounted) return;
+        
+        if (firebaseUser) {
+          // Skip sync only if this is the same user we just handled from redirect
+          if (handledRedirectUid && firebaseUser.uid === handledRedirectUid) {
+            console.log('[UserContext] Skipping sync for redirect-handled user');
+            handledRedirectUid = null; // Clear so future events for same user still sync
+          } else {
+            await syncUser(firebaseUser);
           }
-          
-          // syncResult is a User object
-          const syncedUser = syncResult as User;
-          console.log('[UserContext] Sync complete, user:', syncedUser.email, 'role:', syncedUser.role);
-          
-          if (isMounted) {
-            setUserState(syncedUser);
-            localStorage.setItem("user", JSON.stringify(syncedUser));
-            
-            // Restore team if not set
-            const storedTeam = localStorage.getItem("currentTeam");
-            if (!storedTeam) {
-              try {
-                const teams = await getUserTeams(syncedUser.id);
-                if (teams.length > 0 && isMounted) {
-                  setCurrentTeamState(teams[0]);
-                  localStorage.setItem("currentTeam", JSON.stringify(teams[0]));
-                }
-              } catch (e) {
-                console.log("Could not fetch teams");
-              }
-            }
-          }
-        } catch (error) {
-          console.error("Failed to sync Firebase user:", error);
+        } else {
+          // User signed out - clear all auth state
+          clearAuthState();
         }
-      }
+        
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
       
-      if (isMounted) {
-        setIsLoading(false);
-      }
+      // Store unsubscribe for cleanup
+      cleanupFn = unsubscribe;
     });
     
     // If Firebase isn't configured, the listener won't fire
     // Set loading to false immediately if no listener callback after short delay
     const quickTimeout = setTimeout(() => {
-      if (isMounted && !listenerCalled) {
+      if (isMounted && !listenerCalled && redirectChecked) {
         // Firebase not configured or slow - use localStorage data and proceed
         setIsLoading(false);
       }
@@ -122,7 +193,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     
     return () => {
       isMounted = false;
-      unsubscribe();
+      if (cleanupFn) cleanupFn();
       clearTimeout(quickTimeout);
       clearTimeout(timeout);
     };
@@ -205,7 +276,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setImpersonating, 
       originalAdmin, 
       setOriginalAdmin,
-      isLoading
+      isLoading,
+      redirectNeedsRoleSelection,
+      clearRedirectNeedsRoleSelection
     }}>
       {children}
     </UserContext.Provider>

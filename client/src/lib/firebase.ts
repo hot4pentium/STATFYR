@@ -177,21 +177,36 @@ export async function signInWithApple(): Promise<{ user: FirebaseUser | null; er
   }
 }
 
+// Cache the redirect result promise to ensure it's only called once
+let redirectResultPromise: Promise<{ user: FirebaseUser | null; error?: string }> | null = null;
+
 export async function checkRedirectResult(): Promise<{ user: FirebaseUser | null; error?: string }> {
   if (!auth) {
     return { user: null };
   }
   
-  try {
-    const result = await getRedirectResult(auth);
-    if (result) {
-      return { user: result.user };
-    }
-    return { user: null };
-  } catch (error: any) {
-    console.error('Redirect result error:', error);
-    return { user: null, error: error.message };
+  // Return cached promise if already called (getRedirectResult can only be called once)
+  if (redirectResultPromise) {
+    return redirectResultPromise;
   }
+  
+  redirectResultPromise = (async () => {
+    try {
+      console.log('[Firebase] Checking redirect result...');
+      const result = await getRedirectResult(auth!);
+      if (result) {
+        console.log('[Firebase] Redirect result found:', result.user?.email);
+        return { user: result.user };
+      }
+      console.log('[Firebase] No redirect result');
+      return { user: null };
+    } catch (error: any) {
+      console.error('Redirect result error:', error);
+      return { user: null, error: error.message };
+    }
+  })();
+  
+  return redirectResultPromise;
 }
 
 export async function signOutFirebase(): Promise<void> {

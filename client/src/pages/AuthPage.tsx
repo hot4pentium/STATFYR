@@ -14,7 +14,7 @@ import { useTheme } from "next-themes";
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
-  const { user, setUser, setCurrentTeam, isLoading: isUserLoading } = useUser();
+  const { user, setUser, setCurrentTeam, isLoading: isUserLoading, redirectNeedsRoleSelection, clearRedirectNeedsRoleSelection } = useUser();
   const { setTheme, resolvedTheme } = useTheme();
   const previousTheme = useRef<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
@@ -63,23 +63,25 @@ export default function AuthPage() {
     }
   }, [user, isUserLoading, redirectTo, setLocation]);
   
-  // Check for redirect result from social login - handles new users with role selection
+  // Handle redirect users who need role selection (flag set by UserContext)
   useEffect(() => {
-    async function handleRedirectResult() {
-      if (hasProcessedRedirect.current) return;
+    async function handleRedirectRoleSelection() {
+      if (hasProcessedRedirect.current || !redirectNeedsRoleSelection) return;
       
-      console.log('[AuthPage] Checking redirect result...');
+      console.log('[AuthPage] UserContext indicates redirect user needs role selection');
+      // Get the cached redirect result (UserContext already processed it)
       const result = await checkRedirectResult();
-      console.log('[AuthPage] Redirect result:', result.user?.email || 'null', result.error || '');
       if (result.user) {
         hasProcessedRedirect.current = true;
-        await handleFirebaseUser(result.user);
-      } else if (result.error) {
-        setErrors({ submit: result.error });
+        setPendingFirebaseUser(result.user);
+        setAuthMode("signup"); // Show role selection UI
       }
     }
-    handleRedirectResult();
-  }, [selectedRole]);
+    // Only run after userContext has finished loading
+    if (!isUserLoading && redirectNeedsRoleSelection) {
+      handleRedirectRoleSelection();
+    }
+  }, [isUserLoading, redirectNeedsRoleSelection]);
   
   // Store pending Firebase user when role selection is needed
   const [pendingFirebaseUser, setPendingFirebaseUser] = useState<FirebaseUser | null>(null);
@@ -110,6 +112,7 @@ export default function AuthPage() {
       // User is authenticated
       setUser(authenticatedUser);
       setPendingFirebaseUser(null);
+      clearRedirectNeedsRoleSelection(); // Clear the flag since role selection is complete
       
       // Fetch user's teams and set the first one as current
       let userTeams: any[] = [];
