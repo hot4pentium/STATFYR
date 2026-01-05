@@ -161,28 +161,40 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setErrors({});
-    const result = await signInWithGoogle();
-    if (result.user) {
-      await handleFirebaseUser(result.user);
-    } else if (result.error) {
-      setErrors({ submit: result.error });
+    try {
+      const result = await signInWithGoogle();
+      if (result.user) {
+        await handleFirebaseUser(result.user);
+      } else if (result.error) {
+        setErrors({ submit: result.error });
+        setLoading(false);
+      } else {
+        // No user and no error - user cancelled, reset loading
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Google sign-in error:', error);
       setLoading(false);
-    } else {
-      // Redirect flow - loading will continue
     }
   };
   
   const handleAppleSignIn = async () => {
     setLoading(true);
     setErrors({});
-    const result = await signInWithApple();
-    if (result.user) {
-      await handleFirebaseUser(result.user);
-    } else if (result.error) {
-      setErrors({ submit: result.error });
+    try {
+      const result = await signInWithApple();
+      if (result.user) {
+        await handleFirebaseUser(result.user);
+      } else if (result.error) {
+        setErrors({ submit: result.error });
+        setLoading(false);
+      } else {
+        // No user and no error - user cancelled, reset loading
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Apple sign-in error:', error);
       setLoading(false);
-    } else {
-      // Redirect flow - loading will continue
     }
   };
   const [formData, setFormData] = useState({
