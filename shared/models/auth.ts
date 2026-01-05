@@ -47,6 +47,9 @@ export const users = pgTable("users", {
   // Flags
   mustChangePassword: boolean("must_change_password").notNull().default(false),
   isSuperAdmin: boolean("is_super_admin").notNull().default(false),
+  // Password reset
+  resetToken: text("reset_token"),
+  resetTokenExpiry: timestamp("reset_token_expiry"),
 });
 
 export type UpsertUser = typeof users.$inferInsert;

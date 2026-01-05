@@ -324,6 +324,59 @@ export async function sendGameDayLiveEmail(
   }
 }
 
+export async function sendPasswordResetEmail(
+  email: string,
+  resetToken: string
+): Promise<EmailResult> {
+  if (!process.env.RESEND_API_KEY) {
+    console.log('[Email] Resend not configured, skipping email');
+    return { success: false, error: 'Email service not configured' };
+  }
+
+  try {
+    const resetUrl = `${APP_URL}/reset-password?token=${resetToken}`;
+    
+    const content = `
+      <h2 style="margin: 0 0 16px; color: #fff; font-size: 20px;">Reset Your Password</h2>
+      <p style="margin: 0 0 16px; color: #ccc; font-size: 16px; line-height: 1.5;">
+        We received a request to reset your password. Click the button below to create a new password.
+      </p>
+      <div style="text-align: center; margin: 24px 0;">
+        <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #fff; font-weight: 600; font-size: 16px; padding: 12px 32px; border-radius: 8px; text-decoration: none;">
+          Reset Password
+        </a>
+      </div>
+      <p style="margin: 16px 0 0; color: #999; font-size: 14px; line-height: 1.5;">
+        This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.
+      </p>
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #333;">
+        <p style="margin: 0; color: #666; font-size: 12px;">
+          If the button doesn't work, copy and paste this link into your browser:<br>
+          <span style="color: #888; word-break: break-all;">${resetUrl}</span>
+        </p>
+      </div>
+    `;
+
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: 'Reset Your STATFYR Password',
+      html: getBaseTemplate(content),
+    });
+
+    if (error) {
+      console.error('[Email] Send error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('[Email] Password reset email sent to:', email);
+    return { success: true };
+  } catch (error: any) {
+    console.error('[Email] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export function isConfigured(): boolean {
   return !!process.env.RESEND_API_KEY;
 }

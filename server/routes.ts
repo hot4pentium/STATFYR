@@ -12,6 +12,8 @@ import bcrypt from "bcrypt";
 import { sendPushNotification, getFirebaseAdmin, getFirebaseAdminStatus } from "./firebaseAdmin";
 import { sendWebPushToMany, WebPushSubscription, initWebPush, getWebPushVapidPublicKey } from "./webPush";
 import { sendPushToPlayers, isConfigured as isOneSignalConfigured } from "./onesignal";
+import { sendPasswordResetEmail } from "./emailService";
+import crypto from "crypto";
 import { WebSocketServer, WebSocket } from "ws";
 
 // Store connected WebSocket clients by team
@@ -318,6 +320,95 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Failed to change password:", error);
       res.status(500).json({ error: "Failed to change password" });
+    }
+  });
+
+  // Request password reset - sends email with reset link
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+      
+      const user = await storage.getUserByEmail(email.trim().toLowerCase());
+      
+      // Always return success to prevent email enumeration
+      if (!user) {
+        console.log('[Auth] Password reset requested for non-existent email:', email);
+        return res.json({ message: "If an account exists with this email, you will receive a password reset link." });
+      }
+      
+      // Check if user uses social login (no password)
+      if (!user.password) {
+        console.log('[Auth] Password reset requested for social login user:', email);
+        return res.json({ message: "If an account exists with this email, you will receive a password reset link." });
+      }
+      
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+      
+      // Save token to user
+      await storage.updateUser(user.id, {
+        resetToken,
+        resetTokenExpiry,
+      });
+      
+      // Send email
+      const emailResult = await sendPasswordResetEmail(email, resetToken);
+      if (!emailResult.success) {
+        console.error('[Auth] Failed to send password reset email:', emailResult.error);
+        return res.status(500).json({ error: "Failed to send reset email. Please try again." });
+      }
+      
+      res.json({ message: "If an account exists with this email, you will receive a password reset link." });
+    } catch (error) {
+      console.error("Password reset request failed:", error);
+      res.status(500).json({ error: "Failed to process password reset request" });
+    }
+  });
+  
+  // Reset password with token
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ error: "Token and new password are required" });
+      }
+      
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters" });
+      }
+      
+      // Find user by reset token
+      const user = await storage.getUserByResetToken(token);
+      
+      if (!user) {
+        return res.status(400).json({ error: "Invalid or expired reset link. Please request a new one." });
+      }
+      
+      // Check if token has expired
+      if (!user.resetTokenExpiry || new Date() > new Date(user.resetTokenExpiry)) {
+        return res.status(400).json({ error: "Reset link has expired. Please request a new one." });
+      }
+      
+      // Hash new password and update user
+      const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+      await storage.updateUser(user.id, {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null,
+        mustChangePassword: false,
+      });
+      
+      console.log('[Auth] Password reset successful for:', user.email);
+      res.json({ message: "Password reset successful. You can now log in with your new password." });
+    } catch (error) {
+      console.error("Password reset failed:", error);
+      res.status(500).json({ error: "Failed to reset password" });
     }
   });
 
