@@ -131,24 +131,23 @@ appleProvider.addScope('email');
 appleProvider.addScope('name');
 
 // Firebase Auth functions
+// Note: Using signInWithPopup for all platforms because signInWithRedirect
+// is broken on Safari 16.1+, Chrome 115+, and Firefox 109+ due to third-party cookie blocking
 export async function signInWithGoogle(): Promise<{ user: FirebaseUser | null; error?: string }> {
   if (!auth) {
     return { user: null, error: 'Firebase not configured' };
   }
   
   try {
-    // Use redirect on mobile for better UX
-    if (isIOS() || isAndroid()) {
-      await signInWithRedirect(auth, googleProvider);
-      return { user: null }; // Will redirect, result handled on return
-    }
-    
     const result = await signInWithPopup(auth, googleProvider);
     return { user: result.user };
   } catch (error: any) {
     console.error('Google sign-in error:', error);
     if (error.code === 'auth/popup-closed-by-user') {
       return { user: null, error: 'Sign in was cancelled' };
+    }
+    if (error.code === 'auth/popup-blocked') {
+      return { user: null, error: 'Popup was blocked. Please allow popups for this site.' };
     }
     return { user: null, error: error.message || 'Failed to sign in with Google' };
   }
@@ -160,18 +159,15 @@ export async function signInWithApple(): Promise<{ user: FirebaseUser | null; er
   }
   
   try {
-    // Use redirect on mobile for better UX
-    if (isIOS() || isAndroid()) {
-      await signInWithRedirect(auth, appleProvider);
-      return { user: null }; // Will redirect, result handled on return
-    }
-    
     const result = await signInWithPopup(auth, appleProvider);
     return { user: result.user };
   } catch (error: any) {
     console.error('Apple sign-in error:', error);
     if (error.code === 'auth/popup-closed-by-user') {
       return { user: null, error: 'Sign in was cancelled' };
+    }
+    if (error.code === 'auth/popup-blocked') {
+      return { user: null, error: 'Popup was blocked. Please allow popups for this site.' };
     }
     return { user: null, error: error.message || 'Failed to sign in with Apple' };
   }
