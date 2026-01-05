@@ -594,6 +594,64 @@ export async function registerRoutes(
     }
   });
 
+  // Coach endpoint to create a new team member with temporary password
+  app.post("/api/teams/:teamId/create-member", async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const { firstName, lastName, email, role, requesterId } = req.body;
+      
+      if (!firstName || !lastName || !email || !role || !requesterId) {
+        return res.status(400).json({ error: "First name, last name, email, role, and requesterId are required" });
+      }
+      
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      
+      // Authorization: verify requester is coach or staff of this team
+      const requesterMembership = await storage.getTeamMembership(teamId, requesterId);
+      const isCoach = team.coachId === requesterId;
+      const isStaff = requesterMembership?.role === 'coach' || requesterMembership?.role === 'staff';
+      
+      if (!isCoach && !isStaff) {
+        return res.status(403).json({ error: "Only coaches and staff can create team members" });
+      }
+      
+      const existingUser = await storage.getUserByEmail(email.trim().toLowerCase());
+      if (existingUser) {
+        return res.status(400).json({ error: "A user with this email already exists. They can join with the team code." });
+      }
+      
+      const username = email.split("@")[0] + "_" + Date.now().toString(36);
+      const tempPassword = "Welcome123!";
+      const hashedPassword = await bcrypt.hash(tempPassword, 10);
+      
+      const newUser = await storage.createUser({
+        username,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        email: email.trim().toLowerCase(),
+        name: `${firstName} ${lastName}`,
+        role,
+        mustChangePassword: true,
+      });
+      
+      await storage.addTeamMember({
+        teamId,
+        userId: newUser.id,
+        role,
+      });
+      
+      const { password: _, ...safeUser } = newUser;
+      res.json({ user: safeUser, tempPassword });
+    } catch (error) {
+      console.error("Failed to create team member:", error);
+      res.status(500).json({ error: "Failed to create team member" });
+    }
+  });
+
   app.patch("/api/teams/:teamId/members/:userId", async (req, res) => {
     try {
       const { teamId, userId } = req.params;
