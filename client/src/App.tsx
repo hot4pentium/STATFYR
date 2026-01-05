@@ -41,12 +41,16 @@ import TestPage from "@/pages/TestPage";
 import SupporterHypeHub from "@/pages/SupporterHypeHub";
 import AthleteHypeCardPage from "@/pages/AthleteHypeCardPage";
 import JoinTeamPage from "@/pages/JoinTeamPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/dashboard" component={UnifiedDashboard} />
       <Route path="/coach" component={UnifiedDashboard} />
       <Route path="/coach/dashboard" component={UnifiedDashboard} />

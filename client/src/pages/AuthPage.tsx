@@ -556,6 +556,16 @@ export default function AuthPage() {
                   {errors.password && (
                     <p className="text-xs text-red-500">{errors.password}</p>
                   )}
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => setLocation("/forgot-password")}
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                      data-testid="link-forgot-password"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                 </div>
                 {errors.submit && (
                   <p className="text-sm text-red-500 text-center">{errors.submit}</p>
