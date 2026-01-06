@@ -38,7 +38,7 @@ export default function SupporterSettings() {
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const editAvatarInputRef = useRef<HTMLInputElement>(null);
 
-  const appVersion = "1.0.9";
+  const appVersion = "1.0.10";
 
   const { data: managedAthletes = [], refetch: refetchManagedAthletes } = useQuery({
     queryKey: ["/api/users", contextUser?.id, "managed-athletes"],
