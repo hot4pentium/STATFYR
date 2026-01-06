@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 
 interface PWAContextType {
   updateAvailable: boolean;
@@ -21,6 +21,8 @@ interface PWAProviderProps {
 export function PWAProvider({ children }: PWAProviderProps) {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
+  const isInitialLoad = useRef(true);
+  const userTriggeredUpdate = useRef(false);
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
@@ -29,32 +31,12 @@ export function PWAProvider({ children }: PWAProviderProps) {
     let registration: ServiceWorkerRegistration | null = null;
 
     const handleControllerChange = () => {
-      console.log('[PWA] Controller changed, reloading...');
-      window.location.reload();
-    };
-
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === 'SW_UPDATED') {
-        console.log('[PWA] Received SW_UPDATED message, version:', event.data.version);
+      if (userTriggeredUpdate.current) {
+        console.log('[PWA] User-triggered update, reloading...');
         window.location.reload();
+      } else {
+        console.log('[PWA] Controller changed (ignoring on initial load)');
       }
-    };
-
-    const checkForUpdate = () => {
-      if (registration) {
-        console.log('[PWA] Checking for updates...');
-        registration.update().catch(() => {});
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        checkForUpdate();
-      }
-    };
-
-    const handleFocus = () => {
-      checkForUpdate();
     };
 
     const registerSW = async () => {
@@ -65,36 +47,38 @@ export function PWAProvider({ children }: PWAProviderProps) {
 
         console.log('[PWA] Service worker registered');
 
-        if (registration.waiting) {
-          console.log('[PWA] Update waiting, applying immediately...');
-          registration.waiting.postMessage('SKIP_WAITING');
+        if (registration.waiting && !isInitialLoad.current) {
+          console.log('[PWA] Update waiting');
+          setWaitingWorker(registration.waiting);
+          setUpdateAvailable(true);
         }
 
         registration.addEventListener('updatefound', () => {
-          console.log('[PWA] Update found!');
+          console.log('[PWA] Update found');
           const newWorker = registration!.installing;
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               console.log('[PWA] New worker state:', newWorker.state);
               if (newWorker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
-                  console.log('[PWA] New version installed, auto-applying update...');
-                  newWorker.postMessage('SKIP_WAITING');
+                  console.log('[PWA] New version ready - showing update button');
                   setWaitingWorker(newWorker);
                   setUpdateAvailable(true);
                 } else {
-                  console.log('[PWA] First install, content cached for offline');
+                  console.log('[PWA] First install complete');
                 }
               }
             });
           }
         });
 
+        setTimeout(() => {
+          isInitialLoad.current = false;
+        }, 3000);
+
         intervalId = setInterval(() => {
           registration?.update().catch(() => {});
-        }, 30000);
-
-        setTimeout(checkForUpdate, 2000);
+        }, 60000);
 
       } catch (error) {
         console.error('[PWA] Service worker registration failed:', error);
@@ -104,27 +88,46 @@ export function PWAProvider({ children }: PWAProviderProps) {
     registerSW();
 
     navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
-    navigator.serviceWorker.addEventListener('message', handleMessage);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && registration) {
+        registration.update().catch(() => {});
+      }
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
 
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
       navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
-      navigator.serviceWorker.removeEventListener('message', handleMessage);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 
   const applyUpdate = () => {
     if (waitingWorker) {
-      console.log('[PWA] Applying update via user action...');
-      waitingWorker.postMessage('SKIP_WAITING');
+      console.log('[PWA] Applying update...');
+      userTriggeredUpdate.current = true;
+      
+      const handleCacheRefreshed = (event: MessageEvent) => {
+        if (event.data?.type === 'CACHE_REFRESHED') {
+          console.log('[PWA] Cache refreshed, activating new SW...');
+          navigator.serviceWorker.removeEventListener('message', handleCacheRefreshed);
+          waitingWorker.postMessage('SKIP_WAITING');
+        }
+      };
+      
+      navigator.serviceWorker.addEventListener('message', handleCacheRefreshed);
+      waitingWorker.postMessage('REFRESH_CACHE');
+      
+      setTimeout(() => {
+        navigator.serviceWorker.removeEventListener('message', handleCacheRefreshed);
+        waitingWorker.postMessage('SKIP_WAITING');
+      }, 10000);
     } else {
-      console.log('[PWA] No waiting worker, reloading page...');
+      console.log('[PWA] No waiting worker, reloading...');
       window.location.reload();
     }
   };

@@ -1,4 +1,4 @@
-# STATFYR v1.0.8 - Sports Stats & Team Management
+# STATFYR v1.0.9 - Sports Stats & Team Management
 
 ## Overview
 STATFYR is a comprehensive sports team management platform for coaches, athletes, and supporters. It facilitates team roster management, event scheduling, performance statistics tracking, playbook design, and team communication. The platform supports role-based access, where coaches manage teams, and athletes/supporters join using team codes. Key features include video highlights, a playbook system, stat tracking, live engagement sessions, shareable athlete profiles, and an admin dashboard.
