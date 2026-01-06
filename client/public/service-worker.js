@@ -1,18 +1,28 @@
 const CACHE_VERSION = 'statfyr-v1.0.9';
 const SHELL_CACHE = 'statfyr-shell';
+const FORCE_REFRESH_VERSIONS = ['statfyr-v1.0.9'];
 
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing version:', CACHE_VERSION);
   event.waitUntil(
-    caches.open(SHELL_CACHE).then(async cache => {
-      const existingResponse = await cache.match('/index.html');
-      if (!existingResponse) {
-        console.log('[SW] First install - caching index.html');
-        await cache.addAll(['/', '/index.html']);
+    (async () => {
+      const cache = await caches.open(SHELL_CACHE);
+      
+      if (FORCE_REFRESH_VERSIONS.includes(CACHE_VERSION)) {
+        console.log('[SW] Force refresh version - clearing and recaching');
+        await caches.delete(SHELL_CACHE);
+        const newCache = await caches.open(SHELL_CACHE);
+        await newCache.addAll(['/', '/index.html']);
       } else {
-        console.log('[SW] Existing cache found - preserving old index.html');
+        const existingResponse = await cache.match('/index.html');
+        if (!existingResponse) {
+          console.log('[SW] First install - caching index.html');
+          await cache.addAll(['/', '/index.html']);
+        } else {
+          console.log('[SW] Existing cache found - preserving old index.html');
+        }
       }
-    })
+    })()
   );
 });
 
