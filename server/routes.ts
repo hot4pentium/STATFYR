@@ -1937,13 +1937,20 @@ export async function registerRoutes(
       
       // Get athlete user data
       const athlete = await storage.getUser(athleteId);
-      if (!athlete || athlete.role !== 'athlete') {
+      if (!athlete) {
         return res.status(404).json({ error: "Athlete not found" });
       }
       
-      // Get team membership (first team found)
+      // Get team membership (first athlete membership found)
       const memberships = await storage.getUserTeamMemberships(athleteId);
-      const membership = memberships.length > 0 ? memberships[0] : null;
+      // Find any team membership where user is an athlete (not just their global role)
+      const athleteMembership = memberships.find((m: any) => m.role === 'athlete');
+      const membership = athleteMembership || (memberships.length > 0 ? memberships[0] : null);
+      
+      // Only allow access if user has at least one athlete membership OR is globally an athlete
+      if (!athleteMembership && athlete.role !== 'athlete') {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
       
       // Get team info if membership exists
       let membershipWithTeam = null;
