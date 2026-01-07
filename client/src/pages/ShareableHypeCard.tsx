@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin, Download, Smartphone, Plus, ExternalLink, RefreshCw, Mail } from "lucide-react";
+import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin, Download, Smartphone, Plus, ExternalLink, RefreshCw, Mail, ArrowLeft } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -806,11 +806,21 @@ export default function ShareableHypeCard(props: any) {
       <div className="relative z-10 min-h-screen pb-8">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-center">
+        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => window.history.back()}
+            className="h-8 w-8"
+            data-testid="button-back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <div className="flex items-center gap-2">
             <img src={logoImage} alt="STATFYR" className="h-6 w-6" />
             <span className="text-sm font-display font-bold text-slate-900 dark:text-white">STATF<span className="text-orange-500">Y</span>R</span>
           </div>
+          <div className="w-8" /> {/* Spacer for centering */}
         </div>
       </header>
 
