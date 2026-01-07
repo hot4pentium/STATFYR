@@ -1148,31 +1148,45 @@ export default function UnifiedDashboard() {
                   <TabsContent value="athletes" className="space-y-4">
                     {advancedStats?.athletePerformance && advancedStats.athletePerformance.length > 0 ? (
                       <div className="space-y-3">
-                        {advancedStats.athletePerformance.map((athlete: any) => (
-                          <Card key={athlete.athleteId} className="bg-card/80 backdrop-blur-sm border-white/10">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">
-                                    {athlete.jerseyNumber || "?"}
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">{athlete.name}</p>
-                                    <p className="text-xs text-muted-foreground">{athlete.gamesPlayed} games</p>
-                                  </div>
-                                </div>
-                                <div className="flex gap-2">
-                                  {Object.entries(athlete.perGameAverages || {}).slice(0, 3).map(([key, value]) => (
-                                    <div key={key} className="text-center px-2">
-                                      <div className="text-lg font-bold text-primary">{typeof value === 'number' ? value.toFixed(1) : String(value)}</div>
-                                      <div className="text-xs text-muted-foreground uppercase">{key}</div>
+                        {advancedStats.athletePerformance.map((athlete: any) => {
+                          const perGameAvgs = athlete.gamesPlayed > 0 
+                            ? Object.entries(athlete.stats || {}).reduce((acc, [key, val]) => {
+                                acc[key] = Math.round(((val as number) / athlete.gamesPlayed) * 10) / 10;
+                                return acc;
+                              }, {} as Record<string, number>)
+                            : {};
+                          return (
+                            <Card key={athlete.athleteId} className="bg-card/80 backdrop-blur-sm border-white/10">
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-sm">
+                                      {athlete.athleteName?.charAt(0) || "?"}
                                     </div>
-                                  ))}
+                                    <div>
+                                      <p className="font-semibold">{athlete.athleteName || "Unknown"}</p>
+                                      <p className="text-xs text-muted-foreground">{athlete.gamesPlayed} game{athlete.gamesPlayed !== 1 ? 's' : ''}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-3 flex-wrap justify-end">
+                                    {Object.entries(perGameAvgs).slice(0, 4).map(([key, value]) => (
+                                      <div key={key} className="text-center px-2">
+                                        <div className="text-lg font-bold text-primary">{value}</div>
+                                        <div className="text-xs text-muted-foreground uppercase">{key}/g</div>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                                {athlete.hotStreak && (
+                                  <div className="mt-2 flex items-center gap-1 text-orange-500 text-xs">
+                                    <Flame className="h-3 w-3" />
+                                    <span>Hot streak! {athlete.streakLength} games</span>
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                       </div>
                     ) : (
                       <Card className="bg-card/80 backdrop-blur-sm border-white/10">
