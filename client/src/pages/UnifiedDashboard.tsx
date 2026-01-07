@@ -1108,32 +1108,97 @@ export default function UnifiedDashboard() {
 
                   <TabsContent value="season" className="space-y-4">
                     {advancedStats?.gameHistory && advancedStats.gameHistory.length > 0 ? (
-                      <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                        <CardHeader>
-                          <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
-                            <Trophy className="h-4 w-4 text-yellow-500" />
-                            Season Totals
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-                            {(() => {
-                              const statTotals: Record<string, number> = {};
-                              advancedStats.gameHistory.forEach((game: any) => {
-                                Object.entries(game.stats || {}).forEach(([key, value]) => {
-                                  statTotals[key] = (statTotals[key] || 0) + (value as number);
+                      <>
+                        <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                          <CardHeader>
+                            <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
+                              <TrendingUp className="h-4 w-4 text-green-500" />
+                              Score Progression
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="h-48">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={advancedStats.gameHistory.map((game: any, idx: number) => ({
+                                  game: `G${idx + 1}`,
+                                  team: game.teamScore,
+                                  opponent: game.opponentScore,
+                                }))}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                  <XAxis dataKey="game" stroke="rgba(255,255,255,0.5)" fontSize={12} />
+                                  <YAxis stroke="rgba(255,255,255,0.5)" fontSize={12} />
+                                  <Tooltip 
+                                    contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px' }}
+                                    labelStyle={{ color: '#fff' }}
+                                  />
+                                  <Legend />
+                                  <Line type="monotone" dataKey="team" name="Your Team" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6' }} />
+                                  <Line type="monotone" dataKey="opponent" name="Opponent" stroke="#ef4444" strokeWidth={2} dot={{ fill: '#ef4444' }} />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                          <CardHeader>
+                            <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
+                              <Trophy className="h-4 w-4 text-yellow-500" />
+                              Season Totals
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+                              {(() => {
+                                const statTotals: Record<string, number> = {};
+                                advancedStats.gameHistory.forEach((game: any) => {
+                                  Object.entries(game.stats || {}).forEach(([key, value]) => {
+                                    statTotals[key] = (statTotals[key] || 0) + (value as number);
+                                  });
                                 });
-                              });
-                              return Object.entries(statTotals).map(([key, value]) => (
-                                <div key={key} className="text-center p-3 bg-background/50 rounded-lg">
-                                  <div className="text-2xl font-bold text-primary">{value}</div>
-                                  <div className="text-xs text-muted-foreground uppercase">{key}</div>
-                                </div>
-                              ));
-                            })()}
-                          </div>
-                        </CardContent>
-                      </Card>
+                                return Object.entries(statTotals).map(([key, value]) => (
+                                  <div key={key} className="text-center p-3 bg-background/50 rounded-lg">
+                                    <div className="text-2xl font-bold text-primary">{value}</div>
+                                    <div className="text-xs text-muted-foreground uppercase">{key}</div>
+                                  </div>
+                                ));
+                              })()}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                          <CardHeader>
+                            <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
+                              <BarChart3 className="h-4 w-4 text-blue-500" />
+                              Game-by-Game Stats
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="h-48">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={advancedStats.gameHistory.map((game: any, idx: number) => ({
+                                  game: `G${idx + 1}`,
+                                  ...game.stats
+                                }))}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                  <XAxis dataKey="game" stroke="rgba(255,255,255,0.5)" fontSize={12} />
+                                  <YAxis stroke="rgba(255,255,255,0.5)" fontSize={12} />
+                                  <Tooltip 
+                                    contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px' }}
+                                    labelStyle={{ color: '#fff' }}
+                                  />
+                                  <Legend />
+                                  {Object.keys(advancedStats.gameHistory[0]?.stats || {}).slice(0, 4).map((key, idx) => {
+                                    const colors = ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6'];
+                                    return <Bar key={key} dataKey={key} fill={colors[idx % colors.length]} />;
+                                  })}
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </>
                     ) : (
                       <Card className="bg-card/80 backdrop-blur-sm border-white/10">
                         <CardContent className="p-8 text-center">
@@ -1147,7 +1212,7 @@ export default function UnifiedDashboard() {
 
                   <TabsContent value="athletes" className="space-y-4">
                     {advancedStats?.athletePerformance && advancedStats.athletePerformance.length > 0 ? (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {advancedStats.athletePerformance.map((athlete: any) => {
                           const perGameAvgs = athlete.gamesPlayed > 0 
                             ? Object.entries(athlete.stats || {}).reduce((acc, [key, val]) => {
@@ -1155,10 +1220,18 @@ export default function UnifiedDashboard() {
                                 return acc;
                               }, {} as Record<string, number>)
                             : {};
+                          
+                          const chartData = (athlete.recentGames || []).map((game: any, idx: number) => {
+                            const total = Object.values(game.stats || {}).reduce((a: number, b: any) => a + (b as number), 0);
+                            return { game: `G${idx + 1}`, total, ...game.stats };
+                          }).reverse();
+                          
+                          const statKeys = Object.keys(athlete.stats || {}).slice(0, 2);
+                          
                           return (
                             <Card key={athlete.athleteId} className="bg-card/80 backdrop-blur-sm border-white/10">
                               <CardContent className="p-4">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between mb-3">
                                   <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-sm">
                                       {athlete.athleteName?.charAt(0) || "?"}
@@ -1169,7 +1242,7 @@ export default function UnifiedDashboard() {
                                     </div>
                                   </div>
                                   <div className="flex gap-3 flex-wrap justify-end">
-                                    {Object.entries(perGameAvgs).slice(0, 4).map(([key, value]) => (
+                                    {Object.entries(perGameAvgs).slice(0, 3).map(([key, value]) => (
                                       <div key={key} className="text-center px-2">
                                         <div className="text-lg font-bold text-primary">{value}</div>
                                         <div className="text-xs text-muted-foreground uppercase">{key}/g</div>
@@ -1177,10 +1250,31 @@ export default function UnifiedDashboard() {
                                     ))}
                                   </div>
                                 </div>
+                                
                                 {athlete.hotStreak && (
-                                  <div className="mt-2 flex items-center gap-1 text-orange-500 text-xs">
+                                  <div className="mb-3 flex items-center gap-1 text-orange-500 text-xs">
                                     <Flame className="h-3 w-3" />
                                     <span>Hot streak! {athlete.streakLength} games</span>
+                                  </div>
+                                )}
+                                
+                                {chartData.length > 1 && (
+                                  <div className="h-24 mt-2">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                      <LineChart data={chartData}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                        <XAxis dataKey="game" stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                                        <YAxis stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                                        <Tooltip 
+                                          contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', fontSize: '12px' }}
+                                          labelStyle={{ color: '#fff' }}
+                                        />
+                                        {statKeys.map((key, idx) => {
+                                          const colors = ['#3b82f6', '#22c55e'];
+                                          return <Line key={key} type="monotone" dataKey={key} stroke={colors[idx]} strokeWidth={2} dot={{ r: 3 }} />;
+                                        })}
+                                      </LineChart>
+                                    </ResponsiveContainer>
                                   </div>
                                 )}
                               </CardContent>
