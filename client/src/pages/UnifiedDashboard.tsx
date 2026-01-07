@@ -49,7 +49,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,7 +69,7 @@ import {
   Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, 
   Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Share2, Bell,
   ArrowLeft, MapPin, Clock, Utensils, Coffee, MoreVertical, UserCog, UserMinus, 
-  Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User
+  Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User, Calendar
 } from "lucide-react";
 
 import {
@@ -132,6 +132,7 @@ export default function UnifiedDashboard() {
 
   const [rosterTab, setRosterTab] = useState<"all" | "athletes" | "coach" | "supporters">("all");
   const [playbookTab, setPlaybookTab] = useState<"Offense" | "Defense" | "Special">("Offense");
+  const [statsTab, setStatsTab] = useState<"season" | "athletes" | "games">("season");
   const [expandedPlay, setExpandedPlay] = useState<Play | null>(null);
   
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -252,6 +253,8 @@ export default function UnifiedDashboard() {
     queryKey: ["/api/teams", currentTeam?.id, "stats", "advanced"],
     queryFn: () => currentTeam ? getAdvancedTeamStats(currentTeam.id) : Promise.resolve({ gameHistory: [], athletePerformance: [], ratios: {} }),
     enabled: !!currentTeam && selectedCard === "stats" && (userRole === "coach" || isStaff),
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 
   const { data: myStats } = useQuery({
@@ -1065,35 +1068,164 @@ export default function UnifiedDashboard() {
                 })}
               </div>
             )}
-            {(userRole === "coach" || userRole === "supporter" || isStaff) && aggregateStats && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                  <CardContent className="p-4 text-center">
-                    <p className="text-3xl font-display font-bold text-primary">{aggregateStats.games}</p>
-                    <p className="text-xs text-muted-foreground">Games</p>
-                  </CardContent>
-                </Card>
-                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                  <CardContent className="p-4 text-center">
-                    <p className="text-3xl font-display font-bold text-green-500">{aggregateStats.wins}</p>
-                    <p className="text-xs text-muted-foreground">Wins</p>
-                  </CardContent>
-                </Card>
-                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                  <CardContent className="p-4 text-center">
-                    <p className="text-3xl font-display font-bold text-red-500">{aggregateStats.losses}</p>
-                    <p className="text-xs text-muted-foreground">Losses</p>
-                  </CardContent>
-                </Card>
-                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                  <CardContent className="p-4 text-center">
-                    <p className="text-3xl font-display font-bold">
-                      {aggregateStats.games > 0 ? Math.round((aggregateStats.wins / aggregateStats.games) * 100) : 0}%
-                    </p>
-                    <p className="text-xs text-muted-foreground">Win Rate</p>
-                  </CardContent>
-                </Card>
-              </div>
+            {(userRole === "coach" || userRole === "supporter" || isStaff) && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-3xl font-display font-bold text-primary">{aggregateStats?.games || 0}</p>
+                      <p className="text-xs text-muted-foreground">Games</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-3xl font-display font-bold text-green-500">{aggregateStats?.wins || 0}</p>
+                      <p className="text-xs text-muted-foreground">Wins</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-3xl font-display font-bold text-red-500">{aggregateStats?.losses || 0}</p>
+                      <p className="text-xs text-muted-foreground">Losses</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-3xl font-display font-bold">
+                        {(aggregateStats?.games || 0) > 0 ? Math.round(((aggregateStats?.wins || 0) / (aggregateStats?.games || 1)) * 100) : 0}%
+                      </p>
+                      <p className="text-xs text-muted-foreground">Win Rate</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Tabs value={statsTab} onValueChange={(v) => setStatsTab(v as typeof statsTab)} className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 mb-4 bg-muted/50 border border-white/10">
+                    <TabsTrigger value="season" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Season</TabsTrigger>
+                    <TabsTrigger value="athletes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Athletes</TabsTrigger>
+                    <TabsTrigger value="games" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Games</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="season" className="space-y-4">
+                    {advancedStats?.gameHistory && advancedStats.gameHistory.length > 0 ? (
+                      <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                        <CardHeader>
+                          <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
+                            <Trophy className="h-4 w-4 text-yellow-500" />
+                            Season Totals
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+                            {(() => {
+                              const statTotals: Record<string, number> = {};
+                              advancedStats.gameHistory.forEach((game: any) => {
+                                Object.entries(game.stats || {}).forEach(([key, value]) => {
+                                  statTotals[key] = (statTotals[key] || 0) + (value as number);
+                                });
+                              });
+                              return Object.entries(statTotals).map(([key, value]) => (
+                                <div key={key} className="text-center p-3 bg-background/50 rounded-lg">
+                                  <div className="text-2xl font-bold text-primary">{value}</div>
+                                  <div className="text-xs text-muted-foreground uppercase">{key}</div>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                        <CardContent className="p-8 text-center">
+                          <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No stats recorded yet.</p>
+                          <p className="text-sm text-muted-foreground mt-2">Complete games in StatTracker to see season totals here.</p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="athletes" className="space-y-4">
+                    {advancedStats?.athletePerformance && advancedStats.athletePerformance.length > 0 ? (
+                      <div className="space-y-3">
+                        {advancedStats.athletePerformance.map((athlete: any) => (
+                          <Card key={athlete.athleteId} className="bg-card/80 backdrop-blur-sm border-white/10">
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">
+                                    {athlete.jerseyNumber || "?"}
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">{athlete.name}</p>
+                                    <p className="text-xs text-muted-foreground">{athlete.gamesPlayed} games</p>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  {Object.entries(athlete.perGameAverages || {}).slice(0, 3).map(([key, value]) => (
+                                    <div key={key} className="text-center px-2">
+                                      <div className="text-lg font-bold text-primary">{typeof value === 'number' ? value.toFixed(1) : String(value)}</div>
+                                      <div className="text-xs text-muted-foreground uppercase">{key}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                        <CardContent className="p-8 text-center">
+                          <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No athlete stats yet.</p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="games" className="space-y-4">
+                    {advancedStats?.gameHistory && advancedStats.gameHistory.length > 0 ? (
+                      <div className="space-y-3">
+                        {advancedStats.gameHistory.map((game: any, idx: number) => (
+                          <Card key={game.id || idx} className="bg-card/80 backdrop-blur-sm border-white/10">
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <span className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${
+                                    game.result === 'W' ? 'bg-green-500/20 text-green-400' :
+                                    game.result === 'L' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'
+                                  }`}>
+                                    {game.result}
+                                  </span>
+                                  <div>
+                                    <div className="font-semibold">vs {game.opponent}</div>
+                                    <div className="text-xs text-muted-foreground">{game.date}</div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-xl font-bold">
+                                    <span className="text-primary">{game.teamScore}</span>
+                                    <span className="text-muted-foreground mx-1">-</span>
+                                    <span className="text-muted-foreground">{game.opponentScore}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                        <CardContent className="p-8 text-center">
+                          <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No games recorded yet.</p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </>
             )}
           </div>
         )}
