@@ -148,6 +148,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       
       // ALWAYS set up auth state listener after redirect check completes
       // This ensures future auth events (logout, token refresh, new sign-ins) are handled
+      let isFirstAuthEvent = true;
       const unsubscribe = onFirebaseAuthStateChanged(async (firebaseUser) => {
         listenerCalled = true;
         console.log('[UserContext] Firebase auth state changed:', firebaseUser?.email || 'null');
@@ -162,10 +163,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
             await syncUser(firebaseUser);
           }
         } else {
-          // User signed out - clear all auth state
-          clearAuthState();
+          // Only clear auth state on subsequent null events (explicit sign-out)
+          // On first null event (cold start), keep cached data to avoid flash
+          if (!isFirstAuthEvent) {
+            clearAuthState();
+          } else {
+            console.log('[UserContext] Keeping cached user on initial null auth state');
+          }
         }
         
+        isFirstAuthEvent = false;
         if (isMounted) {
           setIsLoading(false);
         }
