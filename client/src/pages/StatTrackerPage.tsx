@@ -465,12 +465,16 @@ export default function StatTrackerPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Standalone Game (Not on schedule)</SelectItem>
-                      {upcomingGames.map(event => (
-                        <SelectItem key={event.id} value={event.id}>
-                          {event.title} - {new Date(event.date).toLocaleDateString()}
-                          {event.opponent && ` vs ${event.opponent}`}
-                        </SelectItem>
-                      ))}
+                      {upcomingGames.map(event => {
+                        const eventDate = parseEventDate(event.date);
+                        const dateStr = isValid(eventDate) ? eventDate.toLocaleDateString() : event.date;
+                        return (
+                          <SelectItem key={event.id} value={event.id}>
+                            {event.title} - {dateStr}
+                            {event.opponent && ` vs ${event.opponent}`}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   {selectedEventId && selectedEventId !== "none" && (
