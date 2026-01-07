@@ -118,7 +118,11 @@ export default function StatsPage() {
               </Card>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-6">
+            <div className="py-4 text-center text-muted-foreground text-sm">
+              Scroll down for detailed breakdown
+            </div>
+
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-2">
               <TabsList className="grid w-full grid-cols-3 mb-4 bg-muted/50 border border-white/10">
                 <TabsTrigger value="season" data-testid="tab-season" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Season</TabsTrigger>
                 <TabsTrigger value="athletes" data-testid="tab-athletes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Athletes</TabsTrigger>
