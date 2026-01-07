@@ -14,6 +14,7 @@ import { useState } from "react";
 export default function StatsPage() {
   const { user, currentTeam: selectedTeam } = useUser();
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("season");
 
   const { data: aggregateStats, isLoading: loadingAggregate } = useQuery({
     queryKey: ['teamAggregateStats', selectedTeam?.id],
@@ -117,7 +118,7 @@ export default function StatsPage() {
               </Card>
             </div>
 
-            <Tabs defaultValue="season" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-3 mb-4">
                 <TabsTrigger value="season" data-testid="tab-season">Season</TabsTrigger>
                 <TabsTrigger value="athletes" data-testid="tab-athletes">Athletes</TabsTrigger>
