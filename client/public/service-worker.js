@@ -1,9 +1,19 @@
-const CACHE_VERSION = 'statfyr-v1.0.10';
-const SHELL_CACHE = 'statfyr-shell';
+const CACHE_VERSION = 'statfyr-v1.1.0';
+const SHELL_CACHE = 'statfyr-shell-v1';
+
+const SHELL_FILES = [
+  '/',
+  '/index.html'
+];
 
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing version:', CACHE_VERSION);
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(SHELL_CACHE).then(cache => {
+      console.log('[SW] Pre-caching app shell');
+      return cache.addAll(SHELL_FILES);
+    }).then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (event) => {
@@ -42,35 +52,46 @@ self.addEventListener('fetch', (event) => {
   
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(SHELL_CACHE).then(cache => {
-              cache.put('/index.html', responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          return caches.match('/index.html');
-        })
+      caches.match('/index.html').then(cachedResponse => {
+        const fetchPromise = fetch(event.request)
+          .then(networkResponse => {
+            if (networkResponse.ok) {
+              const responseClone = networkResponse.clone();
+              caches.open(SHELL_CACHE).then(cache => {
+                cache.put('/index.html', responseClone);
+              });
+            }
+            return networkResponse;
+          })
+          .catch(() => cachedResponse);
+        
+        return cachedResponse || fetchPromise;
+      })
     );
     return;
   }
   
-  if (url.pathname.match(/\.(js|css|woff|woff2|ttf|png|jpg|jpeg|svg|ico|webp)$/)) {
+  if (url.pathname.match(/\.(js|css|woff|woff2|ttf|png|jpg|jpeg|svg|ico|webp|mp4)$/)) {
     event.respondWith(
       caches.open(SHELL_CACHE).then(shellCache => {
         return shellCache.match(event.request).then(cachedResponse => {
-          const fetchPromise = fetch(event.request).then(networkResponse => {
+          if (cachedResponse) {
+            fetch(event.request).then(networkResponse => {
+              if (networkResponse.ok) {
+                shellCache.put(event.request, networkResponse.clone());
+              }
+            }).catch(() => {});
+            return cachedResponse;
+          }
+          
+          return fetch(event.request).then(networkResponse => {
             if (networkResponse.ok) {
               shellCache.put(event.request, networkResponse.clone());
             }
             return networkResponse;
+          }).catch(() => {
+            return new Response('', { status: 503, statusText: 'Offline' });
           });
-          
-          return cachedResponse || fetchPromise;
         });
       })
     );

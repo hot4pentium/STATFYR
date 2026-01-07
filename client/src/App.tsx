@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { UserProvider } from "./lib/userContext";
 import { PWAProvider } from "./lib/pwaContext";
 import { NotificationProvider } from "./lib/notificationContext";
+import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
@@ -92,6 +93,12 @@ function Router() {
 }
 
 function App() {
+  useEffect(() => {
+    if (window.hideSplashScreen) {
+      window.hideSplashScreen();
+    }
+  }, []);
+
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="statfyr-theme">
       <QueryClientProvider client={queryClient}>
