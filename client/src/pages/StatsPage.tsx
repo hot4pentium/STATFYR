@@ -118,11 +118,11 @@ export default function StatsPage() {
               </Card>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-4">
-                <TabsTrigger value="season" data-testid="tab-season">Season</TabsTrigger>
-                <TabsTrigger value="athletes" data-testid="tab-athletes">Athletes</TabsTrigger>
-                <TabsTrigger value="games" data-testid="tab-games">Games</TabsTrigger>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-6">
+              <TabsList className="grid w-full grid-cols-3 mb-4 bg-muted/50 border border-white/10">
+                <TabsTrigger value="season" data-testid="tab-season" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Season</TabsTrigger>
+                <TabsTrigger value="athletes" data-testid="tab-athletes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Athletes</TabsTrigger>
+                <TabsTrigger value="games" data-testid="tab-games" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Games</TabsTrigger>
               </TabsList>
 
               <TabsContent value="season" className="space-y-4">
