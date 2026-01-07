@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { startOfDay, parse, isValid } from "date-fns";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -97,9 +98,23 @@ export default function StatTrackerPage() {
   });
 
   const gameEvents = events.filter(e => e.type?.toLowerCase() === "game");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const upcomingGames = gameEvents.filter(e => new Date(e.date) >= today);
+  const today = startOfDay(new Date());
+  
+  const parseEventDate = (dateStr: string): Date => {
+    let parsed = new Date(dateStr);
+    if (!isValid(parsed)) {
+      parsed = parse(dateStr, "yyyy-MM-dd hh:mm a", new Date());
+    }
+    if (!isValid(parsed)) {
+      parsed = parse(dateStr, "yyyy-MM-dd HH:mm:ss", new Date());
+    }
+    return parsed;
+  };
+  
+  const upcomingGames = gameEvents.filter(e => {
+    const eventDate = parseEventDate(e.date);
+    return isValid(eventDate) && startOfDay(eventDate) >= today;
+  });
 
   useEffect(() => {
     if (currentGame) {
