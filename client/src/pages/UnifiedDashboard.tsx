@@ -683,7 +683,7 @@ export default function UnifiedDashboard() {
     <div
       key={member.id}
       className={member.role === 'athlete' ? 'cursor-pointer' : ''}
-      onClick={() => member.role === 'athlete' && setSelectedAthleteForHype(member)}
+      onClick={() => member.role === 'athlete' && setLocation(`/share/athlete/${member.userId}`)}
       data-testid={`roster-card-${member.id}`}
     >
       <Card className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all overflow-hidden relative">
