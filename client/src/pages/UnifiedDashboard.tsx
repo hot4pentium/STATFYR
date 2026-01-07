@@ -69,7 +69,8 @@ import {
   Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, 
   Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Share2, Bell,
   ArrowLeft, MapPin, Clock, Utensils, Coffee, MoreVertical, UserCog, UserMinus, 
-  Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User, Calendar
+  Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User, Calendar,
+  List, Grid
 } from "lucide-react";
 
 import {
@@ -133,6 +134,7 @@ export default function UnifiedDashboard() {
   const [rosterTab, setRosterTab] = useState<"all" | "athletes" | "coach" | "supporters">("all");
   const [playbookTab, setPlaybookTab] = useState<"Offense" | "Defense" | "Special">("Offense");
   const [statsTab, setStatsTab] = useState<"season" | "athletes" | "games">("season");
+  const [athleteViewMode, setAthleteViewMode] = useState<"chart" | "table" | "cards">("chart");
   const [expandedPlay, setExpandedPlay] = useState<Play | null>(null);
   
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -1229,92 +1231,173 @@ export default function UnifiedDashboard() {
                             return entry;
                           });
                           
+                          const athleteData = advancedStats.athletePerformance.map((a: any) => {
+                            const entry: any = { name: a.athleteName || a.athleteId };
+                            statList.forEach(stat => {
+                              entry[stat] = a.gamesPlayed > 0 ? Math.round(((a.stats?.[stat] || 0) / a.gamesPlayed) * 10) / 10 : 0;
+                            });
+                            return entry;
+                          });
+                          
                           const athleteNames = advancedStats.athletePerformance.map((a: any) => a.athleteName || a.athleteId);
                           const colors = ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
                           
                           return (
                             <>
-                              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                                <CardHeader className="pb-2">
-                                  <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
-                                    <Users className="h-4 w-4 text-blue-500" />
-                                    Stats Comparison (Per Game)
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                  <div className="h-56">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                      <BarChart data={comparisonData} layout="vertical">
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                                        <XAxis type="number" stroke="rgba(255,255,255,0.5)" fontSize={11} />
-                                        <YAxis dataKey="stat" type="category" stroke="rgba(255,255,255,0.5)" fontSize={11} width={40} />
-                                        <Tooltip 
-                                          contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', fontSize: '12px' }}
-                                          labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                                        />
-                                        <Legend wrapperStyle={{ fontSize: '11px' }} />
-                                        {athleteNames.map((name: string, idx: number) => (
-                                          <Bar key={name} dataKey={name} fill={colors[idx % colors.length]} />
-                                        ))}
-                                      </BarChart>
-                                    </ResponsiveContainer>
-                                  </div>
-                                </CardContent>
-                              </Card>
+                              <div className="flex items-center justify-between">
+                                <h3 className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
+                                  <Users className="h-4 w-4 text-blue-500" />
+                                  Stats Comparison
+                                </h3>
+                                <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
+                                  <Button
+                                    variant={athleteViewMode === 'chart' ? 'default' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setAthleteViewMode('chart')}
+                                    className="h-7 px-2 text-xs"
+                                    data-testid="btn-view-chart"
+                                  >
+                                    <BarChart3 className="h-3 w-3 mr-1" />
+                                    Chart
+                                  </Button>
+                                  <Button
+                                    variant={athleteViewMode === 'table' ? 'default' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setAthleteViewMode('table')}
+                                    className="h-7 px-2 text-xs"
+                                    data-testid="btn-view-table"
+                                  >
+                                    <List className="h-3 w-3 mr-1" />
+                                    Table
+                                  </Button>
+                                  <Button
+                                    variant={athleteViewMode === 'cards' ? 'default' : 'ghost'}
+                                    size="sm"
+                                    onClick={() => setAthleteViewMode('cards')}
+                                    className="h-7 px-2 text-xs"
+                                    data-testid="btn-view-cards"
+                                  >
+                                    <Grid className="h-3 w-3 mr-1" />
+                                    Cards
+                                  </Button>
+                                </div>
+                              </div>
 
-                              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                                <CardHeader className="pb-2">
-                                  <CardTitle className="font-display uppercase tracking-wide text-sm">Player Stats</CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-0">
-                                  <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                      <thead>
-                                        <tr className="border-b border-white/10">
-                                          <th className="text-left p-3 font-semibold">Player</th>
-                                          <th className="text-center p-3 font-semibold">Games</th>
-                                          {statList.map(stat => (
-                                            <th key={stat} className="text-center p-3 font-semibold uppercase">{stat}</th>
+                              {athleteViewMode === 'chart' && (
+                                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                                  <CardContent className="pt-4">
+                                    <div className="h-56">
+                                      <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={comparisonData} layout="vertical">
+                                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                          <XAxis type="number" stroke="rgba(255,255,255,0.5)" fontSize={11} />
+                                          <YAxis dataKey="stat" type="category" stroke="rgba(255,255,255,0.5)" fontSize={11} width={40} />
+                                          <Tooltip 
+                                            contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', fontSize: '12px' }}
+                                            labelStyle={{ color: '#fff', fontWeight: 'bold' }}
+                                          />
+                                          <Legend wrapperStyle={{ fontSize: '11px' }} />
+                                          {athleteNames.map((name: string, idx: number) => (
+                                            <Bar key={name} dataKey={name} fill={colors[idx % colors.length]} />
                                           ))}
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {advancedStats.athletePerformance.map((athlete: any, idx: number) => (
-                                          <tr key={athlete.athleteId} className={idx % 2 === 0 ? 'bg-white/5' : ''}>
-                                            <td className="p-3">
-                                              <div className="flex items-center gap-2">
-                                                <div className="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs" style={{ backgroundColor: `${colors[idx % colors.length]}30`, color: colors[idx % colors.length] }}>
-                                                  {athlete.athleteName?.charAt(0) || "?"}
-                                                </div>
-                                                <div>
-                                                  <div className="font-medium">{athlete.athleteName || "Unknown"}</div>
-                                                  {athlete.hotStreak && (
-                                                    <div className="flex items-center gap-1 text-orange-500 text-xs">
-                                                      <Flame className="h-3 w-3" />
-                                                      <span>Hot!</span>
-                                                    </div>
-                                                  )}
-                                                </div>
-                                              </div>
-                                            </td>
-                                            <td className="text-center p-3 text-muted-foreground">{athlete.gamesPlayed}</td>
-                                            {statList.map(stat => {
-                                              const total = athlete.stats?.[stat] || 0;
-                                              const perGame = athlete.gamesPlayed > 0 ? Math.round((total / athlete.gamesPlayed) * 10) / 10 : 0;
-                                              return (
-                                                <td key={stat} className="text-center p-3">
-                                                  <div className="font-bold text-primary">{total}</div>
-                                                  <div className="text-xs text-muted-foreground">{perGame}/g</div>
-                                                </td>
-                                              );
-                                            })}
+                                        </BarChart>
+                                      </ResponsiveContainer>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              )}
+
+                              {athleteViewMode === 'table' && (
+                                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                                  <CardContent className="p-0">
+                                    <div className="overflow-x-auto">
+                                      <table className="w-full text-sm">
+                                        <thead>
+                                          <tr className="border-b border-white/10">
+                                            <th className="text-left p-3 font-semibold">Player</th>
+                                            <th className="text-center p-3 font-semibold">Games</th>
+                                            {statList.map(stat => (
+                                              <th key={stat} className="text-center p-3 font-semibold uppercase">{stat}</th>
+                                            ))}
                                           </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </CardContent>
-                              </Card>
+                                        </thead>
+                                        <tbody>
+                                          {advancedStats.athletePerformance.map((athlete: any, idx: number) => (
+                                            <tr key={athlete.athleteId} className={idx % 2 === 0 ? 'bg-white/5' : ''}>
+                                              <td className="p-3">
+                                                <div className="flex items-center gap-2">
+                                                  <div className="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs" style={{ backgroundColor: `${colors[idx % colors.length]}30`, color: colors[idx % colors.length] }}>
+                                                    {athlete.athleteName?.charAt(0) || "?"}
+                                                  </div>
+                                                  <div>
+                                                    <div className="font-medium">{athlete.athleteName || "Unknown"}</div>
+                                                    {athlete.hotStreak && (
+                                                      <div className="flex items-center gap-1 text-orange-500 text-xs">
+                                                        <Flame className="h-3 w-3" />
+                                                        <span>Hot!</span>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              </td>
+                                              <td className="text-center p-3 text-muted-foreground">{athlete.gamesPlayed}</td>
+                                              {statList.map(stat => {
+                                                const total = athlete.stats?.[stat] || 0;
+                                                const perGame = athlete.gamesPlayed > 0 ? Math.round((total / athlete.gamesPlayed) * 10) / 10 : 0;
+                                                return (
+                                                  <td key={stat} className="text-center p-3">
+                                                    <div className="font-bold text-primary">{total}</div>
+                                                    <div className="text-xs text-muted-foreground">{perGame}/g</div>
+                                                  </td>
+                                                );
+                                              })}
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              )}
+
+                              {athleteViewMode === 'cards' && (
+                                <div className="grid gap-3 md:grid-cols-2">
+                                  {advancedStats.athletePerformance.map((athlete: any, idx: number) => (
+                                    <Card key={athlete.athleteId} className="bg-card/80 backdrop-blur-sm border-white/10">
+                                      <CardContent className="p-4">
+                                        <div className="flex items-center gap-3 mb-3">
+                                          <div className="h-12 w-12 rounded-full flex items-center justify-center font-bold text-lg" style={{ backgroundColor: `${colors[idx % colors.length]}30`, color: colors[idx % colors.length] }}>
+                                            {athlete.athleteName?.charAt(0) || "?"}
+                                          </div>
+                                          <div>
+                                            <div className="font-semibold">{athlete.athleteName || "Unknown"}</div>
+                                            <div className="text-xs text-muted-foreground">{athlete.gamesPlayed} game{athlete.gamesPlayed !== 1 ? 's' : ''}</div>
+                                            {athlete.hotStreak && (
+                                              <div className="flex items-center gap-1 text-orange-500 text-xs">
+                                                <Flame className="h-3 w-3" />
+                                                <span>Hot streak!</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          {statList.map(stat => {
+                                            const total = athlete.stats?.[stat] || 0;
+                                            const perGame = athlete.gamesPlayed > 0 ? Math.round((total / athlete.gamesPlayed) * 10) / 10 : 0;
+                                            return (
+                                              <div key={stat} className="text-center p-2 bg-background/50 rounded-lg">
+                                                <div className="text-lg font-bold text-primary">{total}</div>
+                                                <div className="text-xs text-muted-foreground uppercase">{stat}</div>
+                                                <div className="text-xs text-muted-foreground">{perGame}/g</div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  ))}
+                                </div>
+                              )}
                             </>
                           );
                         })()}
