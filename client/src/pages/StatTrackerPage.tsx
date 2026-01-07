@@ -484,16 +484,6 @@ export default function StatTrackerPage() {
                   )}
                 </div>
 
-                <div className="space-y-3">
-                  <Label>Opponent Name</Label>
-                  <Input
-                    placeholder="Enter opponent team name"
-                    value={opponentName}
-                    onChange={(e) => setOpponentName(e.target.value)}
-                    data-testid="input-opponent"
-                  />
-                </div>
-
                 <Separator />
 
                 <div className="space-y-3">
