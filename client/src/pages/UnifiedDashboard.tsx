@@ -148,6 +148,7 @@ export default function UnifiedDashboard() {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [memberEditForm, setMemberEditForm] = useState({ jerseyNumber: "", position: "", role: "" });
   const [deletingMember, setDeletingMember] = useState<TeamMember | null>(null);
+  const [selectedAthleteForHype, setSelectedAthleteForHype] = useState<TeamMember | null>(null);
   const [selectedManagedAthleteId, setSelectedManagedAthleteId] = useState<string | null>(null);
   const [supporterViewMode, setSupporterViewMode] = useState<"supporter" | "athlete">("supporter");
   const [supporterOriginalTeam, setSupporterOriginalTeam] = useState<Team | null>(null);
@@ -263,6 +264,12 @@ export default function UnifiedDashboard() {
     queryKey: ["/api/teams", currentTeam?.id, "athletes", user?.id, "stats"],
     queryFn: () => currentTeam && user ? getAthleteStats(currentTeam.id, user.id) : Promise.resolve({ gamesPlayed: 0, stats: {}, gameHistory: [], hotStreak: false, streakLength: 0 }),
     enabled: !!currentTeam && !!user && selectedCard === "stats" && userRole === "athlete",
+  });
+
+  const { data: selectedAthleteHypeStats } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "athletes", selectedAthleteForHype?.userId, "stats", "hype"],
+    queryFn: () => currentTeam && selectedAthleteForHype ? getAthleteStats(currentTeam.id, selectedAthleteForHype.userId) : Promise.resolve({ gamesPlayed: 0, stats: {}, gameHistory: [], hotStreak: false, streakLength: 0 }),
+    enabled: !!currentTeam && !!selectedAthleteForHype,
   });
 
   const { data: activeSessions = [] } = useQuery({
@@ -673,13 +680,19 @@ export default function UnifiedDashboard() {
   };
 
   const renderMemberCard = (member: TeamMember) => (
-    <Card key={member.id} className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all overflow-hidden relative">
-      {currentTeam?.badgeId && (
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-45 pointer-events-none">
-          <TeamBadge badgeId={currentTeam.badgeId} size="lg" teamColor={currentTeam.teamColor} />
-        </div>
-      )}
-      <CardContent className="p-4 flex items-center gap-3 relative z-10">
+    <div
+      key={member.id}
+      className={member.role === 'athlete' ? 'cursor-pointer' : ''}
+      onClick={() => member.role === 'athlete' && setSelectedAthleteForHype(member)}
+      data-testid={`roster-card-${member.id}`}
+    >
+      <Card className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all overflow-hidden relative">
+        {currentTeam?.badgeId && (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-45 pointer-events-none">
+            <TeamBadge badgeId={currentTeam.badgeId} size="lg" teamColor={currentTeam.teamColor} />
+          </div>
+        )}
+        <CardContent className="p-4 flex items-center gap-3 relative z-10">
         <Avatar className="h-12 w-12">
           <AvatarImage src={member.user?.avatar || undefined} />
           <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-lg font-bold">
@@ -697,31 +710,34 @@ export default function UnifiedDashboard() {
           <Badge className="bg-primary/20 text-primary">#{member.jerseyNumber}</Badge>
         )}
         {(userRole === "coach" || isStaff) && member.role !== "coach" && member.role !== "staff" && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => {
-                setEditingMember(member);
-                setMemberEditForm({ 
-                  jerseyNumber: member.jerseyNumber || "", 
-                  position: member.position || "",
-                  role: member.role || "athlete"
-                });
-              }}>
-                <Pencil className="h-4 w-4 mr-2" /> Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive" onClick={() => setDeletingMember(member)}>
-                <UserMinus className="h-4 w-4 mr-2" /> Remove
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => {
+                  setEditingMember(member);
+                  setMemberEditForm({ 
+                    jerseyNumber: member.jerseyNumber || "", 
+                    position: member.position || "",
+                    role: member.role || "athlete"
+                  });
+                }}>
+                  <Pencil className="h-4 w-4 mr-2" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive" onClick={() => setDeletingMember(member)}>
+                  <UserMinus className="h-4 w-4 mr-2" /> Remove
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         )}
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 
   const renderEventCard = (event: Event) => (
@@ -2876,6 +2892,167 @@ export default function UnifiedDashboard() {
                 </DialogFooter>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* HYPE Card Modal for selected athlete */}
+        <Dialog open={!!selectedAthleteForHype} onOpenChange={(open) => !open && setSelectedAthleteForHype(null)}>
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0 bg-gradient-to-b from-background to-background/95 border-white/10">
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 z-10 bg-black/50 hover:bg-black/70 rounded-full"
+                onClick={() => setSelectedAthleteForHype(null)}
+                data-testid="close-hype-modal"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+              
+              {selectedAthleteForHype && (
+                <div className="p-6">
+                  {/* Header with avatar and name */}
+                  <div className="text-center mb-6">
+                    <div className="h-24 w-24 mx-auto rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-4xl font-bold text-white mb-4">
+                      {selectedAthleteForHype.user?.name?.charAt(0) || selectedAthleteForHype.user?.firstName?.charAt(0) || "?"}
+                    </div>
+                    <h2 className="text-2xl font-display font-bold">
+                      {selectedAthleteForHype.user?.name || `${selectedAthleteForHype.user?.firstName} ${selectedAthleteForHype.user?.lastName}`}
+                    </h2>
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                      {selectedAthleteForHype.jerseyNumber && (
+                        <Badge className="bg-primary text-primary-foreground">#{selectedAthleteForHype.jerseyNumber}</Badge>
+                      )}
+                      {selectedAthleteForHype.position && (
+                        <Badge variant="outline">{selectedAthleteForHype.position}</Badge>
+                      )}
+                    </div>
+                    {currentTeam && (
+                      <p className="text-sm text-muted-foreground mt-2">{currentTeam.name}</p>
+                    )}
+                  </div>
+
+                  {/* Stats Overview */}
+                  <Card className="bg-card/80 backdrop-blur-sm border-white/10 mb-4">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-around mb-4">
+                        <div className="text-center">
+                          <p className="text-3xl font-display font-bold text-primary">{selectedAthleteHypeStats?.gamesPlayed || 0}</p>
+                          <p className="text-xs text-muted-foreground">Games</p>
+                        </div>
+                        {selectedAthleteHypeStats?.hotStreak && (
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-1 text-orange-500">
+                              <Flame className="h-5 w-5" />
+                              <span className="text-xl font-bold">{selectedAthleteHypeStats.streakLength}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">Hot Streak</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {selectedAthleteHypeStats?.stats && Object.keys(selectedAthleteHypeStats.stats).length > 0 ? (
+                        <div className="grid grid-cols-3 gap-2">
+                          {Object.entries(selectedAthleteHypeStats.stats).slice(0, 6).map(([key, value]) => {
+                            const statData = typeof value === "object" && value !== null ? value as { total: number; perGame: number } : { total: value as number, perGame: 0 };
+                            return (
+                              <div key={key} className="text-center p-2 rounded-lg bg-white/5">
+                                <p className="text-xl font-bold text-primary">{statData.total}</p>
+                                <p className="text-xs font-semibold uppercase">{key}</p>
+                                <p className="text-xs text-muted-foreground">{statData.perGame}/g</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-center text-muted-foreground text-sm">No stats recorded yet</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Progression Chart */}
+                  {selectedAthleteHypeStats?.gameHistory && selectedAthleteHypeStats.gameHistory.length > 1 && (
+                    <Card className="bg-card/80 backdrop-blur-sm border-white/10 mb-4">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="font-display uppercase tracking-wide text-xs flex items-center gap-2">
+                          <TrendingUp className="h-3 w-3 text-green-500" />
+                          Progression
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-2">
+                        {(() => {
+                          const chartData = selectedAthleteHypeStats.gameHistory.map((game: any, idx: number) => {
+                            const stats = game.stats || {};
+                            return { game: `G${idx + 1}`, ...stats };
+                          }).reverse();
+                          
+                          const statKeys = Object.keys(selectedAthleteHypeStats.stats || {}).slice(0, 3);
+                          const colors = ['#3b82f6', '#22c55e', '#f59e0b'];
+                          
+                          return (
+                            <div className="h-32">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                  <XAxis dataKey="game" stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                                  <YAxis stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                                  <Tooltip 
+                                    contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', fontSize: '11px' }}
+                                  />
+                                  {statKeys.map((key, idx) => (
+                                    <Line key={key} type="monotone" dataKey={key} stroke={colors[idx]} strokeWidth={2} dot={{ r: 3 }} />
+                                  ))}
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </div>
+                          );
+                        })()}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Recent Games */}
+                  {selectedAthleteHypeStats?.gameHistory && selectedAthleteHypeStats.gameHistory.length > 0 && (
+                    <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="font-display uppercase tracking-wide text-xs flex items-center gap-2">
+                          <BarChart3 className="h-3 w-3 text-blue-500" />
+                          Recent Games
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="divide-y divide-white/10">
+                          {selectedAthleteHypeStats.gameHistory.slice(0, 3).map((game: any, idx: number) => (
+                            <div key={game.gameId || idx} className="p-3 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
+                                  game.result === 'W' ? 'bg-green-500/20 text-green-400' :
+                                  game.result === 'L' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'
+                                }`}>
+                                  {game.result}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium">vs {game.opponent}</p>
+                                  <p className="text-xs text-muted-foreground">{game.date}</p>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                {Object.entries(game.stats || {}).slice(0, 2).map(([key, val]) => (
+                                  <div key={key} className="text-center">
+                                    <div className="text-sm font-bold text-primary">{String(val)}</div>
+                                    <div className="text-xs text-muted-foreground uppercase">{key}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       </div>
