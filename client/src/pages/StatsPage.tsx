@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, Legend } from "recharts";
-import { Activity, Trophy, TrendingUp, Target, ArrowLeft, Users, Flame, Calendar, ChevronDown } from "lucide-react";
+import { Activity, Trophy, TrendingUp, TrendingDown, Target, ArrowLeft, Users, Flame, Calendar, ChevronDown, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -213,134 +213,117 @@ export default function StatsPage() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <>
-                    <Card className="bg-card border-white/5">
-                      <CardHeader>
-                        <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
-                          <Users className="h-4 w-4 text-primary" />
-                          Athlete Leaderboard
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {athletePerformance.map((athlete, idx) => {
-                          const totalStats = Object.values(athlete.stats).reduce((a, b) => a + b, 0);
-                          return (
-                            <div 
-                              key={athlete.athleteId} 
-                              className={`flex items-center justify-between p-3 rounded-lg ${
-                                idx === 0 ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-background/50'
-                              }`}
-                              data-testid={`athlete-row-${athlete.athleteId}`}
-                            >
+                  <div className="space-y-4">
+                    {athletePerformance.map((athlete, idx) => {
+                      const totalStats = Object.values(athlete.stats).reduce((a, b) => a + b, 0);
+                      const lastGame = athlete.recentGames[0];
+                      const lastGameInfo = lastGame ? gameHistory.find(g => g.id === lastGame.gameId) : null;
+                      
+                      return (
+                        <Card 
+                          key={athlete.athleteId} 
+                          className={`bg-card border-white/5 ${idx === 0 ? 'ring-2 ring-yellow-500/30' : ''}`}
+                          data-testid={`athlete-card-${athlete.athleteId}`}
+                        >
+                          <CardHeader className="pb-2">
+                            <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
                                   idx === 0 ? 'bg-yellow-500 text-black' : 
                                   idx === 1 ? 'bg-gray-400 text-black' : 
-                                  idx === 2 ? 'bg-orange-600 text-white' : 'bg-muted text-muted-foreground'
+                                  idx === 2 ? 'bg-orange-600 text-white' : 'bg-primary/20 text-primary'
                                 }`}>
                                   {idx + 1}
                                 </div>
                                 <div>
-                                  <div className="font-semibold flex items-center gap-2">
+                                  <CardTitle className="text-lg flex items-center gap-2">
                                     {athlete.athleteName}
                                     {athlete.hotStreak && (
-                                      <span className="flex items-center gap-1 text-xs text-orange-500">
+                                      <span className="flex items-center gap-1 text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">
                                         <Flame className="h-3 w-3" />
-                                        {athlete.streakLength} game streak
+                                        {athlete.streakLength} game streak!
                                       </span>
                                     )}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">
+                                  </CardTitle>
+                                  <p className="text-sm text-muted-foreground">
                                     {athlete.gamesPlayed} game{athlete.gamesPlayed !== 1 ? 's' : ''} played
-                                  </div>
+                                  </p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-4">
-                                <div className="text-right">
-                                  <div className="text-lg font-bold text-primary">{totalStats}</div>
-                                  <div className="text-xs text-muted-foreground">total stats</div>
-                                </div>
+                              <div className="text-right">
+                                <div className="text-2xl font-bold text-primary">{totalStats}</div>
+                                <div className="text-xs text-muted-foreground">total stats</div>
                               </div>
                             </div>
-                          );
-                        })}
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-card border-white/5">
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4 text-blue-400" />
-                            Athlete Progression
-                          </CardTitle>
-                          <Select 
-                            value={selectedAthleteId || athletePerformance[0]?.athleteId || ''} 
-                            onValueChange={setSelectedAthleteId}
-                          >
-                            <SelectTrigger className="w-[180px]" data-testid="select-athlete">
-                              <SelectValue placeholder="Select athlete" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {athletePerformance.map(athlete => (
-                                <SelectItem key={athlete.athleteId} value={athlete.athleteId}>
-                                  {athlete.athleteName}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        {selectedAthlete ? (
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-                              {Object.entries(selectedAthlete.stats).map(([key, value]) => (
-                                <div key={key} className="text-center p-2 bg-background/50 rounded-lg">
-                                  <div className="text-xl font-bold text-primary">{value}</div>
-                                  <div className="text-xs text-muted-foreground uppercase">{key}</div>
-                                </div>
-                              ))}
-                            </div>
-
-                            <div className="mt-4">
-                              <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Game-by-Game Breakdown</h4>
-                              <div className="space-y-2">
-                                {selectedAthlete.recentGames.map((game, idx) => {
-                                  const gameInfo = gameHistory.find(g => g.id === game.gameId);
-                                  return (
-                                    <div key={game.gameId} className="flex items-center justify-between p-2 bg-background/30 rounded-lg text-sm">
-                                      <div className="flex items-center gap-2">
-                                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                                          gameInfo?.result === 'W' ? 'bg-green-500/20 text-green-400' :
-                                          gameInfo?.result === 'L' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'
-                                        }`}>
-                                          {gameInfo?.result || '?'}
-                                        </span>
-                                        <span className="text-muted-foreground">
-                                          vs {gameInfo?.opponent || 'Unknown'}
-                                        </span>
-                                      </div>
-                                      <div className="flex gap-3">
-                                        {Object.entries(game.stats).map(([key, value]) => (
-                                          <span key={key} className="text-xs">
-                                            <span className="font-bold text-foreground">{value}</span>
-                                            <span className="text-muted-foreground ml-1">{key}</span>
-                                          </span>
-                                        ))}
-                                      </div>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                              {Object.entries(athlete.stats).map(([statKey, totalValue]) => {
+                                const avgPerGame = athlete.gamesPlayed > 0 ? totalValue / athlete.gamesPlayed : 0;
+                                const lastGameValue = lastGame?.stats[statKey] || 0;
+                                const growthTrend = lastGameValue > avgPerGame ? 'up' : lastGameValue < avgPerGame ? 'down' : 'same';
+                                
+                                return (
+                                  <div key={statKey} className="bg-background/50 rounded-lg p-3 text-center">
+                                    <div className="flex items-center justify-center gap-1">
+                                      <span className="text-2xl font-bold text-foreground">{totalValue}</span>
+                                      {athlete.gamesPlayed > 1 && (
+                                        growthTrend === 'up' ? (
+                                          <ArrowUp className="h-4 w-4 text-green-500" />
+                                        ) : growthTrend === 'down' ? (
+                                          <ArrowDown className="h-4 w-4 text-red-500" />
+                                        ) : (
+                                          <Minus className="h-4 w-4 text-gray-500" />
+                                        )
+                                      )}
                                     </div>
-                                  );
-                                })}
-                              </div>
+                                    <div className="text-xs text-muted-foreground uppercase font-medium">{statKey}</div>
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {avgPerGame.toFixed(1)}/game
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
-                          </div>
-                        ) : (
-                          <p className="text-muted-foreground text-center py-4">Select an athlete to view their progression</p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </>
+
+                            {athlete.recentGames.length > 0 && (
+                              <div className="pt-2 border-t border-white/5">
+                                <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Game History</h4>
+                                <div className="space-y-1.5">
+                                  {athlete.recentGames.map((game) => {
+                                    const gameInfo = gameHistory.find(g => g.id === game.gameId);
+                                    return (
+                                      <div key={game.gameId} className="flex items-center justify-between p-2 bg-background/30 rounded text-sm">
+                                        <div className="flex items-center gap-2">
+                                          <span className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${
+                                            gameInfo?.result === 'W' ? 'bg-green-500/20 text-green-400' :
+                                            gameInfo?.result === 'L' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'
+                                          }`}>
+                                            {gameInfo?.result || '?'}
+                                          </span>
+                                          <span className="text-muted-foreground text-xs">
+                                            vs {gameInfo?.opponent || 'Unknown'}
+                                          </span>
+                                        </div>
+                                        <div className="flex gap-2 flex-wrap justify-end">
+                                          {Object.entries(game.stats).map(([key, value]) => (
+                                            <span key={key} className="text-xs bg-primary/10 px-2 py-0.5 rounded">
+                                              <span className="font-bold text-primary">{value}</span>
+                                              <span className="text-muted-foreground ml-1">{key}</span>
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
                 )}
               </TabsContent>
 
