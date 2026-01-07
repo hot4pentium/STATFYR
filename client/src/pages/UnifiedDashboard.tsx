@@ -1212,76 +1212,113 @@ export default function UnifiedDashboard() {
 
                   <TabsContent value="athletes" className="space-y-4">
                     {advancedStats?.athletePerformance && advancedStats.athletePerformance.length > 0 ? (
-                      <div className="space-y-4">
-                        {advancedStats.athletePerformance.map((athlete: any) => {
-                          const perGameAvgs = athlete.gamesPlayed > 0 
-                            ? Object.entries(athlete.stats || {}).reduce((acc, [key, val]) => {
-                                acc[key] = Math.round(((val as number) / athlete.gamesPlayed) * 10) / 10;
-                                return acc;
-                              }, {} as Record<string, number>)
-                            : {};
+                      <>
+                        {(() => {
+                          const allStats = new Set<string>();
+                          advancedStats.athletePerformance.forEach((a: any) => {
+                            Object.keys(a.stats || {}).forEach(k => allStats.add(k));
+                          });
+                          const statList = Array.from(allStats);
                           
-                          const chartData = (athlete.recentGames || []).map((game: any, idx: number) => {
-                            const total = Object.values(game.stats || {}).reduce((a: number, b: any) => a + (b as number), 0);
-                            return { game: `G${idx + 1}`, total, ...game.stats };
-                          }).reverse();
+                          const comparisonData = statList.map(stat => {
+                            const entry: any = { stat };
+                            advancedStats.athletePerformance.forEach((a: any) => {
+                              const perGame = a.gamesPlayed > 0 ? Math.round(((a.stats?.[stat] || 0) / a.gamesPlayed) * 10) / 10 : 0;
+                              entry[a.athleteName || a.athleteId] = perGame;
+                            });
+                            return entry;
+                          });
                           
-                          const statKeys = Object.keys(athlete.stats || {}).slice(0, 2);
+                          const athleteNames = advancedStats.athletePerformance.map((a: any) => a.athleteName || a.athleteId);
+                          const colors = ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
                           
                           return (
-                            <Card key={athlete.athleteId} className="bg-card/80 backdrop-blur-sm border-white/10">
-                              <CardContent className="p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-sm">
-                                      {athlete.athleteName?.charAt(0) || "?"}
-                                    </div>
-                                    <div>
-                                      <p className="font-semibold">{athlete.athleteName || "Unknown"}</p>
-                                      <p className="text-xs text-muted-foreground">{athlete.gamesPlayed} game{athlete.gamesPlayed !== 1 ? 's' : ''}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex gap-3 flex-wrap justify-end">
-                                    {Object.entries(perGameAvgs).slice(0, 3).map(([key, value]) => (
-                                      <div key={key} className="text-center px-2">
-                                        <div className="text-lg font-bold text-primary">{value}</div>
-                                        <div className="text-xs text-muted-foreground uppercase">{key}/g</div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                                
-                                {athlete.hotStreak && (
-                                  <div className="mb-3 flex items-center gap-1 text-orange-500 text-xs">
-                                    <Flame className="h-3 w-3" />
-                                    <span>Hot streak! {athlete.streakLength} games</span>
-                                  </div>
-                                )}
-                                
-                                {chartData.length > 1 && (
-                                  <div className="h-24 mt-2">
+                            <>
+                              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                                <CardHeader className="pb-2">
+                                  <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
+                                    <Users className="h-4 w-4 text-blue-500" />
+                                    Stats Comparison (Per Game)
+                                  </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="h-56">
                                     <ResponsiveContainer width="100%" height="100%">
-                                      <LineChart data={chartData}>
+                                      <BarChart data={comparisonData} layout="vertical">
                                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                                        <XAxis dataKey="game" stroke="rgba(255,255,255,0.5)" fontSize={10} />
-                                        <YAxis stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                                        <XAxis type="number" stroke="rgba(255,255,255,0.5)" fontSize={11} />
+                                        <YAxis dataKey="stat" type="category" stroke="rgba(255,255,255,0.5)" fontSize={11} width={40} />
                                         <Tooltip 
-                                          contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', fontSize: '12px' }}
-                                          labelStyle={{ color: '#fff' }}
+                                          contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', fontSize: '12px' }}
+                                          labelStyle={{ color: '#fff', fontWeight: 'bold' }}
                                         />
-                                        {statKeys.map((key, idx) => {
-                                          const colors = ['#3b82f6', '#22c55e'];
-                                          return <Line key={key} type="monotone" dataKey={key} stroke={colors[idx]} strokeWidth={2} dot={{ r: 3 }} />;
-                                        })}
-                                      </LineChart>
+                                        <Legend wrapperStyle={{ fontSize: '11px' }} />
+                                        {athleteNames.map((name: string, idx: number) => (
+                                          <Bar key={name} dataKey={name} fill={colors[idx % colors.length]} />
+                                        ))}
+                                      </BarChart>
                                     </ResponsiveContainer>
                                   </div>
-                                )}
-                              </CardContent>
-                            </Card>
+                                </CardContent>
+                              </Card>
+
+                              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                                <CardHeader className="pb-2">
+                                  <CardTitle className="font-display uppercase tracking-wide text-sm">Player Stats</CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-0">
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                      <thead>
+                                        <tr className="border-b border-white/10">
+                                          <th className="text-left p-3 font-semibold">Player</th>
+                                          <th className="text-center p-3 font-semibold">Games</th>
+                                          {statList.map(stat => (
+                                            <th key={stat} className="text-center p-3 font-semibold uppercase">{stat}</th>
+                                          ))}
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {advancedStats.athletePerformance.map((athlete: any, idx: number) => (
+                                          <tr key={athlete.athleteId} className={idx % 2 === 0 ? 'bg-white/5' : ''}>
+                                            <td className="p-3">
+                                              <div className="flex items-center gap-2">
+                                                <div className="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs" style={{ backgroundColor: `${colors[idx % colors.length]}30`, color: colors[idx % colors.length] }}>
+                                                  {athlete.athleteName?.charAt(0) || "?"}
+                                                </div>
+                                                <div>
+                                                  <div className="font-medium">{athlete.athleteName || "Unknown"}</div>
+                                                  {athlete.hotStreak && (
+                                                    <div className="flex items-center gap-1 text-orange-500 text-xs">
+                                                      <Flame className="h-3 w-3" />
+                                                      <span>Hot!</span>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </td>
+                                            <td className="text-center p-3 text-muted-foreground">{athlete.gamesPlayed}</td>
+                                            {statList.map(stat => {
+                                              const total = athlete.stats?.[stat] || 0;
+                                              const perGame = athlete.gamesPlayed > 0 ? Math.round((total / athlete.gamesPlayed) * 10) / 10 : 0;
+                                              return (
+                                                <td key={stat} className="text-center p-3">
+                                                  <div className="font-bold text-primary">{total}</div>
+                                                  <div className="text-xs text-muted-foreground">{perGame}/g</div>
+                                                </td>
+                                              );
+                                            })}
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </>
                           );
-                        })}
-                      </div>
+                        })()}
+                      </>
                     ) : (
                       <Card className="bg-card/80 backdrop-blur-sm border-white/10">
                         <CardContent className="p-8 text-center">
