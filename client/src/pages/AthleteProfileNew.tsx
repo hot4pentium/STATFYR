@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Star, Flame, Zap, Share2, MessageCircle, Bell, TrendingUp } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Star, Flame, Zap, Share2, MessageCircle, Bell, TrendingUp, X } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, BarChart, Bar } from "recharts";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
@@ -27,6 +28,7 @@ export default function AthleteProfileNew() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>(null);
+  const [selectedAthlete, setSelectedAthlete] = useState<TeamMember | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -76,6 +78,12 @@ export default function AthleteProfileNew() {
     queryKey: ["/api/teams", currentTeam?.id, "athletes", user?.id, "stats"],
     queryFn: () => currentTeam && user ? getAthleteStats(currentTeam.id, user.id) : Promise.resolve({ gamesPlayed: 0, stats: {}, gameHistory: [], hotStreak: false, streakLength: 0 }),
     enabled: !!currentTeam && !!user,
+  });
+
+  const { data: selectedAthleteStats } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "athletes", selectedAthlete?.userId, "stats"],
+    queryFn: () => currentTeam && selectedAthlete ? getAthleteStats(currentTeam.id, selectedAthlete.userId) : Promise.resolve({ gamesPlayed: 0, stats: {}, gameHistory: [], hotStreak: false, streakLength: 0 }),
+    enabled: !!currentTeam && !!selectedAthlete,
   });
 
   const { data: teamPlays = [] } = useQuery({
@@ -530,7 +538,12 @@ export default function AthleteProfileNew() {
                     </Card>
                   ) : (
                     teamMembers.map((member: TeamMember) => (
-                      <Card key={member.id} className="bg-card/80 backdrop-blur-sm border-white/10">
+                      <Card 
+                        key={member.id} 
+                        className={`bg-card/80 backdrop-blur-sm border-white/10 ${member.role === 'athlete' ? 'cursor-pointer hover:border-primary/50 transition-colors' : ''}`}
+                        onClick={() => member.role === 'athlete' && setSelectedAthlete(member)}
+                        data-testid={`roster-card-${member.id}`}
+                      >
                         <CardContent className="p-4 flex items-center gap-3">
                           <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-lg font-bold">
                             {member.user?.name?.charAt(0) || member.user?.firstName?.charAt(0) || "?"}
@@ -795,6 +808,167 @@ export default function AthleteProfileNew() {
           )}
         </main>
       </div>
+
+      {/* HYPE Card Modal for selected athlete */}
+      <Dialog open={!!selectedAthlete} onOpenChange={(open) => !open && setSelectedAthlete(null)}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0 bg-gradient-to-b from-background to-background/95 border-white/10">
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 z-10 bg-black/50 hover:bg-black/70 rounded-full"
+              onClick={() => setSelectedAthlete(null)}
+              data-testid="close-hype-modal"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            
+            {selectedAthlete && (
+              <div className="p-6">
+                {/* Header with avatar and name */}
+                <div className="text-center mb-6">
+                  <div className="h-24 w-24 mx-auto rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-4xl font-bold text-white mb-4">
+                    {selectedAthlete.user?.name?.charAt(0) || selectedAthlete.user?.firstName?.charAt(0) || "?"}
+                  </div>
+                  <h2 className="text-2xl font-display font-bold">
+                    {selectedAthlete.user?.name || `${selectedAthlete.user?.firstName} ${selectedAthlete.user?.lastName}`}
+                  </h2>
+                  <div className="flex items-center justify-center gap-2 mt-2">
+                    {selectedAthlete.jerseyNumber && (
+                      <Badge className="bg-primary text-primary-foreground">#{selectedAthlete.jerseyNumber}</Badge>
+                    )}
+                    {selectedAthlete.position && (
+                      <Badge variant="outline">{selectedAthlete.position}</Badge>
+                    )}
+                  </div>
+                  {currentTeam && (
+                    <p className="text-sm text-muted-foreground mt-2">{currentTeam.name}</p>
+                  )}
+                </div>
+
+                {/* Stats Overview */}
+                <Card className="bg-card/80 backdrop-blur-sm border-white/10 mb-4">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-around mb-4">
+                      <div className="text-center">
+                        <p className="text-3xl font-display font-bold text-primary">{selectedAthleteStats?.gamesPlayed || 0}</p>
+                        <p className="text-xs text-muted-foreground">Games</p>
+                      </div>
+                      {selectedAthleteStats?.hotStreak && (
+                        <div className="text-center">
+                          <div className="flex items-center justify-center gap-1 text-orange-500">
+                            <Flame className="h-5 w-5" />
+                            <span className="text-xl font-bold">{selectedAthleteStats.streakLength}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">Hot Streak</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {selectedAthleteStats?.stats && Object.keys(selectedAthleteStats.stats).length > 0 ? (
+                      <div className="grid grid-cols-3 gap-2">
+                        {Object.entries(selectedAthleteStats.stats).slice(0, 6).map(([key, value]) => {
+                          const statData = typeof value === "object" && value !== null ? value as { total: number; perGame: number } : { total: value as number, perGame: 0 };
+                          return (
+                            <div key={key} className="text-center p-2 rounded-lg bg-white/5">
+                              <p className="text-xl font-bold text-primary">{statData.total}</p>
+                              <p className="text-xs font-semibold uppercase">{key}</p>
+                              <p className="text-xs text-muted-foreground">{statData.perGame}/g</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-center text-muted-foreground text-sm">No stats recorded yet</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Progression Chart */}
+                {selectedAthleteStats?.gameHistory && selectedAthleteStats.gameHistory.length > 1 && (
+                  <Card className="bg-card/80 backdrop-blur-sm border-white/10 mb-4">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="font-display uppercase tracking-wide text-xs flex items-center gap-2">
+                        <TrendingUp className="h-3 w-3 text-green-500" />
+                        Progression
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-2">
+                      {(() => {
+                        const chartData = selectedAthleteStats.gameHistory.map((game: any, idx: number) => {
+                          const stats = game.stats || {};
+                          return { game: `G${idx + 1}`, ...stats };
+                        }).reverse();
+                        
+                        const statKeys = Object.keys(selectedAthleteStats.stats || {}).slice(0, 3);
+                        const colors = ['#3b82f6', '#22c55e', '#f59e0b'];
+                        
+                        return (
+                          <div className="h-32">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={chartData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                <XAxis dataKey="game" stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                                <YAxis stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                                <Tooltip 
+                                  contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', fontSize: '11px' }}
+                                />
+                                {statKeys.map((key, idx) => (
+                                  <Line key={key} type="monotone" dataKey={key} stroke={colors[idx]} strokeWidth={2} dot={{ r: 3 }} />
+                                ))}
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        );
+                      })()}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Recent Games */}
+                {selectedAthleteStats?.gameHistory && selectedAthleteStats.gameHistory.length > 0 && (
+                  <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="font-display uppercase tracking-wide text-xs flex items-center gap-2">
+                        <BarChart3 className="h-3 w-3 text-blue-500" />
+                        Recent Games
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="divide-y divide-white/10">
+                        {selectedAthleteStats.gameHistory.slice(0, 3).map((game: any, idx: number) => (
+                          <div key={game.gameId || idx} className="p-3 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
+                                game.result === 'W' ? 'bg-green-500/20 text-green-400' :
+                                game.result === 'L' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'
+                              }`}>
+                                {game.result}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">vs {game.opponent}</p>
+                                <p className="text-xs text-muted-foreground">{game.date}</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              {Object.entries(game.stats || {}).slice(0, 2).map(([key, val]) => (
+                                <div key={key} className="text-center">
+                                  <div className="text-sm font-bold text-primary">{String(val)}</div>
+                                  <div className="text-xs text-muted-foreground uppercase">{key}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
