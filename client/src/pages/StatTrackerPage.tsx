@@ -953,6 +953,13 @@ export default function StatTrackerPage() {
 
         {viewMode === "summary" && currentGame && (
           <div className="space-y-6">
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 flex items-center gap-3">
+              <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
+              <p className="text-sm text-green-600 dark:text-green-400">
+                Game stats have been saved. Here is the summary.
+              </p>
+            </div>
+            
             <Card className="bg-gradient-to-br from-primary/20 to-accent/20 border-white/10">
               <CardContent className="p-6">
                 <div className="text-center mb-4">
