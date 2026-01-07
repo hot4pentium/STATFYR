@@ -85,48 +85,34 @@ export default function StatsPage() {
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <Card key={i} className="bg-card border-white/5 animate-pulse">
-                <CardContent className="p-6 h-24" />
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="bg-card border-white/5" data-testid="card-games">
-                <CardContent className="p-6 text-center">
-                  <div className="text-4xl font-display font-bold text-primary">{totalGames}</div>
-                  <div className="text-sm text-muted-foreground mt-1">Games</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-card border-white/5" data-testid="card-wins">
-                <CardContent className="p-6 text-center">
-                  <div className="text-4xl font-display font-bold text-green-500">{aggregateStats?.wins || 0}</div>
-                  <div className="text-sm text-muted-foreground mt-1">Wins</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-card border-white/5" data-testid="card-losses">
-                <CardContent className="p-6 text-center">
-                  <div className="text-4xl font-display font-bold text-red-500">{aggregateStats?.losses || 0}</div>
-                  <div className="text-sm text-muted-foreground mt-1">Losses</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-card border-white/5" data-testid="card-winrate">
-                <CardContent className="p-6 text-center">
-                  <div className="text-4xl font-display font-bold text-foreground">{winRate}%</div>
-                  <div className="text-sm text-muted-foreground mt-1">Win Rate</div>
-                </CardContent>
-              </Card>
-            </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-card border-white/5" data-testid="card-games">
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl font-display font-bold text-primary">{totalGames}</div>
+              <div className="text-sm text-muted-foreground mt-1">Games</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-white/5" data-testid="card-wins">
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl font-display font-bold text-green-500">{aggregateStats?.wins || 0}</div>
+              <div className="text-sm text-muted-foreground mt-1">Wins</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-white/5" data-testid="card-losses">
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl font-display font-bold text-red-500">{aggregateStats?.losses || 0}</div>
+              <div className="text-sm text-muted-foreground mt-1">Losses</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-white/5" data-testid="card-winrate">
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl font-display font-bold text-foreground">{winRate}%</div>
+              <div className="text-sm text-muted-foreground mt-1">Win Rate</div>
+            </CardContent>
+          </Card>
+        </div>
 
-            <div className="py-4 text-center text-muted-foreground text-sm">
-              Scroll down for detailed breakdown
-            </div>
-
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-6">
               <TabsList className="grid w-full grid-cols-3 mb-4 bg-muted/50 border border-white/10">
                 <TabsTrigger value="season" data-testid="tab-season" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Season</TabsTrigger>
                 <TabsTrigger value="athletes" data-testid="tab-athletes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Athletes</TabsTrigger>
@@ -423,9 +409,7 @@ export default function StatsPage() {
                   </>
                 )}
               </TabsContent>
-            </Tabs>
-          </>
-        )}
+        </Tabs>
       </div>
     </Layout>
   );
