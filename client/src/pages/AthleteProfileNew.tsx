@@ -1,7 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Star, Flame, Zap, Share2, MessageCircle, Bell } from "lucide-react";
+import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Star, Flame, Zap, Share2, MessageCircle, Bell, TrendingUp } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, BarChart, Bar } from "recharts";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -596,31 +597,130 @@ export default function AthleteProfileNew() {
 
               {/* Stats Section */}
               {activeSection === "stats" && (
-                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
-                  <CardContent className="p-6">
-                    <div className="text-center mb-6">
-                      <p className="text-4xl font-display font-bold text-primary">{myStats?.gamesPlayed || 0}</p>
-                      <p className="text-sm text-muted-foreground">Games Played</p>
-                    </div>
-                    {myStats?.stats && Object.keys(myStats.stats).length > 0 ? (
-                      <div className="grid grid-cols-2 gap-4">
-                        {Object.entries(myStats.stats).map(([key, value]) => {
-                          const statValue = typeof value === "object" && value !== null && "total" in value 
-                            ? (value as { total: number }).total 
-                            : value;
+                <div className="space-y-4">
+                  <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-around mb-4">
+                        <div className="text-center">
+                          <p className="text-4xl font-display font-bold text-primary">{myStats?.gamesPlayed || 0}</p>
+                          <p className="text-sm text-muted-foreground">Games</p>
+                        </div>
+                        {myStats?.hotStreak && (
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-1 text-orange-500">
+                              <Flame className="h-6 w-6" />
+                              <span className="text-2xl font-bold">{myStats.streakLength}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">Hot Streak</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {myStats?.stats && Object.keys(myStats.stats).length > 0 ? (
+                        <div className="grid grid-cols-3 gap-3">
+                          {Object.entries(myStats.stats).map(([key, value]) => {
+                            const statData = typeof value === "object" && value !== null ? value as { total: number; perGame: number; name: string } : { total: value as number, perGame: 0, name: key };
+                            return (
+                              <div key={key} className="text-center p-3 rounded-lg bg-white/5">
+                                <p className="text-2xl font-bold text-primary">{statData.total}</p>
+                                <p className="text-xs font-semibold uppercase">{key}</p>
+                                <p className="text-xs text-muted-foreground">{statData.perGame}/game</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-center text-muted-foreground">No stats recorded yet. Play some games!</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {myStats?.gameHistory && myStats.gameHistory.length > 1 && (
+                    <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 text-green-500" />
+                          My Progression
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {(() => {
+                          const chartData = myStats.gameHistory.map((game: any, idx: number) => {
+                            const stats = game.stats || {};
+                            const total = Object.values(stats).reduce((a: number, b: any) => a + (b as number), 0);
+                            return { 
+                              game: `G${idx + 1}`, 
+                              total,
+                              ...stats 
+                            };
+                          }).reverse();
+                          
+                          const statKeys = Object.keys(myStats.stats || {}).slice(0, 3);
+                          const colors = ['#3b82f6', '#22c55e', '#f59e0b'];
+                          
                           return (
-                            <div key={key} className="text-center p-3 rounded-lg bg-white/5">
-                              <p className="text-2xl font-bold">{String(statValue)}</p>
-                              <p className="text-xs text-muted-foreground capitalize">{key.replace(/_/g, " ")}</p>
+                            <div className="h-48">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                  <XAxis dataKey="game" stroke="rgba(255,255,255,0.5)" fontSize={11} />
+                                  <YAxis stroke="rgba(255,255,255,0.5)" fontSize={11} />
+                                  <Tooltip 
+                                    contentStyle={{ backgroundColor: 'rgba(0,0,0,0.9)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', fontSize: '12px' }}
+                                    labelStyle={{ color: '#fff', fontWeight: 'bold' }}
+                                  />
+                                  <Legend wrapperStyle={{ fontSize: '11px' }} />
+                                  {statKeys.map((key, idx) => (
+                                    <Line key={key} type="monotone" dataKey={key} name={key} stroke={colors[idx]} strokeWidth={2} dot={{ r: 4, fill: colors[idx] }} />
+                                  ))}
+                                </LineChart>
+                              </ResponsiveContainer>
                             </div>
                           );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-center text-muted-foreground">No stats recorded yet. Play some games to see your statistics!</p>
-                    )}
-                  </CardContent>
-                </Card>
+                        })()}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {myStats?.gameHistory && myStats.gameHistory.length > 0 && (
+                    <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
+                          <BarChart3 className="h-4 w-4 text-blue-500" />
+                          Game History
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="divide-y divide-white/10">
+                          {myStats.gameHistory.slice(0, 5).map((game: any, idx: number) => (
+                            <div key={game.gameId || idx} className="p-4 flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold ${
+                                  game.result === 'W' ? 'bg-green-500/20 text-green-400' :
+                                  game.result === 'L' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'
+                                }`}>
+                                  {game.result}
+                                </div>
+                                <div>
+                                  <p className="font-medium">vs {game.opponent}</p>
+                                  <p className="text-xs text-muted-foreground">{game.date}</p>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                {Object.entries(game.stats || {}).slice(0, 3).map(([key, val]) => (
+                                  <div key={key} className="text-center px-2">
+                                    <div className="text-sm font-bold text-primary">{String(val)}</div>
+                                    <div className="text-xs text-muted-foreground uppercase">{key}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               )}
 
               {/* Playbook Section */}
