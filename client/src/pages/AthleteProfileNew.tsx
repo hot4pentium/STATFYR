@@ -538,25 +538,27 @@ export default function AthleteProfileNew() {
                     </Card>
                   ) : (
                     teamMembers.map((member: TeamMember) => (
-                      <Card 
-                        key={member.id} 
-                        className={`bg-card/80 backdrop-blur-sm border-white/10 ${member.role === 'athlete' ? 'cursor-pointer hover:border-primary/50 transition-colors' : ''}`}
+                      <div
+                        key={member.id}
+                        className={member.role === 'athlete' ? 'cursor-pointer' : ''}
                         onClick={() => member.role === 'athlete' && setSelectedAthlete(member)}
                         data-testid={`roster-card-${member.id}`}
                       >
-                        <CardContent className="p-4 flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-lg font-bold">
-                            {member.user?.name?.charAt(0) || member.user?.firstName?.charAt(0) || "?"}
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium">{member.user?.name || `${member.user?.firstName} ${member.user?.lastName}`}</p>
-                            <p className="text-sm text-muted-foreground capitalize">{member.role}</p>
-                          </div>
-                          {member.jerseyNumber && (
-                            <Badge className="bg-primary/20 text-primary">#{member.jerseyNumber}</Badge>
-                          )}
-                        </CardContent>
-                      </Card>
+                        <Card className={`bg-card/80 backdrop-blur-sm border-white/10 ${member.role === 'athlete' ? 'hover:border-primary/50 transition-colors' : ''}`}>
+                          <CardContent className="p-4 flex items-center gap-3">
+                            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-lg font-bold">
+                              {member.user?.name?.charAt(0) || member.user?.firstName?.charAt(0) || "?"}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium">{member.user?.name || `${member.user?.firstName} ${member.user?.lastName}`}</p>
+                              <p className="text-sm text-muted-foreground capitalize">{member.role}</p>
+                            </div>
+                            {member.jerseyNumber && (
+                              <Badge className="bg-primary/20 text-primary">#{member.jerseyNumber}</Badge>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
                     ))
                   )}
                 </div>
