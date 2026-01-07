@@ -20,15 +20,19 @@ export default function StatsPage() {
     queryKey: ['teamAggregateStats', selectedTeam?.id],
     queryFn: () => selectedTeam ? getTeamAggregateStats(selectedTeam.id) : null,
     enabled: !!selectedTeam,
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 
   const { data: advancedStats, isLoading: loadingAdvanced } = useQuery({
     queryKey: ['advancedTeamStats', selectedTeam?.id],
     queryFn: () => selectedTeam ? getAdvancedTeamStats(selectedTeam.id) : null,
     enabled: !!selectedTeam,
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 
-  const isLoading = loadingAggregate || loadingAdvanced;
+  const isLoading = loadingAggregate && !aggregateStats;
 
   const totalGames = aggregateStats ? aggregateStats.wins + aggregateStats.losses : 0;
   const winRate = totalGames > 0 ? Math.round((aggregateStats!.wins / totalGames) * 100) : 0;
