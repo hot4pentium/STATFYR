@@ -1907,31 +1907,44 @@ export default function UnifiedDashboard() {
                                     </Button>
                                   )
                                 ) : (
-                                  <Button
-                                    size="sm"
-                                    className={`sm:hidden font-bold gap-1 h-6 px-2 text-xs ${
-                                      eventSessions[nextGame.id]?.status === "live"
-                                        ? "bg-red-500 hover:bg-red-600 text-white"
-                                        : "bg-green-500 hover:bg-green-600 text-white"
-                                    }`}
-                                    onClick={() => handleToggleGameDayLive(nextGame)}
-                                    disabled={loadingSessionForEvent === nextGame.id}
-                                    data-testid="button-game-day-live-mobile"
-                                  >
-                                    {loadingSessionForEvent === nextGame.id ? (
-                                      <Loader2 className="h-3 w-3 animate-spin" />
-                                    ) : eventSessions[nextGame.id]?.status === "live" ? (
-                                      <>
-                                        <Radio className="h-3 w-3" />
-                                        STOP
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Radio className="h-3 w-3" />
-                                        START
-                                      </>
+                                  <div className="flex items-center gap-1 sm:hidden">
+                                    <Button
+                                      size="sm"
+                                      className={`font-bold gap-1 h-6 px-2 text-xs ${
+                                        eventSessions[nextGame.id]?.status === "live"
+                                          ? "bg-red-500 hover:bg-red-600 text-white"
+                                          : "bg-green-500 hover:bg-green-600 text-white"
+                                      }`}
+                                      onClick={() => handleToggleGameDayLive(nextGame)}
+                                      disabled={loadingSessionForEvent === nextGame.id}
+                                      data-testid="button-game-day-live-mobile"
+                                    >
+                                      {loadingSessionForEvent === nextGame.id ? (
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                      ) : eventSessions[nextGame.id]?.status === "live" ? (
+                                        <>
+                                          <Radio className="h-3 w-3" />
+                                          STOP
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Radio className="h-3 w-3" />
+                                          START
+                                        </>
+                                      )}
+                                    </Button>
+                                    {eventSessions[nextGame.id]?.status === "live" && (
+                                      <Button
+                                        size="sm"
+                                        className="font-bold gap-1 bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30 h-6 px-2 text-xs"
+                                        onClick={() => setLocation(`/supporter/game/${nextGame.id}`)}
+                                        data-testid="button-join-game-day-live-staff-mobile"
+                                      >
+                                        <Zap className="h-3 w-3" />
+                                        JOIN
+                                      </Button>
                                     )}
-                                  </Button>
+                                  </div>
                                 )}
                               </div>
                             </>
@@ -1970,39 +1983,52 @@ export default function UnifiedDashboard() {
                                   </div>
                                 )
                               ) : (
-                                /* Coaches and Staff see Start/Stop buttons */
-                                <Button
-                                  size="default"
-                                  className={`min-w-[140px] font-bold gap-2 transition-all ${
-                                    eventSessions[nextGame.id]?.status === "live"
-                                      ? "bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-lg shadow-red-500/30"
-                                      : "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30"
-                                  }`}
-                                  onClick={() => handleToggleGameDayLive(nextGame)}
-                                  disabled={loadingSessionForEvent === nextGame.id}
-                                  data-testid="button-game-day-live"
-                                >
-                                  {loadingSessionForEvent === nextGame.id ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : eventSessions[nextGame.id]?.status === "live" ? (
-                                    <>
-                                      <Radio className="h-4 w-4" />
-                                      STOP LIVE
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Radio className="h-4 w-4" />
-                                      START LIVE
-                                    </>
-                                  )}
-                                </Button>
-                              )}
-                              {(effectiveRole === "coach" || isStaff) && (
-                                <span className="text-xs text-muted-foreground text-center">
-                                  {eventSessions[nextGame.id]?.status === "live" 
-                                    ? "Supporters are cheering!" 
-                                    : "Enable engagement"}
-                                </span>
+                                /* Coaches and Staff see Start/Stop buttons + Join when live */
+                                <div className="flex flex-col items-center gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      size="default"
+                                      className={`min-w-[100px] font-bold gap-2 transition-all ${
+                                        eventSessions[nextGame.id]?.status === "live"
+                                          ? "bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-lg shadow-red-500/30"
+                                          : "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30"
+                                      }`}
+                                      onClick={() => handleToggleGameDayLive(nextGame)}
+                                      disabled={loadingSessionForEvent === nextGame.id}
+                                      data-testid="button-game-day-live"
+                                    >
+                                      {loadingSessionForEvent === nextGame.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : eventSessions[nextGame.id]?.status === "live" ? (
+                                        <>
+                                          <Radio className="h-4 w-4" />
+                                          STOP
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Radio className="h-4 w-4" />
+                                          START
+                                        </>
+                                      )}
+                                    </Button>
+                                    {eventSessions[nextGame.id]?.status === "live" && (
+                                      <Button
+                                        size="default"
+                                        className="min-w-[100px] font-bold gap-2 bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30"
+                                        onClick={() => setLocation(`/supporter/game/${nextGame.id}`)}
+                                        data-testid="button-join-game-day-live-staff"
+                                      >
+                                        <Zap className="h-4 w-4" />
+                                        JOIN
+                                      </Button>
+                                    )}
+                                  </div>
+                                  <span className="text-xs text-muted-foreground text-center">
+                                    {eventSessions[nextGame.id]?.status === "live" 
+                                      ? "Session is live!" 
+                                      : "Enable engagement"}
+                                  </span>
+                                </div>
                               )}
                             </>
                           ) : (
