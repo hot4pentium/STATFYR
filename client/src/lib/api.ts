@@ -594,62 +594,6 @@ export async function bulkCreateGameRoster(gameId: string, requesterId: string):
   return res.json();
 }
 
-// Team Aggregate Stats
-export interface TeamAggregateStats {
-  games: number;
-  wins: number;
-  losses: number;
-  statTotals: Record<string, { name: string; total: number }>;
-}
-
-export async function getTeamAggregateStats(teamId: string): Promise<TeamAggregateStats> {
-  const res = await fetch(`/api/teams/${teamId}/stats/aggregate`);
-  if (!res.ok) throw new Error("Failed to get team aggregate stats");
-  return res.json();
-}
-
-export interface AdvancedTeamStats {
-  gameHistory: Array<{
-    id: string;
-    date: string;
-    opponent: string;
-    teamScore: number;
-    opponentScore: number;
-    result: 'W' | 'L' | 'T';
-    stats: Record<string, number>;
-  }>;
-  athletePerformance: Array<{
-    athleteId: string;
-    athleteName: string;
-    gamesPlayed: number;
-    stats: Record<string, number>;
-    recentGames: Array<{ gameId: string; stats: Record<string, number> }>;
-    hotStreak: boolean;
-    streakLength: number;
-  }>;
-  ratios: Record<string, { name: string; value: number; description: string }>;
-}
-
-export async function getAdvancedTeamStats(teamId: string): Promise<AdvancedTeamStats> {
-  const res = await fetch(`/api/teams/${teamId}/stats/advanced`);
-  if (!res.ok) throw new Error("Failed to get advanced team stats");
-  return res.json();
-}
-
-export interface AthleteStats {
-  gamesPlayed: number;
-  stats: Record<string, { name: string; total: number; perGame: number }>;
-  gameHistory: Array<{ gameId: string; date: string; opponent: string; result: 'W' | 'L' | 'T'; stats: Record<string, number> }>;
-  hotStreak: boolean;
-  streakLength: number;
-}
-
-export async function getAthleteStats(teamId: string, athleteId: string): Promise<AthleteStats> {
-  const res = await fetch(`/api/teams/${teamId}/athletes/${athleteId}/stats`);
-  if (!res.ok) throw new Error("Failed to get athlete stats");
-  return res.json();
-}
-
 // Starting Lineup
 export interface StartingLineupPlayer {
   id: string;

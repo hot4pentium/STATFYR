@@ -17,7 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft, Play, Pause, RotateCcw, Users, Timer, Target, 
   Plus, Minus, Check, X, ChevronUp, ChevronDown, Activity,
-  Settings, User, Trophy, Edit2, Undo2, Clock, Save, Sliders
+  Settings, User, Trophy, Edit2, Undo2, Clock, Save, Sliders,
+  TrendingUp, BarChart3, Flame, Calendar
 } from "lucide-react";
 import { Link, useLocation, useRoute } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -29,7 +30,9 @@ import {
   getGameStats, recordGameStat, deleteGameStat,
   getGameRoster, addToGameRoster, updateGameRoster, bulkCreateGameRoster,
   getTeamEvents, getTeamMembers, updateTeamMember, getStartingLineup,
-  type Game, type StatConfig, type GameStat, type GameRoster, type Event, type TeamMember
+  getAdvancedTeamStats, getAthleteStats,
+  type Game, type StatConfig, type GameStat, type GameRoster, type Event, type TeamMember,
+  type AdvancedTeamStats, type AthleteStats
 } from "@/lib/api";
 import { SPORT_STATS, SPORT_POSITIONS } from "@/lib/sportConstants";
 
@@ -60,6 +63,8 @@ export default function StatTrackerPage() {
   const [isInitializingStats, setIsInitializingStats] = useState(false);
   const [recordedPlayerId, setRecordedPlayerId] = useState<string | null>(null);
   const [showEndGameConfirm, setShowEndGameConfirm] = useState(false);
+  const [summaryTab, setSummaryTab] = useState<"game" | "season" | "progression">("game");
+  const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
 
   const { data: events = [] } = useQuery({
     queryKey: ["team-events", selectedTeam?.id],
@@ -95,6 +100,18 @@ export default function StatTrackerPage() {
     queryKey: ["game-stats", currentGameId],
     queryFn: () => currentGameId ? getGameStats(currentGameId) : [],
     enabled: !!currentGameId
+  });
+
+  const { data: advancedStats } = useQuery({
+    queryKey: ["advanced-team-stats", selectedTeam?.id],
+    queryFn: () => selectedTeam ? getAdvancedTeamStats(selectedTeam.id) : null,
+    enabled: !!selectedTeam && viewMode === "summary"
+  });
+
+  const { data: selectedAthleteStats } = useQuery({
+    queryKey: ["athlete-stats", selectedTeam?.id, selectedAthleteId],
+    queryFn: () => selectedTeam && selectedAthleteId ? getAthleteStats(selectedTeam.id, selectedAthleteId) : null,
+    enabled: !!selectedTeam && !!selectedAthleteId && summaryTab === "progression"
   });
 
   const gameEvents = events.filter(e => e.type?.toLowerCase() === "game");
@@ -959,100 +976,410 @@ export default function StatTrackerPage() {
                 Game stats have been saved. Here is the summary.
               </p>
             </div>
-            
-            <Card className="bg-gradient-to-br from-primary/20 to-accent/20 border-white/10">
-              <CardContent className="p-6">
-                <div className="text-center mb-4">
-                  <Trophy className="h-8 w-8 mx-auto text-yellow-500 mb-2" />
-                  <h2 className="text-xl font-display font-bold uppercase">Final Score</h2>
-                </div>
-                <div className="flex items-center justify-center gap-8">
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">{selectedTeam.name}</p>
-                    <p className="text-5xl font-display font-bold" data-testid="text-final-team-score">
-                      {currentGame.teamScore}
-                    </p>
-                  </div>
-                  <span className="text-2xl text-muted-foreground">-</span>
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">{currentGame.opponentName || "Opponent"}</p>
-                    <p className="text-5xl font-display font-bold" data-testid="text-final-opponent-score">
-                      {currentGame.opponentScore}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            <Card className="bg-card border-white/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Team Statistics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {Object.entries(getTeamTotalStats()).map(([configId, total]) => {
-                    const config = statConfigs.find(c => c.id === configId);
-                    if (!config) return null;
-                    return (
-                      <div key={configId} className="text-center p-3 bg-muted/30 rounded-lg">
-                        <p className="text-2xl font-bold">{total}</p>
-                        <p className="text-xs text-muted-foreground">{config.name}</p>
+            <Tabs value={summaryTab} onValueChange={(v) => setSummaryTab(v as "game" | "season" | "progression")}>
+              <TabsList className="w-full grid grid-cols-3">
+                <TabsTrigger value="game" data-testid="tab-game-summary">
+                  <Trophy className="h-4 w-4 mr-2" />
+                  This Game
+                </TabsTrigger>
+                <TabsTrigger value="season" data-testid="tab-season-stats">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Season
+                </TabsTrigger>
+                <TabsTrigger value="progression" data-testid="tab-progression">
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  Progression
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="game" className="space-y-6 mt-4">
+                <Card className="bg-gradient-to-br from-primary/20 to-accent/20 border-white/10">
+                  <CardContent className="p-6">
+                    <div className="text-center mb-4">
+                      <Trophy className="h-8 w-8 mx-auto text-yellow-500 mb-2" />
+                      <h2 className="text-xl font-display font-bold uppercase">Final Score</h2>
+                    </div>
+                    <div className="flex items-center justify-center gap-8">
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">{selectedTeam.name}</p>
+                        <p className="text-5xl font-display font-bold" data-testid="text-final-team-score">
+                          {currentGame.teamScore}
+                        </p>
                       </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                      <span className="text-2xl text-muted-foreground">-</span>
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">{currentGame.opponentName || "Opponent"}</p>
+                        <p className="text-5xl font-display font-bold" data-testid="text-final-opponent-score">
+                          {currentGame.opponentScore}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            {trackingMode === "individual" && (
-              <Card className="bg-card border-white/5">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Individual Statistics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {gameRoster.map(player => {
-                      const playerStats = getPlayerStats(player.athleteId);
-                      if (playerStats.length === 0) return null;
-                      
-                      const statTotals: Record<string, number> = {};
-                      playerStats.forEach(s => {
-                        statTotals[s.statConfigId] = (statTotals[s.statConfigId] || 0) + s.value;
-                      });
-                      
-                      return (
-                        <div key={player.id} className="p-4 bg-muted/20 rounded-lg" data-testid={`summary-player-${player.athleteId}`}>
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className="font-mono font-bold text-primary">
-                              #{player.jerseyNumber || "--"}
-                            </span>
-                            <span className="font-medium">
-                              {player.athlete.firstName} {player.athlete.lastName}
-                            </span>
+                <Card className="bg-card border-white/5">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="h-5 w-5" />
+                      Team Statistics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      {Object.entries(getTeamTotalStats()).map(([configId, total]) => {
+                        const config = statConfigs.find(c => c.id === configId);
+                        if (!config) return null;
+                        return (
+                          <div key={configId} className="text-center p-3 bg-muted/30 rounded-lg">
+                            <p className="text-2xl font-bold">{total}</p>
+                            <p className="text-xs text-muted-foreground">{config.name}</p>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            {Object.entries(statTotals).map(([configId, total]) => {
-                              const config = statConfigs.find(c => c.id === configId);
-                              return (
-                                <Badge key={configId} variant="secondary">
-                                  {config?.shortName}: {total}
-                                </Badge>
-                              );
-                            })}
-                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {trackingMode === "individual" && (
+                  <Card className="bg-card border-white/5">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Individual Statistics
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {gameRoster.map(player => {
+                          const playerStats = getPlayerStats(player.athleteId);
+                          if (playerStats.length === 0) return null;
+                          
+                          const statTotals: Record<string, number> = {};
+                          playerStats.forEach(s => {
+                            statTotals[s.statConfigId] = (statTotals[s.statConfigId] || 0) + s.value;
+                          });
+                          
+                          return (
+                            <div key={player.id} className="p-4 bg-muted/20 rounded-lg" data-testid={`summary-player-${player.athleteId}`}>
+                              <div className="flex items-center gap-3 mb-3">
+                                <span className="font-mono font-bold text-primary">
+                                  #{player.jerseyNumber || "--"}
+                                </span>
+                                <span className="font-medium">
+                                  {player.athlete.firstName} {player.athlete.lastName}
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {Object.entries(statTotals).map(([configId, total]) => {
+                                  const config = statConfigs.find(c => c.id === configId);
+                                  return (
+                                    <Badge key={configId} variant="secondary">
+                                      {config?.shortName}: {total}
+                                    </Badge>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="season" className="space-y-6 mt-4">
+                {advancedStats && (
+                  <>
+                    <Card className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-white/10">
+                      <CardContent className="p-6">
+                        <div className="text-center mb-4">
+                          <BarChart3 className="h-8 w-8 mx-auto text-blue-500 mb-2" />
+                          <h2 className="text-xl font-display font-bold uppercase">Season Record</h2>
                         </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                        <div className="flex items-center justify-center gap-8">
+                          <div className="text-center">
+                            <p className="text-4xl font-display font-bold text-green-500">
+                              {advancedStats.gameHistory.filter(g => g.result === 'W').length}
+                            </p>
+                            <p className="text-sm text-muted-foreground">Wins</p>
+                          </div>
+                          <span className="text-2xl text-muted-foreground">-</span>
+                          <div className="text-center">
+                            <p className="text-4xl font-display font-bold text-red-500">
+                              {advancedStats.gameHistory.filter(g => g.result === 'L').length}
+                            </p>
+                            <p className="text-sm text-muted-foreground">Losses</p>
+                          </div>
+                          {advancedStats.gameHistory.filter(g => g.result === 'T').length > 0 && (
+                            <>
+                              <span className="text-2xl text-muted-foreground">-</span>
+                              <div className="text-center">
+                                <p className="text-4xl font-display font-bold text-yellow-500">
+                                  {advancedStats.gameHistory.filter(g => g.result === 'T').length}
+                                </p>
+                                <p className="text-sm text-muted-foreground">Ties</p>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <p className="text-center text-sm text-muted-foreground mt-4">
+                          {advancedStats.gameHistory.length} games played
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {Object.keys(advancedStats.ratios).length > 0 && (
+                      <Card className="bg-card border-white/5">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Target className="h-5 w-5" />
+                            Season Averages & Ratios
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            {Object.entries(advancedStats.ratios).map(([key, ratio]) => (
+                              <div key={key} className="text-center p-3 bg-muted/30 rounded-lg">
+                                <p className="text-2xl font-bold">{ratio.value.toFixed(1)}%</p>
+                                <p className="text-xs text-muted-foreground">{ratio.name}</p>
+                                <p className="text-xs text-muted-foreground/70 mt-1">{ratio.description}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    <Card className="bg-card border-white/5">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="h-5 w-5" />
+                          Athlete Season Totals
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {advancedStats.athletePerformance
+                            .sort((a, b) => b.gamesPlayed - a.gamesPlayed)
+                            .map(athlete => (
+                            <div key={athlete.athleteId} className="p-4 bg-muted/20 rounded-lg" data-testid={`season-athlete-${athlete.athleteId}`}>
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="font-medium">{athlete.athleteName}</span>
+                                  {athlete.hotStreak && (
+                                    <Badge variant="destructive" className="flex items-center gap-1">
+                                      <Flame className="h-3 w-3" />
+                                      {athlete.streakLength} game streak
+                                    </Badge>
+                                  )}
+                                </div>
+                                <span className="text-sm text-muted-foreground">
+                                  {athlete.gamesPlayed} games
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                                {Object.entries(athlete.stats)
+                                  .filter(([_, value]) => value > 0)
+                                  .sort((a, b) => b[1] - a[1])
+                                  .map(([statName, total]) => (
+                                  <div key={statName} className="text-center p-2 bg-background/50 rounded">
+                                    <p className="text-lg font-bold">{total}</p>
+                                    <p className="text-xs text-muted-foreground">{statName}</p>
+                                    <p className="text-xs text-muted-foreground/70">
+                                      ({(total / athlete.gamesPlayed).toFixed(1)}/g)
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                          {advancedStats.athletePerformance.length === 0 && (
+                            <p className="text-center text-muted-foreground py-4">
+                              No athlete statistics recorded yet
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-card border-white/5">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Calendar className="h-5 w-5" />
+                          Game History
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {advancedStats.gameHistory.slice(0, 10).map(game => (
+                            <div key={game.id} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <Badge variant={game.result === 'W' ? 'default' : game.result === 'L' ? 'destructive' : 'secondary'}>
+                                  {game.result}
+                                </Badge>
+                                <span className="text-sm">vs {game.opponent}</span>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="font-mono font-bold">
+                                  {game.teamScore} - {game.opponentScore}
+                                </span>
+                                <span className="text-xs text-muted-foreground">{game.date}</span>
+                              </div>
+                            </div>
+                          ))}
+                          {advancedStats.gameHistory.length === 0 && (
+                            <p className="text-center text-muted-foreground py-4">
+                              No completed games yet
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+                {!advancedStats && (
+                  <Card className="bg-card border-white/5">
+                    <CardContent className="p-8 text-center">
+                      <p className="text-muted-foreground">Loading season statistics...</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="progression" className="space-y-6 mt-4">
+                <Card className="bg-card border-white/5">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Select Athlete
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Select value={selectedAthleteId || ""} onValueChange={setSelectedAthleteId}>
+                      <SelectTrigger data-testid="select-athlete-progression">
+                        <SelectValue placeholder="Choose an athlete to view progression" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {advancedStats?.athletePerformance.map(athlete => (
+                          <SelectItem key={athlete.athleteId} value={athlete.athleteId}>
+                            {athlete.athleteName} ({athlete.gamesPlayed} games)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </CardContent>
+                </Card>
+
+                {selectedAthleteStats && (
+                  <>
+                    <Card className="bg-gradient-to-br from-green-500/20 to-teal-500/20 border-white/10">
+                      <CardContent className="p-6">
+                        <div className="text-center mb-4">
+                          <TrendingUp className="h-8 w-8 mx-auto text-green-500 mb-2" />
+                          <h2 className="text-xl font-display font-bold uppercase">Season Summary</h2>
+                        </div>
+                        <div className="flex items-center justify-center gap-4 flex-wrap">
+                          <div className="text-center px-4">
+                            <p className="text-3xl font-display font-bold">{selectedAthleteStats.gamesPlayed}</p>
+                            <p className="text-sm text-muted-foreground">Games</p>
+                          </div>
+                          {selectedAthleteStats.hotStreak && (
+                            <Badge variant="destructive" className="flex items-center gap-1 text-lg py-2 px-4">
+                              <Flame className="h-4 w-4" />
+                              {selectedAthleteStats.streakLength} game hot streak!
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-card border-white/5">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Activity className="h-5 w-5" />
+                          Season Totals & Averages
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                          {Object.entries(selectedAthleteStats.stats)
+                            .filter(([_, stat]) => stat.total > 0)
+                            .sort((a, b) => b[1].total - a[1].total)
+                            .map(([shortName, stat]) => (
+                            <div key={shortName} className="text-center p-3 bg-muted/30 rounded-lg">
+                              <p className="text-2xl font-bold">{stat.total}</p>
+                              <p className="text-xs text-muted-foreground">{stat.name}</p>
+                              <p className="text-sm text-primary font-medium mt-1">
+                                {stat.perGame.toFixed(1)}/game
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-card border-white/5">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Calendar className="h-5 w-5" />
+                          Game-by-Game Breakdown
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {selectedAthleteStats.gameHistory.map((game, idx) => (
+                            <div key={game.gameId} className="p-4 bg-muted/20 rounded-lg" data-testid={`progression-game-${game.gameId}`}>
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-xs text-muted-foreground font-mono">
+                                    #{selectedAthleteStats.gameHistory.length - idx}
+                                  </span>
+                                  <Badge variant={game.result === 'W' ? 'default' : game.result === 'L' ? 'destructive' : 'secondary'}>
+                                    {game.result}
+                                  </Badge>
+                                  <span className="text-sm">vs {game.opponent}</span>
+                                </div>
+                                <span className="text-xs text-muted-foreground">{game.date}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {Object.entries(game.stats)
+                                  .filter(([_, value]) => value > 0)
+                                  .map(([statName, value]) => (
+                                  <Badge key={statName} variant="secondary">
+                                    {statName}: {value}
+                                  </Badge>
+                                ))}
+                                {Object.keys(game.stats).filter(k => game.stats[k] > 0).length === 0 && (
+                                  <span className="text-xs text-muted-foreground">No stats recorded</span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                          {selectedAthleteStats.gameHistory.length === 0 && (
+                            <p className="text-center text-muted-foreground py-4">
+                              No game history for this athlete
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+
+                {!selectedAthleteId && (
+                  <Card className="bg-card border-white/5">
+                    <CardContent className="p-8 text-center">
+                      <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                      <p className="text-muted-foreground">
+                        Select an athlete above to view their game-by-game progression and stats breakdown
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+            </Tabs>
 
             <div className="flex gap-3">
               <Link href="/dashboard" className="flex-1">
@@ -1069,6 +1396,8 @@ export default function StatTrackerPage() {
                   setSelectedEventId("");
                   setOpponentName("");
                   setSelectedStat(null);
+                  setSummaryTab("game");
+                  setSelectedAthleteId(null);
                 }}
                 data-testid="button-new-game"
               >
