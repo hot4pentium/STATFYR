@@ -85,7 +85,7 @@ import {
   type TopTapper
 } from "@/lib/api";
 import { SPORT_POSITIONS } from "@/lib/sportConstants";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend, CartesianGrid } from "recharts";
 
 type UserRole = "coach" | "athlete" | "supporter";
 
