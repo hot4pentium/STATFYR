@@ -1952,7 +1952,14 @@ export default function UnifiedDashboard() {
               </div>
               <div className="flex items-center gap-2">
                 {updateAvailable && (
-                  <Button size="sm" variant="outline" onClick={applyUpdate} className="gap-1 text-xs">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={applyUpdate}
+                    onTouchEnd={(e) => { e.preventDefault(); applyUpdate(); }}
+                    className="gap-1 text-xs"
+                    data-testid="button-update"
+                  >
                     <AlertCircle className="h-3 w-3" /> Update
                   </Button>
                 )}

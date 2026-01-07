@@ -107,25 +107,11 @@ export function PWAProvider({ children }: PWAProviderProps) {
   }, []);
 
   const applyUpdate = () => {
+    console.log('[PWA] Applying update...');
+    userTriggeredUpdate.current = true;
+    
     if (waitingWorker) {
-      console.log('[PWA] Applying update...');
-      userTriggeredUpdate.current = true;
-      
-      const handleCacheRefreshed = (event: MessageEvent) => {
-        if (event.data?.type === 'CACHE_REFRESHED') {
-          console.log('[PWA] Cache refreshed, activating new SW...');
-          navigator.serviceWorker.removeEventListener('message', handleCacheRefreshed);
-          waitingWorker.postMessage('SKIP_WAITING');
-        }
-      };
-      
-      navigator.serviceWorker.addEventListener('message', handleCacheRefreshed);
-      waitingWorker.postMessage('REFRESH_CACHE');
-      
-      setTimeout(() => {
-        navigator.serviceWorker.removeEventListener('message', handleCacheRefreshed);
-        waitingWorker.postMessage('SKIP_WAITING');
-      }, 10000);
+      waitingWorker.postMessage('SKIP_WAITING');
     } else {
       console.log('[PWA] No waiting worker, reloading...');
       window.location.reload();
