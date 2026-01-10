@@ -4416,7 +4416,12 @@ export async function registerRoutes(
 
       // Store the shared team ID if same-team, null for cross-team
       const teamIdToStore = sharedTeam?.teamId || null;
-      const link = await storage.createSupporterAthleteLink(userId, athleteId, teamIdToStore || undefined, nickname);
+      const link = await storage.createSupporterAthleteLink({
+        supporterId: userId,
+        athleteId,
+        teamId: teamIdToStore,
+        nickname: nickname || null,
+      });
       res.json({ link, isCrossTeam: isCrossTeamFollow });
     } catch (error) {
       console.error("Failed to follow athlete:", error);
@@ -4514,6 +4519,63 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Failed to search athletes:", error);
       res.status(500).json({ error: "Failed to search athletes" });
+    }
+  });
+
+  // Follow athlete by athlete code
+  app.post("/api/supporter/follow-by-code", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { code } = req.body;
+      if (!code) {
+        return res.status(400).json({ error: "Athlete code is required" });
+      }
+
+      // Find athlete by their personal code
+      const athlete = await storage.findAthleteByCode(code.toUpperCase());
+      if (!athlete) {
+        return res.status(404).json({ error: "Invalid athlete code" });
+      }
+
+      // Check if already following
+      const existingLink = await storage.getSupporterAthleteLink(userId, athlete.id);
+      if (existingLink) {
+        return res.status(400).json({ error: "Already following this athlete" });
+      }
+
+      // Get one of the athlete's teams if they're on any
+      const athleteTeams = await storage.getTeamsByUserId(athlete.id);
+      const teamId = athleteTeams.length > 0 ? athleteTeams[0].id : null;
+
+      // Create the follow link
+      const link = await storage.createSupporterAthleteLink({
+        supporterId: userId,
+        athleteId: athlete.id,
+        teamId,
+        nickname: null,
+      });
+
+      res.json({ 
+        success: true, 
+        athlete: {
+          id: athlete.id,
+          name: athlete.name || athlete.username || athlete.email,
+          position: athlete.position,
+          number: athlete.number,
+          profileImageUrl: athlete.profileImageUrl,
+        },
+        link 
+      });
+    } catch (error) {
+      console.error("Failed to follow athlete by code:", error);
+      res.status(500).json({ error: "Failed to follow athlete by code" });
     }
   });
 
@@ -4640,6 +4702,359 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Failed to get aggregate supporter stats:", error);
       res.status(500).json({ error: "Failed to get aggregate supporter stats" });
+    }
+  });
+
+  // ==================== Supporter Managed Athletes ====================
+
+  // Get supporter's managed athletes (independently managed)
+  app.get("/api/supporter/managed-athletes", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const managedAthletes = await storage.getManagedAthletes(userId);
+      res.json({ managedAthletes });
+    } catch (error) {
+      console.error("Failed to get managed athletes:", error);
+      res.status(500).json({ error: "Failed to get managed athletes" });
+    }
+  });
+
+  // Create a new managed athlete (independent - not linked to existing user)
+  app.post("/api/supporter/managed-athletes", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { supporterId, athleteName, sport, position, number } = req.body;
+      
+      if (supporterId !== userId) {
+        return res.status(403).json({ error: "Cannot create managed athlete for another user" });
+      }
+
+      if (!athleteName || !sport) {
+        return res.status(400).json({ error: "athleteName and sport are required" });
+      }
+
+      const managedAthlete = await storage.createManagedAthlete({
+        supporterId,
+        athleteId: null,
+        athleteName,
+        sport,
+        position: position || null,
+        number: number || null,
+        isOwner: true,
+        profileImageUrl: null,
+      });
+
+      res.json({ managedAthlete, athlete: { name: athleteName } });
+    } catch (error) {
+      console.error("Failed to create managed athlete:", error);
+      res.status(500).json({ error: "Failed to create managed athlete" });
+    }
+  });
+
+  // Update a managed athlete
+  app.patch("/api/supporter/managed-athletes/:id", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { id } = req.params;
+      const { athleteName, sport, position, number, profileImageUrl, nickname } = req.body;
+
+      const existing = await storage.getManagedAthleteById(id);
+      if (!existing) {
+        return res.status(404).json({ error: "Managed athlete not found" });
+      }
+      if (existing.supporterId !== userId) {
+        return res.status(403).json({ error: "Cannot update another user's managed athlete" });
+      }
+
+      // Build updates object with only defined values
+      const updates: Partial<{
+        athleteName: string;
+        sport: string;
+        position: string | null;
+        number: string | null;
+        profileImageUrl: string | null;
+        nickname: string | null;
+      }> = {};
+      
+      if (athleteName !== undefined) updates.athleteName = athleteName;
+      if (sport !== undefined) updates.sport = sport;
+      if (position !== undefined) updates.position = position;
+      if (number !== undefined) updates.number = number;
+      if (profileImageUrl !== undefined) updates.profileImageUrl = profileImageUrl;
+      if (nickname !== undefined) updates.nickname = nickname;
+
+      const updated = await storage.updateManagedAthlete(id, updates);
+      res.json({ managedAthlete: updated });
+    } catch (error) {
+      console.error("Failed to update managed athlete:", error);
+      res.status(500).json({ error: "Failed to update managed athlete" });
+    }
+  });
+
+  // Delete a managed athlete
+  app.delete("/api/supporter/managed-athletes/:id", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { id } = req.params;
+
+      const existing = await storage.getManagedAthleteById(id);
+      if (!existing) {
+        return res.status(404).json({ error: "Managed athlete not found" });
+      }
+      if (existing.supporterId !== userId) {
+        return res.status(403).json({ error: "Cannot delete another user's managed athlete" });
+      }
+
+      await storage.deleteManagedAthlete(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to delete managed athlete:", error);
+      res.status(500).json({ error: "Failed to delete managed athlete" });
+    }
+  });
+
+  // ==================== Supporter Events ====================
+
+  // Get events for a managed athlete
+  app.get("/api/supporter/managed-athletes/:id/events", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { id } = req.params;
+
+      const managedAthlete = await storage.getManagedAthleteById(id);
+      if (!managedAthlete) {
+        return res.status(404).json({ error: "Managed athlete not found" });
+      }
+      if (managedAthlete.supporterId !== userId) {
+        return res.status(403).json({ error: "Cannot view events for another user's managed athlete" });
+      }
+
+      const events = await storage.getSupporterEvents(id);
+      res.json({ events });
+    } catch (error) {
+      console.error("Failed to get supporter events:", error);
+      res.status(500).json({ error: "Failed to get supporter events" });
+    }
+  });
+
+  // Create an event for a managed athlete
+  app.post("/api/supporter/managed-athletes/:id/events", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { id } = req.params;
+      const { title, description, eventType, startTime, endTime, location, opponentName } = req.body;
+
+      const managedAthlete = await storage.getManagedAthleteById(id);
+      if (!managedAthlete) {
+        return res.status(404).json({ error: "Managed athlete not found" });
+      }
+      if (managedAthlete.supporterId !== userId) {
+        return res.status(403).json({ error: "Cannot create events for another user's managed athlete" });
+      }
+
+      if (!title || !startTime) {
+        return res.status(400).json({ error: "title and startTime are required" });
+      }
+
+      const event = await storage.createSupporterEvent({
+        supporterId: userId,
+        managedAthleteId: id,
+        title,
+        description: description || null,
+        eventType: eventType || "game",
+        startTime: new Date(startTime),
+        endTime: endTime ? new Date(endTime) : null,
+        location: location || null,
+        opponentName: opponentName || null,
+      });
+
+      res.json({ event });
+    } catch (error) {
+      console.error("Failed to create supporter event:", error);
+      res.status(500).json({ error: "Failed to create supporter event" });
+    }
+  });
+
+  // Update a supporter event
+  app.patch("/api/supporter/events/:eventId", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { eventId } = req.params;
+      const { title, description, eventType, startTime, endTime, location, opponentName } = req.body;
+
+      const existing = await storage.getSupporterEventById(eventId);
+      if (!existing) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      if (existing.supporterId !== userId) {
+        return res.status(403).json({ error: "Cannot update another user's event" });
+      }
+
+      // Build updates object with only defined values
+      const updates: Partial<{
+        title: string;
+        description: string | null;
+        eventType: string;
+        startTime: Date;
+        endTime: Date | null;
+        location: string | null;
+        opponentName: string | null;
+      }> = {};
+      
+      if (title !== undefined) updates.title = title;
+      if (description !== undefined) updates.description = description;
+      if (eventType !== undefined) updates.eventType = eventType;
+      if (startTime !== undefined) updates.startTime = new Date(startTime);
+      if (endTime !== undefined) updates.endTime = endTime ? new Date(endTime) : null;
+      if (location !== undefined) updates.location = location;
+      if (opponentName !== undefined) updates.opponentName = opponentName;
+
+      const updated = await storage.updateSupporterEvent(eventId, updates);
+      res.json({ event: updated });
+    } catch (error) {
+      console.error("Failed to update supporter event:", error);
+      res.status(500).json({ error: "Failed to update supporter event" });
+    }
+  });
+
+  // Delete a supporter event
+  app.delete("/api/supporter/events/:eventId", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { eventId } = req.params;
+
+      const existing = await storage.getSupporterEventById(eventId);
+      if (!existing) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      if (existing.supporterId !== userId) {
+        return res.status(403).json({ error: "Cannot delete another user's event" });
+      }
+
+      await storage.deleteSupporterEvent(eventId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to delete supporter event:", error);
+      res.status(500).json({ error: "Failed to delete supporter event" });
+    }
+  });
+
+  // ==================== Athlete Code Endpoints ====================
+
+  // Get athlete's personal code
+  app.get("/api/athlete/code", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      if (user.role !== 'athlete') {
+        return res.status(403).json({ error: "Only athletes have personal codes" });
+      }
+
+      // Generate code if not exists
+      let code = user.athleteCode;
+      if (!code) {
+        code = await storage.generateAndSetAthleteCode(userId);
+      }
+
+      res.json({ code });
+    } catch (error) {
+      console.error("Failed to get athlete code:", error);
+      res.status(500).json({ error: "Failed to get athlete code" });
+    }
+  });
+
+  // Regenerate athlete's personal code
+  app.post("/api/athlete/code/regenerate", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      if (user.role !== 'athlete') {
+        return res.status(403).json({ error: "Only athletes can regenerate personal codes" });
+      }
+
+      const code = await storage.generateAndSetAthleteCode(userId);
+      res.json({ code });
+    } catch (error) {
+      console.error("Failed to regenerate athlete code:", error);
+      res.status(500).json({ error: "Failed to regenerate athlete code" });
     }
   });
 

@@ -139,11 +139,31 @@ export const playsRelations = relations(plays, ({ one }) => ({
 export const managedAthletes = pgTable("managed_athletes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   supporterId: varchar("supporter_id").notNull().references(() => users.id),
-  athleteId: varchar("athlete_id").notNull().references(() => users.id),
+  athleteId: varchar("athlete_id").references(() => users.id),
+  athleteName: text("athlete_name"),
+  sport: text("sport"),
+  position: text("position"),
+  number: text("number"),
+  isOwner: boolean("is_owner").notNull().default(false),
+  profileImageUrl: text("profile_image_url"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const managedAthletesRelations = relations(managedAthletes, ({ one }) => ({
+export const supporterEvents = pgTable("supporter_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  supporterId: varchar("supporter_id").notNull().references(() => users.id),
+  managedAthleteId: varchar("managed_athlete_id").notNull().references(() => managedAthletes.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  eventType: text("event_type").notNull().default("game"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  location: text("location"),
+  opponentName: text("opponent_name"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const managedAthletesRelations = relations(managedAthletes, ({ one, many }) => ({
   supporter: one(users, {
     fields: [managedAthletes.supporterId],
     references: [users.id],
@@ -151,6 +171,18 @@ export const managedAthletesRelations = relations(managedAthletes, ({ one }) => 
   athlete: one(users, {
     fields: [managedAthletes.athleteId],
     references: [users.id],
+  }),
+  events: many(supporterEvents),
+}));
+
+export const supporterEventsRelations = relations(supporterEvents, ({ one }) => ({
+  supporter: one(users, {
+    fields: [supporterEvents.supporterId],
+    references: [users.id],
+  }),
+  managedAthlete: one(managedAthletes, {
+    fields: [supporterEvents.managedAthleteId],
+    references: [managedAthletes.id],
   }),
 }));
 
@@ -404,6 +436,21 @@ export const insertManagedAthleteSchema = createInsertSchema(managedAthletes).om
 
 export type InsertManagedAthlete = z.infer<typeof insertManagedAthleteSchema>;
 export type ManagedAthlete = typeof managedAthletes.$inferSelect;
+
+export const insertSupporterEventSchema = createInsertSchema(supporterEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateSupporterEventSchema = createInsertSchema(supporterEvents).omit({
+  id: true,
+  supporterId: true,
+  createdAt: true,
+}).partial();
+
+export type InsertSupporterEvent = z.infer<typeof insertSupporterEventSchema>;
+export type UpdateSupporterEvent = z.infer<typeof updateSupporterEventSchema>;
+export type SupporterEvent = typeof supporterEvents.$inferSelect;
 
 // StatTracker schemas
 export const insertGameSchema = createInsertSchema(games).omit({

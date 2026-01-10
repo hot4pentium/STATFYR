@@ -1,5 +1,5 @@
 import { 
-  users, teams, teamMembers, events, highlightVideos, plays, managedAthletes,
+  users, teams, teamMembers, events, highlightVideos, plays, managedAthletes, supporterEvents,
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
   liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
@@ -12,6 +12,7 @@ import {
   type HighlightVideo, type InsertHighlightVideo, type UpdateHighlightVideo,
   type Play, type InsertPlay, type UpdatePlay,
   type ManagedAthlete, type InsertManagedAthlete,
+  type SupporterEvent, type InsertSupporterEvent, type UpdateSupporterEvent,
   type Game, type InsertGame, type UpdateGame,
   type StatConfig, type InsertStatConfig, type UpdateStatConfig,
   type GameStat, type InsertGameStat,
@@ -49,6 +50,15 @@ function generateTeamCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code = '';
   for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+function generateAthleteCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return code;
@@ -99,10 +109,19 @@ export interface IStorage {
   updatePlay(id: string, data: UpdatePlay): Promise<Play | undefined>;
   deletePlay(id: string): Promise<void>;
   
-  getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete: User; team?: Team })[]>;
+  getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete?: User; team?: Team })[]>;
+  getManagedAthleteById(id: string): Promise<ManagedAthlete | undefined>;
   createManagedAthlete(data: InsertManagedAthlete): Promise<ManagedAthlete>;
+  updateManagedAthlete(id: string, data: Partial<InsertManagedAthlete>): Promise<ManagedAthlete | undefined>;
   deleteManagedAthlete(id: string): Promise<void>;
   supporterManagesAthlete(supporterId: string, athleteId: string): Promise<boolean>;
+  
+  // Supporter Events methods
+  getSupporterEvents(managedAthleteId: string): Promise<SupporterEvent[]>;
+  getSupporterEventById(id: string): Promise<SupporterEvent | undefined>;
+  createSupporterEvent(data: InsertSupporterEvent): Promise<SupporterEvent>;
+  updateSupporterEvent(id: string, data: UpdateSupporterEvent): Promise<SupporterEvent | undefined>;
+  deleteSupporterEvent(id: string): Promise<void>;
   
   // StatTracker methods
   getGame(id: string): Promise<Game | undefined>;
@@ -241,10 +260,15 @@ export interface IStorage {
   getNotificationPreferences(userId: string): Promise<NotificationPreferences | undefined>;
   upsertNotificationPreferences(userId: string, data: UpdateNotificationPreferences): Promise<NotificationPreferences>;
   
+  // Athlete Code methods
+  findAthleteByCode(code: string): Promise<User | undefined>;
+  generateAndSetAthleteCode(userId: string): Promise<string>;
+  getTeamsByUserId(userId: string): Promise<Team[]>;
+  
   // Supporter Athlete Links methods (cross-team following)
   getSupporterAthleteLinks(supporterId: string): Promise<{ id: string; athleteId: string; teamId: string | null; nickname: string | null; athlete: User; team?: Team }[]>;
   getSupporterAthleteLink(supporterId: string, athleteId: string): Promise<{ id: string; athleteId: string; teamId: string | null; nickname: string | null } | undefined>;
-  createSupporterAthleteLink(supporterId: string, athleteId: string, teamId?: string, nickname?: string): Promise<{ id: string; supporterId: string; athleteId: string; teamId: string | null; nickname: string | null }>;
+  createSupporterAthleteLink(data: { supporterId: string; athleteId: string; teamId: string | null; nickname: string | null }): Promise<{ id: string; supporterId: string; athleteId: string; teamId: string | null; nickname: string | null }>;
   updateSupporterAthleteLink(id: string, data: { nickname?: string; isActive?: boolean }): Promise<void>;
   deleteSupporterAthleteLink(id: string): Promise<void>;
   countCrossTeamFollows(supporterId: string): Promise<number>;
@@ -613,30 +637,33 @@ export class DatabaseStorage implements IStorage {
     await db.delete(plays).where(eq(plays.id, id));
   }
 
-  async getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete: User; team?: Team })[]> {
+  async getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete?: User; team?: Team })[]> {
     const managed = await db
       .select()
       .from(managedAthletes)
       .where(eq(managedAthletes.supporterId, supporterId));
     
-    const result: (ManagedAthlete & { athlete: User; team?: Team })[] = [];
+    const result: (ManagedAthlete & { athlete?: User; team?: Team })[] = [];
     for (const m of managed) {
-      const athlete = await this.getUser(m.athleteId);
-      if (athlete) {
-        // Get the athlete's team through team membership
-        const membership = await db
-          .select()
-          .from(teamMembers)
-          .where(eq(teamMembers.userId, m.athleteId))
-          .limit(1);
-        
-        let team: Team | undefined;
-        if (membership.length > 0) {
-          const [t] = await db.select().from(teams).where(eq(teams.id, membership[0].teamId));
-          team = t;
+      if (m.athleteId) {
+        const athlete = await this.getUser(m.athleteId);
+        if (athlete) {
+          const membership = await db
+            .select()
+            .from(teamMembers)
+            .where(eq(teamMembers.userId, m.athleteId))
+            .limit(1);
+          
+          let team: Team | undefined;
+          if (membership.length > 0) {
+            const [t] = await db.select().from(teams).where(eq(teams.id, membership[0].teamId));
+            team = t;
+          }
+          
+          result.push({ ...m, athlete, team });
         }
-        
-        result.push({ ...m, athlete, team });
+      } else {
+        result.push({ ...m });
       }
     }
     return result;
@@ -660,6 +687,40 @@ export class DatabaseStorage implements IStorage {
         eq(managedAthletes.athleteId, athleteId)
       ));
     return !!managed;
+  }
+
+  async getManagedAthleteById(id: string): Promise<ManagedAthlete | undefined> {
+    const [managed] = await db.select().from(managedAthletes).where(eq(managedAthletes.id, id));
+    return managed || undefined;
+  }
+
+  async updateManagedAthlete(id: string, data: Partial<InsertManagedAthlete>): Promise<ManagedAthlete | undefined> {
+    const [updated] = await db.update(managedAthletes).set(data).where(eq(managedAthletes.id, id)).returning();
+    return updated || undefined;
+  }
+
+  // Supporter Events implementations
+  async getSupporterEvents(managedAthleteId: string): Promise<SupporterEvent[]> {
+    return await db.select().from(supporterEvents).where(eq(supporterEvents.managedAthleteId, managedAthleteId)).orderBy(desc(supporterEvents.startTime));
+  }
+
+  async getSupporterEventById(id: string): Promise<SupporterEvent | undefined> {
+    const [event] = await db.select().from(supporterEvents).where(eq(supporterEvents.id, id));
+    return event || undefined;
+  }
+
+  async createSupporterEvent(data: InsertSupporterEvent): Promise<SupporterEvent> {
+    const [event] = await db.insert(supporterEvents).values(data).returning();
+    return event;
+  }
+
+  async updateSupporterEvent(id: string, data: UpdateSupporterEvent): Promise<SupporterEvent | undefined> {
+    const [updated] = await db.update(supporterEvents).set(data).where(eq(supporterEvents.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async deleteSupporterEvent(id: string): Promise<void> {
+    await db.delete(supporterEvents).where(eq(supporterEvents.id, id));
   }
 
   // StatTracker implementations
@@ -2144,6 +2205,48 @@ export class DatabaseStorage implements IStorage {
     return !!presence;
   }
 
+  // Athlete Code methods
+  async findAthleteByCode(code: string): Promise<User | undefined> {
+    const [athlete] = await db
+      .select()
+      .from(users)
+      .where(eq(users.athleteCode, code.toUpperCase()));
+    return athlete;
+  }
+
+  async generateAndSetAthleteCode(userId: string): Promise<string> {
+    // Generate code with retry on collision
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const code = generateAthleteCode();
+      try {
+        await db.update(users).set({ athleteCode: code }).where(eq(users.id, userId));
+        return code;
+      } catch (error: any) {
+        // Retry on unique constraint violation
+        if (error.code === '23505') continue;
+        throw error;
+      }
+    }
+    throw new Error('Failed to generate unique athlete code');
+  }
+
+  async getTeamsByUserId(userId: string): Promise<Team[]> {
+    const memberships = await db
+      .select()
+      .from(teamMembers)
+      .where(eq(teamMembers.userId, userId));
+    
+    if (memberships.length === 0) return [];
+    
+    const teamIds = memberships.map(m => m.teamId);
+    const result = await db
+      .select()
+      .from(teams)
+      .where(sql`${teams.id} IN (${sql.join(teamIds.map(id => sql`${id}`), sql`, `)})`);
+    
+    return result;
+  }
+
   // Supporter Athlete Links methods
   async getSupporterAthleteLinks(supporterId: string): Promise<{ id: string; athleteId: string; teamId: string | null; nickname: string | null; athlete: User; team?: Team }[]> {
     const links = await db
@@ -2188,14 +2291,14 @@ export class DatabaseStorage implements IStorage {
     return link ? { id: link.id, athleteId: link.athleteId, teamId: link.teamId, nickname: link.nickname } : undefined;
   }
 
-  async createSupporterAthleteLink(supporterId: string, athleteId: string, teamId?: string, nickname?: string): Promise<{ id: string; supporterId: string; athleteId: string; teamId: string | null; nickname: string | null }> {
+  async createSupporterAthleteLink(data: { supporterId: string; athleteId: string; teamId: string | null; nickname: string | null }): Promise<{ id: string; supporterId: string; athleteId: string; teamId: string | null; nickname: string | null }> {
     const [link] = await db
       .insert(supporterAthleteLinks)
       .values({
-        supporterId,
-        athleteId,
-        teamId: teamId || null,
-        nickname: nickname || null,
+        supporterId: data.supporterId,
+        athleteId: data.athleteId,
+        teamId: data.teamId,
+        nickname: data.nickname,
       })
       .returning();
     return { id: link.id, supporterId: link.supporterId, athleteId: link.athleteId, teamId: link.teamId, nickname: link.nickname };

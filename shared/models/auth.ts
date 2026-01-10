@@ -50,6 +50,8 @@ export const users = pgTable("users", {
   // Password reset
   resetToken: text("reset_token"),
   resetTokenExpiry: timestamp("reset_token_expiry"),
+  // Athlete personal code for supporters to follow
+  athleteCode: varchar("athlete_code", { length: 8 }).unique(),
 });
 
 export type UpsertUser = typeof users.$inferInsert;
