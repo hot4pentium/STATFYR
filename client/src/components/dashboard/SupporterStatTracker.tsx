@@ -248,7 +248,10 @@ export function SupporterStatTracker({ teamId, sport = "basketball" }: Supporter
                               variant="outline"
                               size="sm"
                               className="justify-start h-auto py-2"
-                              onClick={() => recordStatMutation.mutate({ statName: stat.name })}
+                              onClick={() => {
+                                if (navigator.vibrate) navigator.vibrate(10);
+                                recordStatMutation.mutate({ statName: stat.name });
+                              }}
                               disabled={recordStatMutation.isPending}
                               data-testid={`button-record-${stat.shortName.toLowerCase()}`}
                             >

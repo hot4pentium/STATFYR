@@ -480,6 +480,9 @@ export default function StatTrackerPage() {
   };
 
   const handleStatClick = (config: StatConfig) => {
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
     if (trackingMode === "team") {
       handleRecordStat(config);
     } else {
