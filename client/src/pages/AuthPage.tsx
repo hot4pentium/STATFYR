@@ -6,15 +6,14 @@ import { useLocation, useSearch } from "wouter";
 import { User, Users, Clipboard, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
-import { registerUser, loginUser, getUserTeams, syncFirebaseUser, type User as UserType } from "@/lib/api";
+import { registerUser, loginUser, getUserTeams } from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
-import { signInWithGoogle, signInWithApple, checkRedirectResult, onFirebaseAuthStateChanged, type FirebaseUser } from "@/lib/firebase";
 import { useTheme } from "next-themes";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
-  const { user, setUser, setCurrentTeam, isLoading: isUserLoading, redirectNeedsRoleSelection, clearRedirectNeedsRoleSelection } = useUser();
+  const { user, setUser, setCurrentTeam, isLoading: isUserLoading } = useUser();
   const { setTheme, resolvedTheme } = useTheme();
   const previousTheme = useRef<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
@@ -47,9 +46,6 @@ export default function AuthPage() {
     }
   }, [preselectedRole]);
   
-  // Track if we've already processed a Firebase redirect to prevent duplicate syncs
-  const hasProcessedRedirect = useRef(false);
-  
   // If user is already logged in (from userContext), redirect them to their dashboard
   useEffect(() => {
     console.log('[AuthPage] Redirect check - isUserLoading:', isUserLoading, 'user:', user?.email, 'role:', user?.role);
@@ -63,140 +59,6 @@ export default function AuthPage() {
     }
   }, [user, isUserLoading, redirectTo, setLocation]);
   
-  // Handle redirect users who need role selection (flag set by UserContext)
-  useEffect(() => {
-    async function handleRedirectRoleSelection() {
-      if (hasProcessedRedirect.current || !redirectNeedsRoleSelection) return;
-      
-      console.log('[AuthPage] UserContext indicates redirect user needs role selection');
-      // Get the cached redirect result (UserContext already processed it)
-      const result = await checkRedirectResult();
-      if (result.user) {
-        hasProcessedRedirect.current = true;
-        setPendingFirebaseUser(result.user);
-        setAuthMode("signup"); // Show role selection UI
-      }
-    }
-    // Only run after userContext has finished loading
-    if (!isUserLoading && redirectNeedsRoleSelection) {
-      handleRedirectRoleSelection();
-    }
-  }, [isUserLoading, redirectNeedsRoleSelection]);
-  
-  // Store pending Firebase user when role selection is needed
-  const [pendingFirebaseUser, setPendingFirebaseUser] = useState<FirebaseUser | null>(null);
-  
-  const handleFirebaseUser = async (firebaseUser: FirebaseUser, roleOverride?: string) => {
-    setLoading(true);
-    try {
-      const roleToUse = roleOverride || selectedRole || undefined;
-      const response = await syncFirebaseUser({
-        firebaseUid: firebaseUser.uid,
-        email: firebaseUser.email,
-        displayName: firebaseUser.displayName,
-        photoURL: firebaseUser.photoURL,
-        role: roleToUse,
-      });
-      
-      // Check if role selection is needed (new user without role)
-      if ('needsRoleSelection' in response && response.needsRoleSelection) {
-        setPendingFirebaseUser(firebaseUser);
-        setAuthMode("signup"); // Show role selection
-        setLoading(false);
-        return;
-      }
-      
-      // At this point, response is a User (type narrowing)
-      const authenticatedUser = response as UserType;
-      
-      // User is authenticated
-      setUser(authenticatedUser);
-      setPendingFirebaseUser(null);
-      clearRedirectNeedsRoleSelection(); // Clear the flag since role selection is complete
-      
-      // Fetch user's teams and set the first one as current
-      let userTeams: any[] = [];
-      try {
-        userTeams = await getUserTeams(authenticatedUser.id);
-        if (userTeams.length > 0) {
-          setCurrentTeam(userTeams[0]);
-        }
-      } catch (teamError) {
-        console.log("No teams found for user");
-      }
-      
-      // Redirect based on role - coaches without teams need onboarding
-      if (redirectTo) {
-        setLocation(redirectTo);
-      } else if (authenticatedUser.role === 'coach') {
-        // New coaches need to create a team first
-        if (userTeams.length === 0) {
-          setLocation("/coach/onboarding");
-        } else {
-          setLocation("/dashboard");
-        }
-      } else if (authenticatedUser.role === 'athlete') {
-        setLocation("/athlete/dashboard");
-      } else {
-        setLocation("/supporter/dashboard");
-      }
-    } catch (error: any) {
-      console.error("Firebase sync failed:", error);
-      setErrors({ submit: error?.message || "Failed to sign in. Please try again." });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // When role is selected and we have a pending Firebase user, complete the sign-up
-  useEffect(() => {
-    if (selectedRole && pendingFirebaseUser) {
-      const userToProcess = pendingFirebaseUser;
-      // Don't clear pendingFirebaseUser here - let handleFirebaseUser clear it on success
-      // This allows retry on failure
-      handleFirebaseUser(userToProcess, selectedRole);
-    }
-  }, [selectedRole]);
-  
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    setErrors({});
-    try {
-      const result = await signInWithGoogle();
-      if (result.user) {
-        await handleFirebaseUser(result.user);
-      } else if (result.error) {
-        setErrors({ submit: result.error });
-        setLoading(false);
-      } else {
-        // No user and no error - user cancelled, reset loading
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error('Google sign-in error:', error);
-      setLoading(false);
-    }
-  };
-  
-  const handleAppleSignIn = async () => {
-    setLoading(true);
-    setErrors({});
-    try {
-      const result = await signInWithApple();
-      if (result.user) {
-        await handleFirebaseUser(result.user);
-      } else if (result.error) {
-        setErrors({ submit: result.error });
-        setLoading(false);
-      } else {
-        // No user and no error - user cancelled, reset loading
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error('Apple sign-in error:', error);
-      setLoading(false);
-    }
-  };
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -359,13 +221,6 @@ export default function AuthPage() {
   const selectRoleForSignup = (role: string) => {
     setSelectedRole(role);
     setAuthMode("signup");
-    
-    // If there's a pending Firebase user (from Google sign-in needing role selection),
-    // directly call handleFirebaseUser to complete the sign-up
-    // This also enables retry on same role if previous attempt failed
-    if (pendingFirebaseUser) {
-      handleFirebaseUser(pendingFirebaseUser, role);
-    }
   };
 
   return (
@@ -498,36 +353,6 @@ export default function AuthPage() {
               <CardDescription className="text-center">Sign in with your account</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Social login buttons */}
-              <div className="space-y-3">
-                <Button
-                  type="button"
-                  size="lg"
-                  variant="outline"
-                  className="w-full h-12 text-base border-white/20 hover:bg-white/5 shadow-lg shadow-black/20"
-                  onClick={handleGoogleSignIn}
-                  disabled={loading}
-                  data-testid="button-google-signin"
-                >
-                  <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  Continue with Google
-                </Button>
-              </div>
-              
-              <div className="relative py-3">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/20" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-card px-4 text-sm text-muted-foreground">or sign in with email</span>
-                </div>
-              </div>
-              
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email Address</Label>
@@ -618,39 +443,9 @@ export default function AuthPage() {
                 <span className="font-bold text-primary">{getRoleInfo(selectedRole).title}</span>
               </div>
               <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">Create Account</CardTitle>
-              <CardDescription className="text-center">Choose how to sign up</CardDescription>
+              <CardDescription className="text-center">Sign up with your email</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Social signup buttons */}
-              <div className="space-y-3">
-                <Button
-                  type="button"
-                  size="lg"
-                  variant="outline"
-                  className="w-full h-12 text-base border-white/20 hover:bg-white/5 shadow-lg shadow-black/20"
-                  onClick={handleGoogleSignIn}
-                  disabled={loading}
-                  data-testid="button-google-signup"
-                >
-                  <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  Sign up with Google
-                </Button>
-              </div>
-              
-              <div className="relative py-3">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/20" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-card px-4 text-sm text-muted-foreground">or sign up with email</span>
-                </div>
-              </div>
-              
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
