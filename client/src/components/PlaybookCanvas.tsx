@@ -199,20 +199,12 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
   const drawBaseballField = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (baseballImageRef.current) {
-      const img = baseballImageRef.current;
-      const scaledWidth = width * 1.4;
-      const scaledHeight = height * 1.15;
+      ctx.fillStyle = "#228B22";
+      ctx.fillRect(0, 0, width, height);
+      const scaledWidth = width * 1.3;
       const offsetX = (width - scaledWidth) / 2;
-      const offsetY = height * 0.05;
-      
-      const grassSliceHeight = img.naturalHeight * 0.15;
-      ctx.drawImage(
-        img,
-        0, 0, img.naturalWidth, grassSliceHeight,
-        0, 0, width, offsetY + 10
-      );
-      
-      ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
+      const offsetY = height * 0.1;
+      ctx.drawImage(baseballImageRef.current, offsetX, offsetY, scaledWidth, height);
     } else {
       ctx.fillStyle = "#228B22";
       ctx.fillRect(0, 0, width, height);
