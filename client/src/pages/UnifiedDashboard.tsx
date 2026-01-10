@@ -671,6 +671,10 @@ export default function UnifiedDashboard() {
         action: {
           label: "Upgrade",
           onClick: () => setLocation("/subscription")
+        },
+        cancel: {
+          label: "Dismiss",
+          onClick: () => {}
         }
       });
       return;
