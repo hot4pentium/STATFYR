@@ -2,15 +2,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check } from "lucide-react";
+import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, Users, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
+import { joinTeamByCode, getUserTeams } from "@/lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function AthleteSettings() {
   const { user: contextUser, updateUser } = useUser();
+  const queryClient = useQueryClient();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -18,8 +21,36 @@ export default function AthleteSettings() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
+  const [teamCode, setTeamCode] = useState("");
+  const [isJoiningTeam, setIsJoiningTeam] = useState(false);
 
   const appVersion = "1.0.10";
+
+  const { data: userTeams = [] } = useQuery({
+    queryKey: ["/api/users", contextUser?.id, "teams"],
+    queryFn: () => contextUser ? getUserTeams(contextUser.id) : Promise.resolve([]),
+    enabled: !!contextUser,
+  });
+
+  const handleJoinTeam = async () => {
+    if (!contextUser || !teamCode.trim()) {
+      toast.error("Please enter a team code");
+      return;
+    }
+
+    setIsJoiningTeam(true);
+    try {
+      await joinTeamByCode(contextUser.id, teamCode.trim().toUpperCase(), "athlete");
+      toast.success("Successfully joined the team!");
+      setTeamCode("");
+      queryClient.invalidateQueries({ queryKey: ["/api/users", contextUser.id, "teams"] });
+    } catch (error: any) {
+      console.error("Failed to join team:", error);
+      toast.error(error.message || "Failed to join team. Please check the code and try again.");
+    } finally {
+      setIsJoiningTeam(false);
+    }
+  };
 
   useEffect(() => {
     if (contextUser) {
@@ -286,6 +317,66 @@ export default function AthleteSettings() {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="bg-card/80 backdrop-blur-sm border-white/5">
+            <CardHeader>
+              <CardTitle className="text-lg font-display font-bold uppercase tracking-wide flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                My Teams
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {userTeams.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium uppercase tracking-wider">Current Teams</Label>
+                  <div className="space-y-2">
+                    {userTeams.map((team: any) => (
+                      <div key={team.id} className="flex items-center gap-3 p-3 bg-background/50 rounded-lg border border-white/10">
+                        <div className="h-10 w-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                          <Users className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">{team.name}</p>
+                          <p className="text-xs text-muted-foreground">{team.sport}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2 border-t border-white/10 pt-6">
+                <Label htmlFor="team-code" className="text-sm font-medium uppercase tracking-wider">Join Another Team</Label>
+                <p className="text-xs text-muted-foreground mb-2">Enter a team code to join an additional team</p>
+                <div className="flex gap-2">
+                  <Input
+                    id="team-code"
+                    data-testid="input-team-code"
+                    value={teamCode}
+                    onChange={(e) => setTeamCode(e.target.value.toUpperCase())}
+                    placeholder="Enter 6-digit code"
+                    maxLength={6}
+                    className="bg-background/50 border-white/10 focus:border-primary/50 h-11 font-mono uppercase tracking-widest text-center"
+                  />
+                  <Button
+                    onClick={handleJoinTeam}
+                    disabled={isJoiningTeam || teamCode.length < 6}
+                    data-testid="button-join-team"
+                    className="shadow-lg shadow-primary/30"
+                  >
+                    {isJoiningTeam ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-1" />
+                        Join
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card className="bg-card/80 backdrop-blur-sm border-white/5">
             <CardHeader>
