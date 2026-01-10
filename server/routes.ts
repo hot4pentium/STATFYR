@@ -4401,6 +4401,116 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== Supporter Stats (Fallback Tracking) ====================
+  
+  // Get supporter's stats for an athlete
+  app.get("/api/supporter/stats/:athleteId", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { athleteId } = req.params;
+      const { eventId } = req.query;
+
+      const stats = await storage.getSupporterStats(userId, athleteId, eventId as string | undefined);
+      res.json({ stats });
+    } catch (error) {
+      console.error("Failed to get supporter stats:", error);
+      res.status(500).json({ error: "Failed to get supporter stats" });
+    }
+  });
+
+  // Record a supporter stat
+  app.post("/api/supporter/stats", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      // Check if user has canTrackOwnStats entitlement
+      const { stripeService } = await import("./stripeService");
+      const subscription = await stripeService.getUserSubscription(userId);
+      const tier = subscription?.status === 'active' ? subscription.tier : 'free';
+      
+      if (tier !== 'supporter') {
+        return res.status(403).json({ 
+          error: "Tracking your own stats requires Supporter Pro subscription",
+          requiresUpgrade: true,
+          tier: 'supporter'
+        });
+      }
+
+      const { athleteId, eventId, teamId, statName, statValue, period, notes } = req.body;
+
+      if (!athleteId || !teamId || !statName) {
+        return res.status(400).json({ error: "Missing required fields: athleteId, teamId, statName" });
+      }
+
+      const stat = await storage.createSupporterStat({
+        supporterId: userId,
+        athleteId,
+        eventId: eventId || null,
+        teamId,
+        statName,
+        statValue: statValue || 1,
+        period: period || null,
+        notes: notes || null,
+      });
+
+      res.json({ stat });
+    } catch (error) {
+      console.error("Failed to record supporter stat:", error);
+      res.status(500).json({ error: "Failed to record supporter stat" });
+    }
+  });
+
+  // Delete a supporter stat
+  app.delete("/api/supporter/stats/:id", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { id } = req.params;
+      await storage.deleteSupporterStat(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to delete supporter stat:", error);
+      res.status(500).json({ error: "Failed to delete supporter stat" });
+    }
+  });
+
+  // Get aggregate supporter stats for an athlete
+  app.get("/api/supporter/stats/:athleteId/aggregate", async (req, res) => {
+    try {
+      const { athleteId } = req.params;
+      const { teamId } = req.query;
+
+      if (!teamId) {
+        return res.status(400).json({ error: "teamId is required" });
+      }
+
+      const aggregate = await storage.getAthleteSupporterStatsAggregate(athleteId, teamId as string);
+      res.json({ aggregate });
+    } catch (error) {
+      console.error("Failed to get aggregate supporter stats:", error);
+      res.status(500).json({ error: "Failed to get aggregate supporter stats" });
+    }
+  });
+
   return httpServer;
 }
 

@@ -1264,3 +1264,72 @@ export async function searchAthletesToFollow(userId: string, query: string): Pro
   if (!res.ok) throw new Error("Failed to search athletes");
   return res.json();
 }
+
+// Supporter Stats (fallback tracking)
+export interface SupporterStat {
+  id: string;
+  supporterId: string;
+  athleteId: string;
+  eventId: string | null;
+  teamId: string;
+  statName: string;
+  statValue: number;
+  period: number | null;
+  notes: string | null;
+  recordedAt: string;
+}
+
+export async function getSupporterStats(userId: string, athleteId: string, eventId?: string): Promise<{ stats: SupporterStat[] }> {
+  const url = eventId 
+    ? `/api/supporter/stats/${athleteId}?eventId=${encodeURIComponent(eventId)}`
+    : `/api/supporter/stats/${athleteId}`;
+  const res = await fetch(url, {
+    headers: { "x-user-id": userId }
+  });
+  if (!res.ok) throw new Error("Failed to get supporter stats");
+  return res.json();
+}
+
+export async function recordSupporterStat(
+  userId: string, 
+  data: { 
+    athleteId: string; 
+    teamId: string; 
+    statName: string; 
+    statValue?: number; 
+    eventId?: string; 
+    period?: number; 
+    notes?: string 
+  }
+): Promise<{ stat: SupporterStat }> {
+  const res = await fetch("/api/supporter/stats", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "x-user-id": userId 
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Failed to record stat");
+  }
+  return res.json();
+}
+
+export async function deleteSupporterStat(userId: string, statId: string): Promise<void> {
+  const res = await fetch(`/api/supporter/stats/${statId}`, {
+    method: "DELETE",
+    headers: { "x-user-id": userId }
+  });
+  if (!res.ok) throw new Error("Failed to delete stat");
+}
+
+export async function getAthleteSupporterStatsAggregate(
+  athleteId: string, 
+  teamId: string
+): Promise<{ aggregate: { statName: string; total: number }[] }> {
+  const res = await fetch(`/api/supporter/stats/${athleteId}/aggregate?teamId=${encodeURIComponent(teamId)}`);
+  if (!res.ok) throw new Error("Failed to get aggregate stats");
+  return res.json();
+}

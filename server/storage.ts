@@ -4,7 +4,7 @@ import {
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
   liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
   impersonationSessions, hypes, athleteHypeTotals, directMessages, messageReads, notificationPreferences,
-  supporterAthleteLinks,
+  supporterAthleteLinks, supporterStats,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -38,6 +38,7 @@ import {
   type MessageRead, type InsertMessageRead,
   type NotificationPreferences, type UpdateNotificationPreferences,
   type ChatPresence, type InsertChatPresence,
+  type SupporterStat, type InsertSupporterStat,
   chatPresence
 } from "@shared/schema";
 import { db } from "./db";
@@ -246,6 +247,13 @@ export interface IStorage {
   updateSupporterAthleteLink(id: string, data: { nickname?: string; isActive?: boolean }): Promise<void>;
   deleteSupporterAthleteLink(id: string): Promise<void>;
   countCrossTeamFollows(supporterId: string): Promise<number>;
+  
+  // Supporter Stats methods (fallback stat tracking)
+  getSupporterStats(supporterId: string, athleteId: string, eventId?: string): Promise<SupporterStat[]>;
+  getSupporterStatsByEvent(eventId: string): Promise<(SupporterStat & { supporter: User; athlete: User })[]>;
+  createSupporterStat(data: InsertSupporterStat): Promise<SupporterStat>;
+  deleteSupporterStat(id: string): Promise<void>;
+  getAthleteSupporterStatsAggregate(athleteId: string, teamId: string): Promise<{ statName: string; total: number }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2211,6 +2219,75 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return links.length;
+  }
+
+  // Supporter Stats methods (fallback stat tracking)
+  async getSupporterStats(supporterId: string, athleteId: string, eventId?: string): Promise<SupporterStat[]> {
+    const conditions = [
+      eq(supporterStats.supporterId, supporterId),
+      eq(supporterStats.athleteId, athleteId)
+    ];
+    if (eventId) {
+      conditions.push(eq(supporterStats.eventId, eventId));
+    }
+    return db
+      .select()
+      .from(supporterStats)
+      .where(and(...conditions))
+      .orderBy(desc(supporterStats.recordedAt));
+  }
+
+  async getSupporterStatsByEvent(eventId: string): Promise<(SupporterStat & { supporter: User; athlete: User })[]> {
+    const results = await db
+      .select()
+      .from(supporterStats)
+      .leftJoin(users, eq(supporterStats.supporterId, users.id))
+      .where(eq(supporterStats.eventId, eventId))
+      .orderBy(desc(supporterStats.recordedAt));
+    
+    const statsWithRelations: (SupporterStat & { supporter: User; athlete: User })[] = [];
+    for (const row of results) {
+      const athlete = await db.select().from(users).where(eq(users.id, row.supporter_stats.athleteId));
+      if (row.users && athlete[0]) {
+        statsWithRelations.push({
+          ...row.supporter_stats,
+          supporter: row.users,
+          athlete: athlete[0]
+        });
+      }
+    }
+    return statsWithRelations;
+  }
+
+  async createSupporterStat(data: InsertSupporterStat): Promise<SupporterStat> {
+    const [stat] = await db
+      .insert(supporterStats)
+      .values(data)
+      .returning();
+    return stat;
+  }
+
+  async deleteSupporterStat(id: string): Promise<void> {
+    await db
+      .delete(supporterStats)
+      .where(eq(supporterStats.id, id));
+  }
+
+  async getAthleteSupporterStatsAggregate(athleteId: string, teamId: string): Promise<{ statName: string; total: number }[]> {
+    const stats = await db
+      .select({
+        statName: supporterStats.statName,
+        total: sql<number>`COALESCE(SUM(${supporterStats.statValue}), 0)`
+      })
+      .from(supporterStats)
+      .where(
+        and(
+          eq(supporterStats.athleteId, athleteId),
+          eq(supporterStats.teamId, teamId)
+        )
+      )
+      .groupBy(supporterStats.statName);
+    return stats;
   }
 }
 
