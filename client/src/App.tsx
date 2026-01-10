@@ -65,10 +65,12 @@ function Router() {
       <Route path="/settings" component={CoachSettings} />
       <Route path="/athlete/settings" component={AthleteSettings} />
       <Route path="/profile/me" component={AthleteProfile} />
+      <Route path="/athlete" component={UnifiedDashboard} />
       <Route path="/athlete/onboarding" component={AthleteOnboarding} />
       <Route path="/athlete/dashboard" component={UnifiedDashboard} />
       <Route path="/athlete/profile" component={AthleteProfileNew} />
       <Route path="/coach/onboarding" component={CoachOnboarding} />
+      <Route path="/supporter" component={UnifiedDashboard} />
       <Route path="/supporter/onboarding" component={SupporterOnboarding} />
       <Route path="/supporter/dashboard" component={UnifiedDashboard} />
       <Route path="/supporter/settings" component={SupporterSettings} />
