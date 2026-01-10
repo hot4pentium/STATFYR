@@ -2,6 +2,10 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save } from "lucide-react";
 import basketballCourtImg from "@assets/bball_court_1766345509497.png";
+import footballFieldImg from "@assets/generated_images/football_field_top-down_view.png";
+import soccerPitchImg from "@assets/generated_images/soccer_pitch_top-down_view.png";
+import baseballDiamondImg from "@assets/generated_images/baseball_diamond_top-down_view.png";
+import volleyballCourtImg from "@assets/generated_images/volleyball_court_top-down_view.png";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -54,6 +58,10 @@ const SHAPE_SIZE = 24;
 export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSaving = false }: PlaybookCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const basketballImageRef = useRef<HTMLImageElement | null>(null);
+  const footballImageRef = useRef<HTMLImageElement | null>(null);
+  const soccerImageRef = useRef<HTMLImageElement | null>(null);
+  const baseballImageRef = useRef<HTMLImageElement | null>(null);
+  const volleyballImageRef = useRef<HTMLImageElement | null>(null);
   const [selectedTool, setSelectedTool] = useState<Tool>("freedraw");
   const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
   const [isAthletePopoverOpen, setIsAthletePopoverOpen] = useState(false);
@@ -66,19 +74,33 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const [currentPath, setCurrentPath] = useState<Point[]>([]);
   const [elements, setElements] = useState<DrawnElement[]>([]);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
-  const [basketballImageLoaded, setBasketballImageLoaded] = useState(false);
+  const [sportImagesLoaded, setSportImagesLoaded] = useState(false);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [playName, setPlayName] = useState("");
   const [playDescription, setPlayDescription] = useState("");
   const [playCategory, setPlayCategory] = useState("Offense");
 
   useEffect(() => {
-    const img = new Image();
-    img.src = basketballCourtImg;
-    img.onload = () => {
-      basketballImageRef.current = img;
-      setBasketballImageLoaded(true);
-    };
+    const imagesToLoad = [
+      { src: basketballCourtImg, ref: basketballImageRef },
+      { src: footballFieldImg, ref: footballImageRef },
+      { src: soccerPitchImg, ref: soccerImageRef },
+      { src: baseballDiamondImg, ref: baseballImageRef },
+      { src: volleyballCourtImg, ref: volleyballImageRef },
+    ];
+    
+    let loadedCount = 0;
+    imagesToLoad.forEach(({ src, ref }) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        ref.current = img;
+        loadedCount++;
+        if (loadedCount === imagesToLoad.length) {
+          setSportImagesLoaded(true);
+        }
+      };
+    });
   }, []);
 
   const sortedAthletes = [...athletes].sort((a, b) => 
@@ -146,7 +168,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     elements.forEach((element) => {
       drawElement(ctx, element);
     });
-  }, [elements, sport, basketballImageLoaded]);
+  }, [elements, sport, sportImagesLoaded]);
 
   useEffect(() => {
     redrawCanvas();
@@ -176,87 +198,12 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   };
 
   const drawBaseballField = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    ctx.fillStyle = "#228B22";
-    ctx.fillRect(0, 0, width, height);
-    
-    const centerX = width / 2;
-    const homeY = height - 60;
-    const scale = Math.min(width, height) / 600;
-    const baseDistance = 180 * scale;
-    
-    ctx.fillStyle = "#8B4513";
-    ctx.beginPath();
-    ctx.moveTo(centerX, homeY);
-    ctx.lineTo(centerX - baseDistance * 1.8, homeY - baseDistance * 1.8);
-    ctx.lineTo(centerX, homeY - baseDistance * 2.5);
-    ctx.lineTo(centerX + baseDistance * 1.8, homeY - baseDistance * 1.8);
-    ctx.closePath();
-    ctx.fill();
-    
-    ctx.fillStyle = "#228B22";
-    ctx.beginPath();
-    ctx.moveTo(centerX, homeY - baseDistance * 0.3);
-    ctx.lineTo(centerX - baseDistance * 1.5, homeY - baseDistance * 1.8);
-    ctx.lineTo(centerX, homeY - baseDistance * 2.2);
-    ctx.lineTo(centerX + baseDistance * 1.5, homeY - baseDistance * 1.8);
-    ctx.closePath();
-    ctx.fill();
-    
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-    ctx.lineWidth = 3;
-    
-    ctx.beginPath();
-    ctx.moveTo(centerX, homeY);
-    ctx.lineTo(centerX - baseDistance * 2, homeY - baseDistance * 2);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(centerX, homeY);
-    ctx.lineTo(centerX + baseDistance * 2, homeY - baseDistance * 2);
-    ctx.stroke();
-    
-    const baseSize = 12 * scale;
-    
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.moveTo(centerX, homeY - baseSize);
-    ctx.lineTo(centerX + baseSize, homeY);
-    ctx.lineTo(centerX, homeY + baseSize);
-    ctx.lineTo(centerX - baseSize, homeY);
-    ctx.closePath();
-    ctx.fill();
-    
-    ctx.fillStyle = "#ffffff";
-    ctx.save();
-    ctx.translate(centerX + baseDistance * 0.7, homeY - baseDistance * 0.7);
-    ctx.rotate(-Math.PI / 4);
-    ctx.fillRect(-baseSize/2, -baseSize/2, baseSize, baseSize);
-    ctx.restore();
-    
-    ctx.save();
-    ctx.translate(centerX, homeY - baseDistance);
-    ctx.rotate(-Math.PI / 4);
-    ctx.fillRect(-baseSize/2, -baseSize/2, baseSize, baseSize);
-    ctx.restore();
-    
-    ctx.save();
-    ctx.translate(centerX - baseDistance * 0.7, homeY - baseDistance * 0.7);
-    ctx.rotate(-Math.PI / 4);
-    ctx.fillRect(-baseSize/2, -baseSize/2, baseSize, baseSize);
-    ctx.restore();
-    
-    ctx.fillStyle = "#8B4513";
-    ctx.beginPath();
-    ctx.arc(centerX, homeY - baseDistance * 0.45, 18 * scale, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    
-    ctx.fillStyle = "#8B4513";
-    ctx.fillRect(centerX - 40 * scale, homeY - 10 * scale, 80 * scale, 8 * scale);
-    ctx.fillRect(centerX - 55 * scale, homeY + 10 * scale, 35 * scale, 40 * scale);
-    ctx.fillRect(centerX + 20 * scale, homeY + 10 * scale, 35 * scale, 40 * scale);
+    if (baseballImageRef.current) {
+      ctx.drawImage(baseballImageRef.current, 0, 0, width, height);
+    } else {
+      ctx.fillStyle = "#228B22";
+      ctx.fillRect(0, 0, width, height);
+    }
   };
 
   const drawBasketballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -269,227 +216,30 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   };
 
   const drawFootballField = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    ctx.fillStyle = "#1a472a";
-    ctx.fillRect(0, 0, width, height);
-    
-    const padding = 20;
-    const fieldWidth = width - padding * 2;
-    const fieldHeight = height - padding * 2;
-    
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-    ctx.lineWidth = 3;
-    ctx.strokeRect(padding, padding, fieldWidth, fieldHeight);
-    
-    const endZoneHeight = fieldHeight * 0.1;
-    
-    ctx.fillStyle = "#8B0000";
-    ctx.fillRect(padding, padding, fieldWidth, endZoneHeight);
-    ctx.fillStyle = "#00008B";
-    ctx.fillRect(padding, height - padding - endZoneHeight, fieldWidth, endZoneHeight);
-    
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(padding, padding + endZoneHeight);
-    ctx.lineTo(width - padding, padding + endZoneHeight);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(padding, height - padding - endZoneHeight);
-    ctx.lineTo(width - padding, height - padding - endZoneHeight);
-    ctx.stroke();
-    
-    const playableHeight = fieldHeight - endZoneHeight * 2;
-    const yardLineSpacing = playableHeight / 10;
-    
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-    ctx.lineWidth = 1;
-    for (let i = 1; i < 10; i++) {
-      const y = padding + endZoneHeight + i * yardLineSpacing;
-      ctx.beginPath();
-      ctx.moveTo(padding, y);
-      ctx.lineTo(width - padding, y);
-      ctx.stroke();
-    }
-    
-    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-    ctx.font = "bold 14px sans-serif";
-    ctx.textAlign = "center";
-    const yardNumbers = [10, 20, 30, 40, 50, 40, 30, 20, 10];
-    for (let i = 0; i < 9; i++) {
-      const y = padding + endZoneHeight + (i + 1) * yardLineSpacing;
-      ctx.fillText(yardNumbers[i].toString(), padding + 25, y + 5);
-      ctx.fillText(yardNumbers[i].toString(), width - padding - 25, y + 5);
-    }
-    
-    const hashOffset = fieldWidth * 0.3;
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-    for (let i = 0; i <= 10; i++) {
-      const y = padding + endZoneHeight + i * yardLineSpacing;
-      for (let j = 1; j < 10; j++) {
-        const miniY = y + (j / 10) * yardLineSpacing;
-        if (miniY < height - padding - endZoneHeight) {
-          ctx.beginPath();
-          ctx.moveTo(padding + hashOffset - 5, miniY);
-          ctx.lineTo(padding + hashOffset + 5, miniY);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(width - padding - hashOffset - 5, miniY);
-          ctx.lineTo(width - padding - hashOffset + 5, miniY);
-          ctx.stroke();
-        }
-      }
+    if (footballImageRef.current) {
+      ctx.drawImage(footballImageRef.current, 0, 0, width, height);
+    } else {
+      ctx.fillStyle = "#1a472a";
+      ctx.fillRect(0, 0, width, height);
     }
   };
 
   const drawSoccerPitch = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    ctx.fillStyle = "#228B22";
-    ctx.fillRect(0, 0, width, height);
-    
-    const padding = 20;
-    const pitchWidth = width - padding * 2;
-    const pitchHeight = height - padding * 2;
-    const scale = Math.min(pitchWidth / 680, pitchHeight / 1050);
-    
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-    ctx.lineWidth = 3;
-    ctx.strokeRect(padding, padding, pitchWidth, pitchHeight);
-    
-    const centerY = height / 2;
-    ctx.beginPath();
-    ctx.moveTo(padding, centerY);
-    ctx.lineTo(width - padding, centerY);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, centerY, 91.5 * scale, 0, Math.PI * 2);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, centerY, 4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    const goalAreaWidth = 183 * scale;
-    const goalAreaHeight = 55 * scale;
-    const penaltyAreaWidth = 402 * scale;
-    const penaltyAreaHeight = 165 * scale;
-    const penaltySpotDist = 110 * scale;
-    const penaltyArcRadius = 91.5 * scale;
-    const goalWidth = 73.2 * scale;
-    
-    ctx.strokeRect(width / 2 - penaltyAreaWidth / 2, padding, penaltyAreaWidth, penaltyAreaHeight);
-    ctx.strokeRect(width / 2 - goalAreaWidth / 2, padding, goalAreaWidth, goalAreaHeight);
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, padding + penaltySpotDist, 4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, padding + penaltySpotDist, penaltyArcRadius, 0.6, Math.PI - 0.6);
-    ctx.stroke();
-    
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-    ctx.strokeRect(width / 2 - goalWidth / 2, padding - 10, goalWidth, 10);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-    
-    ctx.strokeRect(width / 2 - penaltyAreaWidth / 2, height - padding - penaltyAreaHeight, penaltyAreaWidth, penaltyAreaHeight);
-    ctx.strokeRect(width / 2 - goalAreaWidth / 2, height - padding - goalAreaHeight, goalAreaWidth, goalAreaHeight);
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, height - padding - penaltySpotDist, 4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.beginPath();
-    ctx.arc(width / 2, height - padding - penaltySpotDist, penaltyArcRadius, Math.PI + 0.6, -0.6);
-    ctx.stroke();
-    
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-    ctx.strokeRect(width / 2 - goalWidth / 2, height - padding, goalWidth, 10);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-    
-    const cornerRadius = 10 * scale;
-    ctx.beginPath();
-    ctx.arc(padding, padding, cornerRadius, 0, Math.PI / 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(width - padding, padding, cornerRadius, Math.PI / 2, Math.PI);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(padding, height - padding, cornerRadius, -Math.PI / 2, 0);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(width - padding, height - padding, cornerRadius, Math.PI, Math.PI * 1.5);
-    ctx.stroke();
+    if (soccerImageRef.current) {
+      ctx.drawImage(soccerImageRef.current, 0, 0, width, height);
+    } else {
+      ctx.fillStyle = "#228B22";
+      ctx.fillRect(0, 0, width, height);
+    }
   };
 
   const drawVolleyballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    ctx.fillStyle = "#D2691E";
-    ctx.fillRect(0, 0, width, height);
-    
-    const padding = 30;
-    const courtWidth = width - padding * 2;
-    const courtHeight = height - padding * 2;
-    
-    ctx.fillStyle = "#CD853F";
-    ctx.fillRect(padding, padding, courtWidth, courtHeight);
-    
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-    ctx.lineWidth = 3;
-    ctx.strokeRect(padding, padding, courtWidth, courtHeight);
-    
-    const centerY = height / 2;
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(padding, centerY);
-    ctx.lineTo(width - padding, centerY);
-    ctx.stroke();
-    
-    const attackLineOffset = courtHeight * 0.167;
-    
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(padding, centerY - attackLineOffset);
-    ctx.lineTo(width - padding, centerY - attackLineOffset);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(padding, centerY + attackLineOffset);
-    ctx.lineTo(width - padding, centerY + attackLineOffset);
-    ctx.stroke();
-    
-    ctx.strokeStyle = "#1a1a1a";
-    ctx.lineWidth = 6;
-    ctx.setLineDash([15, 10]);
-    ctx.beginPath();
-    ctx.moveTo(padding - 15, centerY);
-    ctx.lineTo(width - padding + 15, centerY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    
-    ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
-    ctx.font = "bold 16px sans-serif";
-    ctx.textAlign = "center";
-    
-    ctx.fillText("ATTACK ZONE", width / 2, centerY - attackLineOffset / 2);
-    ctx.fillText("BACK ZONE", width / 2, centerY - attackLineOffset - (courtHeight / 2 - attackLineOffset) / 2);
-    ctx.fillText("ATTACK ZONE", width / 2, centerY + attackLineOffset / 2);
-    ctx.fillText("BACK ZONE", width / 2, centerY + attackLineOffset + (courtHeight / 2 - attackLineOffset) / 2);
-    
-    ctx.strokeStyle = "#8B4513";
-    ctx.lineWidth = 8;
-    ctx.beginPath();
-    ctx.moveTo(0, centerY);
-    ctx.lineTo(padding - 5, centerY);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(width - padding + 5, centerY);
-    ctx.lineTo(width, centerY);
-    ctx.stroke();
-    
-    ctx.fillStyle = "#8B4513";
-    ctx.fillRect(0, centerY - 20, 12, 40);
-    ctx.fillRect(width - 12, centerY - 20, 12, 40);
+    if (volleyballImageRef.current) {
+      ctx.drawImage(volleyballImageRef.current, 0, 0, width, height);
+    } else {
+      ctx.fillStyle = "#CD853F";
+      ctx.fillRect(0, 0, width, height);
+    }
   };
 
   const drawElement = (ctx: CanvasRenderingContext2D, element: DrawnElement) => {
