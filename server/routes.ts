@@ -1359,6 +1359,13 @@ export async function registerRoutes(
 
       const parsed = insertGameSchema.parse({ ...req.body, teamId: req.params.teamId });
       const game = await storage.createGame(parsed);
+      
+      if (parsed.trackingMode === 'team') {
+        notifyTeamModeStatSession(req.params.teamId).catch(err => {
+          console.error('[StatNotify] Failed to send team-mode notifications:', err);
+        });
+      }
+      
       res.json(game);
     } catch (error: any) {
       console.error("Error creating game:", error);
@@ -4527,6 +4534,23 @@ export async function registerRoutes(
     }
   });
 
+  // Internal endpoint for pre-game reminder task (called by cron/scheduled task)
+  app.post("/api/internal/run-pregame-reminders", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const internalKey = process.env.INTERNAL_API_KEY;
+      if (internalKey && authHeader !== `Bearer ${internalKey}`) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const result = await runPreGameReminders();
+      res.json(result);
+    } catch (error) {
+      console.error("Failed to run pre-game reminders:", error);
+      res.status(500).json({ error: "Failed to run pre-game reminders" });
+    }
+  });
+
   return httpServer;
 }
 
@@ -4605,6 +4629,93 @@ function computeEntitlements(tier: string, isCoach: boolean, isStaff: boolean): 
   }
 
   return base;
+}
+
+async function notifyTeamModeStatSession(teamId: string) {
+  try {
+    const team = await storage.getTeam(teamId);
+    if (!team) {
+      console.log('[StatNotify] Team not found:', teamId);
+      return;
+    }
+
+    const { sendStatSessionStartedEmail } = await import('./emailService');
+    const supportersToNotify = await storage.getPaidSupportersFollowingTeam(teamId);
+
+    console.log(`[StatNotify] Notifying ${supportersToNotify.length} paid supporters about team-mode session for team ${team.name}`);
+
+    for (const { email, name, athleteNames } of supportersToNotify) {
+      if (!email) continue;
+      
+      await sendStatSessionStartedEmail(
+        email,
+        name,
+        team.name,
+        athleteNames,
+        teamId
+      );
+    }
+  } catch (error) {
+    console.error('[StatNotify] Error in notifyTeamModeStatSession:', error);
+  }
+}
+
+const sentReminders = new Set<string>();
+
+async function runPreGameReminders() {
+  const now = new Date();
+  const thirtyMinLater = new Date(now.getTime() + 30 * 60 * 1000);
+  const fortyFiveMinLater = new Date(now.getTime() + 45 * 60 * 1000);
+  
+  const allTeams = await storage.getAllTeams();
+  let remindersSent = 0;
+  
+  for (const team of allTeams) {
+    const events = await storage.getTeamEvents(team.id);
+    
+    const upcomingGames = events.filter(event => {
+      if (event.type?.toLowerCase() !== 'game') return false;
+      const eventDate = new Date(event.date);
+      return eventDate >= thirtyMinLater && eventDate <= fortyFiveMinLater;
+    });
+    
+    for (const event of upcomingGames) {
+      const reminderKey = `${event.id}-${now.toISOString().split('T')[0]}`;
+      if (sentReminders.has(reminderKey)) continue;
+      
+      const existingGame = await storage.getGameByEvent(event.id);
+      if (existingGame && existingGame.status === 'active') continue;
+      
+      await sendPreGameRemindersForEvent(event, team);
+      sentReminders.add(reminderKey);
+      remindersSent++;
+    }
+  }
+  
+  console.log(`[PreGameReminder] Sent ${remindersSent} reminder batches`);
+  return { remindersSent };
+}
+
+async function sendPreGameRemindersForEvent(event: any, team: any) {
+  try {
+    const { sendPreGameReminderEmail } = await import('./emailService');
+    const supportersToNotify = await storage.getPaidSupportersFollowingTeam(team.id);
+
+    for (const { email, name, athleteNames } of supportersToNotify) {
+      if (!email) continue;
+
+      await sendPreGameReminderEmail(
+        email,
+        name,
+        team.name,
+        event.title || 'Game',
+        athleteNames,
+        event.id
+      );
+    }
+  } catch (error) {
+    console.error('[PreGameReminder] Error sending reminders for event:', event.id, error);
+  }
 }
 
 // Async transcoding function using FFmpeg

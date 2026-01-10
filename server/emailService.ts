@@ -377,6 +377,117 @@ export async function sendPasswordResetEmail(
   }
 }
 
+export async function sendStatSessionStartedEmail(
+  supporterEmail: string,
+  supporterName: string,
+  teamName: string,
+  athleteNames: string[],
+  teamId: string
+): Promise<EmailResult> {
+  if (!process.env.RESEND_API_KEY) {
+    console.log('[Email] Resend not configured, skipping email');
+    return { success: false, error: 'Email service not configured' };
+  }
+
+  try {
+    const athleteList = athleteNames.length <= 3 
+      ? athleteNames.join(', ')
+      : `${athleteNames.slice(0, 3).join(', ')} and ${athleteNames.length - 3} more`;
+
+    const content = `
+      <h2 style="margin: 0 0 16px; color: #fff; font-size: 20px;">Live Stats Session Started!</h2>
+      <p style="margin: 0 0 16px; color: #ccc; font-size: 16px; line-height: 1.5;">
+        <strong style="color: #f97316;">${teamName}</strong> has started a live stats session in team-only mode.
+      </p>
+      <p style="margin: 0 0 16px; color: #999; font-size: 14px;">
+        Athletes you follow: <strong style="color: #fff;">${athleteList}</strong>
+      </p>
+      <p style="margin: 0 0 20px; color: #999; font-size: 14px;">
+        As a Supporter Pro member, you can track your own stats for these athletes during the game!
+      </p>
+      <div style="background: #222; border-radius: 8px; padding: 16px; text-align: center;">
+        <a href="${APP_URL}/supporter-dashboard" style="color: #f97316; font-weight: 600; text-decoration: none;">
+          Open STATFYR to track stats
+        </a>
+      </div>
+    `;
+
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: supporterEmail,
+      subject: `${teamName} has started tracking stats!`,
+      html: getBaseTemplate(content),
+    });
+
+    if (error) {
+      console.error('[Email] Send error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('[Email] Stat session notification sent to:', supporterEmail);
+    return { success: true };
+  } catch (error: any) {
+    console.error('[Email] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function sendPreGameReminderEmail(
+  supporterEmail: string,
+  supporterName: string,
+  teamName: string,
+  eventTitle: string,
+  athleteNames: string[],
+  eventId: string
+): Promise<EmailResult> {
+  if (!process.env.RESEND_API_KEY) {
+    console.log('[Email] Resend not configured, skipping email');
+    return { success: false, error: 'Email service not configured' };
+  }
+
+  try {
+    const athleteList = athleteNames.length <= 3 
+      ? athleteNames.join(', ')
+      : `${athleteNames.slice(0, 3).join(', ')} and ${athleteNames.length - 3} more`;
+
+    const content = `
+      <h2 style="margin: 0 0 16px; color: #fff; font-size: 20px;">Game Starting Soon!</h2>
+      <p style="margin: 0 0 16px; color: #ccc; font-size: 16px; line-height: 1.5;">
+        <strong style="color: #f97316;">${eventTitle}</strong> is starting in 30 minutes!
+      </p>
+      <p style="margin: 0 0 16px; color: #999; font-size: 14px;">
+        Athletes you follow: <strong style="color: #fff;">${athleteList}</strong>
+      </p>
+      <p style="margin: 0 0 20px; color: #999; font-size: 14px;">
+        No stat session has been started yet. As a Supporter Pro member, you can track your own stats for these athletes!
+      </p>
+      <div style="background: #222; border-radius: 8px; padding: 16px; text-align: center;">
+        <a href="${APP_URL}/supporter-dashboard" style="color: #f97316; font-weight: 600; text-decoration: none;">
+          Open STATFYR to track stats
+        </a>
+      </div>
+    `;
+
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: supporterEmail,
+      subject: `${eventTitle} starts in 30 minutes!`,
+      html: getBaseTemplate(content),
+    });
+
+    if (error) {
+      console.error('[Email] Send error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('[Email] Pre-game reminder sent to:', supporterEmail);
+    return { success: true };
+  } catch (error: any) {
+    console.error('[Email] Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export function isConfigured(): boolean {
   return !!process.env.RESEND_API_KEY;
 }

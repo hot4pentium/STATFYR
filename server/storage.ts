@@ -4,7 +4,7 @@ import {
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
   liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
   impersonationSessions, hypes, athleteHypeTotals, directMessages, messageReads, notificationPreferences,
-  supporterAthleteLinks, supporterStats,
+  supporterAthleteLinks, supporterStats, subscriptions,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -43,6 +43,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql, or, ilike } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 function generateTeamCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -255,6 +256,9 @@ export interface IStorage {
   createSupporterStat(data: InsertSupporterStat): Promise<SupporterStat>;
   deleteSupporterStat(id: string): Promise<void>;
   getAthleteSupporterStatsAggregate(athleteId: string, teamId: string): Promise<{ statName: string; total: number }[]>;
+  
+  // Optimized supporter notification queries
+  getPaidSupportersFollowingTeam(teamId: string): Promise<{ supporterId: string; email: string; name: string; athleteNames: string[] }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1809,6 +1813,8 @@ export class DatabaseStorage implements IStorage {
         lastAccessedAt: users.lastAccessedAt,
         mustChangePassword: users.mustChangePassword,
         isSuperAdmin: users.isSuperAdmin,
+        resetToken: users.resetToken,
+        resetTokenExpiry: users.resetTokenExpiry,
       })
       .from(users)
       .where(
@@ -2294,6 +2300,63 @@ export class DatabaseStorage implements IStorage {
       )
       .groupBy(supporterStats.statName);
     return stats;
+  }
+
+  async getPaidSupportersFollowingTeam(teamId: string): Promise<{ supporterId: string; email: string; name: string; athleteNames: string[] }[]> {
+    const supporterUsers = alias(users, 'supporter');
+    
+    const results = await db
+      .select({
+        supporterId: supporterAthleteLinks.supporterId,
+        athleteId: supporterAthleteLinks.athleteId,
+        athleteName: sql<string>`COALESCE(${users.name}, ${users.username}, 'Unknown')`,
+        supporterEmail: supporterUsers.email,
+        supporterName: sql<string>`COALESCE(${supporterUsers.name}, ${supporterUsers.username}, 'Supporter')`,
+        emailOnEvent: notificationPreferences.emailOnEvent,
+      })
+      .from(supporterAthleteLinks)
+      .innerJoin(teamMembers, and(
+        eq(teamMembers.userId, supporterAthleteLinks.athleteId),
+        eq(teamMembers.teamId, teamId),
+        eq(teamMembers.role, 'athlete')
+      ))
+      .innerJoin(users, eq(users.id, supporterAthleteLinks.athleteId))
+      .innerJoin(supporterUsers, eq(supporterUsers.id, supporterAthleteLinks.supporterId))
+      .innerJoin(subscriptions, and(
+        eq(subscriptions.userId, supporterAthleteLinks.supporterId),
+        eq(subscriptions.tier, 'supporter'),
+        eq(subscriptions.status, 'active')
+      ))
+      .leftJoin(notificationPreferences, eq(notificationPreferences.userId, supporterAthleteLinks.supporterId))
+      .where(
+        and(
+          eq(supporterAthleteLinks.isActive, true),
+          or(
+            sql`${notificationPreferences.emailOnEvent} IS NULL`,
+            eq(notificationPreferences.emailOnEvent, true)
+          )
+        )
+      );
+
+    const supporterMap = new Map<string, { supporterId: string; email: string; name: string; athleteNames: string[] }>();
+    
+    for (const row of results) {
+      const existing = supporterMap.get(row.supporterId);
+      if (existing) {
+        if (!existing.athleteNames.includes(row.athleteName)) {
+          existing.athleteNames.push(row.athleteName);
+        }
+      } else {
+        supporterMap.set(row.supporterId, {
+          supporterId: row.supporterId,
+          email: row.supporterEmail || '',
+          name: row.supporterName,
+          athleteNames: [row.athleteName],
+        });
+      }
+    }
+
+    return Array.from(supporterMap.values());
   }
 }
 
