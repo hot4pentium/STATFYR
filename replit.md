@@ -118,7 +118,9 @@ Legacy password auth uses localStorage on the client side.
 
 ### Subscription Tiers
 - **Coach Pro ($9.99/mo)**: Full StatTracker access, PlayMaker editing, view individual stats, roster promotion tools
-- **Supporter Pro ($5.99/mo)**: Upload highlights, view individual stats, track own stats, follow athletes across teams
+- **Athlete Pro ($2.99/mo)**: Upload highlights for athletes
+- **Supporter Pro ($5.99/mo)**: StatTracker access for managed athletes, upload highlights, view individual stats, track own stats, follow athletes across teams
+- **Free Athlete**: View stats, hype card, profile, hype posts (no subscription needed for basic athlete features)
 - **Free Tier**: Basic team access (view roster, schedule, playbook, team chat, Game Day Live)
 
 ### Stripe Integration
@@ -129,10 +131,11 @@ Legacy password auth uses localStorage on the client side.
 
 ### Entitlements System
 Feature flags computed server-side based on subscription tier + team roles:
-- `canUseStatTracker`: Paid coach, staff role
+- `canUseStatTracker`: Paid coach, staff role, paid supporter
 - `canEditPlayMaker`: Paid coach, staff role  
-- `canUploadHighlights`: Paid supporter
-- `canViewIndividualStats`: Paid coach, staff, paid supporter
+- `canUploadHighlights`: Paid supporter, paid athlete
+- `canViewIndividualStats`: Paid coach, staff, paid supporter, all athletes (free)
+- `canViewHighlights`: All users (free)
 - `canPromoteMembers`: Paid coach only
 - `canFollowCrossTeam`: Paid supporter
 - `canTrackOwnStats`: Paid supporter
