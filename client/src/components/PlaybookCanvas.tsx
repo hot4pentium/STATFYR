@@ -231,7 +231,11 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
   const drawSoccerPitch = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (soccerImageRef.current) {
-      ctx.drawImage(soccerImageRef.current, 0, 0, width, height);
+      ctx.save();
+      ctx.translate(width / 2, height / 2);
+      ctx.rotate(Math.PI / 2);
+      ctx.drawImage(soccerImageRef.current, -height / 2, -width / 2, height, width);
+      ctx.restore();
     } else {
       ctx.fillStyle = "#228B22";
       ctx.fillRect(0, 0, width, height);
