@@ -50,7 +50,7 @@ export default function StatTrackerPage() {
   const demoMode = useDemoMode();
   const isDemo = demoMode.isDemo;
 
-  const [viewMode, setViewMode] = useState<ViewMode>(isDemo ? "tracking" : "setup");
+  const [viewMode, setViewMode] = useState<ViewMode>("setup");
   const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [trackingMode, setTrackingMode] = useState<"individual" | "team">("individual");
   const [totalPeriods, setTotalPeriods] = useState(4);
@@ -353,6 +353,7 @@ export default function StatTrackerPage() {
   // Demo mode wrapper for stat recording
   const recordDemoStat = (statConfigId: string, athleteId: string | undefined, pointsValue: number) => {
     const config = effectiveStatConfigs.find(c => c.id === statConfigId);
+    if (!config) return;
     const athlete = athleteId ? demoMode.players.find(p => p.id === athleteId) : undefined;
     demoMode.addDemoStat({
       gameId: demoMode.gameId,
@@ -576,8 +577,8 @@ export default function StatTrackerPage() {
             </h1>
             <p className="text-muted-foreground text-sm">
               {viewMode === "setup" && "Set up a new game"}
-              {viewMode === "roster" && "Manage game roster"}
-              {viewMode === "tracking" && "Live game tracking"}
+              {viewMode === "roster" && "Manage game roster - Players can be moved in and out anytime during the game"}
+              {viewMode === "tracking" && "Live game tracking - Players can be subbed in/out anytime"}
               {viewMode === "summary" && "Game summary"}
               {viewMode === "settings" && "Configure stats & positions"}
             </p>
