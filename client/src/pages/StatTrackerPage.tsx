@@ -858,269 +858,306 @@ export default function StatTrackerPage() {
 
         {viewMode === "tracking" && effectiveGame && (
           <div className="space-y-4">
-            {/* Scoreboard */}
-            <Card className="bg-card border-white/5">
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-center flex-1">
-                    <p className="text-[10px] text-muted-foreground uppercase">{selectedTeam?.name || "Your Team"}</p>
-                    <div className="flex items-center justify-center gap-2">
+            {/* Native-style Scoreboard Header */}
+            <div className="sticky top-0 z-10 -mx-4 px-4 py-4 bg-gradient-to-b from-primary/20 via-primary/10 to-transparent backdrop-blur-xl">
+              <div className="bg-white/5 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl overflow-hidden">
+                {/* Period & Status Bar */}
+                <div className="flex items-center justify-center gap-3 py-2 px-4 bg-black/10 dark:bg-white/5">
+                  <Badge 
+                    variant="secondary" 
+                    className="bg-primary/20 text-primary border-primary/30 text-sm font-bold px-3 py-1 rounded-full"
+                    data-testid="badge-period"
+                  >
+                    {periodType.charAt(0).toUpperCase()}{effectiveGame.currentPeriod} of {effectiveGame.totalPeriods}
+                  </Badge>
+                  {effectiveGame.status === "active" && (
+                    <span className="flex items-center gap-1.5 text-green-500 text-sm font-medium">
+                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      LIVE
+                    </span>
+                  )}
+                  {effectiveGame.status === "paused" && (
+                    <span className="flex items-center gap-1.5 text-yellow-500 text-sm font-medium">
+                      <Pause className="w-3 h-3" />
+                      PAUSED
+                    </span>
+                  )}
+                </div>
+                
+                {/* Main Scoreboard */}
+                <div className="flex items-center justify-between px-4 py-5">
+                  {/* Home Team */}
+                  <div className="flex-1 text-center">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                      {selectedTeam?.name || "Your Team"}
+                    </p>
+                    <div className="flex items-center justify-center gap-3">
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
+                        size="icon"
+                        className="h-12 w-12 rounded-xl bg-white/10 dark:bg-white/5 hover:bg-white/20 active:scale-95 transition-all"
                         onClick={() => handleScoreUpdate("home", -1)}
                         data-testid="button-team-score-minus"
                       >
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-5 w-5" />
                       </Button>
-                      <p className="text-3xl font-display font-bold min-w-[3rem]" data-testid="text-team-score">
+                      <p className="text-5xl font-display font-black tabular-nums min-w-[4rem]" data-testid="text-team-score">
                         {effectiveGame.teamScore}
                       </p>
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
+                        size="icon"
+                        className="h-12 w-12 rounded-xl bg-white/10 dark:bg-white/5 hover:bg-white/20 active:scale-95 transition-all"
                         onClick={() => handleScoreUpdate("home", 1)}
                         data-testid="button-team-score-plus"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-5 w-5" />
                       </Button>
                     </div>
                   </div>
                   
-                  <div className="px-2 flex flex-col items-center gap-1">
-                    <Badge variant="outline" className="text-sm px-2 py-0.5" data-testid="badge-period">
-                      {periodType.charAt(0).toUpperCase()}{effectiveGame.currentPeriod}
-                    </Badge>
+                  {/* VS Divider */}
+                  <div className="px-4 flex flex-col items-center gap-1">
+                    <span className="text-xl font-bold text-muted-foreground/50">VS</span>
                   </div>
                   
-                  <div className="text-center flex-1">
-                    <p className="text-[10px] text-muted-foreground uppercase">
+                  {/* Opponent */}
+                  <div className="flex-1 text-center">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
                       {effectiveGame.opponentName || "Opponent"}
                     </p>
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex items-center justify-center gap-3">
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
+                        size="icon"
+                        className="h-12 w-12 rounded-xl bg-white/10 dark:bg-white/5 hover:bg-white/20 active:scale-95 transition-all"
                         onClick={() => handleScoreUpdate("opponent", -1)}
                         data-testid="button-opponent-score-minus"
                       >
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-5 w-5" />
                       </Button>
-                      <p className="text-3xl font-display font-bold min-w-[3rem]" data-testid="text-opponent-score">
+                      <p className="text-5xl font-display font-black tabular-nums min-w-[4rem]" data-testid="text-opponent-score">
                         {effectiveGame.opponentScore}
                       </p>
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
+                        size="icon"
+                        className="h-12 w-12 rounded-xl bg-white/10 dark:bg-white/5 hover:bg-white/20 active:scale-95 transition-all"
                         onClick={() => handleScoreUpdate("opponent", 1)}
                         data-testid="button-opponent-score-plus"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-5 w-5" />
                       </Button>
                     </div>
                   </div>
                 </div>
                 
-                <div className="flex justify-center gap-2 mt-2">
+                {/* Game Controls */}
+                <div className="flex justify-center gap-3 px-4 pb-4">
                   <Button
                     variant={effectiveGame.status === "active" ? "outline" : "default"}
-                    size="sm"
-                    className="h-7 text-xs"
+                    size="lg"
+                    className="h-11 px-6 rounded-xl font-semibold active:scale-95 transition-all"
                     onClick={toggleGamePause}
                     data-testid="button-toggle-pause"
                   >
                     {effectiveGame.status === "active" ? (
-                      <><Pause className="h-3 w-3 mr-1" /> Pause</>
+                      <><Pause className="h-4 w-4 mr-2" /> Pause</>
                     ) : effectiveGame.status === "setup" || !effectiveGame.startedAt ? (
-                      <><Play className="h-3 w-3 mr-1" /> Start</>
+                      <><Play className="h-4 w-4 mr-2" /> Start</>
                     ) : (
-                      <><Play className="h-3 w-3 mr-1" /> Resume</>
+                      <><Play className="h-4 w-4 mr-2" /> Resume</>
                     )}
                   </Button>
                   {effectiveGame.currentPeriod < effectiveGame.totalPeriods && (
-                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={nextPeriod} data-testid="button-next-period">
+                    <Button 
+                      variant="outline" 
+                      size="lg" 
+                      className="h-11 px-5 rounded-xl font-semibold active:scale-95 transition-all" 
+                      onClick={nextPeriod} 
+                      data-testid="button-next-period"
+                    >
                       Next {periodType}
                     </Button>
                   )}
-                  <Button variant="destructive" size="sm" className="h-7 text-xs" onClick={() => setShowEndGameConfirm(true)} data-testid="button-end-game">
-                    End
+                  <Button 
+                    variant="destructive" 
+                    size="lg" 
+                    className="h-11 px-5 rounded-xl font-semibold active:scale-95 transition-all" 
+                    onClick={() => setShowEndGameConfirm(true)} 
+                    data-testid="button-end-game"
+                  >
+                    End Game
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Stats Grid with inline player selection */}
-            <Card className="bg-card border-white/5">
-              <CardHeader className="pb-2 px-3 pt-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Target className="h-4 w-4" />
+            <div className="bg-white/5 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/10 p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Target className="h-5 w-5 text-primary" />
+                <h3 className="text-base font-semibold">
                   {trackingMode === "team" ? "Record Stats" : "Tap Stat, Then Player"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-3 pb-3">
-                <div className="space-y-2">
-                  {(() => {
-                    const rows: StatConfig[][] = [];
-                    for (let i = 0; i < activeStats.length; i += 2) {
-                      rows.push(activeStats.slice(i, i + 2));
-                    }
-                    const selectedRowIndex = selectedStat 
-                      ? rows.findIndex(row => row.some(s => s.id === selectedStat.id))
-                      : -1;
-                    
-                    return rows.map((row, rowIndex) => (
-                      <div key={rowIndex}>
-                        <div className="grid grid-cols-2 gap-2">
-                          {row.map(config => (
-                            <Button
-                              key={config.id}
-                              variant={selectedStat?.id === config.id ? "default" : "outline"}
-                              className={`h-14 flex flex-col gap-0.5 ${selectedStat?.id === config.id ? "ring-2 ring-primary" : ""}`}
-                              onClick={() => handleStatClick(config)}
-                              data-testid={`button-stat-${config.shortName}`}
-                            >
-                              <span className="text-base font-bold">{config.shortName}</span>
-                              <span className="text-[9px] text-muted-foreground leading-tight truncate max-w-full">
-                                {config.name}
-                              </span>
-                              {config.value > 0 && (
-                                <Badge variant="secondary" className="text-[9px] px-1 py-0 mt-0.5">
-                                  +{config.value}
-                                </Badge>
-                              )}
-                            </Button>
-                          ))}
-                        </div>
-                        {trackingMode === "individual" && selectedRowIndex === rowIndex && selectedStat && (
-                          <div className="mt-2 p-2 bg-primary/10 rounded-lg border border-primary/20">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Users className="h-3 w-3 text-primary" />
-                              <span className="text-xs text-primary font-medium">
-                                Tap player for {selectedStat.shortName}
-                              </span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="ml-auto h-6 px-2 text-xs"
-                                onClick={() => setSelectedStat(null)}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                            <ScrollArea className="w-full">
-                              <div className="flex gap-2 pb-1">
-                                {filteredPlayers.map(player => (
-                                  <Button
-                                    key={player.id}
-                                    variant={recordedPlayerId === player.athleteId ? "default" : "outline"}
-                                    size="sm"
-                                    className={`flex-shrink-0 h-9 transition-all duration-300 ${
-                                      recordedPlayerId === player.athleteId 
-                                        ? "bg-green-500 text-white scale-105" 
-                                        : "bg-background hover:bg-primary hover:text-primary-foreground"
-                                    }`}
-                                    onClick={() => handlePlayerClick(player)}
-                                    data-testid={`button-player-${player.athleteId}`}
-                                  >
-                                    {recordedPlayerId === player.athleteId ? (
-                                      <Check className="h-4 w-4 animate-pulse" />
-                                    ) : (
-                                      <>
-                                        <span className="font-mono text-xs font-bold">
-                                          #{player.jerseyNumber || "--"}
-                                        </span>
-                                        <span className="ml-1 text-xs">
-                                          {player.athlete.firstName}
-                                        </span>
-                                      </>
-                                    )}
-                                  </Button>
-                                ))}
-                                {filteredPlayers.length === 0 && (
-                                  <span className="text-xs text-muted-foreground py-2">No eligible players</span>
-                                )}
-                              </div>
-                            </ScrollArea>
-                          </div>
-                        )}
+                </h3>
+              </div>
+              <div className="space-y-3">
+                {(() => {
+                  const rows: StatConfig[][] = [];
+                  for (let i = 0; i < activeStats.length; i += 2) {
+                    rows.push(activeStats.slice(i, i + 2));
+                  }
+                  const selectedRowIndex = selectedStat 
+                    ? rows.findIndex(row => row.some(s => s.id === selectedStat.id))
+                    : -1;
+                  
+                  return rows.map((row, rowIndex) => (
+                    <div key={rowIndex}>
+                      <div className="grid grid-cols-2 gap-3">
+                        {row.map(config => (
+                          <Button
+                            key={config.id}
+                            variant={selectedStat?.id === config.id ? "default" : "outline"}
+                            className={`h-[72px] flex flex-col gap-1 rounded-xl active:scale-95 transition-all duration-150 ${
+                              selectedStat?.id === config.id 
+                                ? "ring-2 ring-primary shadow-lg shadow-primary/25" 
+                                : "bg-white/5 dark:bg-white/5 border-white/10 hover:bg-white/10"
+                            }`}
+                            onClick={() => handleStatClick(config)}
+                            data-testid={`button-stat-${config.shortName}`}
+                          >
+                            <span className="text-xl font-bold">{config.shortName}</span>
+                            <span className="text-[10px] text-muted-foreground leading-tight truncate max-w-full">
+                              {config.name}
+                            </span>
+                            {config.value > 0 && (
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-500 border-0">
+                                +{config.value} pts
+                              </Badge>
+                            )}
+                          </Button>
+                        ))}
                       </div>
-                    ));
-                  })()}
-                </div>
-              </CardContent>
-            </Card>
+                      {trackingMode === "individual" && selectedRowIndex === rowIndex && selectedStat && (
+                        <div className="mt-3 p-3 bg-primary/10 rounded-xl border border-primary/20">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Users className="h-4 w-4 text-primary" />
+                            <span className="text-sm text-primary font-semibold">
+                              Select player for {selectedStat.shortName}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="ml-auto h-8 w-8 rounded-lg"
+                              onClick={() => setSelectedStat(null)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <ScrollArea className="w-full">
+                            <div className="flex gap-2 pb-1 snap-x snap-mandatory">
+                              {filteredPlayers.map(player => (
+                                <Button
+                                  key={player.id}
+                                  variant={recordedPlayerId === player.athleteId ? "default" : "outline"}
+                                  className={`flex-shrink-0 h-12 px-4 rounded-xl snap-start transition-all duration-200 ${
+                                    recordedPlayerId === player.athleteId 
+                                      ? "bg-green-500 text-white scale-105 shadow-lg" 
+                                      : "bg-white/10 dark:bg-white/5 border-white/20 hover:bg-primary hover:text-primary-foreground active:scale-95"
+                                  }`}
+                                  onClick={() => handlePlayerClick(player)}
+                                  data-testid={`button-player-${player.athleteId}`}
+                                >
+                                  {recordedPlayerId === player.athleteId ? (
+                                    <Check className="h-5 w-5 animate-pulse" />
+                                  ) : (
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-mono text-sm font-bold">
+                                        #{player.jerseyNumber || "--"}
+                                      </span>
+                                      <span className="text-sm font-medium">
+                                        {player.athlete.firstName}
+                                      </span>
+                                    </div>
+                                  )}
+                                </Button>
+                              ))}
+                              {filteredPlayers.length === 0 && (
+                                <span className="text-sm text-muted-foreground py-3">No eligible players</span>
+                              )}
+                            </div>
+                          </ScrollArea>
+                        </div>
+                      )}
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
 
             {/* Recent Activity */}
-            <Card className="bg-card border-white/5">
-              <CardHeader className="pb-2 px-3 pt-3">
-                <CardTitle className="text-sm flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Recent
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-2 text-xs"
-                    onClick={() => setViewMode("roster")}
-                    data-testid="button-manage-roster"
-                  >
-                    <Users className="h-3 w-3 mr-1" />
-                    Roster
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-3 pb-3">
-                <ScrollArea className="h-[100px]">
-                  <div className="space-y-1">
-                    {effectiveStats
-                      .filter(s => !s.isDeleted)
-                      .sort((a, b) => new Date(b.recordedAt || 0).getTime() - new Date(a.recordedAt || 0).getTime())
-                      .slice(0, 5)
-                      .map(stat => (
-                        <div
-                          key={stat.id}
-                          className="flex items-center justify-between p-1.5 bg-muted/30 rounded text-sm"
-                          data-testid={`stat-entry-${stat.id}`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs px-1.5 py-0">
-                              {stat.statConfig?.shortName || "?"}
-                            </Badge>
-                            {stat.athlete && (
-                              <span className="text-xs">
-                                {stat.athlete.firstName} {stat.athlete.lastName?.charAt(0)}.
-                              </span>
-                            )}
-                            {!stat.athlete && trackingMode === "team" && (
-                              <span className="text-xs text-muted-foreground">Team</span>
-                            )}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5"
-                            onClick={() => isDemo ? showDemoToast() : deleteStatMutation.mutate(stat.id)}
-                            disabled={isDemo}
-                            data-testid={`button-undo-stat-${stat.id}`}
-                          >
-                            <Undo2 className="h-3 w-3" />
-                          </Button>
+            <div className="bg-white/5 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/10 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <h3 className="text-base font-semibold">Recent Activity</h3>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-3 rounded-xl text-sm active:scale-95 transition-all"
+                  onClick={() => setViewMode("roster")}
+                  data-testid="button-manage-roster"
+                >
+                  <Users className="h-4 w-4 mr-1.5" />
+                  Roster
+                </Button>
+              </div>
+              <ScrollArea className="h-[120px]">
+                <div className="space-y-2">
+                  {effectiveStats
+                    .filter(s => !s.isDeleted)
+                    .sort((a, b) => new Date(b.recordedAt || 0).getTime() - new Date(a.recordedAt || 0).getTime())
+                    .slice(0, 5)
+                    .map(stat => (
+                      <div
+                        key={stat.id}
+                        className="flex items-center justify-between p-3 bg-white/5 dark:bg-white/5 rounded-xl"
+                        data-testid={`stat-entry-${stat.id}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Badge className="text-sm px-2.5 py-1 rounded-lg bg-primary/20 text-primary border-0 font-bold">
+                            {stat.statConfig?.shortName || "?"}
+                          </Badge>
+                          {stat.athlete && (
+                            <span className="text-sm font-medium">
+                              {stat.athlete.firstName} {stat.athlete.lastName?.charAt(0)}.
+                            </span>
+                          )}
+                          {!stat.athlete && trackingMode === "team" && (
+                            <span className="text-sm text-muted-foreground">Team</span>
+                          )}
                         </div>
-                      ))}
-                    {effectiveStats.filter(s => !s.isDeleted).length === 0 && (
-                      <p className="text-center text-muted-foreground py-2 text-xs">
-                        No stats yet
-                      </p>
-                    )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 rounded-lg hover:bg-red-500/10 hover:text-red-500 active:scale-95 transition-all"
+                          onClick={() => isDemo ? showDemoToast() : deleteStatMutation.mutate(stat.id)}
+                          disabled={isDemo}
+                          data-testid={`button-undo-stat-${stat.id}`}
+                        >
+                          <Undo2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  {effectiveStats.filter(s => !s.isDeleted).length === 0 && (
+                    <p className="text-center text-muted-foreground py-6 text-sm">
+                      No stats recorded yet
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
           </div>
         )}
 
