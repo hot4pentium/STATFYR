@@ -79,6 +79,7 @@ export default function SupporterDashboard() {
   const [isUploadingAthleteAvatar, setIsUploadingAthleteAvatar] = useState(false);
   const [joinTeamCode, setJoinTeamCode] = useState("");
   const [isJoiningTeam, setIsJoiningTeam] = useState(false);
+  const [independentSelectedCard, setIndependentSelectedCard] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   
@@ -1078,8 +1079,6 @@ export default function SupporterDashboard() {
       { name: "Hype Hub", id: "ind-hypehub", icon: Zap, color: "from-purple-500 to-pink-500" },
       { name: "Hype Card", id: "ind-hypecard", icon: Trophy, color: "from-yellow-400 to-amber-500" },
     ];
-    
-    const [independentSelectedCard, setIndependentSelectedCard] = useState<string | null>(null);
     
     return (
       <>
