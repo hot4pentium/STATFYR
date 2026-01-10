@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save } from "lucide-react";
 import basketballCourtImg from "@assets/bball_court_1766345509497.png";
 import footballFieldImg from "@assets/football_1768077466658.png";
-import soccerPitchImg from "@assets/generated_images/soccer_pitch_top-down_view.png";
+import soccerPitchImg from "@assets/generated_images/clean_flat_soccer_pitch_top-down.png";
 import baseballDiamondImg from "@assets/generated_images/baseball_diamond_top-down_view.png";
 import volleyballCourtImg from "@assets/generated_images/volleyball_court_top-down_view.png";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
