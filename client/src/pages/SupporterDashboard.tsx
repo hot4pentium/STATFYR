@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap, Sun, Moon, ChevronRight, Bell } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap, Sun, Moon, ChevronRight, Bell, Heart } from "lucide-react";
 import { useTheme } from "next-themes";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { usePWA } from "@/lib/pwaContext";
 import { TeamBadge } from "@/components/TeamBadge";
 import { TeamHeroCard } from "@/components/dashboard/TeamHeroCard";
+import { FollowedAthletesCard } from "@/components/dashboard/FollowedAthletesCard";
 
 // Helper to parse text date - supports both "2026-01-02 05:00 PM" and "2026-01-02 17:00:00" formats
 const parseTextDate = (dateStr: string): Date | null => {
@@ -331,6 +332,12 @@ export default function SupporterDashboard() {
       id: "badges",
       icon: Trophy, 
       color: "from-yellow-400 to-amber-500"
+    },
+    { 
+      name: "Following", 
+      id: "following",
+      icon: Heart, 
+      color: "from-red-500 to-pink-500"
     },
   ];
 
@@ -979,6 +986,18 @@ export default function SupporterDashboard() {
                 </div>
               </>
             )}
+          </div>
+        );
+      case "following":
+        return (
+          <div className="space-y-4">
+            <div className="mb-4">
+              <h3 className="text-xl font-bold mb-2">Athletes You Follow</h3>
+              <p className="text-sm text-muted-foreground">
+                Track your favorite athletes and get updates on their performance.
+              </p>
+            </div>
+            <FollowedAthletesCard />
           </div>
         );
       default:

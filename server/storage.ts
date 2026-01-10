@@ -4,6 +4,7 @@ import {
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
   liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
   impersonationSessions, hypes, athleteHypeTotals, directMessages, messageReads, notificationPreferences,
+  supporterAthleteLinks,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -237,6 +238,14 @@ export interface IStorage {
   // Notification Preferences methods
   getNotificationPreferences(userId: string): Promise<NotificationPreferences | undefined>;
   upsertNotificationPreferences(userId: string, data: UpdateNotificationPreferences): Promise<NotificationPreferences>;
+  
+  // Supporter Athlete Links methods (cross-team following)
+  getSupporterAthleteLinks(supporterId: string): Promise<{ id: string; athleteId: string; teamId: string | null; nickname: string | null; athlete: User; team?: Team }[]>;
+  getSupporterAthleteLink(supporterId: string, athleteId: string): Promise<{ id: string; athleteId: string; teamId: string | null; nickname: string | null } | undefined>;
+  createSupporterAthleteLink(supporterId: string, athleteId: string, teamId?: string, nickname?: string): Promise<{ id: string; supporterId: string; athleteId: string; teamId: string | null; nickname: string | null }>;
+  updateSupporterAthleteLink(id: string, data: { nickname?: string; isActive?: boolean }): Promise<void>;
+  deleteSupporterAthleteLink(id: string): Promise<void>;
+  countCrossTeamFollows(supporterId: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2118,6 +2127,90 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return !!presence;
+  }
+
+  // Supporter Athlete Links methods
+  async getSupporterAthleteLinks(supporterId: string): Promise<{ id: string; athleteId: string; teamId: string | null; nickname: string | null; athlete: User; team?: Team }[]> {
+    const links = await db
+      .select()
+      .from(supporterAthleteLinks)
+      .where(and(eq(supporterAthleteLinks.supporterId, supporterId), eq(supporterAthleteLinks.isActive, true)));
+    
+    const result = [];
+    for (const link of links) {
+      const [athlete] = await db.select().from(users).where(eq(users.id, link.athleteId));
+      if (!athlete) continue;
+      
+      let team: Team | undefined;
+      if (link.teamId) {
+        const [t] = await db.select().from(teams).where(eq(teams.id, link.teamId));
+        team = t;
+      }
+      
+      result.push({
+        id: link.id,
+        athleteId: link.athleteId,
+        teamId: link.teamId,
+        nickname: link.nickname,
+        athlete,
+        team,
+      });
+    }
+    return result;
+  }
+
+  async getSupporterAthleteLink(supporterId: string, athleteId: string): Promise<{ id: string; athleteId: string; teamId: string | null; nickname: string | null } | undefined> {
+    const [link] = await db
+      .select()
+      .from(supporterAthleteLinks)
+      .where(
+        and(
+          eq(supporterAthleteLinks.supporterId, supporterId),
+          eq(supporterAthleteLinks.athleteId, athleteId),
+          eq(supporterAthleteLinks.isActive, true)
+        )
+      );
+    return link ? { id: link.id, athleteId: link.athleteId, teamId: link.teamId, nickname: link.nickname } : undefined;
+  }
+
+  async createSupporterAthleteLink(supporterId: string, athleteId: string, teamId?: string, nickname?: string): Promise<{ id: string; supporterId: string; athleteId: string; teamId: string | null; nickname: string | null }> {
+    const [link] = await db
+      .insert(supporterAthleteLinks)
+      .values({
+        supporterId,
+        athleteId,
+        teamId: teamId || null,
+        nickname: nickname || null,
+      })
+      .returning();
+    return { id: link.id, supporterId: link.supporterId, athleteId: link.athleteId, teamId: link.teamId, nickname: link.nickname };
+  }
+
+  async updateSupporterAthleteLink(id: string, data: { nickname?: string; isActive?: boolean }): Promise<void> {
+    await db
+      .update(supporterAthleteLinks)
+      .set(data)
+      .where(eq(supporterAthleteLinks.id, id));
+  }
+
+  async deleteSupporterAthleteLink(id: string): Promise<void> {
+    await db
+      .delete(supporterAthleteLinks)
+      .where(eq(supporterAthleteLinks.id, id));
+  }
+
+  async countCrossTeamFollows(supporterId: string): Promise<number> {
+    const links = await db
+      .select()
+      .from(supporterAthleteLinks)
+      .where(
+        and(
+          eq(supporterAthleteLinks.supporterId, supporterId),
+          eq(supporterAthleteLinks.isActive, true),
+          sql`${supporterAthleteLinks.teamId} IS NULL`
+        )
+      );
+    return links.length;
   }
 }
 

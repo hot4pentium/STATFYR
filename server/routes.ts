@@ -4227,6 +4227,180 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== Supporter Athlete Following ====================
+  
+  // Get supporter's followed athletes
+  app.get("/api/supporter/following", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const links = await storage.getSupporterAthleteLinks(userId);
+      res.json({ following: links });
+    } catch (error) {
+      console.error("Failed to get followed athletes:", error);
+      res.status(500).json({ error: "Failed to get followed athletes" });
+    }
+  });
+
+  // Follow an athlete
+  app.post("/api/supporter/follow/:athleteId", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { athleteId } = req.params;
+      const { nickname } = req.body;
+
+      // Check if athlete exists
+      const athlete = await storage.getUser(athleteId);
+      if (!athlete || athlete.role !== 'athlete') {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
+
+      // Check if already following
+      const existingLink = await storage.getSupporterAthleteLink(userId, athleteId);
+      if (existingLink) {
+        return res.status(400).json({ error: "Already following this athlete" });
+      }
+
+      // Get supporter's teams and athlete's teams to determine if cross-team
+      const supporterMemberships = await storage.getUserTeamMemberships(userId);
+      const athleteMemberships = await storage.getUserTeamMemberships(athleteId);
+      
+      const supporterTeamIds = new Set(supporterMemberships.map(m => m.teamId));
+      const sharedTeam = athleteMemberships.find(m => supporterTeamIds.has(m.teamId));
+      
+      const isCrossTeamFollow = !sharedTeam;
+      
+      if (isCrossTeamFollow) {
+        // Check if user has cross-team following entitlement
+        const { stripeService } = await import("./stripeService");
+        const subscription = await stripeService.getUserSubscription(userId);
+        const tier = subscription?.status === 'active' ? subscription.tier : 'free';
+        
+        if (tier !== 'supporter') {
+          return res.status(403).json({ 
+            error: "Cross-team following requires Supporter Pro subscription",
+            requiresUpgrade: true,
+            tier: 'supporter'
+          });
+        }
+      }
+
+      // Store the shared team ID if same-team, null for cross-team
+      const teamIdToStore = sharedTeam?.teamId || null;
+      const link = await storage.createSupporterAthleteLink(userId, athleteId, teamIdToStore || undefined, nickname);
+      res.json({ link, isCrossTeam: isCrossTeamFollow });
+    } catch (error) {
+      console.error("Failed to follow athlete:", error);
+      res.status(500).json({ error: "Failed to follow athlete" });
+    }
+  });
+
+  // Unfollow an athlete
+  app.delete("/api/supporter/follow/:athleteId", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { athleteId } = req.params;
+
+      const link = await storage.getSupporterAthleteLink(userId, athleteId);
+      if (!link) {
+        return res.status(404).json({ error: "Not following this athlete" });
+      }
+
+      await storage.deleteSupporterAthleteLink(link.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to unfollow athlete:", error);
+      res.status(500).json({ error: "Failed to unfollow athlete" });
+    }
+  });
+
+  // Update follow nickname
+  app.patch("/api/supporter/follow/:athleteId", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { athleteId } = req.params;
+      const { nickname } = req.body;
+
+      const link = await storage.getSupporterAthleteLink(userId, athleteId);
+      if (!link) {
+        return res.status(404).json({ error: "Not following this athlete" });
+      }
+
+      await storage.updateSupporterAthleteLink(link.id, { nickname });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to update follow:", error);
+      res.status(500).json({ error: "Failed to update follow" });
+    }
+  });
+
+  // Search athletes to follow (accessible to all supporters)
+  app.get("/api/supporter/search-athletes", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const query = req.query.q as string;
+      if (!query || query.length < 2) {
+        return res.json({ athletes: [] });
+      }
+
+      // Search users who are athletes
+      const allUsers = await storage.searchUsers(query);
+      const athletes = allUsers.filter(u => u.role === 'athlete');
+      
+      // Get current following to mark them
+      const following = await storage.getSupporterAthleteLinks(userId);
+      const followingIds = new Set(following.map(f => f.athleteId));
+      
+      const results = athletes.map(a => ({
+        id: a.id,
+        name: a.name || a.username || a.email,
+        position: a.position,
+        number: a.number,
+        profileImageUrl: a.profileImageUrl,
+        isFollowing: followingIds.has(a.id),
+      }));
+
+      res.json({ athletes: results });
+    } catch (error) {
+      console.error("Failed to search athletes:", error);
+      res.status(500).json({ error: "Failed to search athletes" });
+    }
+  });
+
   return httpServer;
 }
 

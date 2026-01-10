@@ -147,3 +147,16 @@ Staff members (promoted by coaches) inherit coach-level permissions without need
 - PlayMaker editing
 - View individual stats
 - Edit events/roster
+
+### Supporter Athlete Following
+Supporters can follow athletes to track their performance:
+- **Same-team follows**: Free for all supporters - follow athletes on teams you're already a member of
+- **Cross-team follows**: Requires Supporter Pro subscription - follow athletes on teams you're not a member of
+- **API endpoints**: 
+  - GET `/api/supporter/following` - Get followed athletes
+  - POST `/api/supporter/follow/:athleteId` - Follow an athlete (server detects if cross-team based on team memberships)
+  - DELETE `/api/supporter/follow/:athleteId` - Unfollow an athlete
+  - PATCH `/api/supporter/follow/:athleteId` - Update nickname
+  - GET `/api/supporter/search-athletes?q=` - Search athletes to follow
+- **UI**: "Following" card on Supporter Dashboard with search dialog
+- **Database**: `supporter_athlete_links` table with supporterId, athleteId, teamId (null for cross-team), nickname

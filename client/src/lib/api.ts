@@ -1192,3 +1192,75 @@ export async function createPortalSession(userId: string): Promise<{ url: string
   if (!res.ok) throw new Error("Failed to create portal session");
   return res.json();
 }
+
+// ==================== Supporter Athlete Following ====================
+
+export interface FollowedAthlete {
+  id: string;
+  athleteId: string;
+  teamId: string | null;
+  nickname: string | null;
+  athlete: User;
+  team?: Team;
+}
+
+export interface AthleteSearchResult {
+  id: string;
+  name: string;
+  position?: string | null;
+  number?: number | null;
+  profileImageUrl?: string | null;
+  isFollowing: boolean;
+}
+
+export async function getSupporterFollowing(userId: string): Promise<{ following: FollowedAthlete[] }> {
+  const res = await fetch("/api/supporter/following", {
+    headers: { "x-user-id": userId }
+  });
+  if (!res.ok) throw new Error("Failed to get followed athletes");
+  return res.json();
+}
+
+export async function followAthlete(userId: string, athleteId: string, nickname?: string): Promise<{ isCrossTeam: boolean }> {
+  const res = await fetch(`/api/supporter/follow/${athleteId}`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "x-user-id": userId 
+    },
+    body: JSON.stringify({ nickname })
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to follow athlete");
+  }
+  return res.json();
+}
+
+export async function unfollowAthlete(userId: string, athleteId: string): Promise<void> {
+  const res = await fetch(`/api/supporter/follow/${athleteId}`, {
+    method: "DELETE",
+    headers: { "x-user-id": userId }
+  });
+  if (!res.ok) throw new Error("Failed to unfollow athlete");
+}
+
+export async function updateFollowNickname(userId: string, athleteId: string, nickname: string): Promise<void> {
+  const res = await fetch(`/api/supporter/follow/${athleteId}`, {
+    method: "PATCH",
+    headers: { 
+      "Content-Type": "application/json",
+      "x-user-id": userId 
+    },
+    body: JSON.stringify({ nickname })
+  });
+  if (!res.ok) throw new Error("Failed to update nickname");
+}
+
+export async function searchAthletesToFollow(userId: string, query: string): Promise<{ athletes: AthleteSearchResult[] }> {
+  const res = await fetch(`/api/supporter/search-athletes?q=${encodeURIComponent(query)}`, {
+    headers: { "x-user-id": userId }
+  });
+  if (!res.ok) throw new Error("Failed to search athletes");
+  return res.json();
+}
