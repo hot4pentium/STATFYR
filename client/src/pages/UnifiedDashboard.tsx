@@ -2175,11 +2175,15 @@ export default function UnifiedDashboard() {
         {/* Main Content - switches based on supporter view mode */}
         {userRole === "supporter" && supporterViewMode === "athlete" && selectedManagedAthlete ? (
           /* Athlete Profile View for Supporters - matches coach layout */
-          (<div className="px-4 pt-6 pb-8">
+          (<div className="px-4 pt-6 pb-8 overflow-hidden">
             {/* Two-column layout on landscape - matching coach dashboard */}
-            <div className="flex flex-col landscape:flex-row landscape:gap-6">
-              {/* Left Column - Cards */}
-              <div className="landscape:w-1/3 landscape:shrink-0">
+            <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
+              {/* Left Column - Cards (slides left when content selected on mobile) */}
+              <div 
+                className={`landscape:w-1/3 landscape:shrink-0 transition-all duration-300 ease-out ${
+                  selectedCard ? 'portrait:-translate-x-full portrait:absolute portrait:opacity-0' : 'portrait:translate-x-0'
+                }`}
+              >
                 {/* Athlete HYPE Card Preview */}
                 <Card className="bg-card/80 backdrop-blur-sm border-white/10 mb-4 landscape:mb-5">
                   <CardContent className="p-4 landscape:p-5">
@@ -2248,19 +2252,29 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
 
-              {/* Right Column - Content Area */}
-              <div className="landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] mt-4">
+              {/* Right Column - Content Area (slides up from bottom on mobile) */}
+              <div 
+                className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-300 ease-out ${
+                  selectedCard 
+                    ? 'portrait:translate-y-0 portrait:opacity-100 mt-0' 
+                    : 'portrait:translate-y-full portrait:absolute portrait:opacity-0 portrait:pointer-events-none mt-4'
+                }`}
+              >
                 {renderContent()}
               </div>
             </div>
           </div>)
         ) : (
           /* Normal Dashboard View - Quick Access Section */
-          (<div className="px-4 pt-6 pb-8">
-            {/* Two-column layout on landscape */}
-            <div className="flex flex-col landscape:flex-row landscape:gap-6">
-              {/* Left Column - Cards */}
-              <div className="landscape:w-1/3 landscape:shrink-0">
+          (<div className="px-4 pt-6 pb-8 overflow-hidden">
+            {/* Two-column layout on landscape, sliding panels on portrait */}
+            <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
+              {/* Left Column - Cards (slides left when content selected on mobile) */}
+              <div 
+                className={`landscape:w-1/3 landscape:shrink-0 transition-all duration-300 ease-out ${
+                  selectedCard ? 'portrait:-translate-x-full portrait:absolute portrait:opacity-0' : 'portrait:translate-x-0'
+                }`}
+              >
                 {/* HYPE Cards - Athletes Only - Above Quick Access */}
                 {userRole === "athlete" && (
                   <div className="mt-4 mb-4 landscape:mb-5 grid grid-cols-2 gap-3 landscape:gap-4">
@@ -2562,8 +2576,14 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
 
-              {/* Right Column - Content Area */}
-              <div className="landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] mt-4">
+              {/* Right Column - Content Area (slides up from bottom on mobile) */}
+              <div 
+                className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-300 ease-out ${
+                  selectedCard 
+                    ? 'portrait:translate-y-0 portrait:opacity-100 mt-0' 
+                    : 'portrait:translate-y-full portrait:absolute portrait:opacity-0 portrait:pointer-events-none mt-4'
+                }`}
+              >
                 {renderContent()}
               </div>
             </div>
