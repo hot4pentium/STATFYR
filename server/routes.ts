@@ -4681,22 +4681,23 @@ interface Entitlements {
   canTrackOwnStats: boolean;
 }
 
+// TESTING MODE: All entitlements enabled for testing
 function getDefaultEntitlements(): Entitlements {
   return {
-    canUseStatTracker: false,
-    canEditPlayMaker: false,
-    canUploadHighlights: false,
-    canViewIndividualStats: false,
+    canUseStatTracker: true,
+    canEditPlayMaker: true,
+    canUploadHighlights: true,
+    canViewIndividualStats: true,
     canViewHighlights: true,
     canViewRoster: true,
     canViewPlaybook: true,
     canUseChat: true,
     canUseGameDayLive: true,
-    canEditEvents: false,
-    canEditRoster: false,
-    canPromoteMembers: false,
-    canFollowCrossTeam: false,
-    canTrackOwnStats: false,
+    canEditEvents: true,
+    canEditRoster: true,
+    canPromoteMembers: true,
+    canFollowCrossTeam: true,
+    canTrackOwnStats: true,
   };
 }
 
