@@ -128,6 +128,9 @@ export default function PlayEditorPage() {
             {play?.description && (
               <p className="text-muted-foreground text-sm">{play.description}</p>
             )}
+            <p className="text-muted-foreground/70 text-xs mt-1">
+              Plays can be saved for coaches and staff to review. Saved plays will show for athletes and supporters to learn for game day.
+            </p>
           </div>
         </div>
 
