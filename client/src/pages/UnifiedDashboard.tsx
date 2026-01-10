@@ -1525,8 +1525,27 @@ export default function UnifiedDashboard() {
         )}
         {selectedCard === "highlights" && (
           <div className="space-y-4">
-            {currentTeam && user && (
+            {currentTeam && user && (userRole === "coach" || isStaff || entitlements.canUploadHighlights) ? (
               <VideoUploader teamId={currentTeam.id} userId={user.id} onUploadComplete={() => refetchHighlights()} />
+            ) : (
+              <Card className="bg-card/80 backdrop-blur-sm border-dashed border-2 border-yellow-500/30">
+                <CardContent className="p-6 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Lock className="h-5 w-5 text-yellow-500" />
+                    <Crown className="h-5 w-5 text-yellow-500" />
+                  </div>
+                  <p className="font-semibold text-foreground">Upload Highlights</p>
+                  <p className="text-sm text-muted-foreground mt-1">Upgrade to Supporter Pro to upload video highlights</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-3 gap-2 border-yellow-500/50 text-yellow-600 hover:bg-yellow-500/10"
+                    onClick={() => setLocation("/subscription")}
+                  >
+                    <Crown className="h-4 w-4" /> Upgrade
+                  </Button>
+                </CardContent>
+              </Card>
             )}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {teamHighlights.map(renderHighlightCard)}
