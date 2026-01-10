@@ -91,8 +91,11 @@ export default function SupporterOnboarding() {
     try {
       const response = await fetch("/api/supporter/follow-by-code", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: athleteCode, supporterId: user.id }),
+        headers: { 
+          "Content-Type": "application/json",
+          "x-user-id": user.id,
+        },
+        body: JSON.stringify({ code: athleteCode }),
       });
 
       if (!response.ok) {
@@ -132,7 +135,10 @@ export default function SupporterOnboarding() {
     try {
       const response = await fetch("/api/supporter/managed-athletes", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-user-id": user.id,
+        },
         body: JSON.stringify({
           supporterId: user.id,
           athleteName: athleteName.trim(),
