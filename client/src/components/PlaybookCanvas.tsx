@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save } from "lucide-react";
 import basketballCourtImg from "@assets/bball_court_1766345509497.png";
-import footballFieldImg from "@assets/generated_images/football_field_top-down_view.png";
+import footballFieldImg from "@assets/football_1768077466658.png";
 import soccerPitchImg from "@assets/generated_images/soccer_pitch_top-down_view.png";
 import baseballDiamondImg from "@assets/generated_images/baseball_diamond_top-down_view.png";
 import volleyballCourtImg from "@assets/generated_images/volleyball_court_top-down_view.png";
@@ -217,27 +217,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
   const drawFootballField = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (footballImageRef.current) {
-      ctx.save();
-      ctx.translate(width / 2, height / 2);
-      ctx.rotate(Math.PI / 2);
-      ctx.drawImage(footballImageRef.current, -height / 2, -width / 2, height, width);
-      ctx.restore();
-      
-      const fontSize = Math.min(width, height) * 0.08;
-      ctx.font = `bold ${fontSize}px Oswald, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-      ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
-      ctx.lineWidth = 2;
-      
-      const topEndZoneY = height * 0.06;
-      ctx.strokeText("STAT", width / 2, topEndZoneY);
-      ctx.fillText("STAT", width / 2, topEndZoneY);
-      
-      const bottomEndZoneY = height * 0.94;
-      ctx.strokeText("FYR", width / 2, bottomEndZoneY);
-      ctx.fillText("FYR", width / 2, bottomEndZoneY);
+      ctx.drawImage(footballImageRef.current, 0, 0, width, height);
     } else {
       ctx.fillStyle = "#1a472a";
       ctx.fillRect(0, 0, width, height);
