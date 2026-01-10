@@ -48,6 +48,11 @@ import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import SubscriptionPage from "@/pages/SubscriptionPage";
 
 function Router() {
+  // Handle Replit internal iframe paths - treat them as root
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/__replco')) {
+    window.history.replaceState({}, '', '/');
+  }
+  
   return (
     <Switch>
       <Route path="/" component={LandingPage} />
