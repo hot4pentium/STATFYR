@@ -2180,7 +2180,7 @@ export default function UnifiedDashboard() {
             <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
               {/* Left Column - Cards (slides left when content selected on mobile) */}
               <div 
-                className={`landscape:w-1/3 landscape:shrink-0 transition-all duration-300 ease-out ${
+                className={`landscape:w-1/3 landscape:shrink-0 transition-all duration-500 ease-out ${
                   selectedCard ? 'portrait:-translate-x-full portrait:absolute portrait:opacity-0' : 'portrait:translate-x-0'
                 }`}
               >
@@ -2254,9 +2254,9 @@ export default function UnifiedDashboard() {
 
               {/* Right Column - Content Area (fades in on mobile) */}
               <div 
-                className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-300 ease-out ${
+                className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-500 ease-out ${
                   selectedCard 
-                    ? 'portrait:opacity-100 mt-0' 
+                    ? 'portrait:opacity-100 portrait:mt-4' 
                     : 'portrait:hidden'
                 }`}
               >
@@ -2271,7 +2271,7 @@ export default function UnifiedDashboard() {
             <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
               {/* Left Column - Cards (slides left when content selected on mobile) */}
               <div 
-                className={`landscape:w-1/3 landscape:shrink-0 transition-all duration-300 ease-out ${
+                className={`landscape:w-1/3 landscape:shrink-0 transition-all duration-500 ease-out ${
                   selectedCard ? 'portrait:-translate-x-full portrait:absolute portrait:opacity-0' : 'portrait:translate-x-0'
                 }`}
               >
@@ -2578,9 +2578,9 @@ export default function UnifiedDashboard() {
 
               {/* Right Column - Content Area (fades in on mobile) */}
               <div 
-                className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-300 ease-out ${
+                className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-500 ease-out ${
                   selectedCard 
-                    ? 'portrait:opacity-100 mt-0' 
+                    ? 'portrait:opacity-100 portrait:mt-4' 
                     : 'portrait:hidden'
                 }`}
               >
