@@ -2252,12 +2252,12 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
 
-              {/* Right Column - Content Area (slides up from bottom on mobile) */}
+              {/* Right Column - Content Area (fades in on mobile) */}
               <div 
                 className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-300 ease-out ${
                   selectedCard 
-                    ? 'portrait:translate-y-0 portrait:opacity-100 mt-0' 
-                    : 'portrait:translate-y-full portrait:absolute portrait:opacity-0 portrait:pointer-events-none mt-4'
+                    ? 'portrait:opacity-100 mt-0' 
+                    : 'portrait:hidden'
                 }`}
               >
                 {renderContent()}
@@ -2576,12 +2576,12 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
 
-              {/* Right Column - Content Area (slides up from bottom on mobile) */}
+              {/* Right Column - Content Area (fades in on mobile) */}
               <div 
                 className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-300 ease-out ${
                   selectedCard 
-                    ? 'portrait:translate-y-0 portrait:opacity-100 mt-0' 
-                    : 'portrait:translate-y-full portrait:absolute portrait:opacity-0 portrait:pointer-events-none mt-4'
+                    ? 'portrait:opacity-100 mt-0' 
+                    : 'portrait:hidden'
                 }`}
               >
                 {renderContent()}
