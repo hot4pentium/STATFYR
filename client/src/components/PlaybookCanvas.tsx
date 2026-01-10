@@ -627,8 +627,8 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   };
 
   return (
-    <div className="flex flex-col gap-4" data-testid="playbook-canvas-container">
-      <div className="flex flex-wrap gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 sticky top-0 z-10 backdrop-blur-sm" data-testid="playbook-toolbar">
+    <div className="relative" data-testid="playbook-canvas-container">
+      <div className="fixed top-16 left-4 right-4 md:left-auto md:right-auto md:w-auto flex flex-wrap gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 z-50 backdrop-blur-sm shadow-lg" data-testid="playbook-toolbar">
         {tools.map((tool) => (
           <Button
             key={tool.id}
@@ -793,7 +793,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         </AlertDialog>
       </div>
 
-      <div className="relative w-full overflow-hidden rounded-lg border border-white/10" style={{ height: canvasSize.height || 500 }}>
+      <div className="relative w-full overflow-hidden rounded-lg border border-white/10 mt-20" style={{ height: canvasSize.height || 500 }}>
         <canvas
           ref={canvasRef}
           width={canvasSize.width || 400}
