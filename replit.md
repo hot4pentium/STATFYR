@@ -50,7 +50,8 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **Email Notifications**: Resend API with verified domain (noreply@statfyr.com) for HYPE posts, direct messages, team chat, events, and stat session alerts.
 - **Smart Email Delivery**: Direct message emails are delayed by 5 seconds and skipped if the recipient is actively viewing the conversation. Uses `chatPresence` table to track active conversations with 15-second TTL and 10-second heartbeat from frontend.
 - **Unread Message Indicators**: Floating chat button on dashboards with glow effect and badge when unread messages exist. Team Chat card on CoachDashboard has green glow styling when unread count > 0.
-- **Stat Session Notifications**: When a coach starts a team-only stat session, paid supporters who follow athletes on that team receive email notifications. Pre-game reminders (30 min before) can be sent via `/api/internal/run-pregame-reminders` endpoint.
+- **Stat Session Notifications**: Push-first with email fallback. Uses OneSignal `external_id` (STATFYR user ID) for targeting. Pre-game reminders (30 min before) via `/api/internal/run-pregame-reminders` endpoint.
+- **Push Notification System**: OneSignal for cross-platform push (web, PWA, Capacitor native). Uses `sendPushToExternalIds()` targeting users by STATFYR user ID. Personalized notifications per supporter with their followed athlete names.
 
 ## In Progress
 - **Glowing Team Chat Card**: Styling is in place (ring-2 ring-green-500 animate-pulse) but data fetching for unread count needs debugging. The conversations endpoint returns correct unreadCount but the React Query isn't triggering the glow effect on the dashboard.

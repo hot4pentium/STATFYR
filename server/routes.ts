@@ -4631,6 +4631,8 @@ function computeEntitlements(tier: string, isCoach: boolean, isStaff: boolean): 
   return base;
 }
 
+const APP_BASE_URL = process.env.REPLIT_APP_URL || 'https://statfyr.replit.app';
+
 async function notifyTeamModeStatSession(teamId: string) {
   try {
     const team = await storage.getTeam(teamId);
@@ -4639,22 +4641,61 @@ async function notifyTeamModeStatSession(teamId: string) {
       return;
     }
 
-    const { sendStatSessionStartedEmail } = await import('./emailService');
     const supportersToNotify = await storage.getPaidSupportersFollowingTeam(teamId);
-
     console.log(`[StatNotify] Notifying ${supportersToNotify.length} paid supporters about team-mode session for team ${team.name}`);
 
-    for (const { email, name, athleteNames } of supportersToNotify) {
-      if (!email) continue;
+    if (supportersToNotify.length === 0) return;
+
+    const { sendPushToExternalIds, isConfigured } = await import('./onesignal');
+    const { sendStatSessionStartedEmail } = await import('./emailService');
+    const pushConfigured = isConfigured();
+    
+    let pushSent = 0, emailSent = 0, unreachable = 0, skippedNoConsent = 0;
+
+    // Send personalized notifications to each supporter
+    for (const supporter of supportersToNotify) {
+      const { supporterId, email, name, athleteNames, emailEnabled, pushEnabled } = supporter;
       
-      await sendStatSessionStartedEmail(
-        email,
-        name,
-        team.name,
-        athleteNames,
-        teamId
-      );
+      // Skip if user has disabled both channels
+      if (!emailEnabled && !pushEnabled) {
+        skippedNoConsent++;
+        continue;
+      }
+      
+      let notificationSent = false;
+      
+      // Try push notification first if user has push enabled
+      if (pushEnabled && pushConfigured) {
+        const athleteList = athleteNames.length > 2 
+          ? `${athleteNames.slice(0, 2).join(', ')} and ${athleteNames.length - 2} more`
+          : athleteNames.join(' and ');
+        
+        const pushResult = await sendPushToExternalIds([supporterId], {
+          title: `${team.name} Stats Session Live`,
+          message: `Track stats for ${athleteList} now!`,
+          url: `${APP_BASE_URL}/supporter?teamId=${teamId}`,
+          data: { type: 'stat_session', teamId },
+        });
+
+        if (pushResult.success && pushResult.sentCount > 0) {
+          pushSent++;
+          notificationSent = true;
+        }
+      }
+
+      // Fallback to email if push failed/unavailable and email is enabled
+      if (!notificationSent && emailEnabled && email) {
+        await sendStatSessionStartedEmail(email, name, team.name, athleteNames, teamId);
+        emailSent++;
+        notificationSent = true;
+      }
+      
+      if (!notificationSent) {
+        unreachable++;
+      }
     }
+    
+    console.log(`[StatNotify] Summary - push: ${pushSent}, email: ${emailSent}, unreachable: ${unreachable}, skipped (no consent): ${skippedNoConsent}`);
   } catch (error) {
     console.error('[StatNotify] Error in notifyTeamModeStatSession:', error);
   }
@@ -4698,21 +4739,58 @@ async function runPreGameReminders() {
 
 async function sendPreGameRemindersForEvent(event: any, team: any) {
   try {
+    const { sendPushToExternalIds, isConfigured } = await import('./onesignal');
     const { sendPreGameReminderEmail } = await import('./emailService');
+    const pushConfigured = isConfigured();
+
     const supportersToNotify = await storage.getPaidSupportersFollowingTeam(team.id);
+    
+    let pushSent = 0, emailSent = 0, unreachable = 0, skippedNoConsent = 0;
 
-    for (const { email, name, athleteNames } of supportersToNotify) {
-      if (!email) continue;
+    for (const supporter of supportersToNotify) {
+      const { supporterId, email, name, athleteNames, emailEnabled, pushEnabled } = supporter;
+      const eventTitle = event.title || 'Game';
+      
+      // Skip if user has disabled both channels
+      if (!emailEnabled && !pushEnabled) {
+        skippedNoConsent++;
+        continue;
+      }
+      
+      let notificationSent = false;
+      
+      // Try push notification first if user has push enabled
+      if (pushEnabled && pushConfigured) {
+        const athleteList = athleteNames.length > 2 
+          ? `${athleteNames.slice(0, 2).join(', ')} and ${athleteNames.length - 2} more`
+          : athleteNames.join(' and ');
 
-      await sendPreGameReminderEmail(
-        email,
-        name,
-        team.name,
-        event.title || 'Game',
-        athleteNames,
-        event.id
-      );
+        const pushResult = await sendPushToExternalIds([supporterId], {
+          title: `${eventTitle} Starting Soon`,
+          message: `${team.name} game in 30 min - ${athleteList} playing`,
+          url: `${APP_BASE_URL}/supporter?eventId=${event.id}`,
+          data: { type: 'pre_game_reminder', eventId: event.id, teamId: team.id },
+        });
+
+        if (pushResult.success && pushResult.sentCount > 0) {
+          pushSent++;
+          notificationSent = true;
+        }
+      }
+
+      // Fallback to email if push failed/unavailable and email is enabled
+      if (!notificationSent && emailEnabled && email) {
+        await sendPreGameReminderEmail(email, name, team.name, eventTitle, athleteNames, event.id);
+        emailSent++;
+        notificationSent = true;
+      }
+      
+      if (!notificationSent) {
+        unreachable++;
+      }
     }
+    
+    console.log(`[PreGameReminder] Event ${event.id} summary - push: ${pushSent}, email: ${emailSent}, unreachable: ${unreachable}, skipped (no consent): ${skippedNoConsent}`);
   } catch (error) {
     console.error('[PreGameReminder] Error sending reminders for event:', event.id, error);
   }

@@ -303,6 +303,59 @@ export async function sendEmailToAddress(
   }
 }
 
+export async function sendPushToExternalIds(
+  externalIds: string[],
+  payload: NotificationPayload
+): Promise<{ success: boolean; sentCount: number; error?: string }> {
+  if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+    console.error('[OneSignal] Missing APP_ID or REST_API_KEY');
+    return { success: false, sentCount: 0, error: 'OneSignal not configured' };
+  }
+
+  if (externalIds.length === 0) {
+    return { success: true, sentCount: 0 };
+  }
+
+  try {
+    const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const requestBody = {
+      app_id: ONESIGNAL_APP_ID,
+      include_aliases: { external_id: externalIds },
+      target_channel: 'push',
+      headings: { en: payload.title },
+      contents: { en: payload.message },
+      url: payload.url,
+      data: { ...payload.data, _nid: uniqueId },
+      ttl: 86400,
+      priority: 10,
+    };
+
+    console.log('[OneSignal] Sending push to external IDs:', externalIds.length);
+
+    const response = await fetch('https://onesignal.com/api/v1/notifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || (result.errors && Object.keys(result.errors).length > 0)) {
+      console.error('[OneSignal] API error:', result);
+      return { success: false, sentCount: 0, error: result.errors?.[0] || 'Failed to send notification' };
+    }
+
+    console.log('[OneSignal] Push sent to external IDs, notification ID:', result.id);
+    return { success: true, sentCount: result.recipients || externalIds.length };
+  } catch (error: any) {
+    console.error('[OneSignal] Send error:', error);
+    return { success: false, sentCount: 0, error: error.message };
+  }
+}
+
 export async function sendChatNotificationEmail(
   recipientEmail: string,
   senderName: string,

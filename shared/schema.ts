@@ -1020,6 +1020,7 @@ export const notificationPreferences = pgTable("notification_preferences", {
   emailOnHype: boolean("email_on_hype").notNull().default(true),
   emailOnFollow: boolean("email_on_follow").notNull().default(true),
   emailOnEvent: boolean("email_on_event").notNull().default(true),
+  pushOnEvent: boolean("push_on_event").notNull().default(false),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 

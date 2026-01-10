@@ -258,7 +258,7 @@ export interface IStorage {
   getAthleteSupporterStatsAggregate(athleteId: string, teamId: string): Promise<{ statName: string; total: number }[]>;
   
   // Optimized supporter notification queries
-  getPaidSupportersFollowingTeam(teamId: string): Promise<{ supporterId: string; email: string; name: string; athleteNames: string[] }[]>;
+  getPaidSupportersFollowingTeam(teamId: string): Promise<{ supporterId: string; email: string; name: string; athleteNames: string[]; emailEnabled: boolean; pushEnabled: boolean }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2302,7 +2302,7 @@ export class DatabaseStorage implements IStorage {
     return stats;
   }
 
-  async getPaidSupportersFollowingTeam(teamId: string): Promise<{ supporterId: string; email: string; name: string; athleteNames: string[] }[]> {
+  async getPaidSupportersFollowingTeam(teamId: string): Promise<{ supporterId: string; email: string; name: string; athleteNames: string[]; emailEnabled: boolean; pushEnabled: boolean }[]> {
     const supporterUsers = alias(users, 'supporter');
     
     const results = await db
@@ -2313,6 +2313,7 @@ export class DatabaseStorage implements IStorage {
         supporterEmail: supporterUsers.email,
         supporterName: sql<string>`COALESCE(${supporterUsers.name}, ${supporterUsers.username}, 'Supporter')`,
         emailOnEvent: notificationPreferences.emailOnEvent,
+        pushOnEvent: notificationPreferences.pushOnEvent,
       })
       .from(supporterAthleteLinks)
       .innerJoin(teamMembers, and(
@@ -2328,17 +2329,9 @@ export class DatabaseStorage implements IStorage {
         eq(subscriptions.status, 'active')
       ))
       .leftJoin(notificationPreferences, eq(notificationPreferences.userId, supporterAthleteLinks.supporterId))
-      .where(
-        and(
-          eq(supporterAthleteLinks.isActive, true),
-          or(
-            sql`${notificationPreferences.emailOnEvent} IS NULL`,
-            eq(notificationPreferences.emailOnEvent, true)
-          )
-        )
-      );
+      .where(eq(supporterAthleteLinks.isActive, true));
 
-    const supporterMap = new Map<string, { supporterId: string; email: string; name: string; athleteNames: string[] }>();
+    const supporterMap = new Map<string, { supporterId: string; email: string; name: string; athleteNames: string[]; emailEnabled: boolean; pushEnabled: boolean }>();
     
     for (const row of results) {
       const existing = supporterMap.get(row.supporterId);
@@ -2352,6 +2345,8 @@ export class DatabaseStorage implements IStorage {
           email: row.supporterEmail || '',
           name: row.supporterName,
           athleteNames: [row.athleteName],
+          emailEnabled: row.emailOnEvent !== false,
+          pushEnabled: row.pushOnEvent === true,
         });
       }
     }
