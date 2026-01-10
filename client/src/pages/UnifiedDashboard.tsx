@@ -105,7 +105,7 @@ const quickAccessCards: QuickAccessCard[] = [
   { id: "schedule", name: "Calendar", description: "View and manage team schedule.", icon: CalendarClock, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
   { id: "playmaker", name: "Playmaker", description: "Design and manage team plays.", icon: ClipboardList, color: "text-orange-500", roles: ["coach"] },
   { id: "playbook", name: "Playbook", description: "View team plays and formations.", icon: BookOpen, color: "text-orange-500", roles: ["athlete", "supporter"] },
-  { id: "stats", name: "Stats", description: "Track team and player statistics.", icon: BarChart3, color: "text-orange-500", roles: ["coach", "athlete"] },
+  { id: "stats", name: "Stats", description: "View statistics recorded with StatTracker.", icon: BarChart3, color: "text-orange-500", roles: ["coach", "athlete"] },
   { id: "stattracker", name: "StatTracker", description: "Live game stat tracking.", icon: Activity, color: "text-orange-500", roles: ["coach"] },
   { id: "highlights", name: "Highlights", description: "Team video highlights.", icon: Video, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
   { id: "teamengagement", name: "Team Engagement", description: "See team's total taps & shoutouts.", icon: Heart, color: "text-orange-500", roles: ["supporter"] },
