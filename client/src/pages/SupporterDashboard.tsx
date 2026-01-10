@@ -1265,157 +1265,201 @@ export default function SupporterDashboard() {
             </div>
           ) : (
             /* Individual Athlete Dashboard View */
-            <main className="max-w-4xl mx-auto px-4 py-4 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex flex-col lg:flex-row lg:items-start gap-6">
-                {/* Athlete Hype Card */}
-                <div className="lg:w-72 lg:flex-shrink-0">
-                  <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-accent/40 border border-white/10 shadow-2xl">
-                    <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-                    <div className="absolute -right-20 -top-20 h-64 w-64 bg-accent/20 rounded-full blur-3xl" />
-                    <div className="absolute -left-20 -bottom-20 h-64 w-64 bg-primary/20 rounded-full blur-3xl" />
-                    
-                    {/* Athlete Image Area */}
-                    <div className="relative h-48 lg:h-64 overflow-hidden">
-                      {viewingAsAthlete.athlete?.avatar ? (
-                        <img 
-                          src={viewingAsAthlete.athlete.avatar} 
-                          alt={viewingAsAthlete.athleteName || viewingAsAthlete.athlete?.name || "Athlete"} 
-                          className="absolute inset-0 w-full h-full object-cover" 
-                        />
-                      ) : (
-                        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
-                          <User className="h-20 w-20 text-white/40" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
-                      
-                      {/* Number Badge */}
-                      {viewingAsAthlete.number && (
-                        <div className="absolute top-3 right-3 bg-gradient-to-r from-accent to-primary rounded-lg p-2 shadow-lg">
-                          <span className="text-lg font-display font-bold text-white">#{viewingAsAthlete.number}</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Athlete Info */}
-                    <div className="relative z-10 p-4 space-y-2">
-                      <h2 className="text-xl font-display font-bold text-white uppercase tracking-tighter">
-                        {viewingAsAthlete.athleteName || viewingAsAthlete.athlete?.name}
-                      </h2>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {viewingAsAthlete.sport && (
-                          <span className="px-3 py-1 backdrop-blur-sm rounded-lg border bg-white/10 border-white/20 text-white text-xs font-bold uppercase tracking-wider">
-                            {viewingAsAthlete.sport}
-                          </span>
-                        )}
-                        {viewingAsAthlete.position && (
-                          <span className="px-3 py-1 backdrop-blur-sm rounded-lg border bg-accent/20 border-accent/30 text-accent text-xs font-bold uppercase tracking-wider">
-                            {viewingAsAthlete.position}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setViewingAsAthlete(null)}
-                        className="w-full mt-3 border-white/20 text-white hover:bg-white/10"
-                        data-testid="button-back-to-athletes"
-                      >
-                        <ChevronDown className="h-4 w-4 mr-1 rotate-90" />
-                        Back to Athletes
-                      </Button>
-                    </div>
-                  </div>
+            <main className="max-w-lg mx-auto px-4 py-4 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {/* Hero Banner */}
+              <div className="flex items-center gap-4 p-4">
+                <Avatar className="h-16 w-16 border-2 border-primary/30">
+                  <AvatarImage src={viewingAsAthlete.athlete?.avatar || undefined} />
+                  <AvatarFallback className="text-xl bg-primary/20 text-primary">
+                    {(viewingAsAthlete.athleteName || viewingAsAthlete.athlete?.name || "A").charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="text-xs text-primary font-bold uppercase tracking-wider">
+                    {viewingAsAthlete.sport || "Athlete"}
+                  </p>
+                  <h1 className="text-2xl font-display font-bold uppercase tracking-tight">
+                    {viewingAsAthlete.athleteName || viewingAsAthlete.athlete?.name}
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    {viewingAsAthlete.position && <span>{viewingAsAthlete.position}</span>}
+                    {viewingAsAthlete.number && <span> • #{viewingAsAthlete.number}</span>}
+                  </p>
                 </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => setViewingAsAthlete(null)}
+                  data-testid="button-back-to-athletes"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
 
-                {/* Right Side - Grid + Content */}
-                <div className="flex-1 space-y-6">
-                  {/* Quick Navigation - Colorful Grid Cards */}
-                  <div className="grid grid-cols-3 gap-3 p-2 lg:max-w-[280px]">
-                    {independentQuickActions.map((action) => (
-                      <button
-                        key={action.id}
-                        onClick={() => setIndependentSelectedCard(independentSelectedCard === action.id ? null : action.id)}
-                        className={`relative aspect-square rounded-xl transition-all duration-200 group ${
-                          independentSelectedCard === action.id
-                            ? "ring-2 ring-white shadow-lg scale-105"
-                            : "hover:scale-105 hover:shadow-lg"
-                        }`}
-                        data-testid={`card-${action.id}`}
-                      >
-                        {/* Gradient Background */}
-                        <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${action.color} opacity-90`} />
-                        
-                        {/* Content */}
-                        <div className="relative h-full flex flex-col items-center justify-center gap-1.5 text-white">
-                          <action.icon className="h-6 w-6" />
-                          <span className="text-[10px] font-bold uppercase tracking-wider">{action.name}</span>
-                        </div>
-                      </button>
-                    ))}
+              {/* Game Day Live Section */}
+              <Card className="relative overflow-hidden border-2 border-primary/30 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10">
+                <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+                <CardContent className="relative z-10 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    <span className="text-xs uppercase tracking-wider text-primary font-bold">Game Day Live</span>
                   </div>
+                  <h3 className="text-lg font-display font-bold mb-1">No Upcoming Games</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Create a game event to enable live supporter engagement
+                  </p>
+                </CardContent>
+              </Card>
 
-                  {/* Expanded Content Container - Under the grid */}
-                  {independentSelectedCard && (
-                    <div className="relative rounded-xl overflow-hidden bg-card/50 border border-white/10 backdrop-blur-sm p-6 animate-in slide-in-from-top duration-300">
-                      <button
-                        onClick={() => setIndependentSelectedCard(null)}
-                        className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <X className="h-5 w-5" />
-                      </button>
-                      <h3 className="text-lg font-display font-bold uppercase tracking-wide mb-6">
-                        {independentQuickActions.find(a => a.id === independentSelectedCard)?.name}
-                      </h3>
-                      <div className="overflow-x-auto">
-                        {independentSelectedCard === "ind-events" && (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <CalendarIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                            <p>No events scheduled yet</p>
-                            <p className="text-sm mt-1">Events will appear here when you add them</p>
-                          </div>
-                        )}
-                        {independentSelectedCard === "ind-highlights" && (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <Video className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                            <p>No highlights yet</p>
-                            <p className="text-sm mt-1">Upload videos to create highlights</p>
-                          </div>
-                        )}
-                        {independentSelectedCard === "ind-stattracker" && (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <ClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                            <p>Stat Tracker</p>
-                            <p className="text-sm mt-1">Track stats during games (coming soon)</p>
-                          </div>
-                        )}
-                        {independentSelectedCard === "ind-stats" && (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                            <p>No stats recorded yet</p>
-                            <p className="text-sm mt-1">Stats will appear after tracking games</p>
-                          </div>
-                        )}
-                        {independentSelectedCard === "ind-hypehub" && (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <Zap className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                            <p>Hype Hub</p>
-                            <p className="text-sm mt-1">Share moments and cheer for your athlete</p>
-                          </div>
-                        )}
-                        {independentSelectedCard === "ind-hypecard" && (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <Trophy className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                            <p>Hype Card</p>
-                            <p className="text-sm mt-1">View and share your athlete's profile card</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+              {/* Quick Access Section */}
+              <div className="space-y-3">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground px-1">
+                  Quick Access
+                </h2>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Calendar Card */}
+                  <button
+                    onClick={() => setIndependentSelectedCard(independentSelectedCard === "ind-events" ? null : "ind-events")}
+                    className={`relative p-4 rounded-2xl bg-card/80 border border-white/10 text-left transition-all ${
+                      independentSelectedCard === "ind-events" ? "ring-2 ring-primary" : "hover:bg-card"
+                    }`}
+                    data-testid="card-ind-events"
+                  >
+                    <CalendarIcon className="h-6 w-6 text-primary mb-2" />
+                    <h3 className="font-bold text-sm">Calendar</h3>
+                    <p className="text-xs text-muted-foreground">View and manage schedule.</p>
+                  </button>
+
+                  {/* Highlights Card */}
+                  <button
+                    onClick={() => setIndependentSelectedCard(independentSelectedCard === "ind-highlights" ? null : "ind-highlights")}
+                    className={`relative p-4 rounded-2xl bg-card/80 border border-white/10 text-left transition-all ${
+                      independentSelectedCard === "ind-highlights" ? "ring-2 ring-primary" : "hover:bg-card"
+                    }`}
+                    data-testid="card-ind-highlights"
+                  >
+                    <Video className="h-6 w-6 text-rose-500 mb-2" />
+                    <h3 className="font-bold text-sm">Highlights</h3>
+                    <p className="text-xs text-muted-foreground">Video highlights.</p>
+                  </button>
+
+                  {/* StatTracker Card */}
+                  <button
+                    onClick={() => setIndependentSelectedCard(independentSelectedCard === "ind-stattracker" ? null : "ind-stattracker")}
+                    className={`relative p-4 rounded-2xl bg-card/80 border border-white/10 text-left transition-all ${
+                      independentSelectedCard === "ind-stattracker" ? "ring-2 ring-primary" : "hover:bg-card"
+                    }`}
+                    data-testid="card-ind-stattracker"
+                  >
+                    <ClipboardList className="h-6 w-6 text-green-500 mb-2" />
+                    <h3 className="font-bold text-sm">StatTracker</h3>
+                    <p className="text-xs text-muted-foreground">Live game stat tracking.</p>
+                  </button>
+
+                  {/* Stats Card */}
+                  <button
+                    onClick={() => setIndependentSelectedCard(independentSelectedCard === "ind-stats" ? null : "ind-stats")}
+                    className={`relative p-4 rounded-2xl bg-card/80 border border-white/10 text-left transition-all ${
+                      independentSelectedCard === "ind-stats" ? "ring-2 ring-primary" : "hover:bg-card"
+                    }`}
+                    data-testid="card-ind-stats"
+                  >
+                    <BarChart3 className="h-6 w-6 text-amber-500 mb-2" />
+                    <h3 className="font-bold text-sm">Stats</h3>
+                    <p className="text-xs text-muted-foreground">View statistics recorded.</p>
+                  </button>
+
+                  {/* Hype Hub Card */}
+                  <button
+                    onClick={() => setIndependentSelectedCard(independentSelectedCard === "ind-hypehub" ? null : "ind-hypehub")}
+                    className={`relative p-4 rounded-2xl bg-card/80 border border-white/10 text-left transition-all ${
+                      independentSelectedCard === "ind-hypehub" ? "ring-2 ring-primary" : "hover:bg-card"
+                    }`}
+                    data-testid="card-ind-hypehub"
+                  >
+                    <Zap className="h-6 w-6 text-purple-500 mb-2" />
+                    <h3 className="font-bold text-sm">Hype Hub</h3>
+                    <p className="text-xs text-muted-foreground">Share moments and cheer.</p>
+                  </button>
+
+                  {/* Hype Card */}
+                  <button
+                    onClick={() => setIndependentSelectedCard(independentSelectedCard === "ind-hypecard" ? null : "ind-hypecard")}
+                    className={`relative p-4 rounded-2xl bg-card/80 border border-white/10 text-left transition-all ${
+                      independentSelectedCard === "ind-hypecard" ? "ring-2 ring-primary" : "hover:bg-card"
+                    }`}
+                    data-testid="card-ind-hypecard"
+                  >
+                    <Trophy className="h-6 w-6 text-yellow-500 mb-2" />
+                    <h3 className="font-bold text-sm">Hype Card</h3>
+                    <p className="text-xs text-muted-foreground">View and share profile.</p>
+                  </button>
                 </div>
               </div>
+
+              {/* Expanded Content Container */}
+              {independentSelectedCard && (
+                <Card className="bg-card/80 backdrop-blur-sm border-white/10 animate-in slide-in-from-bottom duration-300">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-lg">
+                      {independentSelectedCard === "ind-events" && "Calendar"}
+                      {independentSelectedCard === "ind-highlights" && "Highlights"}
+                      {independentSelectedCard === "ind-stattracker" && "StatTracker"}
+                      {independentSelectedCard === "ind-stats" && "Stats"}
+                      {independentSelectedCard === "ind-hypehub" && "Hype Hub"}
+                      {independentSelectedCard === "ind-hypecard" && "Hype Card"}
+                    </CardTitle>
+                    <Button variant="ghost" size="icon" onClick={() => setIndependentSelectedCard(null)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {independentSelectedCard === "ind-events" && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <CalendarIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>No events scheduled yet</p>
+                        <p className="text-sm mt-1">Events will appear here when you add them</p>
+                      </div>
+                    )}
+                    {independentSelectedCard === "ind-highlights" && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Video className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>No highlights yet</p>
+                        <p className="text-sm mt-1">Upload videos to create highlights</p>
+                      </div>
+                    )}
+                    {independentSelectedCard === "ind-stattracker" && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <ClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>Stat Tracker</p>
+                        <p className="text-sm mt-1">Track stats during games (coming soon)</p>
+                      </div>
+                    )}
+                    {independentSelectedCard === "ind-stats" && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>No stats recorded yet</p>
+                        <p className="text-sm mt-1">Stats will appear after tracking games</p>
+                      </div>
+                    )}
+                    {independentSelectedCard === "ind-hypehub" && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Zap className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>Hype Hub</p>
+                        <p className="text-sm mt-1">Share moments and cheer for your athlete</p>
+                      </div>
+                    )}
+                    {independentSelectedCard === "ind-hypecard" && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Trophy className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>Hype Card</p>
+                        <p className="text-sm mt-1">View and share your athlete's profile card</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </main>
           )}
         </div>
