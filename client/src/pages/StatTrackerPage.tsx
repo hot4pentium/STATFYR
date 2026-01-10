@@ -1207,7 +1207,6 @@ export default function StatTrackerPage() {
                               updateRosterMutation.mutate({ rosterId: player.id, data: { isInGame: false } });
                             }
                           }}
-                          disabled={isDemo}
                           data-testid={`button-bench-player-${player.athleteId}`}
                         >
                           <ChevronDown className="h-5 w-5 text-red-500" />
@@ -1267,7 +1266,6 @@ export default function StatTrackerPage() {
                               updateRosterMutation.mutate({ rosterId: player.id, data: { isInGame: true } });
                             }
                           }}
-                          disabled={isDemo}
                           data-testid={`button-activate-player-${player.athleteId}`}
                         >
                           <ChevronUp className="h-5 w-5 text-green-500" />
