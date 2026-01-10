@@ -320,9 +320,16 @@ export async function deletePlay(playId: string, userId: string): Promise<void> 
 export interface ManagedAthlete {
   id: string;
   supporterId: string;
-  athleteId: string;
+  athleteId: string | null;
+  athleteName?: string | null;
+  sport?: string | null;
+  position?: string | null;
+  number?: string | null;
+  isOwner?: boolean;
+  profileImageUrl?: string | null;
+  nickname?: string | null;
   createdAt?: string | null;
-  athlete: User;
+  athlete?: User;
   team?: Team;
 }
 

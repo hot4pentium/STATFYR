@@ -154,8 +154,8 @@ export default function SupporterDashboard() {
   });
 
   const { data: managedAthleteStats } = useQuery({
-    queryKey: ["/api/teams", currentTeam?.id, "athletes", viewingAsAthlete?.athlete.id, "stats"],
-    queryFn: () => currentTeam && viewingAsAthlete ? getAthleteStats(currentTeam.id, viewingAsAthlete.athlete.id) : Promise.resolve({ gamesPlayed: 0, stats: {}, gameHistory: [], hotStreak: false, streakLength: 0 }),
+    queryKey: ["/api/teams", currentTeam?.id, "athletes", viewingAsAthlete?.athlete?.id, "stats"],
+    queryFn: () => currentTeam && viewingAsAthlete?.athlete?.id ? getAthleteStats(currentTeam.id, viewingAsAthlete.athlete.id) : Promise.resolve({ gamesPlayed: 0, stats: {}, gameHistory: [], hotStreak: false, streakLength: 0 }),
     enabled: !!currentTeam && !!viewingAsAthlete,
   });
 
@@ -267,7 +267,7 @@ export default function SupporterDashboard() {
       reader.onload = async (event) => {
         const avatarData = event.target?.result as string;
         
-        const response = await fetch(`/api/users/${viewingAsAthlete.athlete.id}?requesterId=${user?.id}`, {
+        const response = await fetch(`/api/users/${viewingAsAthlete.athlete?.id}?requesterId=${user?.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ avatar: avatarData }),
@@ -277,10 +277,12 @@ export default function SupporterDashboard() {
           throw new Error("Failed to update avatar");
         }
 
-        setViewingAsAthlete({
-          ...viewingAsAthlete,
-          athlete: { ...viewingAsAthlete.athlete, avatar: avatarData }
-        });
+        if (viewingAsAthlete.athlete) {
+          setViewingAsAthlete({
+            ...viewingAsAthlete,
+            athlete: { ...viewingAsAthlete.athlete, avatar: avatarData }
+          });
+        }
         refetchManagedAthletes();
         toast.success("Athlete photo updated!");
         setIsUploadingAthleteAvatar(false);
@@ -608,7 +610,7 @@ export default function SupporterDashboard() {
               <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                 <h3 className="font-semibold mb-3 flex items-center gap-2 text-primary">
                   <Trophy className="h-5 w-5" />
-                  {viewingAsAthlete.athlete.firstName}'s Stats
+                  {viewingAsAthlete.athlete?.firstName}'s Stats
                   {managedAthleteStats.hotStreak && (
                     <Badge className="bg-orange-500/20 text-orange-500 border-orange-500/30">
                       {managedAthleteStats.streakLength} game streak
@@ -1025,55 +1027,19 @@ export default function SupporterDashboard() {
     }
   };
 
-  if (!currentTeam) {
+  // Check if supporter has independently managed athletes (no team needed)
+  const hasIndependentAthletes = managedAthletes.some(m => m.isOwner === true);
+
+  if (!currentTeam && !hasIndependentAthletes) {
+    // No team and no managed athletes - redirect to onboarding to choose a path
+    setLocation("/supporter/onboarding");
     return (
       <>
         <DashboardBackground />
         <div className="min-h-screen relative z-10 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md border-white/10 bg-card/50 backdrop-blur-xl">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
-                <Users className="h-8 w-8 text-primary" />
-              </div>
-              <CardTitle className="font-display text-2xl uppercase tracking-wide">Join a Team</CardTitle>
-              <p className="text-muted-foreground text-sm mt-2">
-                Enter a team code to join as a supporter
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  placeholder="Enter team code"
-                  value={joinTeamCode}
-                  onChange={(e) => setJoinTeamCode(e.target.value.toUpperCase())}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-center font-mono text-lg uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary"
-                  maxLength={6}
-                  data-testid="input-join-team-code"
-                />
-              </div>
-              <Button
-                onClick={handleJoinTeamWithCode}
-                disabled={!joinTeamCode.trim() || isJoiningTeam}
-                className="w-full"
-                size="lg"
-                data-testid="button-join-team-submit"
-              >
-                {isJoiningTeam ? "Joining..." : "Join Team"}
-              </Button>
-              <div className="text-center pt-4 border-t border-white/10">
-                <p className="text-xs text-muted-foreground mb-2">Or scan a QR code from your team</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setLocation("/join/scan")}
-                  data-testid="button-scan-qr"
-                >
-                  Scan QR Code
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="text-center">
+            <p className="text-muted-foreground">Redirecting to onboarding...</p>
+          </div>
         </div>
       </>
     );
@@ -1102,8 +1068,8 @@ export default function SupporterDashboard() {
                     >
                       <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
                         {viewingAsAthlete ? (
-                          viewingAsAthlete.athlete.avatar ? (
-                            <img src={viewingAsAthlete.athlete.avatar} alt="" className="w-full h-full object-cover" />
+                          viewingAsAthlete.athlete?.avatar ? (
+                            <img src={viewingAsAthlete.athlete?.avatar} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <User className="h-3 w-3 text-primary" />
                           )
@@ -1116,7 +1082,7 @@ export default function SupporterDashboard() {
                         )}
                       </div>
                       <span className="hidden sm:inline text-sm font-medium truncate max-w-[100px]">
-                        {viewingAsAthlete ? viewingAsAthlete.athlete.name : user?.name || "Profile"}
+                        {viewingAsAthlete ? viewingAsAthlete.athlete?.name : user?.name || "Profile"}
                       </span>
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </Button>
@@ -1152,14 +1118,14 @@ export default function SupporterDashboard() {
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center overflow-hidden">
-                            {managed.athlete.avatar ? (
-                              <img src={managed.athlete.avatar} alt="" className="w-full h-full object-cover" />
+                            {managed.athlete?.avatar ? (
+                              <img src={managed.athlete?.avatar} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <User className="h-4 w-4 text-accent" />
                             )}
                           </div>
                           <div>
-                            <p className="font-medium">{managed.athlete.name}</p>
+                            <p className="font-medium">{managed.athlete?.name}</p>
                             <p className="text-xs text-muted-foreground">Athlete</p>
                           </div>
                         </div>
@@ -1233,7 +1199,7 @@ export default function SupporterDashboard() {
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-accent" />
               <span className="text-sm font-medium">
-                Viewing as <span className="font-bold">{viewingAsAthlete.athlete.name}</span>
+                Viewing as <span className="font-bold">{viewingAsAthlete.athlete?.name}</span>
               </span>
             </div>
             <Button 
@@ -1269,7 +1235,7 @@ export default function SupporterDashboard() {
                   <div className="space-y-2 md:space-y-4 flex-1 min-w-0">
                     <div className="space-y-1 md:space-y-2">
                       <h1 className="text-2xl md:text-6xl font-display font-bold text-white uppercase tracking-tighter leading-tight">
-                        {viewingAsAthlete.athlete.name}
+                        {viewingAsAthlete.athlete?.name}
                       </h1>
                       <h2 className="text-sm md:text-2xl text-white/80 font-bold uppercase tracking-wide">
                         {currentTeam?.name || "Team"} <span className="text-white/60">•</span> {currentTeam?.sport || "Sport"}
@@ -1280,14 +1246,14 @@ export default function SupporterDashboard() {
                       <span className="px-3 md:px-5 py-1 md:py-2 backdrop-blur-sm rounded-lg border bg-green-500/20 border-green-500/30 text-green-400 text-xs md:text-base font-bold uppercase tracking-wider">
                         Athlete
                       </span>
-                      {viewingAsAthlete.athlete.position && (
+                      {viewingAsAthlete.athlete?.position && (
                         <span className="px-3 md:px-5 py-1 md:py-2 backdrop-blur-sm rounded-lg border bg-white/10 border-white/20 text-white text-xs md:text-base font-bold uppercase tracking-wider">
-                          {viewingAsAthlete.athlete.position}
+                          {viewingAsAthlete.athlete?.position}
                         </span>
                       )}
-                      {viewingAsAthlete.athlete.number && (
+                      {viewingAsAthlete.athlete?.number && (
                         <span className="px-3 md:px-5 py-1 md:py-2 backdrop-blur-sm rounded-lg border bg-accent/20 border-accent/30 text-accent text-xs md:text-base font-bold uppercase tracking-wider">
-                          #{viewingAsAthlete.athlete.number}
+                          #{viewingAsAthlete.athlete?.number}
                         </span>
                       )}
                     </div>
@@ -1319,8 +1285,8 @@ export default function SupporterDashboard() {
                   
                   {!isManagedAthleteCardFlipped ? (
                     <div className="relative w-full h-44 md:h-96 overflow-hidden" style={{ backfaceVisibility: 'hidden' }}>
-                      {viewingAsAthlete.athlete.avatar ? (
-                        <img src={viewingAsAthlete.athlete.avatar} alt={viewingAsAthlete.athlete.name || ""} className="absolute inset-0 w-full h-full object-cover" />
+                      {viewingAsAthlete.athlete?.avatar ? (
+                        <img src={viewingAsAthlete.athlete?.avatar} alt={viewingAsAthlete.athlete?.name || ""} className="absolute inset-0 w-full h-full object-cover" />
                       ) : (
                         <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
                           <User className="h-12 md:h-24 w-12 md:w-24 text-white/40" />
@@ -1355,17 +1321,17 @@ export default function SupporterDashboard() {
                       <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
                       
                       <div className="absolute top-0 left-0 p-1.5 md:p-3 text-left">
-                        <h3 className="text-[10px] md:text-lg font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{viewingAsAthlete.athlete.name}</h3>
+                        <h3 className="text-[10px] md:text-lg font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{viewingAsAthlete.athlete?.name}</h3>
                         <p className="text-[7px] md:text-[9px] text-white/90 uppercase mt-0.5 tracking-wider drop-shadow-md font-semibold hidden md:block">{currentTeam?.name || "Team"}</p>
                       </div>
 
                       <div className="absolute bottom-0 left-0 p-1.5 md:p-4">
-                        <p className="text-[8px] md:text-sm font-bold text-accent uppercase tracking-wider drop-shadow-lg">{viewingAsAthlete.athlete.position || "Player"}</p>
+                        <p className="text-[8px] md:text-sm font-bold text-accent uppercase tracking-wider drop-shadow-lg">{viewingAsAthlete.athlete?.position || "Player"}</p>
                       </div>
 
                       <div className="absolute bottom-0 right-0 p-1.5 md:p-4">
                         <div className="bg-gradient-to-r from-accent to-primary rounded md:rounded-lg p-1 md:p-3 shadow-lg">
-                          <span className="text-white font-display font-bold text-xs md:text-2xl drop-shadow">#{viewingAsAthlete.athlete.number || "00"}</span>
+                          <span className="text-white font-display font-bold text-xs md:text-2xl drop-shadow">#{viewingAsAthlete.athlete?.number || "00"}</span>
                         </div>
                       </div>
 
@@ -1725,8 +1691,8 @@ export default function SupporterDashboard() {
               
               {!isManagedAthleteCardFlipped ? (
                 <div className="relative w-full aspect-[3/4] overflow-hidden">
-                  {viewingAsAthlete.athlete.avatar ? (
-                    <img src={viewingAsAthlete.athlete.avatar} alt={viewingAsAthlete.athlete.name || ""} className="absolute inset-0 w-full h-full object-cover" />
+                  {viewingAsAthlete.athlete?.avatar ? (
+                    <img src={viewingAsAthlete.athlete?.avatar} alt={viewingAsAthlete.athlete?.name || ""} className="absolute inset-0 w-full h-full object-cover" />
                   ) : (
                     <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
                       <User className="h-32 w-32 text-white/40" />
@@ -1737,17 +1703,17 @@ export default function SupporterDashboard() {
                   <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
                   
                   <div className="absolute top-0 left-0 p-4 text-left">
-                    <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{viewingAsAthlete.athlete.name}</h3>
+                    <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{viewingAsAthlete.athlete?.name}</h3>
                     <p className="text-sm text-white/90 uppercase mt-1 tracking-wider drop-shadow-md font-semibold">{currentTeam?.name || "Team"}</p>
                   </div>
 
                   <div className="absolute bottom-0 left-0 p-5">
-                    <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{viewingAsAthlete.athlete.position || "Player"}</p>
+                    <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{viewingAsAthlete.athlete?.position || "Player"}</p>
                   </div>
 
                   <div className="absolute bottom-0 right-0 p-5">
                     <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-4 shadow-lg">
-                      <span className="text-white font-display font-bold text-3xl drop-shadow">#{viewingAsAthlete.athlete.number || "00"}</span>
+                      <span className="text-white font-display font-bold text-3xl drop-shadow">#{viewingAsAthlete.athlete?.number || "00"}</span>
                     </div>
                   </div>
 
