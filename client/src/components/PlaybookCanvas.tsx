@@ -628,7 +628,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
   return (
     <div className="flex flex-col gap-4" data-testid="playbook-canvas-container">
-      <div className="flex flex-wrap gap-2 p-3 bg-background/50 dark:bg-card/50 rounded-lg border border-white/10" data-testid="playbook-toolbar">
+      <div className="flex flex-wrap gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 sticky top-0 z-10 backdrop-blur-sm" data-testid="playbook-toolbar">
         {tools.map((tool) => (
           <Button
             key={tool.id}
