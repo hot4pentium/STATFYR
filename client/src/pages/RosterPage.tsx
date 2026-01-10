@@ -5,12 +5,30 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Filter, MoreHorizontal, ArrowLeft } from "lucide-react";
+import { Search, Plus, Filter, MoreHorizontal, ArrowLeft, Copy, Check, QrCode } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
+import { useUser } from "@/lib/userContext";
+import { useState } from "react";
+import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function RosterPage() {
+  const { currentTeam } = useUser();
+  const [copied, setCopied] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+
+  const teamCode = currentTeam?.code || "";
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(teamCode);
+    setCopied(true);
+    toast.success("Team code copied!");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <Layout>
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -29,6 +47,32 @@ export default function RosterPage() {
             Add Athlete
           </Button>
         </div>
+
+        {teamCode && (
+          <Card className="bg-card border-white/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Invite Members</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-2">Share this code with athletes and supporters to join your team:</p>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="font-mono text-xl px-4 py-2 tracking-wider">
+                      {teamCode}
+                    </Badge>
+                    <Button variant="outline" size="icon" onClick={copyToClipboard} data-testid="button-copy-team-code">
+                      {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                    <Button variant="outline" size="icon" onClick={() => setShowQRModal(true)} data-testid="button-show-qr">
+                      <QrCode className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="bg-card border-white/5">
           <CardHeader className="p-4 border-b border-white/5">
@@ -108,6 +152,33 @@ export default function RosterPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="text-center">Scan to Join Team</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            {teamCode && (
+              <div className="bg-white p-4 rounded-xl">
+                <QRCodeSVG 
+                  value={`${window.location.origin}/join?code=${teamCode}`}
+                  size={200}
+                  level="M"
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                />
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground text-center">
+              Athletes and supporters can scan this code to join <span className="font-bold">{currentTeam?.name}</span>
+            </p>
+            <Badge variant="outline" className="font-mono text-lg px-4 py-2">
+              {teamCode}
+            </Badge>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
