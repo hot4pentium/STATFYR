@@ -2734,34 +2734,59 @@ export async function registerRoutes(
       // Return immediately, then process email notification asynchronously
       res.status(201).json(message);
 
-      // Smart email notification: delay and check if recipient is actively chatting
+      // Smart notification: delay and check if recipient is actively chatting
       const teamId = req.params.teamId;
       setTimeout(async () => {
         try {
           // Check if recipient is actively viewing conversation with sender
           const isRecipientActive = await storage.isUserActiveInConversation(recipientId, senderId);
           if (isRecipientActive) {
-            console.log('[Chat] Skipping email - recipient is actively viewing conversation');
+            console.log('[Chat] Skipping notification - recipient is actively viewing conversation');
             return;
           }
 
           // Check recipient's notification preferences
           const prefs = await storage.getNotificationPreferences(recipientId);
-          const shouldSendEmail = prefs?.emailOnMessage !== false; // Default to true
+          const pushEnabled = prefs?.pushOnMessage !== false; // Default to true
+          const emailEnabled = prefs?.emailOnMessage !== false; // Default to true
+          
+          const senderName = message.sender.name || message.sender.username || "Team Member";
+          const recipientName = message.recipient.name || message.recipient.username || "Team Member";
+          const messagePreview = content.length > 50 ? content.substring(0, 50) + '...' : content;
+          
+          let notificationSent = false;
 
-          if (shouldSendEmail && message.recipient.email) {
+          // Try push notification first if enabled
+          if (pushEnabled) {
+            const { sendPushToExternalIds, isConfigured } = await import('./onesignal');
+            if (isConfigured()) {
+              const pushResult = await sendPushToExternalIds([recipientId], {
+                title: `Message from ${senderName}`,
+                message: messagePreview,
+                url: `${APP_BASE_URL}/chat/${teamId}/${senderId}`,
+                data: { type: 'direct_message', teamId, senderId },
+              });
+              if (pushResult.success && pushResult.sentCount > 0) {
+                console.log('[Chat] Push sent to', recipientId);
+                notificationSent = true;
+              }
+            }
+          }
+
+          // Fallback to email if push failed/unavailable and email is enabled
+          if (!notificationSent && emailEnabled && message.recipient.email) {
             const { sendDirectMessageEmail } = await import('./emailService');
             await sendDirectMessageEmail(
               message.recipient.email,
-              message.recipient.name || message.recipient.username || "Team Member",
-              message.sender.name || message.sender.username || "Team Member",
+              recipientName,
+              senderName,
               content,
               teamId
             );
             console.log('[Chat] Email sent to', message.recipient.email);
           }
         } catch (err) {
-          console.error('[Chat] Email notification failed:', err);
+          console.error('[Chat] Notification failed:', err);
         }
       }, 5000); // Wait 5 seconds before checking and sending
 

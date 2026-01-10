@@ -47,8 +47,8 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **PWA Features**: Service worker (v1.1.7) for offline support and update notifications.
 - **Splash Screen Failsafe**: 5-second timeout in main.tsx ensures splash removal even if React fails to mount.
 - **Auth Persistence**: Explicitly set to browserLocalPersistence to keep users logged in across sessions.
-- **Email Notifications**: Resend API with verified domain (noreply@statfyr.com) for HYPE posts, direct messages, team chat, events, and stat session alerts.
-- **Smart Email Delivery**: Direct message emails are delayed by 5 seconds and skipped if the recipient is actively viewing the conversation. Uses `chatPresence` table to track active conversations with 15-second TTL and 10-second heartbeat from frontend.
+- **Email Notifications**: Resend API with verified domain (noreply@statfyr.com) for HYPE posts, team chat, events, and stat session alerts.
+- **Chat Notifications**: Push-first (OneSignal) with email fallback (Resend) for direct messages. 5-second delay before sending, skipped if recipient is actively viewing conversation. Uses `chatPresence` table with 15-second TTL and 10-second heartbeat. Controlled by `pushOnMessage` and `emailOnMessage` preferences.
 - **Unread Message Indicators**: Floating chat button on dashboards with glow effect and badge when unread messages exist. Team Chat card on CoachDashboard has green glow styling when unread count > 0.
 - **Stat Session Notifications**: Push-first (OneSignal) with email fallback (Resend). Uses OneSignal `external_id` (STATFYR user ID) for targeting. Pre-game reminders (30 min before) via `/api/internal/run-pregame-reminders` endpoint.
 - **Push Notification System**: OneSignal for cross-platform push (web, PWA, Capacitor native). Uses `sendPushToExternalIds()` targeting users by STATFYR user ID. Personalized notifications per supporter with their followed athlete names. Requires explicit opt-in via `pushOnEvent` preference (defaults to false).
@@ -60,7 +60,7 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **Table**: `chatPresence` tracks userId, teamId, conversationWithUserId, lastSeenAt
 - **API Endpoints**: POST/DELETE `/api/teams/:teamId/presence` for heartbeats
 - **Frontend**: ChatPage sends heartbeat every 10 seconds while viewing a DM conversation
-- **Email Logic**: 5-second delay before sending, checks if recipient is active (lastSeenAt within 15s)
+- **Notification Logic**: 5-second delay before sending, checks if recipient is active (lastSeenAt within 15s). Push notification sent first if `pushOnMessage` enabled, email fallback if push fails and `emailOnMessage` enabled.
 
 ### Design Patterns
 - Path aliases (`@/`, `@shared/`) for organized imports.

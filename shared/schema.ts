@@ -1021,6 +1021,7 @@ export const notificationPreferences = pgTable("notification_preferences", {
   emailOnFollow: boolean("email_on_follow").notNull().default(true),
   emailOnEvent: boolean("email_on_event").notNull().default(true),
   pushOnEvent: boolean("push_on_event").notNull().default(false),
+  pushOnMessage: boolean("push_on_message").notNull().default(true),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
