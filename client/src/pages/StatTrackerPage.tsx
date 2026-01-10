@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   ArrowLeft, Play, Pause, RotateCcw, Users, Timer, Target, 
   Plus, Minus, Check, X, ChevronUp, ChevronDown, Activity,
@@ -68,6 +69,8 @@ export default function StatTrackerPage() {
   const [isInitializingStats, setIsInitializingStats] = useState(false);
   const [recordedPlayerId, setRecordedPlayerId] = useState<string | null>(null);
   const [showEndGameConfirm, setShowEndGameConfirm] = useState(false);
+  const [inGameOpen, setInGameOpen] = useState(false);
+  const [benchOpen, setBenchOpen] = useState(false);
   const [summaryTab, setSummaryTab] = useState<"game" | "season" | "progression">("game");
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
 
@@ -1109,8 +1112,8 @@ export default function StatTrackerPage() {
                   onClick={() => setViewMode("roster")}
                   data-testid="button-manage-roster"
                 >
-                  <Users className="h-4 w-4 mr-1.5" />
-                  Roster
+                  <Settings className="h-4 w-4 mr-1.5" />
+                  Manage
                 </Button>
               </div>
               <ScrollArea className="h-[120px]">
@@ -1158,6 +1161,126 @@ export default function StatTrackerPage() {
                 </div>
               </ScrollArea>
             </div>
+
+            {/* In Game Players - Collapsible */}
+            <Collapsible open={inGameOpen} onOpenChange={setInGameOpen}>
+              <div className="bg-white/5 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+                        <Play className="h-5 w-5 text-green-500" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-base font-semibold">In Game</h3>
+                        <p className="text-sm text-muted-foreground">{inGamePlayers.length} players active</p>
+                      </div>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${inGameOpen ? "rotate-180" : ""}`} />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 pb-4 space-y-2">
+                    {inGamePlayers.map(player => (
+                      <div
+                        key={player.id}
+                        className="flex items-center justify-between p-3 bg-white/5 dark:bg-white/5 rounded-xl"
+                        data-testid={`ingame-player-${player.athleteId}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-lg font-bold text-primary">
+                            #{player.jerseyNumber || "--"}
+                          </span>
+                          <div>
+                            <p className="font-medium">{player.athlete.firstName} {player.athlete.lastName}</p>
+                            <p className="text-xs text-muted-foreground">{player.athlete.position || "No position"}</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 rounded-xl bg-red-500/10 hover:bg-red-500/20 active:scale-95 transition-all"
+                          onClick={() => {
+                            if (isDemo) {
+                              showDemoToast();
+                            } else {
+                              updateRosterMutation.mutate({ rosterId: player.id, data: { isInGame: false } });
+                            }
+                          }}
+                          disabled={isDemo}
+                          data-testid={`button-bench-player-${player.athleteId}`}
+                        >
+                          <ChevronDown className="h-5 w-5 text-red-500" />
+                        </Button>
+                      </div>
+                    ))}
+                    {inGamePlayers.length === 0 && (
+                      <p className="text-center text-muted-foreground py-4 text-sm">No players in game</p>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            {/* Bench Players - Collapsible */}
+            <Collapsible open={benchOpen} onOpenChange={setBenchOpen}>
+              <div className="bg-white/5 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-orange-500" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-base font-semibold">On Bench</h3>
+                        <p className="text-sm text-muted-foreground">{benchPlayers.length} players waiting</p>
+                      </div>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${benchOpen ? "rotate-180" : ""}`} />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 pb-4 space-y-2">
+                    {benchPlayers.map(player => (
+                      <div
+                        key={player.id}
+                        className="flex items-center justify-between p-3 bg-white/5 dark:bg-white/5 rounded-xl"
+                        data-testid={`bench-player-${player.athleteId}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-lg font-bold text-muted-foreground">
+                            #{player.jerseyNumber || "--"}
+                          </span>
+                          <div>
+                            <p className="font-medium">{player.athlete.firstName} {player.athlete.lastName}</p>
+                            <p className="text-xs text-muted-foreground">{player.athlete.position || "No position"}</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 rounded-xl bg-green-500/10 hover:bg-green-500/20 active:scale-95 transition-all"
+                          onClick={() => {
+                            if (isDemo) {
+                              showDemoToast();
+                            } else {
+                              updateRosterMutation.mutate({ rosterId: player.id, data: { isInGame: true } });
+                            }
+                          }}
+                          disabled={isDemo}
+                          data-testid={`button-activate-player-${player.athleteId}`}
+                        >
+                          <ChevronUp className="h-5 w-5 text-green-500" />
+                        </Button>
+                      </div>
+                    ))}
+                    {benchPlayers.length === 0 && (
+                      <p className="text-center text-muted-foreground py-4 text-sm">No players on bench</p>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
           </div>
         )}
 
