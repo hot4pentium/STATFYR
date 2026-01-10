@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, User, Users, Shield, Eye, Trash2, ArrowLeft, Loader2, ChevronRight } from "lucide-react";
+import { Search, User, Users, Shield, Eye, Trash2, ArrowLeft, Loader2, ChevronRight, CreditCard, Crown } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { useUser } from "@/lib/userContext";
@@ -21,9 +21,12 @@ import {
   adminDeleteTeam,
   adminStartImpersonation,
   adminGetAllTeams,
+  adminGetAllSubscriptions,
+  adminUpdateUserSubscription,
   type AdminUser,
   type AdminTeamMember,
   type Team,
+  type UserWithSubscription,
 } from "@/lib/api";
 
 interface TeamWithMembers extends Team {
@@ -59,10 +62,19 @@ export default function SuperAdminPanel() {
   const [editRole, setEditRole] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<TeamWithMembers | null>(null);
+  const [subscriptionSearch, setSubscriptionSearch] = useState("");
+  const [editingSubscription, setEditingSubscription] = useState<UserWithSubscription | null>(null);
+  const [newTier, setNewTier] = useState("");
 
   const { data: teams = [], isLoading: isLoadingTeams, refetch: refetchTeams } = useQuery({
     queryKey: ["admin-teams", user?.id],
     queryFn: () => adminGetAllTeams(user!.id),
+    enabled: !!user?.isSuperAdmin,
+  });
+
+  const { data: subscriptions = [], isLoading: isLoadingSubscriptions, refetch: refetchSubscriptions } = useQuery({
+    queryKey: ["admin-subscriptions", user?.id],
+    queryFn: () => adminGetAllSubscriptions(user!.id),
     enabled: !!user?.isSuperAdmin,
   });
 
@@ -183,6 +195,54 @@ export default function SuperAdminPanel() {
     }
   };
 
+  const getTierBadgeColor = (tier: string) => {
+    switch (tier) {
+      case "coach": return "bg-orange-500";
+      case "athlete": return "bg-blue-500";
+      case "supporter": return "bg-purple-500";
+      case "free": return "bg-gray-500";
+      default: return "bg-gray-500";
+    }
+  };
+
+  const getTierLabel = (tier: string) => {
+    switch (tier) {
+      case "coach": return "Coach Pro";
+      case "athlete": return "Athlete Pro";
+      case "supporter": return "Supporter Pro";
+      case "free": return "Free";
+      default: return tier;
+    }
+  };
+
+  const handleUpdateSubscription = async () => {
+    if (!editingSubscription || !newTier) return;
+    
+    setIsSaving(true);
+    try {
+      await adminUpdateUserSubscription(editingSubscription.user.id, { tier: newTier }, user.id);
+      toast.success(`Subscription updated to ${getTierLabel(newTier)}`);
+      setEditingSubscription(null);
+      setNewTier("");
+      refetchSubscriptions();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update subscription");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const filteredSubscriptions = subscriptions.filter((sub: UserWithSubscription) => {
+    const searchLower = subscriptionSearch.toLowerCase();
+    const tier = sub.subscription?.tier || 'free';
+    return (
+      sub.user.firstName?.toLowerCase().includes(searchLower) ||
+      sub.user.lastName?.toLowerCase().includes(searchLower) ||
+      sub.user.email?.toLowerCase().includes(searchLower) ||
+      tier.toLowerCase().includes(searchLower)
+    );
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-4 md:p-6">
@@ -199,7 +259,7 @@ export default function SuperAdminPanel() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="teams" data-testid="tab-teams">
               <Users className="h-4 w-4 mr-2" />
               Teams
@@ -207,6 +267,10 @@ export default function SuperAdminPanel() {
             <TabsTrigger value="users" data-testid="tab-users">
               <Search className="h-4 w-4 mr-2" />
               User Search
+            </TabsTrigger>
+            <TabsTrigger value="subscriptions" data-testid="tab-subscriptions">
+              <CreditCard className="h-4 w-4 mr-2" />
+              Subscriptions
             </TabsTrigger>
           </TabsList>
 
@@ -530,7 +594,136 @@ export default function SuperAdminPanel() {
               </Card>
             </div>
           </TabsContent>
+
+          <TabsContent value="subscriptions" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="h-5 w-5" />
+                  User Subscriptions ({subscriptions.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Search by name, email, or tier..."
+                    value={subscriptionSearch}
+                    onChange={(e) => setSubscriptionSearch(e.target.value)}
+                    data-testid="input-subscription-search"
+                  />
+                </div>
+
+                {isLoadingSubscriptions ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                    {filteredSubscriptions.map((item: UserWithSubscription) => (
+                      <div
+                        key={item.user.id}
+                        className="p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                        data-testid={`subscription-row-${item.user.id}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                              {item.user.avatar ? (
+                                <img src={item.user.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
+                              ) : (
+                                <User className="h-5 w-5 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{item.user.firstName} {item.user.lastName}</p>
+                              <p className="text-sm text-muted-foreground truncate">{item.user.email}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <Badge className={getTierBadgeColor(item.subscription?.tier || 'free')}>
+                                {getTierLabel(item.subscription?.tier || 'free')}
+                              </Badge>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {(item.subscription?.status || 'active') === 'active' ? 'Active' : item.subscription?.status}
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingSubscription(item);
+                                setNewTier(item.subscription?.tier || 'free');
+                              }}
+                              data-testid={`button-edit-subscription-${item.user.id}`}
+                            >
+                              Change Tier
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {filteredSubscriptions.length === 0 && (
+                      <p className="text-center text-muted-foreground py-8">No users found</p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
+
+        <Dialog open={!!editingSubscription} onOpenChange={() => setEditingSubscription(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Change Subscription Tier</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>User</Label>
+                <p className="text-muted-foreground">
+                  {editingSubscription?.user.firstName} {editingSubscription?.user.lastName}
+                </p>
+                <p className="text-sm text-muted-foreground">{editingSubscription?.user.email}</p>
+              </div>
+              <div>
+                <Label>Current Tier</Label>
+                <div className="mt-1">
+                  <Badge className={getTierBadgeColor(editingSubscription?.subscription.tier || 'free')}>
+                    {getTierLabel(editingSubscription?.subscription.tier || 'free')}
+                  </Badge>
+                </div>
+              </div>
+              <div>
+                <Label>New Tier</Label>
+                <Select value={newTier} onValueChange={setNewTier}>
+                  <SelectTrigger data-testid="select-subscription-tier">
+                    <SelectValue placeholder="Select tier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="coach">Coach Pro ($9.99/mo)</SelectItem>
+                    <SelectItem value="athlete">Athlete Pro ($2.99/mo)</SelectItem>
+                    <SelectItem value="supporter">Supporter Pro ($5.99/mo)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setEditingSubscription(null)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleUpdateSubscription} 
+                  disabled={isSaving || !newTier} 
+                  className="flex-1" 
+                  data-testid="button-save-subscription"
+                >
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update Tier"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={!!editingMember} onOpenChange={() => setEditingMember(null)}>
           <DialogContent>

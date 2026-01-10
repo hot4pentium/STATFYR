@@ -4074,6 +4074,89 @@ export async function registerRoutes(
     }
   });
 
+  // Get all subscriptions with user info (for admin panel)
+  app.get("/api/admin/subscriptions", requireSuperAdmin, async (req, res) => {
+    try {
+      const { stripeService } = await import("./stripeService");
+      const allUsers = await storage.getAllUsers();
+      const subscriptionsWithUsers = await Promise.all(
+        allUsers.map(async (user) => {
+          const subscription = await stripeService.getUserSubscription(user.id);
+          const { password, ...safeUser } = user;
+          const defaultSubscription = {
+            id: null,
+            userId: user.id,
+            tier: 'free',
+            status: 'active',
+            stripeCustomerId: null,
+            stripeSubscriptionId: null,
+            currentPeriodStart: null,
+            currentPeriodEnd: null,
+            cancelAtPeriodEnd: false,
+          };
+          return {
+            user: safeUser,
+            subscription: subscription ? { ...defaultSubscription, ...subscription } : defaultSubscription
+          };
+        })
+      );
+      res.json(subscriptionsWithUsers);
+    } catch (error) {
+      console.error("Admin get subscriptions failed:", error);
+      res.status(500).json({ error: "Failed to get subscriptions" });
+    }
+  });
+
+  // Get single user subscription (for admin panel)
+  app.get("/api/admin/subscriptions/:userId", requireSuperAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { stripeService } = await import("./stripeService");
+      const subscription = await stripeService.getUserSubscription(userId);
+      const defaultSubscription = {
+        id: null,
+        userId,
+        tier: 'free',
+        status: 'active',
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        currentPeriodStart: null,
+        currentPeriodEnd: null,
+        cancelAtPeriodEnd: false,
+      };
+      res.json({ subscription: subscription ? { ...defaultSubscription, ...subscription } : defaultSubscription });
+    } catch (error) {
+      console.error("Admin get user subscription failed:", error);
+      res.status(500).json({ error: "Failed to get subscription" });
+    }
+  });
+
+  // Admin update user subscription tier (manual override)
+  app.patch("/api/admin/subscriptions/:userId", requireSuperAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { tier, status } = req.body;
+      
+      if (!tier || !['free', 'coach', 'athlete', 'supporter'].includes(tier)) {
+        return res.status(400).json({ error: "Valid tier required: free, coach, athlete, supporter" });
+      }
+
+      const { stripeService } = await import("./stripeService");
+      
+      // Upsert the subscription with the new tier
+      await stripeService.upsertSubscription(userId, {
+        tier,
+        status: status || 'active',
+      });
+
+      const updated = await stripeService.getUserSubscription(userId);
+      res.json({ subscription: updated, message: `Subscription updated to ${tier}` });
+    } catch (error) {
+      console.error("Admin update subscription failed:", error);
+      res.status(500).json({ error: "Failed to update subscription" });
+    }
+  });
+
   // ============ STRIPE SUBSCRIPTION ROUTES ============
   
   // Get Stripe publishable key for frontend

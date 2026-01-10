@@ -1034,6 +1034,52 @@ export async function adminGetCurrentImpersonation(requesterId: string): Promise
   return res.json();
 }
 
+// ============ ADMIN SUBSCRIPTION MANAGEMENT ============
+
+export interface AdminSubscription {
+  id?: string;
+  userId?: string;
+  tier: string;
+  status: string;
+  stripeCustomerId?: string | null;
+  stripeSubscriptionId?: string | null;
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
+  cancelAtPeriodEnd?: boolean;
+}
+
+export interface UserWithSubscription {
+  user: AdminUser;
+  subscription: AdminSubscription;
+}
+
+export async function adminGetAllSubscriptions(requesterId: string): Promise<UserWithSubscription[]> {
+  const res = await fetch(`/api/admin/subscriptions?requesterId=${requesterId}`);
+  if (!res.ok) {
+    if (res.status === 403) throw new Error("Super admin access required");
+    throw new Error("Failed to get subscriptions");
+  }
+  return res.json();
+}
+
+export async function adminGetUserSubscription(userId: string, requesterId: string): Promise<{ subscription: AdminSubscription }> {
+  const res = await fetch(`/api/admin/subscriptions/${userId}?requesterId=${requesterId}`);
+  if (!res.ok) {
+    if (res.status === 403) throw new Error("Super admin access required");
+    throw new Error("Failed to get subscription");
+  }
+  return res.json();
+}
+
+export async function adminUpdateUserSubscription(
+  userId: string, 
+  data: { tier: string; status?: string }, 
+  requesterId: string
+): Promise<{ subscription: AdminSubscription; message: string }> {
+  const res = await apiRequest("PATCH", `/api/admin/subscriptions/${userId}?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
 // ============ HYPES (UNIFIED ENGAGEMENT) ============
 
 export interface Hype {
