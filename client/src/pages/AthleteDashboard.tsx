@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2, Bell, Share2, Flame, ExternalLink, Copy, MessageSquare } from "lucide-react";
+import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2, Bell, Share2, Flame, ExternalLink, Copy, MessageSquare, Lock, Plus, Upload } from "lucide-react";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import { useUser } from "@/lib/userContext";
 import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount, joinTeamByCode, getUnreadMessageCount, type TeamMember, type Event, type HighlightVideo, type Play, type Shoutout } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
+import { useEntitlements } from "@/lib/entitlementsContext";
 import { format, isSameDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -59,8 +60,10 @@ export default function AthleteDashboard() {
   const searchString = useSearch();
   const { user, currentTeam, logout, setCurrentTeam, isLoading } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
+  const { entitlements, tier } = useEntitlements();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>("schedule");
   const [hypeCardFlipped, setHypeCardFlipped] = useState(false);
   const [hypeCardTab, setHypeCardTab] = useState<HypeCardTab>("events");
@@ -802,6 +805,36 @@ export default function AthleteDashboard() {
               {/* Highlights Section */}
               {activeSection === "highlights" && (
                 <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">Team Highlights</h3>
+                    {entitlements.canUploadHighlights ? (
+                      <Button
+                        onClick={() => setShowUploadDialog(true)}
+                        className="gap-2"
+                        data-testid="button-upload-highlight"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Upload Highlight
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          toast.info("Upgrade to Athlete Pro to upload your own highlights!", {
+                            action: {
+                              label: "Upgrade",
+                              onClick: () => setLocation("/athlete/settings")
+                            }
+                          });
+                        }}
+                        className="gap-2 text-muted-foreground"
+                        data-testid="button-upload-locked"
+                      >
+                        <Lock className="h-4 w-4" />
+                        Upload (Pro)
+                      </Button>
+                    )}
+                  </div>
                   {teamHighlights.length === 0 ? (
                     <Card className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-orange-500/20 p-8 text-center">
                       <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
@@ -838,6 +871,25 @@ export default function AthleteDashboard() {
                         </Card>
                       ))}
                     </div>
+                  )}
+
+                  {entitlements.canUploadHighlights && (
+                    <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Upload Highlight Video</DialogTitle>
+                        </DialogHeader>
+                        <VideoUploader
+                          teamId={currentTeam?.id || ""}
+                          userId={user?.id || ""}
+                          onUploadComplete={() => {
+                            setShowUploadDialog(false);
+                            refetchHighlights();
+                            toast.success("Highlight uploaded successfully!");
+                          }}
+                        />
+                      </DialogContent>
+                    </Dialog>
                   )}
                 </div>
               )}

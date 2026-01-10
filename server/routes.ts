@@ -4250,8 +4250,9 @@ export async function registerRoutes(
       
       const hasCoachRole = user?.role === 'coach' || teams.some((t: any) => t.role === 'coach');
       const hasStaffRole = teams.some((t: any) => t.role === 'staff');
+      const hasAthleteRole = user?.role === 'athlete' || teams.some((t: any) => t.role === 'athlete');
 
-      const entitlements = computeEntitlements(tier, hasCoachRole, hasStaffRole);
+      const entitlements = computeEntitlements(tier, hasCoachRole, hasStaffRole, hasAthleteRole);
       res.json({ entitlements, tier, subscription });
     } catch (error) {
       console.error("Failed to get entitlements:", error);
@@ -4616,7 +4617,7 @@ function getDefaultEntitlements(): Entitlements {
   };
 }
 
-function computeEntitlements(tier: string, isCoach: boolean, isStaff: boolean): Entitlements {
+function computeEntitlements(tier: string, isCoach: boolean, isStaff: boolean, isAthlete: boolean = false): Entitlements {
   const base = getDefaultEntitlements();
 
   if (isCoach) {
@@ -4645,12 +4646,22 @@ function computeEntitlements(tier: string, isCoach: boolean, isStaff: boolean): 
     base.canViewHighlights = true;
   }
 
+  if (isAthlete) {
+    base.canViewIndividualStats = true;
+    base.canViewHighlights = true;
+    
+    if (tier === 'athlete') {
+      base.canUploadHighlights = true;
+    }
+  }
+
   if (tier === 'supporter') {
     base.canUploadHighlights = true;
     base.canViewIndividualStats = true;
     base.canFollowCrossTeam = true;
     base.canTrackOwnStats = true;
     base.canViewHighlights = true;
+    base.canUseStatTracker = true;
   }
 
   return base;
