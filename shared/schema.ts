@@ -1094,3 +1094,120 @@ export const insertChatPresenceSchema = createInsertSchema(chatPresence).omit({
 
 export type InsertChatPresence = z.infer<typeof insertChatPresenceSchema>;
 export type ChatPresence = typeof chatPresence.$inferSelect;
+
+// Subscriptions - Stripe subscription data for users
+export const subscriptions = pgTable("subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id).unique(),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  tier: text("tier").notNull().default("free"), // 'free', 'coach', 'supporter'
+  status: text("status").notNull().default("active"), // 'active', 'canceled', 'past_due', 'trialing'
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
+}));
+
+// Supporter Athlete Links - cross-team following for paid supporters
+export const supporterAthleteLinks = pgTable("supporter_athlete_links", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  supporterId: varchar("supporter_id").notNull().references(() => users.id),
+  athleteId: varchar("athlete_id").notNull().references(() => users.id),
+  teamId: varchar("team_id").references(() => teams.id), // optional - null means cross-team follow
+  nickname: text("nickname"), // supporter's nickname for the athlete (e.g., "My Son")
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const supporterAthleteLinksRelations = relations(supporterAthleteLinks, ({ one }) => ({
+  supporter: one(users, {
+    fields: [supporterAthleteLinks.supporterId],
+    references: [users.id],
+  }),
+  athlete: one(users, {
+    fields: [supporterAthleteLinks.athleteId],
+    references: [users.id],
+  }),
+  team: one(teams, {
+    fields: [supporterAthleteLinks.teamId],
+    references: [teams.id],
+  }),
+}));
+
+// Supporter Stats - fallback stats tracked by paid supporters when coach doesn't track individual stats
+export const supporterStats = pgTable("supporter_stats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  supporterId: varchar("supporter_id").notNull().references(() => users.id),
+  athleteId: varchar("athlete_id").notNull().references(() => users.id),
+  eventId: varchar("event_id").references(() => events.id),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  statName: text("stat_name").notNull(), // e.g., "2 Points", "Rebounds"
+  statValue: integer("stat_value").notNull().default(1),
+  period: integer("period"),
+  notes: text("notes"),
+  recordedAt: timestamp("recorded_at").defaultNow(),
+});
+
+export const supporterStatsRelations = relations(supporterStats, ({ one }) => ({
+  supporter: one(users, {
+    fields: [supporterStats.supporterId],
+    references: [users.id],
+  }),
+  athlete: one(users, {
+    fields: [supporterStats.athleteId],
+    references: [users.id],
+  }),
+  event: one(events, {
+    fields: [supporterStats.eventId],
+    references: [events.id],
+  }),
+  team: one(teams, {
+    fields: [supporterStats.teamId],
+    references: [teams.id],
+  }),
+}));
+
+// Subscription schemas
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateSubscriptionSchema = createInsertSchema(subscriptions).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+}).partial();
+
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type UpdateSubscription = z.infer<typeof updateSubscriptionSchema>;
+export type Subscription = typeof subscriptions.$inferSelect;
+
+// Supporter Athlete Link schemas
+export const insertSupporterAthleteLinkSchema = createInsertSchema(supporterAthleteLinks).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertSupporterAthleteLink = z.infer<typeof insertSupporterAthleteLinkSchema>;
+export type SupporterAthleteLink = typeof supporterAthleteLinks.$inferSelect;
+
+// Supporter Stats schemas
+export const insertSupporterStatSchema = createInsertSchema(supporterStats).omit({
+  id: true,
+  recordedAt: true,
+});
+
+export type InsertSupporterStat = z.infer<typeof insertSupporterStatSchema>;
+export type SupporterStat = typeof supporterStats.$inferSelect;
