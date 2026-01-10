@@ -1290,7 +1290,7 @@ export default function UnifiedDashboard() {
                             <Crown className="h-6 w-6 text-yellow-500" />
                           </div>
                           <h3 className="font-display font-bold text-lg uppercase mb-2">Individual Athlete Stats</h3>
-                          <p className="text-muted-foreground mb-4">View detailed per-athlete statistics, track your own stats for followed athletes, and compare performance across the roster</p>
+                          <p className="text-muted-foreground mb-4">View detailed per-athlete statistics tracked by the coach. Or track your own stats for Managed athletes, and compare performance across the roster</p>
                           <Button 
                             variant="outline" 
                             className="gap-2 border-yellow-500/50 text-yellow-600 hover:bg-yellow-500/10"
