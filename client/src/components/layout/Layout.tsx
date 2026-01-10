@@ -2,7 +2,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { DashboardBackground } from "./DashboardBackground";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, AlertCircle, Bell } from "lucide-react";
+import { Settings, LogOut, AlertCircle, Bell, Shield } from "lucide-react";
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useUser } from "@/lib/userContext";
@@ -15,7 +15,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const [, setLocation] = useLocation();
-  const { currentTeam, logout } = useUser();
+  const { user, currentTeam, logout } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
 
   useEffect(() => {
@@ -59,6 +59,19 @@ export function Layout({ children }: LayoutProps) {
               </Button>
             )}
             <ThemeToggle />
+            {(user?.role === 'super_admin' || user?.isSuperAdmin) && (
+              <Link href="/super-admin">
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  className="border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10"
+                  data-testid="button-admin"
+                  title="Admin Panel"
+                >
+                  <Shield className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
             <Link href="/settings">
               <Button 
                 variant="outline" 
