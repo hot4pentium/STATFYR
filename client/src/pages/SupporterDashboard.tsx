@@ -86,11 +86,21 @@ export default function SupporterDashboard() {
     setMounted(true);
   }, []);
 
-  const { data: managedAthletes = [], refetch: refetchManagedAthletes } = useQuery({
+  const { data: managedAthletes = [], refetch: refetchManagedAthletes, isFetched: isManagedAthletesFetched } = useQuery({
     queryKey: ["/api/users", user?.id, "managed-athletes"],
     queryFn: () => user ? getManagedAthletes(user.id) : Promise.resolve([]),
     enabled: !!user,
   });
+
+  // Check if supporter has independently managed athletes (no team needed)
+  const hasIndependentAthletes = managedAthletes.some(m => m.isOwner === true);
+
+  // Redirect to onboarding if no team and no managed athletes (after query settles)
+  useEffect(() => {
+    if (isManagedAthletesFetched && !currentTeam && !hasIndependentAthletes) {
+      setLocation("/supporter/onboarding");
+    }
+  }, [isManagedAthletesFetched, currentTeam, hasIndependentAthletes, setLocation]);
 
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -1027,12 +1037,22 @@ export default function SupporterDashboard() {
     }
   };
 
-  // Check if supporter has independently managed athletes (no team needed)
-  const hasIndependentAthletes = managedAthletes.some(m => m.isOwner === true);
+  // Show loading state while checking if we need to redirect
+  if (!currentTeam && !hasIndependentAthletes && !isManagedAthletesFetched) {
+    return (
+      <>
+        <DashboardBackground />
+        <div className="min-h-screen relative z-10 flex items-center justify-center p-4">
+          <div className="text-center">
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
+  // If no team and no managed athletes, useEffect will redirect - show loading
   if (!currentTeam && !hasIndependentAthletes) {
-    // No team and no managed athletes - redirect to onboarding to choose a path
-    setLocation("/supporter/onboarding");
     return (
       <>
         <DashboardBackground />
