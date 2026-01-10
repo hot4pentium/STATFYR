@@ -193,6 +193,9 @@ export default function StatTrackerPage() {
   });
 
   useEffect(() => {
+    if (isDemo) {
+      return;
+    }
     if (effectiveGame) {
       if (effectiveGame.trackingMode) {
         setTrackingMode(effectiveGame.trackingMode as "individual" | "team");
@@ -206,7 +209,7 @@ export default function StatTrackerPage() {
         setViewMode("tracking");
       }
     }
-  }, [effectiveGame, gameRoster]);
+  }, [effectiveGame, gameRoster, isDemo]);
 
   const createGameMutation = useMutation({
     mutationFn: () => {
