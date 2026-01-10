@@ -222,6 +222,22 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       ctx.rotate(Math.PI / 2);
       ctx.drawImage(footballImageRef.current, -height / 2, -width / 2, height, width);
       ctx.restore();
+      
+      const fontSize = Math.min(width, height) * 0.08;
+      ctx.font = `bold ${fontSize}px Oswald, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.lineWidth = 2;
+      
+      const topEndZoneY = height * 0.06;
+      ctx.strokeText("STAT", width / 2, topEndZoneY);
+      ctx.fillText("STAT", width / 2, topEndZoneY);
+      
+      const bottomEndZoneY = height * 0.94;
+      ctx.strokeText("FYR", width / 2, bottomEndZoneY);
+      ctx.fillText("FYR", width / 2, bottomEndZoneY);
     } else {
       ctx.fillStyle = "#1a472a";
       ctx.fillRect(0, 0, width, height);
