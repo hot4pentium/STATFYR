@@ -2763,7 +2763,7 @@ export async function registerRoutes(
               const pushResult = await sendPushToExternalIds([recipientId], {
                 title: `Message from ${senderName}`,
                 message: messagePreview,
-                url: `${APP_BASE_URL}/chat/${teamId}/${senderId}`,
+                url: `${APP_BASE_URL}/chat`,
                 data: { type: 'direct_message', teamId, senderId },
               });
               if (pushResult.success && pushResult.sentCount > 0) {
