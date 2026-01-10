@@ -666,17 +666,32 @@ export default function UnifiedDashboard() {
 
   const handleCardClick = (cardId: string) => {
     if (isCardLocked(cardId)) {
-      toast.info("Upgrade to unlock this feature", {
-        description: "Get access to premium features with a subscription",
-        action: {
-          label: "Upgrade",
-          onClick: () => setLocation("/subscription")
-        },
-        cancel: {
-          label: "Dismiss",
-          onClick: () => {}
-        }
-      });
+      const hasDemoMode = cardId === "stattracker" || cardId === "playmaker";
+      if (hasDemoMode) {
+        toast.info("Upgrade to unlock this feature", {
+          description: "Get access to premium features, or try the demo first",
+          action: {
+            label: "Try Demo",
+            onClick: () => setLocation(cardId === "stattracker" ? "/stat-tracker?demo=true" : "/playbook?demo=true")
+          },
+          cancel: {
+            label: "Upgrade",
+            onClick: () => setLocation("/subscription")
+          }
+        });
+      } else {
+        toast.info("Upgrade to unlock this feature", {
+          description: "Get access to premium features with a subscription",
+          action: {
+            label: "Upgrade",
+            onClick: () => setLocation("/subscription")
+          },
+          cancel: {
+            label: "Dismiss",
+            onClick: () => {}
+          }
+        });
+      }
       return;
     }
     if (cardId === "chat") {

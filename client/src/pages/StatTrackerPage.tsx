@@ -18,13 +18,14 @@ import {
   ArrowLeft, Play, Pause, RotateCcw, Users, Timer, Target, 
   Plus, Minus, Check, X, ChevronUp, ChevronDown, Activity,
   Settings, User, Trophy, Edit2, Undo2, Clock, Save, Sliders,
-  TrendingUp, BarChart3, Flame, Calendar, Lock, Crown
+  TrendingUp, BarChart3, Flame, Calendar, Lock, Crown, Eye
 } from "lucide-react";
 import { Link, useLocation, useRoute } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/lib/userContext";
 import { useEntitlements } from "@/lib/entitlementsContext";
 import { useToast } from "@/hooks/use-toast";
+import { useDemoMode } from "@/lib/useDemoMode";
 import {
   getTeamGames, getGame, createGame, updateGame, getGameByEvent,
   getTeamStatConfigs, createStatConfig, updateStatConfig,
@@ -46,8 +47,10 @@ export default function StatTrackerPage() {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const [, params] = useRoute("/stattracker/:gameId");
+  const demoMode = useDemoMode();
+  const isDemo = demoMode.isDemo;
 
-  const [viewMode, setViewMode] = useState<ViewMode>("setup");
+  const [viewMode, setViewMode] = useState<ViewMode>(isDemo ? "tracking" : "setup");
   const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [trackingMode, setTrackingMode] = useState<"individual" | "team">("individual");
   const [totalPeriods, setTotalPeriods] = useState(4);
@@ -89,34 +92,49 @@ export default function StatTrackerPage() {
   const { data: currentGame } = useQuery({
     queryKey: ["game", currentGameId],
     queryFn: () => currentGameId ? getGame(currentGameId) : null,
-    enabled: !!currentGameId
+    enabled: !!currentGameId && !isDemo
   });
 
   const { data: gameRoster = [] } = useQuery({
     queryKey: ["game-roster", currentGameId],
     queryFn: () => currentGameId ? getGameRoster(currentGameId) : [],
-    enabled: !!currentGameId
+    enabled: !!currentGameId && !isDemo
   });
 
   const { data: gameStats = [] } = useQuery({
     queryKey: ["game-stats", currentGameId],
     queryFn: () => currentGameId ? getGameStats(currentGameId) : [],
-    enabled: !!currentGameId
+    enabled: !!currentGameId && !isDemo
   });
 
   const { data: advancedStats } = useQuery({
     queryKey: ["advanced-team-stats", selectedTeam?.id],
     queryFn: () => selectedTeam ? getAdvancedTeamStats(selectedTeam.id) : null,
-    enabled: !!selectedTeam && viewMode === "summary"
+    enabled: !!selectedTeam && viewMode === "summary" && !isDemo
   });
 
   const { data: selectedAthleteStats } = useQuery({
     queryKey: ["athlete-stats", selectedTeam?.id, selectedAthleteId],
     queryFn: () => selectedTeam && selectedAthleteId ? getAthleteStats(selectedTeam.id, selectedAthleteId) : null,
-    enabled: !!selectedTeam && !!selectedAthleteId && summaryTab === "progression"
+    enabled: !!selectedTeam && !!selectedAthleteId && summaryTab === "progression" && !isDemo
   });
 
-  if (!entitlementsLoading && !entitlements.canUseStatTracker) {
+  // In demo mode, use demo data instead of API data
+  const effectiveGame = isDemo ? demoMode.game : currentGame;
+  const effectiveRoster = isDemo ? demoMode.roster : gameRoster;
+  const effectiveStats = isDemo ? demoMode.stats : gameStats;
+  const effectiveStatConfigs = isDemo ? demoMode.statConfigs : statConfigs;
+
+  // Helper to show toast when action is disabled in demo mode
+  const showDemoToast = () => {
+    toast({
+      title: "Demo Mode",
+      description: "This action is disabled in demo mode. Upgrade to use all features!",
+      variant: "default",
+    });
+  };
+
+  if (!entitlementsLoading && !entitlements.canUseStatTracker && !isDemo) {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 text-center">
@@ -133,6 +151,14 @@ export default function StatTrackerPage() {
             >
               <Crown className="w-4 h-4" />
               Upgrade to Coach Pro
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/stat-tracker?demo=true")}
+              className="mt-2 w-full gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              Try Demo
             </Button>
             <Button 
               variant="ghost" 
@@ -167,20 +193,20 @@ export default function StatTrackerPage() {
   });
 
   useEffect(() => {
-    if (currentGame) {
-      if (currentGame.trackingMode) {
-        setTrackingMode(currentGame.trackingMode as "individual" | "team");
+    if (effectiveGame) {
+      if (effectiveGame.trackingMode) {
+        setTrackingMode(effectiveGame.trackingMode as "individual" | "team");
       }
-      if (currentGame.periodType) {
-        setPeriodType(currentGame.periodType);
+      if (effectiveGame.periodType) {
+        setPeriodType(effectiveGame.periodType);
       }
-      if (currentGame.status === "completed") {
+      if (effectiveGame.status === "completed") {
         setViewMode("summary");
-      } else if (currentGame.status === "active" || currentGame.status === "paused") {
+      } else if (effectiveGame.status === "active" || effectiveGame.status === "paused") {
         setViewMode("tracking");
       }
     }
-  }, [currentGame, gameRoster]);
+  }, [effectiveGame, gameRoster]);
 
   const createGameMutation = useMutation({
     mutationFn: () => {
@@ -262,10 +288,10 @@ export default function StatTrackerPage() {
 
   const recordStatMutation = useMutation({
     mutationFn: (data: { statConfigId: string; athleteId?: string; pointsValue: number }) => {
-      if (!currentGameId || !user || !currentGame) throw new Error("Missing data");
+      if (!currentGameId || !user || !effectiveGame) throw new Error("Missing data");
       return recordGameStat(currentGameId, user.id, {
         ...data,
-        period: currentGame.currentPeriod,
+        period: effectiveGame.currentPeriod,
         value: 1
       });
     },
@@ -312,6 +338,37 @@ export default function StatTrackerPage() {
     }
   });
 
+  // Demo mode wrapper for score updates
+  const handleScoreUpdate = (team: "home" | "opponent", delta: number) => {
+    if (isDemo) {
+      const currentScore = team === "home" ? demoMode.game.teamScore : demoMode.game.opponentScore;
+      demoMode.updateDemoScore(team, Math.max(0, currentScore + delta));
+    } else {
+      const scoreKey = team === "home" ? "teamScore" : "opponentScore";
+      const currentScore = team === "home" ? effectiveGame?.teamScore || 0 : effectiveGame?.opponentScore || 0;
+      updateGameMutation.mutate({ [scoreKey]: Math.max(0, currentScore + delta) });
+    }
+  };
+
+  // Demo mode wrapper for stat recording
+  const recordDemoStat = (statConfigId: string, athleteId: string | undefined, pointsValue: number) => {
+    const config = effectiveStatConfigs.find(c => c.id === statConfigId);
+    const athlete = athleteId ? demoMode.players.find(p => p.id === athleteId) : undefined;
+    demoMode.addDemoStat({
+      gameId: demoMode.gameId,
+      statConfigId,
+      athleteId: athleteId || null,
+      period: demoMode.game.currentPeriod,
+      value: 1,
+      pointsValue,
+      isDeleted: false,
+      statConfig: config,
+      athlete,
+    });
+    setRecordedPlayerId(athleteId || null);
+    setTimeout(() => setRecordedPlayerId(null), 300);
+  };
+
   const initStatConfigs = async () => {
     if (!selectedTeam || !user || statConfigs.length > 0 || isInitializingStats) return;
     setIsInitializingStats(true);
@@ -344,10 +401,14 @@ export default function StatTrackerPage() {
   };
 
   const toggleGamePause = () => {
-    if (!currentGame) return;
-    if (currentGame.status === "active") {
+    if (!effectiveGame) return;
+    if (isDemo) {
+      showDemoToast();
+      return;
+    }
+    if (effectiveGame.status === "active") {
       updateGameMutation.mutate({ status: "paused" });
-    } else if (!currentGame.startedAt || currentGame.status === "setup") {
+    } else if (!effectiveGame.startedAt || effectiveGame.status === "setup") {
       updateGameMutation.mutate({ 
         status: "active", 
         startedAt: new Date().toISOString() 
@@ -358,6 +419,11 @@ export default function StatTrackerPage() {
   };
 
   const confirmEndGame = () => {
+    if (isDemo) {
+      setShowEndGameConfirm(false);
+      setViewMode("summary");
+      return;
+    }
     updateGameMutation.mutate({ 
       status: "completed", 
       endedAt: new Date().toISOString() 
@@ -367,28 +433,42 @@ export default function StatTrackerPage() {
   };
 
   const nextPeriod = () => {
-    if (!currentGame) return;
-    if (currentGame.currentPeriod < currentGame.totalPeriods) {
-      updateGameMutation.mutate({ currentPeriod: currentGame.currentPeriod + 1 });
+    if (!effectiveGame) return;
+    if (isDemo) {
+      showDemoToast();
+      return;
+    }
+    if (effectiveGame.currentPeriod < effectiveGame.totalPeriods) {
+      updateGameMutation.mutate({ currentPeriod: effectiveGame.currentPeriod + 1 });
     }
   };
 
   const handleRecordStat = (config: StatConfig, player?: GameRoster) => {
-    if (trackingMode === "team") {
-      recordStatMutation.mutate({ 
-        statConfigId: config.id, 
-        pointsValue: config.value 
-      });
-      setSelectedStat(null);
-    } else if (player) {
-      recordStatMutation.mutate({ 
-        statConfigId: config.id, 
-        athleteId: player.athleteId,
-        pointsValue: config.value 
-      });
-      setRecordedPlayerId(player.athleteId);
-      setTimeout(() => setRecordedPlayerId(null), 800);
-      setSelectedStat(null);
+    if (isDemo) {
+      if (trackingMode === "team") {
+        recordDemoStat(config.id, undefined, config.value);
+        setSelectedStat(null);
+      } else if (player) {
+        recordDemoStat(config.id, player.athleteId, config.value);
+        setSelectedStat(null);
+      }
+    } else {
+      if (trackingMode === "team") {
+        recordStatMutation.mutate({ 
+          statConfigId: config.id, 
+          pointsValue: config.value 
+        });
+        setSelectedStat(null);
+      } else if (player) {
+        recordStatMutation.mutate({ 
+          statConfigId: config.id, 
+          athleteId: player.athleteId,
+          pointsValue: config.value 
+        });
+        setRecordedPlayerId(player.athleteId);
+        setTimeout(() => setRecordedPlayerId(null), 800);
+        setSelectedStat(null);
+      }
     }
   };
 
@@ -406,14 +486,14 @@ export default function StatTrackerPage() {
     }
   };
 
-  const athleteRoster = gameRoster.filter(r => r.athlete?.role === "athlete");
+  const athleteRoster = effectiveRoster.filter(r => r.athlete?.role === "athlete");
   const sortedInGamePlayers = [...athleteRoster.filter(r => r.isInGame)].sort((a, b) => 
     (a.athlete.firstName || "").localeCompare(b.athlete.firstName || "")
   );
 
   const inGamePlayers = athleteRoster.filter(r => r.isInGame);
   const benchPlayers = athleteRoster.filter(r => !r.isInGame);
-  const activeStats = statConfigs.filter(c => c.isActive);
+  const activeStats = effectiveStatConfigs.filter(c => c.isActive);
 
   const getFilteredPlayersForStat = (stat: StatConfig | null) => {
     if (!stat || !stat.positions || stat.positions.length === 0) {
@@ -429,19 +509,19 @@ export default function StatTrackerPage() {
   const filteredPlayers = getFilteredPlayersForStat(selectedStat);
 
   const getPlayerStats = (athleteId: string) => {
-    return gameStats.filter(s => s.athleteId === athleteId && !s.isDeleted);
+    return effectiveStats.filter(s => s.athleteId === athleteId && !s.isDeleted);
   };
 
   const getTeamTotalStats = () => {
     const totals: Record<string, number> = {};
-    gameStats.filter(s => !s.isDeleted).forEach(stat => {
+    effectiveStats.filter(s => !s.isDeleted).forEach(stat => {
       const key = stat.statConfigId;
       totals[key] = (totals[key] || 0) + stat.value;
     });
     return totals;
   };
 
-  if (!user || !selectedTeam) {
+  if (!user || (!selectedTeam && !isDemo)) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
@@ -454,6 +534,36 @@ export default function StatTrackerPage() {
   return (
     <Layout>
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {isDemo && (
+          <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border border-amber-500/30 rounded-lg p-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Eye className="h-5 w-5 text-amber-500" />
+              <div>
+                <p className="font-semibold text-amber-200">Demo Mode</p>
+                <p className="text-xs text-amber-300/70">Explore StatTracker with sample data. Changes won't be saved.</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => navigate("/subscription")}
+                className="border-amber-500/30 text-amber-200 hover:bg-amber-500/20"
+              >
+                <Crown className="h-4 w-4 mr-1" />
+                Upgrade
+              </Button>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={() => navigate("/stat-tracker")}
+                className="text-amber-300/70 hover:text-amber-200"
+              >
+                Exit Demo
+              </Button>
+            </div>
+          </div>
+        )}
         <div className="flex items-center gap-3">
           <Link href="/dashboard">
             <Button variant="ghost" size="icon" data-testid="button-back">
@@ -462,7 +572,7 @@ export default function StatTrackerPage() {
           </Link>
           <div className="flex-1">
             <h1 className="text-2xl md:text-3xl font-display font-bold uppercase tracking-tight">
-              StatTracker
+              StatTracker {isDemo && <Badge variant="outline" className="ml-2 text-amber-500 border-amber-500/30">DEMO</Badge>}
             </h1>
             <p className="text-muted-foreground text-sm">
               {viewMode === "setup" && "Set up a new game"}
@@ -482,9 +592,9 @@ export default function StatTrackerPage() {
               <Sliders className="h-5 w-5" />
             </Button>
           )}
-          {currentGame && viewMode !== "setup" && viewMode !== "settings" && (
-            <Badge variant={currentGame.status === "active" ? "default" : "secondary"} data-testid="badge-game-status">
-              {currentGame.status}
+          {effectiveGame && viewMode !== "setup" && viewMode !== "settings" && (
+            <Badge variant={effectiveGame.status === "active" ? "default" : "secondary"} data-testid="badge-game-status">
+              {effectiveGame.status}
             </Badge>
           )}
         </div>
@@ -589,13 +699,13 @@ export default function StatTrackerPage() {
                   </div>
                 </div>
 
-                {statConfigs.length === 0 && (
+                {effectiveStatConfigs.length === 0 && !isDemo && (
                   <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
                     <p className="text-sm text-amber-400 mb-2">
-                      No stat configurations found. Click below to set up default stats for {selectedTeam.sport || "Basketball"}.
+                      No stat configurations found. Click below to set up default stats for {selectedTeam?.sport || "Basketball"}.
                     </p>
                     <Button variant="outline" size="sm" onClick={initStatConfigs} disabled={isInitializingStats} data-testid="button-init-stats">
-                      {isInitializingStats ? "Initializing..." : `Initialize ${selectedTeam.sport || "Basketball"} Stats`}
+                      {isInitializingStats ? "Initializing..." : `Initialize ${selectedTeam?.sport || "Basketball"} Stats`}
                     </Button>
                   </div>
                 )}
@@ -603,19 +713,19 @@ export default function StatTrackerPage() {
                 <Button
                   className="w-full"
                   size="lg"
-                  onClick={() => createGameMutation.mutate()}
-                  disabled={createGameMutation.isPending}
+                  onClick={() => isDemo ? showDemoToast() : createGameMutation.mutate()}
+                  disabled={createGameMutation.isPending || isDemo}
                   data-testid="button-create-game"
                 >
                   <Play className="h-4 w-4 mr-2" />
-                  Create Game
+                  {isDemo ? "Demo Mode Active" : "Create Game"}
                 </Button>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {viewMode === "roster" && currentGame && (
+        {viewMode === "roster" && effectiveGame && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-card border-white/5">
@@ -648,10 +758,11 @@ export default function StatTrackerPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => updateRosterMutation.mutate({ 
+                            onClick={() => isDemo ? showDemoToast() : updateRosterMutation.mutate({ 
                               rosterId: player.id, 
                               data: { isInGame: false } 
                             })}
+                            disabled={isDemo}
                             data-testid={`button-bench-${player.athleteId}`}
                           >
                             <ChevronDown className="h-4 w-4 mr-1" />
@@ -699,10 +810,11 @@ export default function StatTrackerPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => updateRosterMutation.mutate({ 
+                            onClick={() => isDemo ? showDemoToast() : updateRosterMutation.mutate({ 
                               rosterId: player.id, 
                               data: { isInGame: true } 
                             })}
+                            disabled={isDemo}
                             data-testid={`button-add-to-game-${player.athleteId}`}
                           >
                             <ChevronUp className="h-4 w-4 mr-1" />
@@ -734,32 +846,32 @@ export default function StatTrackerPage() {
           </div>
         )}
 
-        {viewMode === "tracking" && currentGame && (
+        {viewMode === "tracking" && effectiveGame && (
           <div className="space-y-4">
             {/* Scoreboard */}
             <Card className="bg-card border-white/5">
               <CardContent className="p-3">
                 <div className="flex items-center justify-between">
                   <div className="text-center flex-1">
-                    <p className="text-[10px] text-muted-foreground uppercase">{selectedTeam.name}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase">{selectedTeam?.name || "Your Team"}</p>
                     <div className="flex items-center justify-center gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0"
-                        onClick={() => updateGameMutation.mutate({ teamScore: Math.max(0, currentGame.teamScore - 1) })}
+                        onClick={() => handleScoreUpdate("home", -1)}
                         data-testid="button-team-score-minus"
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
                       <p className="text-3xl font-display font-bold min-w-[3rem]" data-testid="text-team-score">
-                        {currentGame.teamScore}
+                        {effectiveGame.teamScore}
                       </p>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0"
-                        onClick={() => updateGameMutation.mutate({ teamScore: currentGame.teamScore + 1 })}
+                        onClick={() => handleScoreUpdate("home", 1)}
                         data-testid="button-team-score-plus"
                       >
                         <Plus className="h-4 w-4" />
@@ -769,32 +881,32 @@ export default function StatTrackerPage() {
                   
                   <div className="px-2 flex flex-col items-center gap-1">
                     <Badge variant="outline" className="text-sm px-2 py-0.5" data-testid="badge-period">
-                      {periodType.charAt(0).toUpperCase()}{currentGame.currentPeriod}
+                      {periodType.charAt(0).toUpperCase()}{effectiveGame.currentPeriod}
                     </Badge>
                   </div>
                   
                   <div className="text-center flex-1">
                     <p className="text-[10px] text-muted-foreground uppercase">
-                      {currentGame.opponentName || "Opponent"}
+                      {effectiveGame.opponentName || "Opponent"}
                     </p>
                     <div className="flex items-center justify-center gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0"
-                        onClick={() => updateGameMutation.mutate({ opponentScore: Math.max(0, currentGame.opponentScore - 1) })}
+                        onClick={() => handleScoreUpdate("opponent", -1)}
                         data-testid="button-opponent-score-minus"
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
                       <p className="text-3xl font-display font-bold min-w-[3rem]" data-testid="text-opponent-score">
-                        {currentGame.opponentScore}
+                        {effectiveGame.opponentScore}
                       </p>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0"
-                        onClick={() => updateGameMutation.mutate({ opponentScore: currentGame.opponentScore + 1 })}
+                        onClick={() => handleScoreUpdate("opponent", 1)}
                         data-testid="button-opponent-score-plus"
                       >
                         <Plus className="h-4 w-4" />
@@ -805,21 +917,21 @@ export default function StatTrackerPage() {
                 
                 <div className="flex justify-center gap-2 mt-2">
                   <Button
-                    variant={currentGame.status === "active" ? "outline" : "default"}
+                    variant={effectiveGame.status === "active" ? "outline" : "default"}
                     size="sm"
                     className="h-7 text-xs"
                     onClick={toggleGamePause}
                     data-testid="button-toggle-pause"
                   >
-                    {currentGame.status === "active" ? (
+                    {effectiveGame.status === "active" ? (
                       <><Pause className="h-3 w-3 mr-1" /> Pause</>
-                    ) : currentGame.status === "setup" || !currentGame.startedAt ? (
+                    ) : effectiveGame.status === "setup" || !effectiveGame.startedAt ? (
                       <><Play className="h-3 w-3 mr-1" /> Start</>
                     ) : (
                       <><Play className="h-3 w-3 mr-1" /> Resume</>
                     )}
                   </Button>
-                  {currentGame.currentPeriod < currentGame.totalPeriods && (
+                  {effectiveGame.currentPeriod < effectiveGame.totalPeriods && (
                     <Button variant="outline" size="sm" className="h-7 text-xs" onClick={nextPeriod} data-testid="button-next-period">
                       Next {periodType}
                     </Button>
@@ -955,7 +1067,7 @@ export default function StatTrackerPage() {
               <CardContent className="px-3 pb-3">
                 <ScrollArea className="h-[100px]">
                   <div className="space-y-1">
-                    {gameStats
+                    {effectiveStats
                       .filter(s => !s.isDeleted)
                       .sort((a, b) => new Date(b.recordedAt || 0).getTime() - new Date(a.recordedAt || 0).getTime())
                       .slice(0, 5)
@@ -982,14 +1094,15 @@ export default function StatTrackerPage() {
                             variant="ghost"
                             size="icon"
                             className="h-5 w-5"
-                            onClick={() => deleteStatMutation.mutate(stat.id)}
+                            onClick={() => isDemo ? showDemoToast() : deleteStatMutation.mutate(stat.id)}
+                            disabled={isDemo}
                             data-testid={`button-undo-stat-${stat.id}`}
                           >
                             <Undo2 className="h-3 w-3" />
                           </Button>
                         </div>
                       ))}
-                    {gameStats.filter(s => !s.isDeleted).length === 0 && (
+                    {effectiveStats.filter(s => !s.isDeleted).length === 0 && (
                       <p className="text-center text-muted-foreground py-2 text-xs">
                         No stats yet
                       </p>
@@ -1001,7 +1114,7 @@ export default function StatTrackerPage() {
           </div>
         )}
 
-        {viewMode === "summary" && currentGame && (
+        {viewMode === "summary" && effectiveGame && (
           <div className="space-y-6">
             <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 flex items-center gap-3">
               <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
@@ -1035,16 +1148,16 @@ export default function StatTrackerPage() {
                     </div>
                     <div className="flex items-center justify-center gap-8">
                       <div className="text-center">
-                        <p className="text-sm text-muted-foreground">{selectedTeam.name}</p>
+                        <p className="text-sm text-muted-foreground">{selectedTeam?.name || "Your Team"}</p>
                         <p className="text-5xl font-display font-bold" data-testid="text-final-team-score">
-                          {currentGame.teamScore}
+                          {effectiveGame.teamScore}
                         </p>
                       </div>
                       <span className="text-2xl text-muted-foreground">-</span>
                       <div className="text-center">
-                        <p className="text-sm text-muted-foreground">{currentGame.opponentName || "Opponent"}</p>
+                        <p className="text-sm text-muted-foreground">{effectiveGame.opponentName || "Opponent"}</p>
                         <p className="text-5xl font-display font-bold" data-testid="text-final-opponent-score">
-                          {currentGame.opponentScore}
+                          {effectiveGame.opponentScore}
                         </p>
                       </div>
                     </div>
@@ -1061,7 +1174,7 @@ export default function StatTrackerPage() {
                   <CardContent>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                       {Object.entries(getTeamTotalStats()).map(([configId, total]) => {
-                        const config = statConfigs.find(c => c.id === configId);
+                        const config = effectiveStatConfigs.find(c => c.id === configId);
                         if (!config) return null;
                         return (
                           <div key={configId} className="text-center p-3 bg-muted/30 rounded-lg">
@@ -1084,7 +1197,7 @@ export default function StatTrackerPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {gameRoster.map(player => {
+                        {effectiveRoster.map(player => {
                           const playerStats = getPlayerStats(player.athleteId);
                           if (playerStats.length === 0) return null;
                           
@@ -1105,7 +1218,7 @@ export default function StatTrackerPage() {
                               </div>
                               <div className="flex flex-wrap gap-2">
                                 {Object.entries(statTotals).map(([configId, total]) => {
-                                  const config = statConfigs.find(c => c.id === configId);
+                                  const config = effectiveStatConfigs.find(c => c.id === configId);
                                   return (
                                     <Badge key={configId} variant="secondary">
                                       {config?.shortName}: {total}
@@ -1475,7 +1588,7 @@ export default function StatTrackerPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {statConfigs.map(config => (
+                      {effectiveStatConfigs.map(config => (
                         <div 
                           key={config.id} 
                           className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
@@ -1492,7 +1605,7 @@ export default function StatTrackerPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setEditingStatConfig(config)}
+                            onClick={() => isDemo ? showDemoToast() : setEditingStatConfig(config)}
                             data-testid={`button-edit-stat-${config.id}`}
                           >
                             <Edit2 className="h-4 w-4 mr-1" />
@@ -1500,7 +1613,7 @@ export default function StatTrackerPage() {
                           </Button>
                         </div>
                       ))}
-                      {statConfigs.length === 0 && (
+                      {effectiveStatConfigs.length === 0 && (
                         <p className="text-center text-muted-foreground py-4">
                           No stats configured. Start a game to initialize stats.
                         </p>
@@ -1654,6 +1767,10 @@ export default function StatTrackerPage() {
                   </Button>
                   <Button
                     onClick={() => {
+                      if (isDemo) {
+                        showDemoToast();
+                        return;
+                      }
                       if (editingAthlete && athletePosition) {
                         updateAthleteMutation.mutate({
                           memberId: editingAthlete.id,
@@ -1661,7 +1778,7 @@ export default function StatTrackerPage() {
                         });
                       }
                     }}
-                    disabled={updateAthleteMutation.isPending || !athletePosition}
+                    disabled={updateAthleteMutation.isPending || !athletePosition || isDemo}
                     data-testid="button-save-athlete-position"
                   >
                     {updateAthleteMutation.isPending ? "Saving..." : "Save"}
@@ -1679,7 +1796,7 @@ export default function StatTrackerPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>End Game?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to end this game? The final score will be {currentGame?.teamScore || 0} - {currentGame?.opponentScore || 0}. 
+              Are you sure you want to end this game? The final score will be {effectiveGame?.teamScore || 0} - {effectiveGame?.opponentScore || 0}. 
               You won't be able to record more stats after ending.
             </AlertDialogDescription>
           </AlertDialogHeader>
