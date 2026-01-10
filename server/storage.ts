@@ -250,6 +250,7 @@ export interface IStorage {
   
   // Supporter Stats methods (fallback stat tracking)
   getSupporterStats(supporterId: string, athleteId: string, eventId?: string): Promise<SupporterStat[]>;
+  getSupporterStatById(id: string): Promise<SupporterStat | undefined>;
   getSupporterStatsByEvent(eventId: string): Promise<(SupporterStat & { supporter: User; athlete: User })[]>;
   createSupporterStat(data: InsertSupporterStat): Promise<SupporterStat>;
   deleteSupporterStat(id: string): Promise<void>;
@@ -2235,6 +2236,11 @@ export class DatabaseStorage implements IStorage {
       .from(supporterStats)
       .where(and(...conditions))
       .orderBy(desc(supporterStats.recordedAt));
+  }
+
+  async getSupporterStatById(id: string): Promise<SupporterStat | undefined> {
+    const [stat] = await db.select().from(supporterStats).where(eq(supporterStats.id, id));
+    return stat;
   }
 
   async getSupporterStatsByEvent(eventId: string): Promise<(SupporterStat & { supporter: User; athlete: User })[]> {

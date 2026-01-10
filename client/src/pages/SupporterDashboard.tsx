@@ -23,6 +23,7 @@ import { usePWA } from "@/lib/pwaContext";
 import { TeamBadge } from "@/components/TeamBadge";
 import { TeamHeroCard } from "@/components/dashboard/TeamHeroCard";
 import { FollowedAthletesCard } from "@/components/dashboard/FollowedAthletesCard";
+import { SupporterStatTracker } from "@/components/dashboard/SupporterStatTracker";
 
 // Helper to parse text date - supports both "2026-01-02 05:00 PM" and "2026-01-02 17:00:00" formats
 const parseTextDate = (dateStr: string): Date | null => {
@@ -997,7 +998,12 @@ export default function SupporterDashboard() {
                 Track your favorite athletes and get updates on their performance.
               </p>
             </div>
-            <FollowedAthletesCard />
+            <div className="grid gap-4 md:grid-cols-2">
+              <FollowedAthletesCard />
+              {currentTeam && (
+                <SupporterStatTracker teamId={currentTeam.id} sport={currentTeam.sport} />
+              )}
+            </div>
           </div>
         );
       default:

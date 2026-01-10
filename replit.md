@@ -160,3 +160,14 @@ Supporters can follow athletes to track their performance:
   - GET `/api/supporter/search-athletes?q=` - Search athletes to follow
 - **UI**: "Following" card on Supporter Dashboard with search dialog
 - **Database**: `supporter_athlete_links` table with supporterId, athleteId, teamId (null for cross-team), nickname
+
+### Supporter Fallback Stat Tracking
+Paid supporters can track their own stats for followed athletes when the coach uses team-only mode:
+- **Entitlement**: Requires Supporter Pro subscription (`canTrackOwnStats` entitlement)
+- **API endpoints**:
+  - GET `/api/supporter/stats/:athleteId` - Get supporter's tracked stats for an athlete
+  - POST `/api/supporter/stats` - Record a stat (athleteId, teamId, statName required)
+  - DELETE `/api/supporter/stats/:id` - Delete a stat
+  - GET `/api/supporter/stats/:athleteId/aggregate` - Get aggregated stats
+- **UI**: `SupporterStatTracker` component on "Following" tab of Supporter Dashboard
+- **Database**: `supporter_stats` table with supporterId, athleteId, eventId, teamId, statName, statValue, period, notes

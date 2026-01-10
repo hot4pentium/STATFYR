@@ -4455,6 +4455,12 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Missing required fields: athleteId, teamId, statName" });
       }
 
+      // Verify the supporter follows this athlete
+      const followLink = await storage.getSupporterAthleteLink(userId, athleteId);
+      if (!followLink) {
+        return res.status(403).json({ error: "You must follow this athlete to track their stats" });
+      }
+
       const stat = await storage.createSupporterStat({
         supporterId: userId,
         athleteId,
@@ -4485,6 +4491,16 @@ export async function registerRoutes(
       }
 
       const { id } = req.params;
+      
+      // Verify the stat belongs to the requesting user
+      const stat = await storage.getSupporterStatById(id);
+      if (!stat) {
+        return res.status(404).json({ error: "Stat not found" });
+      }
+      if (stat.supporterId !== userId) {
+        return res.status(403).json({ error: "You can only delete your own stats" });
+      }
+      
       await storage.deleteSupporterStat(id);
       res.json({ success: true });
     } catch (error) {
