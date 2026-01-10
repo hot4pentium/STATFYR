@@ -135,12 +135,16 @@ export default function PlaybookPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {playsToShow.map((play) => (
-            <Card key={play.id} className="bg-card border-white/5 hover:border-primary/50 transition-all group overflow-hidden cursor-pointer">
-              {/* Mock Blackboard Preview */}
+          {playsToShow.map((play) => {
+            const playUrl = isDemo ? `/playbook/${play.id}?demo=true` : `/playbook/${play.id}`;
+            return (
+            <Card 
+              key={play.id} 
+              className="bg-card border-white/5 hover:border-primary/50 transition-all group overflow-hidden cursor-pointer"
+              onClick={() => navigate(playUrl)}
+            >
               <div className="h-48 bg-[#1a3c28] relative overflow-hidden border-b border-white/5 pattern-grid-lg">
                 <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
-                {/* Abstract tactic lines */}
                 <svg className="absolute inset-0 w-full h-full p-4" viewBox="0 0 100 100" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1">
                   <circle cx="50" cy="50" r="10" strokeDasharray="4 4" />
                   <line x1="10" y1="10" x2="40" y2="40" markerEnd="url(#arrow)" />
@@ -167,16 +171,24 @@ export default function PlaybookPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                   <Button size="sm" className="w-full bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20">
-                     <Play className="mr-2 h-4 w-4" /> Run Simulation
+                   <Button 
+                     size="sm" 
+                     className="w-full bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20"
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       navigate(playUrl);
+                     }}
+                   >
+                     <Play className="mr-2 h-4 w-4" /> View Play
                    </Button>
-                   <Button size="icon" variant="outline" className="border-white/10 hover:bg-white/5">
+                   <Button size="icon" variant="outline" className="border-white/10 hover:bg-white/5" onClick={(e) => e.stopPropagation()}>
                      <Share2 className="h-4 w-4" />
                    </Button>
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
 
            {!isDemo && (
            <Card className="bg-card/30 border-dashed border-white/10 hover:border-primary/50 transition-all flex items-center justify-center h-full min-h-[300px] cursor-pointer hover:bg-white/5">

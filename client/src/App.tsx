@@ -46,6 +46,7 @@ import JoinTeamPage from "@/pages/JoinTeamPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import SubscriptionPage from "@/pages/SubscriptionPage";
+import PlayEditorPage from "@/pages/PlayEditorPage";
 
 function Router() {
   // Handle Replit internal iframe paths - treat them as root
@@ -65,6 +66,7 @@ function Router() {
       <Route path="/roster" component={RosterPage} />
       <Route path="/events" component={EventsPage} />
       <Route path="/playbook" component={PlaybookPage} />
+      <Route path="/playbook/:playId" component={PlayEditorPage} />
       <Route path="/stats" component={StatsPage} />
       <Route path="/chat" component={ChatPage} />
       <Route path="/settings" component={CoachSettings} />
