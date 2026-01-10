@@ -5,7 +5,7 @@ import basketballCourtImg from "@assets/bball_court_1766345509497.png";
 import footballFieldImg from "@assets/football_1768077466658.png";
 import soccerPitchImg from "@assets/generated_images/clean_flat_soccer_pitch_top-down.png";
 import baseballDiamondImg from "@assets/generated_images/baseball_diamond_top-down_view.png";
-import volleyballCourtImg from "@assets/generated_images/volleyball_court_top-down_view.png";
+import volleyballCourtImg from "@assets/generated_images/vertical_volleyball_court_top-down.png";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
