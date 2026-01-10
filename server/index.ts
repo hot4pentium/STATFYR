@@ -106,6 +106,14 @@ app.use(
 
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
+// Skip Replit internal paths - these should not be served by the SPA
+app.use((req, res, next) => {
+  if (req.path.startsWith('/__replco') || req.path.startsWith('/__repl')) {
+    return res.status(204).end();
+  }
+  next();
+});
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
