@@ -1065,6 +1065,152 @@ export default function SupporterDashboard() {
     );
   }
 
+  // Independent supporter view - has managed athletes but no team
+  if (!currentTeam && hasIndependentAthletes) {
+    const independentAthletes = managedAthletes.filter(m => m.isOwner === true);
+    return (
+      <>
+        <DashboardBackground />
+        <div className="min-h-screen relative z-10">
+          {/* Header Bar */}
+          <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-white/10">
+            <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <img src="/logo.png" alt="STATFYR" className="h-8 w-8" />
+                <h1 className="text-lg font-display font-bold tracking-wide">STATF<span className="text-orange-500">Y</span>R</h1>
+              </div>
+              <div className="flex items-center gap-2">
+                {mounted && (
+                  <button
+                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                    className="p-2 rounded-lg hover:bg-white/10 transition"
+                    data-testid="button-theme-toggle"
+                  >
+                    {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  </button>
+                )}
+                <Link href="/supporter/settings">
+                  <Button variant="ghost" size="icon" data-testid="button-settings">
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="icon" onClick={handleLogout} data-testid="button-logout">
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          </header>
+
+          <div className="max-w-4xl mx-auto p-4 space-y-6">
+            {/* Welcome Section */}
+            <div className="text-center py-6">
+              <h2 className="text-2xl font-display font-bold mb-2">
+                Welcome, {user?.name || "Supporter"}!
+              </h2>
+              <p className="text-muted-foreground">
+                Track your athletes independently
+              </p>
+            </div>
+
+            {/* Managed Athletes Grid */}
+            <Card className="bg-card/50 backdrop-blur-sm border-white/10">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  My Athletes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {independentAthletes.map((managed) => (
+                    <div 
+                      key={managed.id}
+                      className="p-4 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-white/10"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={managed.athlete?.avatar || undefined} />
+                          <AvatarFallback className="bg-primary/20">
+                            {managed.athleteName?.charAt(0) || managed.athlete?.name?.charAt(0) || "A"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-semibold">
+                            {managed.athleteName || managed.athlete?.name || "Athlete"}
+                          </p>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            {managed.sport && <span>{managed.sport}</span>}
+                            {managed.position && <span>• {managed.position}</span>}
+                            {managed.number && <span>• #{managed.number}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Add Another Athlete Button */}
+                  <button
+                    onClick={() => setLocation("/supporter/onboarding")}
+                    className="p-4 rounded-xl border-2 border-dashed border-white/20 hover:border-primary/50 transition-colors flex items-center justify-center gap-2 text-muted-foreground hover:text-primary"
+                    data-testid="button-add-athlete"
+                  >
+                    <Users className="h-5 w-5" />
+                    <span>Add Another Athlete</span>
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Join a Team Card */}
+            <Card className="bg-card/50 backdrop-blur-sm border-white/10">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-green-500" />
+                  Join a Team
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  If your athlete's coach has created a team on STATFYR, you can join to access team schedules, stats, and live game features.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter team code"
+                    value={joinTeamCode}
+                    onChange={(e) => setJoinTeamCode(e.target.value.toUpperCase())}
+                    className="flex-1 px-4 py-2 rounded-lg bg-background/50 border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary"
+                    maxLength={6}
+                    data-testid="input-team-code"
+                  />
+                  <Button 
+                    onClick={handleJoinTeamWithCode}
+                    disabled={!joinTeamCode.trim() || isJoiningTeam}
+                    data-testid="button-join-team"
+                  >
+                    {isJoiningTeam ? "Joining..." : "Join"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Coming Soon Features */}
+            <Card className="bg-card/50 backdrop-blur-sm border-white/10">
+              <CardHeader>
+                <CardTitle className="text-lg">Independent Tracking Features</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  As an independent supporter, you can track your athletes' progress even when their team isn't on STATFYR. More features coming soon!
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <DashboardBackground />
