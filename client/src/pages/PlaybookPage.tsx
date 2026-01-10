@@ -2,18 +2,48 @@ import { Layout } from "@/components/layout/Layout";
 import { PLAYS } from "@/lib/mockData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Play, Share2, ArrowLeft, Eye, Crown } from "lucide-react";
+import { Plus, Play, Share2, ArrowLeft, Eye, Crown, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { isDemoMode, demoPlays } from "@/lib/demoData";
 import { useEntitlements } from "@/lib/entitlementsContext";
+
+type PlayItem = {
+  id: string;
+  name: string;
+  type: string;
+  tags: string[];
+};
+
+function normalizePlay(play: any): PlayItem {
+  if ('type' in play && 'tags' in play) {
+    return play as PlayItem;
+  }
+  return {
+    id: play.id,
+    name: play.name,
+    type: play.category || 'General',
+    tags: [play.status || 'Active', play.category || 'General'].filter(Boolean),
+  };
+}
 
 export default function PlaybookPage() {
   const [, navigate] = useLocation();
   const isDemo = isDemoMode();
   const { entitlements, isLoading: entitlementsLoading } = useEntitlements();
   
-  const playsToShow = isDemo ? demoPlays : PLAYS;
+  const rawPlays = isDemo ? demoPlays : PLAYS;
+  const playsToShow = rawPlays.map(normalizePlay);
+
+  if (entitlementsLoading && !isDemo) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
   if (!entitlementsLoading && !entitlements.canEditPlayMaker && !isDemo) {
     return (
