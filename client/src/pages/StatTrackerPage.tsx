@@ -18,11 +18,12 @@ import {
   ArrowLeft, Play, Pause, RotateCcw, Users, Timer, Target, 
   Plus, Minus, Check, X, ChevronUp, ChevronDown, Activity,
   Settings, User, Trophy, Edit2, Undo2, Clock, Save, Sliders,
-  TrendingUp, BarChart3, Flame, Calendar
+  TrendingUp, BarChart3, Flame, Calendar, Lock, Crown
 } from "lucide-react";
 import { Link, useLocation, useRoute } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/lib/userContext";
+import { useEntitlements } from "@/lib/entitlementsContext";
 import { useToast } from "@/hooks/use-toast";
 import {
   getTeamGames, getGame, createGame, updateGame, getGameByEvent,
@@ -40,6 +41,7 @@ type ViewMode = "setup" | "roster" | "tracking" | "summary" | "settings";
 
 export default function StatTrackerPage() {
   const { user, currentTeam: selectedTeam } = useUser();
+  const { entitlements, isLoading: entitlementsLoading } = useEntitlements();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
@@ -113,6 +115,37 @@ export default function StatTrackerPage() {
     queryFn: () => selectedTeam && selectedAthleteId ? getAthleteStats(selectedTeam.id, selectedAthleteId) : null,
     enabled: !!selectedTeam && !!selectedAthleteId && summaryTab === "progression"
   });
+
+  if (!entitlementsLoading && !entitlements.canUseStatTracker) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 text-center">
+          <div className="bg-card/80 backdrop-blur-sm border border-white/10 rounded-xl p-8 max-w-md">
+            <Lock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-xl font-bold mb-2">Premium Feature</h2>
+            <p className="text-muted-foreground mb-6">
+              StatTracker is a premium feature. Upgrade to Coach Pro to track live game statistics for your athletes.
+            </p>
+            <Button 
+              onClick={() => navigate("/subscription")}
+              className="gap-2"
+              data-testid="button-upgrade-stattracker"
+            >
+              <Crown className="w-4 h-4" />
+              Upgrade to Coach Pro
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate("/dashboard")}
+              className="mt-2 w-full"
+            >
+              Back to Dashboard
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   const gameEvents = events.filter(e => e.type?.toLowerCase() === "game");
   const today = startOfDay(new Date());

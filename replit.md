@@ -111,3 +111,39 @@ The users table supports both OAuth and password authentication:
 ### Session Storage
 OAuth sessions stored in `sessions` table with sid/sess/expire columns.
 Legacy password auth uses localStorage on the client side.
+
+## Subscription System
+
+### Subscription Tiers
+- **Coach Pro ($9.99/mo)**: Full StatTracker access, PlayMaker editing, view individual stats, roster promotion tools
+- **Supporter Pro ($5.99/mo)**: Upload highlights, view individual stats, track own stats, follow athletes across teams
+- **Free Tier**: Basic team access (view roster, schedule, playbook, team chat, Game Day Live)
+
+### Stripe Integration
+- **stripeClient.ts**: Manages Stripe API client initialization
+- **stripeService.ts**: Product/subscription CRUD, checkout sessions, customer portal
+- **webhookHandlers.ts**: Subscription lifecycle events (created, updated, deleted)
+- Products synced from Stripe to `stripe` schema via stripe-replit-sync
+
+### Entitlements System
+Feature flags computed server-side based on subscription tier + team roles:
+- `canUseStatTracker`: Paid coach, staff role
+- `canEditPlayMaker`: Paid coach, staff role  
+- `canUploadHighlights`: Paid supporter
+- `canViewIndividualStats`: Paid coach, staff, paid supporter
+- `canPromoteMembers`: Paid coach only
+- `canFollowCrossTeam`: Paid supporter
+- `canTrackOwnStats`: Paid supporter
+
+### Feature Gating
+- Dashboard cards show lock icons for locked premium features
+- Clicking locked features shows upgrade toast with link to subscription page
+- StatTrackerPage has full-page upgrade prompt for non-subscribers
+- Settings menu includes Upgrade/Subscription link
+
+### Staff Role Permissions
+Staff members (promoted by coaches) inherit coach-level permissions without needing a subscription:
+- Full StatTracker access
+- PlayMaker editing
+- View individual stats
+- Edit events/roster

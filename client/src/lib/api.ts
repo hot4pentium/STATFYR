@@ -1087,3 +1087,108 @@ export async function getEventHypesByAthlete(eventId: string): Promise<AthleteHy
   if (!res.ok) throw new Error("Failed to get hypes by athlete");
   return res.json();
 }
+
+// ============ SUBSCRIPTIONS & ENTITLEMENTS ============
+
+export interface Entitlements {
+  canUseStatTracker: boolean;
+  canEditPlayMaker: boolean;
+  canUploadHighlights: boolean;
+  canViewIndividualStats: boolean;
+  canViewHighlights: boolean;
+  canViewRoster: boolean;
+  canViewPlaybook: boolean;
+  canUseChat: boolean;
+  canUseGameDayLive: boolean;
+  canEditEvents: boolean;
+  canEditRoster: boolean;
+  canPromoteMembers: boolean;
+  canFollowCrossTeam: boolean;
+  canTrackOwnStats: boolean;
+}
+
+export interface Subscription {
+  id: string;
+  userId: string;
+  stripeCustomerId?: string | null;
+  stripeSubscriptionId?: string | null;
+  tier: string;
+  status: string;
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
+  cancelAtPeriodEnd: boolean;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface StripeProduct {
+  id: string;
+  name: string;
+  description?: string | null;
+  active: boolean;
+  metadata?: Record<string, string>;
+  prices: StripePrice[];
+}
+
+export interface StripePrice {
+  id: string;
+  unit_amount: number;
+  currency: string;
+  recurring?: { interval: string } | null;
+  active: boolean;
+  metadata?: Record<string, string>;
+}
+
+export async function getEntitlements(userId: string): Promise<{ entitlements: Entitlements; tier: string; subscription: Subscription | null }> {
+  const res = await fetch(`/api/entitlements`, {
+    headers: { 'x-user-id': userId }
+  });
+  if (!res.ok) throw new Error("Failed to get entitlements");
+  return res.json();
+}
+
+export async function getSubscription(userId: string): Promise<{ subscription: Subscription | null }> {
+  const res = await fetch(`/api/subscription`, {
+    headers: { 'x-user-id': userId }
+  });
+  if (!res.ok) throw new Error("Failed to get subscription");
+  return res.json();
+}
+
+export async function getStripeProducts(): Promise<{ products: StripeProduct[] }> {
+  const res = await fetch(`/api/stripe/products`);
+  if (!res.ok) throw new Error("Failed to get products");
+  return res.json();
+}
+
+export async function getStripePublishableKey(): Promise<{ publishableKey: string }> {
+  const res = await fetch(`/api/stripe/publishable-key`);
+  if (!res.ok) throw new Error("Failed to get Stripe key");
+  return res.json();
+}
+
+export async function createCheckoutSession(userId: string, priceId: string, tier: string): Promise<{ url: string }> {
+  const res = await fetch("/api/stripe/checkout", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "x-user-id": userId 
+    },
+    body: JSON.stringify({ priceId, tier })
+  });
+  if (!res.ok) throw new Error("Failed to create checkout session");
+  return res.json();
+}
+
+export async function createPortalSession(userId: string): Promise<{ url: string }> {
+  const res = await fetch("/api/stripe/portal", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "x-user-id": userId 
+    },
+    body: JSON.stringify({})
+  });
+  if (!res.ok) throw new Error("Failed to create portal session");
+  return res.json();
+}

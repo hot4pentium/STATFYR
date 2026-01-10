@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useUser } from "@/lib/userContext";
+import { useEntitlements, type EntitlementKey } from "@/lib/entitlementsContext";
 import { useTheme } from "next-themes";
 import { usePWA } from "@/lib/pwaContext";
 import { useNotifications } from "@/lib/notificationContext";
@@ -70,7 +71,7 @@ import {
   Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Share2, Bell,
   ArrowLeft, MapPin, Clock, Utensils, Coffee, MoreVertical, UserCog, UserMinus, 
   Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User, Calendar,
-  List, Grid
+  List, Grid, Lock, Crown
 } from "lucide-react";
 
 import {
@@ -117,9 +118,22 @@ const roleConfig: Record<UserRole, { title: string; tagline: string }> = {
   supporter: { title: "Supporter Dashboard", tagline: "Cheer on your favorite athletes." },
 };
 
+const cardEntitlementMap: Record<string, EntitlementKey | null> = {
+  roster: null,
+  schedule: null,
+  playmaker: "canEditPlayMaker",
+  playbook: null,
+  stats: "canViewIndividualStats",
+  stattracker: "canUseStatTracker",
+  highlights: null,
+  teamengagement: null,
+  chat: null,
+};
+
 export default function UnifiedDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, setCurrentTeam, logout } = useUser();
+  const { entitlements, tier } = useEntitlements();
   const { updateAvailable, applyUpdate } = usePWA();
   const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
   const { setTheme, resolvedTheme } = useTheme();
@@ -643,7 +657,24 @@ export default function UnifiedDashboard() {
     }
   };
 
+  const isCardLocked = (cardId: string): boolean => {
+    const entitlementKey = cardEntitlementMap[cardId];
+    if (!entitlementKey) return false;
+    if (isStaff) return false;
+    return !entitlements[entitlementKey];
+  };
+
   const handleCardClick = (cardId: string) => {
+    if (isCardLocked(cardId)) {
+      toast.info("Upgrade to unlock this feature", {
+        description: "Get access to premium features with a subscription",
+        action: {
+          label: "Upgrade",
+          onClick: () => setLocation("/subscription")
+        }
+      });
+      return;
+    }
     if (cardId === "chat") {
       setLocation("/chat");
       return;
@@ -2033,6 +2064,10 @@ export default function UnifiedDashboard() {
                     }}>
                       <Settings className="h-4 w-4 mr-2" /> Settings
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLocation("/subscription")}>
+                      <Crown className="h-4 w-4 mr-2 text-yellow-500" /> 
+                      {tier === 'free' ? 'Upgrade' : 'Subscription'}
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                       <LogOut className="h-4 w-4 mr-2" /> Sign Out
@@ -2160,24 +2195,37 @@ export default function UnifiedDashboard() {
                 </div>
                 {/* Cards Grid */}
                 <div className="grid grid-cols-2 gap-3 landscape:gap-4">
-                  {visibleCards.map((card) => (
-                    <Card
-                      key={card.id}
-                      className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""}`}
-                      onClick={() => handleCardClick(card.id)}
-                      data-testid={`card-${card.id}`}
-                    >
-                      <CardContent className="p-4 landscape:p-5">
-                        <div className="flex items-start gap-3">
-                          <card.icon className={`h-6 w-6 landscape:h-7 landscape:w-7 ${card.color} shrink-0`} />
-                          <div className="min-w-0">
-                            <p className="font-semibold landscape:text-base">{card.name}</p>
-                            <p className="text-xs landscape:text-sm text-muted-foreground line-clamp-2">{card.description}</p>
+                  {visibleCards.map((card) => {
+                    const locked = isCardLocked(card.id);
+                    return (
+                      <Card
+                        key={card.id}
+                        className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""} ${locked ? "opacity-75" : ""}`}
+                        onClick={() => handleCardClick(card.id)}
+                        data-testid={`card-${card.id}`}
+                      >
+                        <CardContent className="p-4 landscape:p-5">
+                          <div className="flex items-start gap-3">
+                            {locked ? (
+                              <div className="relative">
+                                <card.icon className={`h-6 w-6 landscape:h-7 landscape:w-7 text-muted-foreground shrink-0`} />
+                                <Lock className="h-3 w-3 absolute -bottom-1 -right-1 text-yellow-500" />
+                              </div>
+                            ) : (
+                              <card.icon className={`h-6 w-6 landscape:h-7 landscape:w-7 ${card.color} shrink-0`} />
+                            )}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <p className="font-semibold landscape:text-base">{card.name}</p>
+                                {locked && <Crown className="h-3 w-3 text-yellow-500" />}
+                              </div>
+                              <p className="text-xs landscape:text-sm text-muted-foreground line-clamp-2">{card.description}</p>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -2461,24 +2509,37 @@ export default function UnifiedDashboard() {
                 </div>
                 {/* Cards Grid */}
                 <div className="grid grid-cols-2 gap-3 landscape:gap-4">
-                  {visibleCards.map((card) => (
-                    <Card
-                      key={card.id}
-                      className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""}`}
-                      onClick={() => handleCardClick(card.id)}
-                      data-testid={`card-${card.id}`}
-                    >
-                      <CardContent className="p-4 landscape:p-5">
-                        <div className="flex items-start gap-3">
-                          <card.icon className={`h-6 w-6 landscape:h-7 landscape:w-7 ${card.color} shrink-0`} />
-                          <div className="min-w-0">
-                            <p className="font-semibold landscape:text-base">{card.name}</p>
-                            <p className="text-xs landscape:text-sm text-muted-foreground line-clamp-2">{card.description}</p>
+                  {visibleCards.map((card) => {
+                    const locked = isCardLocked(card.id);
+                    return (
+                      <Card
+                        key={card.id}
+                        className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""} ${locked ? "opacity-75" : ""}`}
+                        onClick={() => handleCardClick(card.id)}
+                        data-testid={`card-${card.id}`}
+                      >
+                        <CardContent className="p-4 landscape:p-5">
+                          <div className="flex items-start gap-3">
+                            {locked ? (
+                              <div className="relative">
+                                <card.icon className={`h-6 w-6 landscape:h-7 landscape:w-7 text-muted-foreground shrink-0`} />
+                                <Lock className="h-3 w-3 absolute -bottom-1 -right-1 text-yellow-500" />
+                              </div>
+                            ) : (
+                              <card.icon className={`h-6 w-6 landscape:h-7 landscape:w-7 ${card.color} shrink-0`} />
+                            )}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <p className="font-semibold landscape:text-base">{card.name}</p>
+                                {locked && <Crown className="h-3 w-3 text-yellow-500" />}
+                              </div>
+                              <p className="text-xs landscape:text-sm text-muted-foreground line-clamp-2">{card.description}</p>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
 

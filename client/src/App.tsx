@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { UserProvider } from "./lib/userContext";
 import { PWAProvider } from "./lib/pwaContext";
 import { NotificationProvider } from "./lib/notificationContext";
+import { EntitlementsProvider } from "./lib/entitlementsContext";
 import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/LandingPage";
@@ -44,6 +45,7 @@ import AthleteHypeCardPage from "@/pages/AthleteHypeCardPage";
 import JoinTeamPage from "@/pages/JoinTeamPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
+import SubscriptionPage from "@/pages/SubscriptionPage";
 
 function Router() {
   return (
@@ -86,6 +88,9 @@ function Router() {
       <Route path="/athlete/hype-card" component={AthleteHypeCardPage} />
       <Route path="/role-capabilities" component={RoleCapabilitiesPDF} />
       <Route path="/join" component={JoinTeamPage} />
+      <Route path="/subscription" component={SubscriptionPage} />
+      <Route path="/subscription/success" component={SubscriptionPage} />
+      <Route path="/subscription/cancel" component={SubscriptionPage} />
       <Route path="/test" component={TestPage} />
       <Route component={NotFound} />
     </Switch>
@@ -103,16 +108,18 @@ function App() {
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="statfyr-theme">
       <QueryClientProvider client={queryClient}>
         <UserProvider>
-          <PWAProvider>
-            <NotificationProvider>
-              <TooltipProvider>
-                <ImpersonationBanner />
-                <Toaster />
-                <SonnerToaster position="top-center" richColors />
-                <Router />
-              </TooltipProvider>
-            </NotificationProvider>
-          </PWAProvider>
+          <EntitlementsProvider>
+            <PWAProvider>
+              <NotificationProvider>
+                <TooltipProvider>
+                  <ImpersonationBanner />
+                  <Toaster />
+                  <SonnerToaster position="top-center" richColors />
+                  <Router />
+                </TooltipProvider>
+              </NotificationProvider>
+            </PWAProvider>
+          </EntitlementsProvider>
         </UserProvider>
       </QueryClientProvider>
     </ThemeProvider>

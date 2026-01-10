@@ -4042,7 +4042,269 @@ export async function registerRoutes(
     }
   });
 
+  // ============ STRIPE SUBSCRIPTION ROUTES ============
+  
+  // Get Stripe publishable key for frontend
+  app.get("/api/stripe/publishable-key", async (req, res) => {
+    try {
+      const { getStripePublishableKey } = await import("./stripeClient");
+      const publishableKey = await getStripePublishableKey();
+      res.json({ publishableKey });
+    } catch (error) {
+      console.error("Failed to get Stripe publishable key:", error);
+      res.status(500).json({ error: "Stripe not configured" });
+    }
+  });
+
+  // Get products with prices
+  app.get("/api/stripe/products", async (req, res) => {
+    try {
+      const { stripeService } = await import("./stripeService");
+      const rows = await stripeService.listProductsWithPrices();
+      
+      const productsMap = new Map<string, any>();
+      for (const row of rows as any[]) {
+        if (!productsMap.has(row.product_id)) {
+          productsMap.set(row.product_id, {
+            id: row.product_id,
+            name: row.product_name,
+            description: row.product_description,
+            active: row.product_active,
+            metadata: row.product_metadata,
+            prices: []
+          });
+        }
+        if (row.price_id) {
+          productsMap.get(row.product_id).prices.push({
+            id: row.price_id,
+            unit_amount: row.unit_amount,
+            currency: row.currency,
+            recurring: row.recurring,
+            active: row.price_active,
+            metadata: row.price_metadata,
+          });
+        }
+      }
+
+      res.json({ products: Array.from(productsMap.values()) });
+    } catch (error) {
+      console.error("Failed to get products:", error);
+      res.status(500).json({ error: "Failed to get products" });
+    }
+  });
+
+  // Get current user's subscription
+  app.get("/api/subscription", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { stripeService } = await import("./stripeService");
+      const subscription = await stripeService.getUserSubscription(userId);
+      res.json({ subscription });
+    } catch (error) {
+      console.error("Failed to get subscription:", error);
+      res.status(500).json({ error: "Failed to get subscription" });
+    }
+  });
+
+  // Create checkout session
+  app.post("/api/stripe/checkout", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      const { priceId, tier } = req.body;
+      if (!priceId) {
+        return res.status(400).json({ error: "Price ID is required" });
+      }
+
+      const { stripeService } = await import("./stripeService");
+      
+      let subscription = await stripeService.getUserSubscription(userId);
+      let customerId = subscription?.stripeCustomerId;
+
+      if (!customerId) {
+        const customer = await stripeService.createCustomer(user.email || '', userId);
+        customerId = customer.id;
+        await stripeService.upsertSubscription(userId, { stripeCustomerId: customerId });
+      }
+
+      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+      const session = await stripeService.createCheckoutSession(
+        customerId,
+        priceId,
+        `${baseUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+        `${baseUrl}/subscription/cancel`,
+        { userId, tier: tier || 'supporter' }
+      );
+
+      res.json({ url: session.url });
+    } catch (error) {
+      console.error("Failed to create checkout session:", error);
+      res.status(500).json({ error: "Failed to create checkout session" });
+    }
+  });
+
+  // Create customer portal session
+  app.post("/api/stripe/portal", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      const { stripeService } = await import("./stripeService");
+      const subscription = await stripeService.getUserSubscription(userId);
+      
+      if (!subscription?.stripeCustomerId) {
+        return res.status(400).json({ error: "No subscription found" });
+      }
+
+      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+      const session = await stripeService.createCustomerPortalSession(
+        subscription.stripeCustomerId,
+        `${baseUrl}/dashboard`
+      );
+
+      res.json({ url: session.url });
+    } catch (error) {
+      console.error("Failed to create portal session:", error);
+      res.status(500).json({ error: "Failed to create portal session" });
+    }
+  });
+
+  // Get user entitlements based on subscription tier and team roles
+  app.get("/api/entitlements", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.json({ entitlements: getDefaultEntitlements() });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.json({ entitlements: getDefaultEntitlements() });
+      }
+
+      const { stripeService } = await import("./stripeService");
+      const subscription = await stripeService.getUserSubscription(userId);
+      const tier = subscription?.status === 'active' ? subscription.tier : 'free';
+
+      const teams = await storage.getUserTeams(userId);
+      
+      const hasCoachRole = user?.role === 'coach' || teams.some((t: any) => t.role === 'coach');
+      const hasStaffRole = teams.some((t: any) => t.role === 'staff');
+
+      const entitlements = computeEntitlements(tier, hasCoachRole, hasStaffRole);
+      res.json({ entitlements, tier, subscription });
+    } catch (error) {
+      console.error("Failed to get entitlements:", error);
+      res.json({ entitlements: getDefaultEntitlements() });
+    }
+  });
+
   return httpServer;
+}
+
+// Entitlements helper functions
+interface Entitlements {
+  canUseStatTracker: boolean;
+  canEditPlayMaker: boolean;
+  canUploadHighlights: boolean;
+  canViewIndividualStats: boolean;
+  canViewHighlights: boolean;
+  canViewRoster: boolean;
+  canViewPlaybook: boolean;
+  canUseChat: boolean;
+  canUseGameDayLive: boolean;
+  canEditEvents: boolean;
+  canEditRoster: boolean;
+  canPromoteMembers: boolean;
+  canFollowCrossTeam: boolean;
+  canTrackOwnStats: boolean;
+}
+
+function getDefaultEntitlements(): Entitlements {
+  return {
+    canUseStatTracker: false,
+    canEditPlayMaker: false,
+    canUploadHighlights: false,
+    canViewIndividualStats: false,
+    canViewHighlights: true,
+    canViewRoster: true,
+    canViewPlaybook: true,
+    canUseChat: true,
+    canUseGameDayLive: true,
+    canEditEvents: false,
+    canEditRoster: false,
+    canPromoteMembers: false,
+    canFollowCrossTeam: false,
+    canTrackOwnStats: false,
+  };
+}
+
+function computeEntitlements(tier: string, isCoach: boolean, isStaff: boolean): Entitlements {
+  const base = getDefaultEntitlements();
+
+  if (isCoach) {
+    base.canEditEvents = true;
+    base.canEditRoster = true;
+    base.canViewHighlights = true;
+    base.canUseChat = true;
+    base.canUseGameDayLive = true;
+    base.canViewRoster = true;
+    base.canViewPlaybook = true;
+    
+    if (tier === 'coach') {
+      base.canUseStatTracker = true;
+      base.canEditPlayMaker = true;
+      base.canViewIndividualStats = true;
+      base.canPromoteMembers = true;
+    }
+  }
+
+  if (isStaff) {
+    base.canUseStatTracker = true;
+    base.canEditPlayMaker = true;
+    base.canEditEvents = true;
+    base.canEditRoster = true;
+    base.canViewIndividualStats = true;
+    base.canViewHighlights = true;
+  }
+
+  if (tier === 'supporter') {
+    base.canUploadHighlights = true;
+    base.canViewIndividualStats = true;
+    base.canFollowCrossTeam = true;
+    base.canTrackOwnStats = true;
+    base.canViewHighlights = true;
+  }
+
+  return base;
 }
 
 // Async transcoding function using FFmpeg
