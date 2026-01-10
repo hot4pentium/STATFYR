@@ -71,7 +71,7 @@ import {
   Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Share2, Bell,
   ArrowLeft, MapPin, Clock, Utensils, Coffee, MoreVertical, UserCog, UserMinus, 
   Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User, Calendar,
-  List, Grid, Lock, Crown
+  List, Grid, Lock, Crown, QrCode
 } from "lucide-react";
 
 import {
@@ -975,6 +975,42 @@ export default function UnifiedDashboard() {
         </div>
         {selectedCard === "roster" && (
           <div className="space-y-4">
+            {(userRole === "coach" || isStaff) && currentTeam?.code && (
+              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                <CardContent className="p-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold mb-1">Invite Members</p>
+                      <p className="text-xs text-muted-foreground">Share this code with athletes and supporters to join your team</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="font-mono text-lg px-4 py-2 tracking-wider">
+                        {currentTeam.code}
+                      </Badge>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => {
+                          navigator.clipboard.writeText(currentTeam.code);
+                          toast.success("Team code copied!");
+                        }}
+                        data-testid="button-copy-team-code"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => setShowQRModal(true)}
+                        data-testid="button-show-qr"
+                      >
+                        <QrCode className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             {(userRole === "coach" || isStaff) && (
               <div className="flex justify-end">
                 <Button onClick={() => setIsCreateMemberOpen(true)} size="sm" className="gap-2" data-testid="button-create-member">
