@@ -1068,6 +1068,19 @@ export default function SupporterDashboard() {
   // Independent supporter view - has managed athletes but no team
   if (!currentTeam && hasIndependentAthletes) {
     const independentAthletes = managedAthletes.filter(m => m.isOwner === true);
+    
+    // Quick action cards for independent athlete view
+    const independentQuickActions = [
+      { name: "Events", id: "ind-events", icon: CalendarIcon, color: "from-blue-500 to-cyan-500" },
+      { name: "Highlights", id: "ind-highlights", icon: Video, color: "from-rose-500 to-red-500" },
+      { name: "Stat Tracker", id: "ind-stattracker", icon: ClipboardList, color: "from-green-500 to-emerald-500" },
+      { name: "Stats", id: "ind-stats", icon: BarChart3, color: "from-amber-500 to-orange-500" },
+      { name: "Hype Hub", id: "ind-hypehub", icon: Zap, color: "from-purple-500 to-pink-500" },
+      { name: "Hype Card", id: "ind-hypecard", icon: Trophy, color: "from-yellow-400 to-amber-500" },
+    ];
+    
+    const [independentSelectedCard, setIndependentSelectedCard] = useState<string | null>(null);
+    
     return (
       <>
         <DashboardBackground />
@@ -1080,6 +1093,59 @@ export default function SupporterDashboard() {
                 <h1 className="text-lg font-display font-bold tracking-wide">STATF<span className="text-orange-500">Y</span>R</h1>
               </div>
               <div className="flex items-center gap-2">
+                {/* Athlete Switcher */}
+                {independentAthletes.length > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="gap-2" data-testid="button-athlete-switcher">
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                          {viewingAsAthlete ? (
+                            viewingAsAthlete.athlete?.avatar ? (
+                              <img src={viewingAsAthlete.athlete.avatar} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="h-3 w-3 text-primary" />
+                            )
+                          ) : (
+                            <Users className="h-3 w-3 text-primary" />
+                          )}
+                        </div>
+                        <span className="hidden sm:inline text-sm font-medium truncate max-w-[100px]">
+                          {viewingAsAthlete ? (viewingAsAthlete.athleteName || viewingAsAthlete.athlete?.name) : "Select Athlete"}
+                        </span>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem 
+                        onClick={() => setViewingAsAthlete(null)}
+                        className={!viewingAsAthlete ? "bg-primary/10" : ""}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Users className="h-4 w-4" />
+                          <span>All Athletes</span>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      {independentAthletes.map((managed) => (
+                        <DropdownMenuItem 
+                          key={managed.id}
+                          onClick={() => setViewingAsAthlete(managed)}
+                          className={viewingAsAthlete?.id === managed.id ? "bg-primary/10" : ""}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={managed.athlete?.avatar || undefined} />
+                              <AvatarFallback className="text-xs">
+                                {(managed.athleteName || managed.athlete?.name || "A").charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span>{managed.athleteName || managed.athlete?.name}</span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
                 {mounted && (
                   <button
                     onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -1101,111 +1167,221 @@ export default function SupporterDashboard() {
             </div>
           </header>
 
-          <div className="max-w-4xl mx-auto p-4 space-y-6">
-            {/* Welcome Section */}
-            <div className="text-center py-6">
-              <h2 className="text-2xl font-display font-bold mb-2">
-                Welcome, {user?.name || "Supporter"}!
-              </h2>
-              <p className="text-muted-foreground">
-                Track your athletes independently
-              </p>
-            </div>
-
-            {/* Managed Athletes Grid */}
-            <Card className="bg-card/50 backdrop-blur-sm border-white/10">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  My Athletes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {independentAthletes.map((managed) => (
-                    <div 
-                      key={managed.id}
-                      className="p-4 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-white/10"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={managed.athlete?.avatar || undefined} />
-                          <AvatarFallback className="bg-primary/20">
-                            {managed.athleteName?.charAt(0) || managed.athlete?.name?.charAt(0) || "A"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <p className="font-semibold">
-                            {managed.athleteName || managed.athlete?.name || "Athlete"}
-                          </p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            {managed.sport && <span>{managed.sport}</span>}
-                            {managed.position && <span>• {managed.position}</span>}
-                            {managed.number && <span>• #{managed.number}</span>}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Add Another Athlete Button */}
-                  <button
-                    onClick={() => setLocation("/supporter/onboarding")}
-                    className="p-4 rounded-xl border-2 border-dashed border-white/20 hover:border-primary/50 transition-colors flex items-center justify-center gap-2 text-muted-foreground hover:text-primary"
-                    data-testid="button-add-athlete"
-                  >
-                    <Users className="h-5 w-5" />
-                    <span>Add Another Athlete</span>
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Join a Team Card */}
-            <Card className="bg-card/50 backdrop-blur-sm border-white/10">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-green-500" />
-                  Join a Team
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  If your athlete's coach has created a team on STATFYR, you can join to access team schedules, stats, and live game features.
+          {/* Main Content */}
+          {!viewingAsAthlete ? (
+            /* Athlete Selection View */
+            <div className="max-w-4xl mx-auto p-4 space-y-6">
+              <div className="text-center py-6">
+                <h2 className="text-2xl font-display font-bold mb-2">
+                  Welcome, {user?.name || "Supporter"}!
+                </h2>
+                <p className="text-muted-foreground">
+                  Select an athlete to view their dashboard
                 </p>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Enter team code"
-                    value={joinTeamCode}
-                    onChange={(e) => setJoinTeamCode(e.target.value.toUpperCase())}
-                    className="flex-1 px-4 py-2 rounded-lg bg-background/50 border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary"
-                    maxLength={6}
-                    data-testid="input-team-code"
-                  />
+              </div>
+
+              {/* Managed Athletes Grid */}
+              <Card className="bg-card/50 backdrop-blur-sm border-white/10">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    My Athletes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {independentAthletes.map((managed) => (
+                      <button
+                        key={managed.id}
+                        onClick={() => setViewingAsAthlete(managed)}
+                        className="p-4 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-white/10 hover:border-primary/50 transition-all text-left"
+                        data-testid={`button-athlete-${managed.id}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={managed.athlete?.avatar || undefined} />
+                            <AvatarFallback className="bg-primary/20">
+                              {managed.athleteName?.charAt(0) || managed.athlete?.name?.charAt(0) || "A"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <p className="font-semibold">
+                              {managed.athleteName || managed.athlete?.name || "Athlete"}
+                            </p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              {managed.sport && <span>{managed.sport}</span>}
+                              {managed.position && <span>• {managed.position}</span>}
+                              {managed.number && <span>• #{managed.number}</span>}
+                            </div>
+                          </div>
+                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      </button>
+                    ))}
+                    
+                    <button
+                      onClick={() => setLocation("/supporter/onboarding")}
+                      className="p-4 rounded-xl border-2 border-dashed border-white/20 hover:border-primary/50 transition-colors flex items-center justify-center gap-2 text-muted-foreground hover:text-primary"
+                      data-testid="button-add-athlete"
+                    >
+                      <Users className="h-5 w-5" />
+                      <span>Add Another Athlete</span>
+                    </button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Join a Team Card */}
+              <Card className="bg-card/50 backdrop-blur-sm border-white/10">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-green-500" />
+                    Join a Team
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    If your athlete's coach has created a team on STATFYR, you can join to access team schedules, stats, and live game features.
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter team code"
+                      value={joinTeamCode}
+                      onChange={(e) => setJoinTeamCode(e.target.value.toUpperCase())}
+                      className="flex-1 px-4 py-2 rounded-lg bg-background/50 border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary"
+                      maxLength={6}
+                      data-testid="input-team-code"
+                    />
+                    <Button 
+                      onClick={handleJoinTeamWithCode}
+                      disabled={!joinTeamCode.trim() || isJoiningTeam}
+                      data-testid="button-join-team"
+                    >
+                      {isJoiningTeam ? "Joining..." : "Join"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            /* Individual Athlete Dashboard View */
+            <div className="max-w-4xl mx-auto p-4 space-y-6">
+              {/* Athlete Hero Banner */}
+              <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary/30 to-primary/10 border border-white/10">
+                <div className="p-6 flex items-center gap-4">
+                  <Avatar className="h-20 w-20 border-4 border-white/20">
+                    <AvatarImage src={viewingAsAthlete.athlete?.avatar || undefined} />
+                    <AvatarFallback className="text-2xl bg-primary/30">
+                      {(viewingAsAthlete.athleteName || viewingAsAthlete.athlete?.name || "A").charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-display font-bold">
+                      {viewingAsAthlete.athleteName || viewingAsAthlete.athlete?.name}
+                    </h2>
+                    <div className="flex items-center gap-3 text-muted-foreground mt-1">
+                      {viewingAsAthlete.sport && (
+                        <span className="px-2 py-0.5 rounded-full bg-white/10 text-sm">
+                          {viewingAsAthlete.sport}
+                        </span>
+                      )}
+                      {viewingAsAthlete.position && (
+                        <span className="text-sm">{viewingAsAthlete.position}</span>
+                      )}
+                      {viewingAsAthlete.number && (
+                        <span className="text-sm font-bold">#{viewingAsAthlete.number}</span>
+                      )}
+                    </div>
+                  </div>
                   <Button 
-                    onClick={handleJoinTeamWithCode}
-                    disabled={!joinTeamCode.trim() || isJoiningTeam}
-                    data-testid="button-join-team"
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setViewingAsAthlete(null)}
+                    data-testid="button-back-to-athletes"
                   >
-                    {isJoiningTeam ? "Joining..." : "Join"}
+                    <ChevronDown className="h-4 w-4 mr-1 rotate-90" />
+                    Back
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Coming Soon Features */}
-            <Card className="bg-card/50 backdrop-blur-sm border-white/10">
-              <CardHeader>
-                <CardTitle className="text-lg">Independent Tracking Features</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  As an independent supporter, you can track your athletes' progress even when their team isn't on STATFYR. More features coming soon!
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+              {/* Quick Action Cards Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {independentQuickActions.map((action) => (
+                  <button
+                    key={action.id}
+                    onClick={() => setIndependentSelectedCard(independentSelectedCard === action.id ? null : action.id)}
+                    className={`relative aspect-square rounded-2xl bg-gradient-to-br ${action.color} p-4 flex flex-col items-center justify-center gap-2 transition-all hover:scale-[1.02] ${
+                      independentSelectedCard === action.id ? "ring-4 ring-white/50" : ""
+                    }`}
+                    data-testid={`card-${action.id}`}
+                  >
+                    <action.icon className="h-8 w-8 text-white" />
+                    <span className="text-white font-semibold text-sm">{action.name}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Content Panel */}
+              {independentSelectedCard && (
+                <Card className="bg-card/50 backdrop-blur-sm border-white/10">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>
+                      {independentQuickActions.find(a => a.id === independentSelectedCard)?.name}
+                    </CardTitle>
+                    <Button variant="ghost" size="icon" onClick={() => setIndependentSelectedCard(null)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {independentSelectedCard === "ind-events" && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <CalendarIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>No events scheduled yet</p>
+                        <p className="text-sm mt-1">Events will appear here when you add them</p>
+                      </div>
+                    )}
+                    {independentSelectedCard === "ind-highlights" && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Video className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>No highlights yet</p>
+                        <p className="text-sm mt-1">Upload videos to create highlights</p>
+                      </div>
+                    )}
+                    {independentSelectedCard === "ind-stattracker" && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <ClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>Stat Tracker</p>
+                        <p className="text-sm mt-1">Track stats during games (coming soon)</p>
+                      </div>
+                    )}
+                    {independentSelectedCard === "ind-stats" && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>No stats recorded yet</p>
+                        <p className="text-sm mt-1">Stats will appear after tracking games</p>
+                      </div>
+                    )}
+                    {independentSelectedCard === "ind-hypehub" && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Zap className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>Hype Hub</p>
+                        <p className="text-sm mt-1">Share moments and cheer for your athlete</p>
+                      </div>
+                    )}
+                    {independentSelectedCard === "ind-hypecard" && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Trophy className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>Hype Card</p>
+                        <p className="text-sm mt-1">View and share your athlete's profile card</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
         </div>
       </>
     );
