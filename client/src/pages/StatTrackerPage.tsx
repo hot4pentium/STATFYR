@@ -717,12 +717,18 @@ export default function StatTrackerPage() {
                 <Button
                   className="w-full"
                   size="lg"
-                  onClick={() => isDemo ? showDemoToast() : createGameMutation.mutate()}
-                  disabled={createGameMutation.isPending || isDemo}
+                  onClick={() => {
+                    if (isDemo) {
+                      setViewMode("tracking");
+                    } else {
+                      createGameMutation.mutate();
+                    }
+                  }}
+                  disabled={createGameMutation.isPending}
                   data-testid="button-create-game"
                 >
                   <Play className="h-4 w-4 mr-2" />
-                  {isDemo ? "Demo Mode Active" : "Create Game"}
+                  {isDemo ? "Start Demo Game" : "Create Game"}
                 </Button>
               </CardContent>
             </Card>
