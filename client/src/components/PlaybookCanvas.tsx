@@ -244,7 +244,10 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
   const drawVolleyballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (volleyballImageRef.current) {
+      ctx.save();
+      ctx.globalAlpha = 0.3;
       ctx.drawImage(volleyballImageRef.current, 0, 0, width, height);
+      ctx.restore();
     } else {
       ctx.fillStyle = "#CD853F";
       ctx.fillRect(0, 0, width, height);
