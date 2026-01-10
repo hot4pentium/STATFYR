@@ -105,7 +105,7 @@ const quickAccessCards: QuickAccessCard[] = [
   { id: "schedule", name: "Calendar", description: "View and manage team schedule.", icon: CalendarClock, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
   { id: "playmaker", name: "Playmaker", description: "Design and manage team plays.", icon: ClipboardList, color: "text-orange-500", roles: ["coach"] },
   { id: "playbook", name: "Playbook", description: "View team plays and formations.", icon: BookOpen, color: "text-orange-500", roles: ["athlete", "supporter"] },
-  { id: "stats", name: "Stats", description: "View statistics recorded with StatTracker.", icon: BarChart3, color: "text-orange-500", roles: ["coach", "athlete"] },
+  { id: "stats", name: "Stats", description: "View statistics recorded with StatTracker.", icon: BarChart3, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
   { id: "stattracker", name: "StatTracker", description: "Live game stat tracking.", icon: Activity, color: "text-orange-500", roles: ["coach"] },
   { id: "highlights", name: "Highlights", description: "Team video highlights.", icon: Video, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
   { id: "teamengagement", name: "Team Engagement", description: "See team's total taps & shoutouts.", icon: Heart, color: "text-orange-500", roles: ["supporter"] },
@@ -123,7 +123,7 @@ const cardEntitlementMap: Record<string, EntitlementKey | null> = {
   schedule: null,
   playmaker: "canEditPlayMaker",
   playbook: null,
-  stats: "canViewIndividualStats",
+  stats: null,
   stattracker: "canUseStatTracker",
   highlights: null,
   teamengagement: null,
@@ -147,7 +147,7 @@ export default function UnifiedDashboard() {
 
   const [rosterTab, setRosterTab] = useState<"all" | "athletes" | "coach" | "supporters">("all");
   const [playbookTab, setPlaybookTab] = useState<"Offense" | "Defense" | "Special">("Offense");
-  const [statsTab, setStatsTab] = useState<"season" | "athletes" | "games">("season");
+  const [statsTab, setStatsTab] = useState<"season" | "athletes" | "games" | "mytracking">("season");
   const [athleteViewMode, setAthleteViewMode] = useState<"chart" | "table" | "cards">("chart");
   const [expandedPlay, setExpandedPlay] = useState<Play | null>(null);
   
@@ -269,7 +269,7 @@ export default function UnifiedDashboard() {
   const { data: advancedStats } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "stats", "advanced"],
     queryFn: () => currentTeam ? getAdvancedTeamStats(currentTeam.id) : Promise.resolve({ gameHistory: [], athletePerformance: [], ratios: {} }),
-    enabled: !!currentTeam && selectedCard === "stats" && (userRole === "coach" || isStaff),
+    enabled: !!currentTeam && selectedCard === "stats" && (userRole === "coach" || userRole === "supporter" || isStaff),
     refetchOnMount: 'always',
     staleTime: 0,
   });
@@ -1168,10 +1168,19 @@ export default function UnifiedDashboard() {
                 </div>
 
                 <Tabs value={statsTab} onValueChange={(v) => setStatsTab(v as typeof statsTab)} className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 mb-4 bg-muted/50 border border-white/10">
+                  <TabsList className={`grid w-full ${userRole === "supporter" ? "grid-cols-4" : "grid-cols-3"} mb-4 bg-muted/50 border border-white/10`}>
                     <TabsTrigger value="season" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Season</TabsTrigger>
-                    <TabsTrigger value="athletes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Athletes</TabsTrigger>
+                    <TabsTrigger value="athletes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-1">
+                      Athletes
+                      {userRole === "supporter" && !entitlements.canViewIndividualStats && <Lock className="h-3 w-3 text-yellow-500" />}
+                    </TabsTrigger>
                     <TabsTrigger value="games" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Games</TabsTrigger>
+                    {userRole === "supporter" && (
+                      <TabsTrigger value="mytracking" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-1">
+                        My Stats
+                        {!entitlements.canTrackOwnStats && <Lock className="h-3 w-3 text-yellow-500" />}
+                      </TabsTrigger>
+                    )}
                   </TabsList>
 
                   <TabsContent value="season" className="space-y-4">
@@ -1279,7 +1288,25 @@ export default function UnifiedDashboard() {
                   </TabsContent>
 
                   <TabsContent value="athletes" className="space-y-4">
-                    {advancedStats?.athletePerformance && advancedStats.athletePerformance.length > 0 ? (
+                    {userRole === "supporter" && !entitlements.canViewIndividualStats ? (
+                      <Card className="bg-card/80 backdrop-blur-sm border-dashed border-2 border-yellow-500/30">
+                        <CardContent className="p-8 text-center">
+                          <div className="flex items-center justify-center gap-2 mb-3">
+                            <Lock className="h-6 w-6 text-yellow-500" />
+                            <Crown className="h-6 w-6 text-yellow-500" />
+                          </div>
+                          <h3 className="font-display font-bold text-lg uppercase mb-2">Individual Athlete Stats</h3>
+                          <p className="text-muted-foreground mb-4">View detailed per-athlete statistics, comparisons, and performance tracking</p>
+                          <Button 
+                            variant="outline" 
+                            className="gap-2 border-yellow-500/50 text-yellow-600 hover:bg-yellow-500/10"
+                            onClick={() => setLocation("/subscription")}
+                          >
+                            <Crown className="h-4 w-4" /> Upgrade to Supporter Pro
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ) : advancedStats?.athletePerformance && advancedStats.athletePerformance.length > 0 ? (
                       <>
                         {(() => {
                           const allStats = new Set<string>();
@@ -1518,6 +1545,39 @@ export default function UnifiedDashboard() {
                       </Card>
                     )}
                   </TabsContent>
+
+                  {userRole === "supporter" && (
+                    <TabsContent value="mytracking" className="space-y-4">
+                      {entitlements.canTrackOwnStats ? (
+                        <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                          <CardContent className="p-6 text-center">
+                            <Activity className="h-12 w-12 mx-auto text-primary mb-4" />
+                            <h3 className="font-display font-bold text-lg uppercase mb-2">My Stat Tracking</h3>
+                            <p className="text-muted-foreground mb-4">Track your own stats for athletes you follow when the coach uses team-only mode.</p>
+                            <p className="text-sm text-muted-foreground">Coming soon: View and manage stats you've tracked for your favorite athletes.</p>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <Card className="bg-card/80 backdrop-blur-sm border-dashed border-2 border-yellow-500/30">
+                          <CardContent className="p-8 text-center">
+                            <div className="flex items-center justify-center gap-2 mb-3">
+                              <Lock className="h-6 w-6 text-yellow-500" />
+                              <Crown className="h-6 w-6 text-yellow-500" />
+                            </div>
+                            <h3 className="font-display font-bold text-lg uppercase mb-2">Track Your Own Stats</h3>
+                            <p className="text-muted-foreground mb-4">Record stats for athletes you follow during games when the coach uses team-only tracking mode</p>
+                            <Button 
+                              variant="outline" 
+                              className="gap-2 border-yellow-500/50 text-yellow-600 hover:bg-yellow-500/10"
+                              onClick={() => setLocation("/subscription")}
+                            >
+                              <Crown className="h-4 w-4" /> Upgrade to Supporter Pro
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </TabsContent>
+                  )}
                 </Tabs>
               </>
             )}
