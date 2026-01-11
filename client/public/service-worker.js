@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'statfyr-v1.1.2';
+const CACHE_VERSION = 'statfyr-v1.1.4';
 const SHELL_CACHE = 'statfyr-shell-v1';
 
 const SHELL_FILES = [
