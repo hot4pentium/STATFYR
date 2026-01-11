@@ -2336,15 +2336,20 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
 
-              {/* Right Column - Content Area (fades in on mobile) */}
+              {/* Right Column - Content Area (slides up on mobile) */}
               <div 
-                className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-500 ease-out ${
+                ref={contentRef}
+                className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-300 ease-out ${
                   selectedCard 
-                    ? 'portrait:opacity-100 portrait:mt-4' 
-                    : 'portrait:hidden'
+                    ? 'portrait:mt-4 portrait:animate-in portrait:fade-in portrait:slide-in-from-bottom-4' 
+                    : 'portrait:hidden landscape:opacity-50'
                 }`}
               >
-                {renderContent()}
+                {selectedCard ? renderContent() : (
+                  <div className="hidden landscape:flex items-center justify-center h-full text-muted-foreground">
+                    <p>Select a card to view details</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>)
@@ -2649,15 +2654,20 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
 
-              {/* Right Column - Content Area (fades in on mobile) */}
+              {/* Right Column - Content Area (slides up on mobile) */}
               <div 
-                className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-500 ease-out ${
+                ref={contentRef}
+                className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-300 ease-out ${
                   selectedCard 
-                    ? 'portrait:opacity-100 portrait:mt-4' 
-                    : 'portrait:hidden'
+                    ? 'portrait:mt-4 portrait:animate-in portrait:fade-in portrait:slide-in-from-bottom-4' 
+                    : 'portrait:hidden landscape:opacity-50'
                 }`}
               >
-                {renderContent()}
+                {selectedCard ? renderContent() : (
+                  <div className="hidden landscape:flex items-center justify-center h-full text-muted-foreground">
+                    <p>Select a card to view details</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>)
