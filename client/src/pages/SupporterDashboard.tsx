@@ -27,6 +27,7 @@ import { TeamHeroCard } from "@/components/dashboard/TeamHeroCard";
 import { FollowedAthletesCard } from "@/components/dashboard/FollowedAthletesCard";
 import { SupporterStatTracker } from "@/components/dashboard/SupporterStatTracker";
 import { SPORT_STATS } from "@/lib/sportConstants";
+import { AthleteHypeCard } from "@/components/hype/AthleteHypeCard";
 import { createSupporterStatSession, createSupporterStatEntry, updateSupporterStatSession, deleteSupporterStatEntryById } from "@/lib/api";
 
 // Helper to parse text date - supports both "2026-01-02 05:00 PM" and "2026-01-02 17:00:00" formats
@@ -2211,8 +2212,7 @@ export default function SupporterDashboard() {
               <h1 className="text-lg font-display font-bold tracking-wide">STATF<span className="text-orange-500">Y</span>R</h1>
             </div>
             <div className="flex items-center gap-2">
-              {managedAthletes.length > 0 && (
-                <DropdownMenu>
+              <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
@@ -2236,7 +2236,7 @@ export default function SupporterDashboard() {
                         )}
                       </div>
                       <span className="hidden sm:inline text-sm font-medium truncate max-w-[100px]">
-                        {viewingAsAthlete ? viewingAsAthlete.athlete?.name : user?.name || "Profile"}
+                        {viewingAsAthlete ? viewingAsAthlete.athlete?.name : "Supporter Home"}
                       </span>
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </Button>
@@ -2245,7 +2245,7 @@ export default function SupporterDashboard() {
                     <DropdownMenuItem 
                       onClick={() => setViewingAsAthlete(null)}
                       className={!viewingAsAthlete ? "bg-primary/10" : ""}
-                      data-testid="dropdown-item-my-profile"
+                      data-testid="dropdown-item-supporter-home"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
@@ -2256,8 +2256,8 @@ export default function SupporterDashboard() {
                           )}
                         </div>
                         <div>
-                          <p className="font-medium">{user?.name || "My Profile"}</p>
-                          <p className="text-xs text-muted-foreground">Supporter</p>
+                          <p className="font-medium">Supporter Home</p>
+                          <p className="text-xs text-muted-foreground">{user?.name || "My Profile"}</p>
                         </div>
                       </div>
                     </DropdownMenuItem>
@@ -2285,9 +2285,37 @@ export default function SupporterDashboard() {
                         </div>
                       </DropdownMenuItem>
                     ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => setLocation("/supporter/onboarding?action=add-athlete")}
+                      data-testid="dropdown-item-add-athlete"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                          <Plus className="h-4 w-4 text-green-500" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Add Athlete</p>
+                          <p className="text-xs text-muted-foreground">Manage a new athlete</p>
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setLocation("/supporter/onboarding?action=join-team")}
+                      data-testid="dropdown-item-join-team"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                          <Users className="h-4 w-4 text-blue-500" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Join Team</p>
+                          <p className="text-xs text-muted-foreground">Join with team code</p>
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              )}
               {updateAvailable && (
                 <Button
                   variant="ghost"
@@ -2810,131 +2838,68 @@ export default function SupporterDashboard() {
         </div>
       )}
 
-      {/* Enlarged HYPE Card Modal */}
+      {/* Enlarged HYPE Card Modal - Uses AthleteHypeCard Component */}
       {isHypeCardEnlarged && viewingAsAthlete && (
         <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setIsHypeCardEnlarged(false)}
+          className="fixed inset-0 bg-black z-50 flex flex-col"
           data-testid="modal-enlarged-hype-card"
         >
-          <div 
-            className="relative w-full max-w-sm"
-            onClick={(e) => e.stopPropagation()}
-          >
+          {/* Header with back button, title, and share */}
+          <header className="flex items-center justify-between px-4 py-3 border-b border-white/10">
             <button
               onClick={() => setIsHypeCardEnlarged(false)}
-              className="absolute -top-10 right-0 p-2 text-white/70 hover:text-white transition"
+              className="p-2 text-white/70 hover:text-white transition"
               data-testid="button-close-enlarged-hype"
             >
-              <X className="h-6 w-6" />
+              <ChevronRight className="h-6 w-6 rotate-180" />
             </button>
-            
-            <div 
-              className="relative rounded-xl overflow-hidden border-2 border-accent/50 shadow-2xl cursor-pointer bg-gradient-to-br from-slate-900 via-slate-800 to-black"
-              onClick={() => setIsManagedAthleteCardFlipped(!isManagedAthleteCardFlipped)}
+            <h1 className="text-lg font-display font-bold tracking-wide">
+              <span className="text-orange-500">HYPE</span>{" "}
+              <span className="text-white">CARD</span>
+            </h1>
+            <button
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: `${viewingAsAthlete.athlete?.name}'s HYPE Card`,
+                    text: `Check out ${viewingAsAthlete.athlete?.name}'s HYPE Card on STATFYR!`,
+                    url: window.location.origin,
+                  });
+                } else {
+                  navigator.clipboard.writeText(window.location.origin);
+                  toast.success("Link copied to clipboard!");
+                }
+              }}
+              className="p-2 text-white/70 hover:text-white transition"
+              data-testid="button-share-hype-card"
             >
-              <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-              
-              {!isManagedAthleteCardFlipped ? (
-                <div className="relative w-full aspect-[3/4] overflow-hidden">
-                  {viewingAsAthlete.athlete?.avatar ? (
-                    <img src={viewingAsAthlete.athlete?.avatar} alt={viewingAsAthlete.athlete?.name || ""} className="absolute inset-0 w-full h-full object-cover" />
-                  ) : (
-                    <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
-                      <User className="h-32 w-32 text-white/40" />
-                    </div>
-                  )}
-                  
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
-                  
-                  <div className="absolute top-0 left-0 p-4 text-left">
-                    <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter drop-shadow-lg leading-tight">{viewingAsAthlete.athlete?.name}</h3>
-                    <p className="text-sm text-white/90 uppercase mt-1 tracking-wider drop-shadow-md font-semibold">{currentTeam?.name || "Team"}</p>
-                  </div>
-
-                  <div className="absolute bottom-0 left-0 p-5">
-                    <p className="text-lg font-bold text-accent uppercase tracking-wider drop-shadow-lg">{viewingAsAthlete.athlete?.position || "Player"}</p>
-                  </div>
-
-                  <div className="absolute bottom-0 right-0 p-5">
-                    <div className="bg-gradient-to-r from-accent to-primary rounded-lg p-4 shadow-lg">
-                      <span className="text-white font-display font-bold text-3xl drop-shadow">#{viewingAsAthlete.athlete?.number || "00"}</span>
-                    </div>
-                  </div>
-
-                  <div className="absolute right-1 top-1/2 -translate-y-1/2">
-                    <div className="flex flex-row items-center gap-1 -rotate-90 whitespace-nowrap origin-center">
-                      <span className="text-xs text-white font-bold uppercase tracking-widest drop-shadow-lg">HYPE</span>
-                      <div className="w-0.5 h-3 bg-white/60"></div>
-                      <span className="text-xs text-white font-bold uppercase tracking-widest drop-shadow-lg">CARD</span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative w-full aspect-[3/4] overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black" />
-                  <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-                  <div className="relative w-full h-full p-4 grid grid-cols-2 gap-3">
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
-                      <p className="text-sm text-accent font-bold uppercase tracking-widest mb-3">Events</p>
-                      <div className="space-y-2 text-sm text-white/70 flex-1 overflow-y-auto">
-                        {teamEvents.length === 0 ? (
-                          <div className="text-xs">No events</div>
-                        ) : (
-                          teamEvents.slice(0, 3).map((event: Event) => (
-                            <div key={event.id} className="line-clamp-2">
-                              <span className="font-semibold text-white">{event.type}</span>
-                              <div className="text-xs">{new Date(event.date).toLocaleDateString()}</div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
-                      <p className="text-sm text-primary font-bold uppercase tracking-widest mb-3">Stats</p>
-                      <div className="space-y-3 flex-1">
-                        <div>
-                          <div className="flex justify-between items-end gap-2 mb-1">
-                            <span className="text-xs text-white/70">Goals</span>
-                            <span className="text-sm font-bold text-primary">0</span>
-                          </div>
-                          <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-primary" style={{width: "0%"}}></div>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex justify-between items-end gap-2 mb-1">
-                            <span className="text-xs text-white/70">Assists</span>
-                            <span className="text-sm font-bold text-accent">0</span>
-                          </div>
-                          <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-accent" style={{width: "0%"}}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
-                      <p className="text-sm text-green-400 font-bold uppercase tracking-widest mb-3">Highlights</p>
-                      <div className="space-y-2 text-sm text-white/70 flex-1">
-                        <div>No highlights yet</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-4 overflow-hidden flex flex-col">
-                      <p className="text-sm text-orange-400 font-bold uppercase tracking-widest mb-3">Shoutouts</p>
-                      <div className="text-sm text-white/70 italic flex-1">
-                        <p className="line-clamp-4">No shoutouts yet</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <p className="text-center text-white/50 text-sm mt-4">Tap card to flip</p>
+              <Share2 className="h-5 w-5" />
+            </button>
+          </header>
+          
+          {/* AthleteHypeCard Component */}
+          <div className="flex-1 overflow-y-auto p-4 flex items-start justify-center">
+            <AthleteHypeCard
+              athleteId={viewingAsAthlete.athlete?.id || ""}
+              athleteName={viewingAsAthlete.athlete?.name || viewingAsAthlete.athleteName || "Athlete"}
+              avatarUrl={viewingAsAthlete.athlete?.avatar || viewingAsAthlete.profileImageUrl}
+              teamName={currentTeam?.name || "Team"}
+              jerseyNumber={viewingAsAthlete.athlete?.number || viewingAsAthlete.number}
+              position={viewingAsAthlete.athlete?.position || viewingAsAthlete.position}
+              season={new Date().getFullYear().toString()}
+              events={teamEvents.map((e: Event) => ({
+                id: e.id,
+                title: e.title,
+                date: e.date,
+                location: e.location,
+                type: e.type
+              }))}
+              highlights={[]}
+              stats={{}}
+              hypeCount={0}
+              likeCount={0}
+              commentCount={0}
+            />
           </div>
         </div>
       )}
