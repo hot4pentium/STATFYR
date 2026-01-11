@@ -1,9 +1,11 @@
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap, Sun, Moon, ChevronRight, Bell, Heart } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap, Sun, Moon, ChevronRight, Bell, Heart, Plus, Trash2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { toast } from "sonner";
@@ -11,7 +13,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getSupporterBadges, getAllBadges, getSupporterThemes, getActiveTheme, activateTheme, getSupporterTapTotal, getActiveLiveSessions, checkSessionLifecycle, joinTeamByCode, getUnreadMessageCount, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats, type SupporterBadge, type BadgeDefinition, type ThemeUnlock, type LiveEngagementSession } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getSupporterBadges, getAllBadges, getSupporterThemes, getActiveTheme, activateTheme, getSupporterTapTotal, getActiveLiveSessions, checkSessionLifecycle, joinTeamByCode, getUnreadMessageCount, getSupporterEvents, createSupporterEvent, deleteSupporterEvent, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats, type SupporterBadge, type BadgeDefinition, type ThemeUnlock, type LiveEngagementSession, type SupporterEvent } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
@@ -80,6 +82,14 @@ export default function SupporterDashboard() {
   const [joinTeamCode, setJoinTeamCode] = useState("");
   const [isJoiningTeam, setIsJoiningTeam] = useState(false);
   const [independentSelectedCard, setIndependentSelectedCard] = useState<string | null>(null);
+  const [showEventForm, setShowEventForm] = useState(false);
+  const [newEventTitle, setNewEventTitle] = useState("");
+  const [newEventType, setNewEventType] = useState("game");
+  const [newEventDate, setNewEventDate] = useState("");
+  const [newEventTime, setNewEventTime] = useState("");
+  const [newEventLocation, setNewEventLocation] = useState("");
+  const [newEventOpponent, setNewEventOpponent] = useState("");
+  const [isCreatingEvent, setIsCreatingEvent] = useState(false);
   const queryClient = useQueryClient();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   
@@ -95,6 +105,13 @@ export default function SupporterDashboard() {
 
   // Check if supporter has independently managed athletes (no team needed)
   const hasIndependentAthletes = managedAthletes.some(m => m.isOwner === true);
+
+  // Fetch events for the selected managed athlete
+  const { data: athleteEvents = [], refetch: refetchAthleteEvents } = useQuery({
+    queryKey: ["/api/supporter/managed-athletes", viewingAsAthlete?.id, "events"],
+    queryFn: () => viewingAsAthlete && user ? getSupporterEvents(viewingAsAthlete.id, user.id) : Promise.resolve([]),
+    enabled: !!viewingAsAthlete && !!user,
+  });
 
   // Redirect to onboarding if no team and no managed athletes (after query settles)
   useEffect(() => {
@@ -1038,6 +1055,52 @@ export default function SupporterDashboard() {
     }
   };
 
+  const handleCreateEvent = async () => {
+    if (!viewingAsAthlete || !user || !newEventTitle.trim() || !newEventDate || !newEventTime) {
+      toast.error("Please fill in the required fields");
+      return;
+    }
+    setIsCreatingEvent(true);
+    try {
+      // Convert 24-hour time to 12-hour format with AM/PM for parseTextDate
+      const [hours, minutes] = newEventTime.split(':').map(Number);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const hour12 = hours % 12 || 12;
+      const startTime = `${newEventDate} ${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+      await createSupporterEvent(viewingAsAthlete.id, user.id, {
+        title: newEventTitle.trim(),
+        eventType: newEventType,
+        startTime,
+        location: newEventLocation.trim() || undefined,
+        opponentName: newEventOpponent.trim() || undefined,
+      });
+      toast.success("Event created!");
+      setNewEventTitle("");
+      setNewEventType("game");
+      setNewEventDate("");
+      setNewEventTime("");
+      setNewEventLocation("");
+      setNewEventOpponent("");
+      setShowEventForm(false);
+      refetchAthleteEvents();
+    } catch (error) {
+      toast.error("Failed to create event");
+    } finally {
+      setIsCreatingEvent(false);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!user) return;
+    try {
+      await deleteSupporterEvent(eventId, user.id);
+      toast.success("Event deleted");
+      refetchAthleteEvents();
+    } catch (error) {
+      toast.error("Failed to delete event");
+    }
+  };
+
   // Show loading state while checking if we need to redirect
   if (!currentTeam && !hasIndependentAthletes && !isManagedAthletesFetched) {
     return (
@@ -1416,45 +1479,351 @@ export default function SupporterDashboard() {
                   </CardHeader>
                   <CardContent>
                     {independentSelectedCard === "ind-events" && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <CalendarIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>No events scheduled yet</p>
-                        <p className="text-sm mt-1">Events will appear here when you add them</p>
+                      <div className="space-y-4">
+                        {!showEventForm ? (
+                          <>
+                            <Button 
+                              onClick={() => setShowEventForm(true)}
+                              className="w-full"
+                              data-testid="button-add-event"
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Event
+                            </Button>
+                            
+                            {athleteEvents.length === 0 ? (
+                              <div className="text-center py-6 text-muted-foreground">
+                                <CalendarIcon className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                                <p className="text-sm">No events scheduled yet</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                {athleteEvents.map((event) => {
+                                  const eventDate = parseTextDate(event.startTime);
+                                  return (
+                                    <div key={event.id} className="p-3 rounded-lg bg-background/50 border border-white/10">
+                                      <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-xs uppercase font-bold text-primary">
+                                              {event.eventType}
+                                            </span>
+                                            {event.opponentName && (
+                                              <span className="text-xs text-muted-foreground">vs {event.opponentName}</span>
+                                            )}
+                                          </div>
+                                          <h4 className="font-semibold">{event.title}</h4>
+                                          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                                            <span className="flex items-center gap-1">
+                                              <CalendarIcon className="h-3 w-3" />
+                                              {eventDate ? format(eventDate, "MMM d, yyyy") : "TBD"}
+                                            </span>
+                                            <span className="flex items-center gap-1">
+                                              <Clock className="h-3 w-3" />
+                                              {eventDate ? format(eventDate, "h:mm a") : "TBD"}
+                                            </span>
+                                          </div>
+                                          {event.location && (
+                                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                              <MapPin className="h-3 w-3" />
+                                              {event.location}
+                                            </p>
+                                          )}
+                                        </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="text-muted-foreground hover:text-destructive h-8 w-8"
+                                          onClick={() => handleDeleteEvent(event.id)}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label>Event Title *</Label>
+                              <Input
+                                placeholder="e.g., Game vs Tigers"
+                                value={newEventTitle}
+                                onChange={(e) => setNewEventTitle(e.target.value)}
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-2">
+                                <Label>Type</Label>
+                                <Select value={newEventType} onValueChange={setNewEventType}>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="game">Game</SelectItem>
+                                    <SelectItem value="practice">Practice</SelectItem>
+                                    <SelectItem value="scrimmage">Scrimmage</SelectItem>
+                                    <SelectItem value="tournament">Tournament</SelectItem>
+                                    <SelectItem value="other">Other</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Opponent</Label>
+                                <Input
+                                  placeholder="Team name"
+                                  value={newEventOpponent}
+                                  onChange={(e) => setNewEventOpponent(e.target.value)}
+                                />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-2">
+                                <Label>Date *</Label>
+                                <Input
+                                  type="date"
+                                  value={newEventDate}
+                                  onChange={(e) => setNewEventDate(e.target.value)}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Time *</Label>
+                                <Input
+                                  type="time"
+                                  value={newEventTime}
+                                  onChange={(e) => setNewEventTime(e.target.value)}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Location</Label>
+                              <Input
+                                placeholder="e.g., Home Field"
+                                value={newEventLocation}
+                                onChange={(e) => setNewEventLocation(e.target.value)}
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => setShowEventForm(false)}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                className="flex-1"
+                                onClick={handleCreateEvent}
+                                disabled={isCreatingEvent}
+                              >
+                                {isCreatingEvent ? "Creating..." : "Create Event"}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                     {independentSelectedCard === "ind-highlights" && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Video className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>No highlights yet</p>
-                        <p className="text-sm mt-1">Upload videos to create highlights</p>
+                      <div className="space-y-4">
+                        <div className="text-center py-4">
+                          <Video className="h-10 w-10 mx-auto mb-2 text-rose-500/50" />
+                          <p className="text-sm text-muted-foreground">Save your athlete's best moments</p>
+                        </div>
+                        
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-rose-500/10 to-red-500/10 border border-rose-500/20 text-center">
+                          <p className="text-xs text-muted-foreground">
+                            Video highlights coming soon! You'll be able to upload and share clips of your athlete's best plays.
+                          </p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="aspect-video rounded-lg bg-background/30 border border-dashed border-white/20 flex items-center justify-center">
+                            <Plus className="h-6 w-6 text-muted-foreground/50" />
+                          </div>
+                          <div className="aspect-video rounded-lg bg-background/30 border border-dashed border-white/20 flex items-center justify-center">
+                            <Plus className="h-6 w-6 text-muted-foreground/50" />
+                          </div>
+                        </div>
                       </div>
                     )}
                     {independentSelectedCard === "ind-stattracker" && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <ClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>Stat Tracker</p>
-                        <p className="text-sm mt-1">Track stats during games (coming soon)</p>
+                      <div className="space-y-4">
+                        <div className="text-center py-4">
+                          <ClipboardList className="h-10 w-10 mx-auto mb-2 text-green-500/50" />
+                          <p className="text-sm text-muted-foreground">Track live game statistics</p>
+                        </div>
+                        
+                        {athleteEvents.length === 0 ? (
+                          <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 text-center">
+                            <p className="text-xs text-muted-foreground">
+                              Create a game event first to start tracking stats
+                            </p>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="mt-3"
+                              onClick={() => {
+                                setIndependentSelectedCard("ind-events");
+                                setShowEventForm(true);
+                              }}
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Create Game Event
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <p className="text-sm font-medium">Select a game to track:</p>
+                            {athleteEvents.filter(e => e.eventType === 'game').slice(0, 3).map((event) => {
+                              const eventDate = parseTextDate(event.startTime);
+                              return (
+                                <button
+                                  key={event.id}
+                                  className="w-full p-3 rounded-lg bg-background/50 border border-white/10 text-left hover:border-primary/50 transition-colors"
+                                  onClick={() => toast.info("StatTracker launching soon!")}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="font-semibold text-sm">{event.title}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {eventDate ? format(eventDate, "MMM d, h:mm a") : "TBD"}
+                                      </p>
+                                    </div>
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                </button>
+                              );
+                            })}
+                            {athleteEvents.filter(e => e.eventType === 'game').length === 0 && (
+                              <p className="text-xs text-muted-foreground text-center py-2">No game events yet</p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                     {independentSelectedCard === "ind-stats" && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>No stats recorded yet</p>
-                        <p className="text-sm mt-1">Stats will appear after tracking games</p>
+                      <div className="space-y-4">
+                        <div className="text-center py-4">
+                          <BarChart3 className="h-10 w-10 mx-auto mb-2 text-amber-500/50" />
+                          <p className="text-sm text-muted-foreground">Track stats during games using StatTracker</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-center">
+                            <p className="text-2xl font-bold text-amber-500">0</p>
+                            <p className="text-xs text-muted-foreground">Games Tracked</p>
+                          </div>
+                          <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 text-center">
+                            <p className="text-2xl font-bold text-green-500">0</p>
+                            <p className="text-xs text-muted-foreground">Stats Recorded</p>
+                          </div>
+                        </div>
+                        
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => {
+                            setIndependentSelectedCard("ind-stattracker");
+                          }}
+                        >
+                          <ClipboardList className="h-4 w-4 mr-2" />
+                          Open StatTracker
+                        </Button>
                       </div>
                     )}
                     {independentSelectedCard === "ind-hypehub" && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Zap className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>Hype Hub</p>
-                        <p className="text-sm mt-1">Share moments and cheer for your athlete</p>
+                      <div className="space-y-4">
+                        <div className="text-center py-4">
+                          <Zap className="h-10 w-10 mx-auto mb-2 text-purple-500/50" />
+                          <p className="text-sm text-muted-foreground">Share your athlete's achievements</p>
+                        </div>
+                        
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                          <h4 className="font-semibold mb-2 flex items-center gap-2">
+                            <Heart className="h-4 w-4 text-pink-500" />
+                            Recent Moments
+                          </h4>
+                          <p className="text-xs text-muted-foreground">
+                            Create events and track stats to generate shareable moments
+                          </p>
+                        </div>
+                        
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => setIndependentSelectedCard("ind-hypecard")}
+                        >
+                          <Trophy className="h-4 w-4 mr-2" />
+                          View Hype Card
+                        </Button>
                       </div>
                     )}
-                    {independentSelectedCard === "ind-hypecard" && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Trophy className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>Hype Card</p>
-                        <p className="text-sm mt-1">View and share your athlete's profile card</p>
+                    {independentSelectedCard === "ind-hypecard" && viewingAsAthlete && (
+                      <div className="space-y-4">
+                        {/* Hype Card Preview */}
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-accent/10 to-primary/20 border border-primary/30 p-6">
+                          <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+                          <div className="relative z-10">
+                            <div className="flex items-center gap-4 mb-4">
+                              <Avatar className="h-20 w-20 border-4 border-primary/50 shadow-lg">
+                                <AvatarImage src={viewingAsAthlete.profileImageUrl || viewingAsAthlete.athlete?.avatar || undefined} />
+                                <AvatarFallback className="text-2xl bg-primary/30 text-primary-foreground">
+                                  {(viewingAsAthlete.athleteName || "A").charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-xs uppercase tracking-wider text-primary font-bold mb-1">
+                                  {viewingAsAthlete.sport || "Athlete"}
+                                </p>
+                                <h3 className="text-2xl font-display font-bold uppercase tracking-tight">
+                                  {viewingAsAthlete.athleteName || viewingAsAthlete.athlete?.name}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {viewingAsAthlete.position && <span>{viewingAsAthlete.position}</span>}
+                                  {viewingAsAthlete.number && <span> • #{viewingAsAthlete.number}</span>}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-3 gap-3">
+                              <div className="text-center p-2 rounded-lg bg-background/30">
+                                <p className="text-lg font-bold">0</p>
+                                <p className="text-xs text-muted-foreground">Games</p>
+                              </div>
+                              <div className="text-center p-2 rounded-lg bg-background/30">
+                                <p className="text-lg font-bold">0</p>
+                                <p className="text-xs text-muted-foreground">Highlights</p>
+                              </div>
+                              <div className="text-center p-2 rounded-lg bg-background/30">
+                                <p className="text-lg font-bold">0</p>
+                                <p className="text-xs text-muted-foreground">Hypes</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => {
+                            if (navigator.share) {
+                              navigator.share({
+                                title: `${viewingAsAthlete.athleteName}'s Hype Card`,
+                                text: `Check out ${viewingAsAthlete.athleteName}'s stats on STATFYR!`,
+                                url: window.location.origin,
+                              });
+                            } else {
+                              navigator.clipboard.writeText(window.location.origin);
+                              toast.success("Link copied to clipboard!");
+                            }
+                          }}
+                        >
+                          <ChevronRight className="h-4 w-4 mr-2" />
+                          Share Hype Card
+                        </Button>
                       </div>
                     )}
                   </CardContent>

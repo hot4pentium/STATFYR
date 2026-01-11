@@ -352,6 +352,83 @@ export async function deleteManagedAthlete(id: string): Promise<void> {
   await apiRequest("DELETE", `/api/managed-athletes/${id}`, {});
 }
 
+// ================== Supporter Events API ==================
+
+export interface SupporterEvent {
+  id: string;
+  supporterId: string;
+  managedAthleteId: string;
+  title: string;
+  description?: string | null;
+  eventType: string;
+  startTime: string;
+  endTime?: string | null;
+  location?: string | null;
+  opponentName?: string | null;
+  createdAt?: string | null;
+}
+
+export async function getSupporterEvents(managedAthleteId: string, userId: string): Promise<SupporterEvent[]> {
+  const res = await fetch(`/api/supporter/managed-athletes/${managedAthleteId}/events`, {
+    headers: { "x-user-id": userId },
+  });
+  if (!res.ok) throw new Error("Failed to get events");
+  const data = await res.json();
+  return data.events;
+}
+
+export async function createSupporterEvent(managedAthleteId: string, userId: string, data: {
+  title: string;
+  description?: string;
+  eventType: string;
+  startTime: string;
+  endTime?: string;
+  location?: string;
+  opponentName?: string;
+}): Promise<SupporterEvent> {
+  const res = await fetch(`/api/supporter/managed-athletes/${managedAthleteId}/events`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "x-user-id": userId,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to create event");
+  const result = await res.json();
+  return result.event;
+}
+
+export async function updateSupporterEvent(eventId: string, userId: string, data: {
+  title?: string;
+  description?: string;
+  eventType?: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string;
+  opponentName?: string;
+}): Promise<SupporterEvent> {
+  const res = await fetch(`/api/supporter/events/${eventId}`, {
+    method: "PATCH",
+    headers: { 
+      "Content-Type": "application/json",
+      "x-user-id": userId,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update event");
+  const result = await res.json();
+  return result.event;
+}
+
+export async function deleteSupporterEvent(eventId: string, userId: string): Promise<void> {
+  const res = await fetch(`/api/supporter/events/${eventId}`, {
+    method: "DELETE",
+    headers: { "x-user-id": userId },
+  });
+  if (!res.ok) throw new Error("Failed to delete event");
+}
+
 // ================== StatTracker API ==================
 
 export interface Game {
