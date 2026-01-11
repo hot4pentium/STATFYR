@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap, Sun, Moon, ChevronRight, Bell, Heart, Plus, Trash2 } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, X, Settings, LogOut, Clock, Utensils, Coffee, Shield, ClipboardList, Video, Play as PlayIcon, Trophy, BookOpen, ChevronDown, User, Camera, Maximize2, AlertCircle, Zap, Sun, Moon, ChevronRight, Bell, Heart, Plus, Trash2, Share2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { toast } from "sonner";
@@ -336,6 +336,7 @@ export default function SupporterDashboard() {
   const [joinTeamCode, setJoinTeamCode] = useState("");
   const [isJoiningTeam, setIsJoiningTeam] = useState(false);
   const [independentSelectedCard, setIndependentSelectedCard] = useState<string | null>(null);
+  const [indHypeCardFlipped, setIndHypeCardFlipped] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
   const [newEventType, setNewEventType] = useState("game");
   const [newEventDate, setNewEventDate] = useState("");
@@ -2056,56 +2057,113 @@ export default function SupporterDashboard() {
                     )}
                     {independentSelectedCard === "ind-hypecard" && viewingAsAthlete && (
                       <div className="space-y-4">
-                        {/* Hype Card Preview */}
-                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-accent/10 to-primary/20 border border-primary/30 p-6">
-                          <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-                          <div className="relative z-10">
-                            <div className="flex items-center gap-4 mb-4">
-                              <Avatar className="h-20 w-20 border-4 border-primary/50 shadow-lg">
-                                <AvatarImage src={viewingAsAthlete.profileImageUrl || viewingAsAthlete.athlete?.avatar || undefined} />
-                                <AvatarFallback className="text-2xl bg-primary/30 text-primary-foreground">
-                                  {(viewingAsAthlete.athleteName || "A").charAt(0)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="text-xs uppercase tracking-wider text-primary font-bold mb-1">
-                                  {viewingAsAthlete.sport || "Athlete"}
-                                </p>
-                                <h3 className="text-2xl font-display font-bold uppercase tracking-tight">
-                                  {viewingAsAthlete.athleteName || viewingAsAthlete.athlete?.name}
-                                </h3>
-                                <p className="text-sm text-muted-foreground">
-                                  {viewingAsAthlete.position && <span>{viewingAsAthlete.position}</span>}
-                                  {viewingAsAthlete.number && <span> • #{viewingAsAthlete.number}</span>}
-                                </p>
-                              </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-3 gap-3 mb-4">
-                              <div className="text-center p-2 rounded-lg bg-background/30">
-                                <p className="text-lg font-bold">{statsSummary?.totalSessions || 0}</p>
-                                <p className="text-xs text-muted-foreground">Games</p>
-                              </div>
-                              <div className="text-center p-2 rounded-lg bg-background/30">
-                                <p className="text-lg font-bold">{statsSummary?.totalStats || 0}</p>
-                                <p className="text-xs text-muted-foreground">Stats</p>
-                              </div>
-                              <div className="text-center p-2 rounded-lg bg-background/30">
-                                <p className="text-lg font-bold">0</p>
-                                <p className="text-xs text-muted-foreground">Highlights</p>
-                              </div>
-                            </div>
-                            
-                            {statsSummary && statsSummary.statTotals.length > 0 && (
-                              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/10">
-                                {statsSummary.statTotals.slice(0, 6).map((stat) => (
-                                  <div key={stat.statName} className="text-center">
-                                    <p className="text-xl font-bold text-primary">{stat.total}</p>
-                                    <p className="text-[10px] text-muted-foreground uppercase">{stat.statName}</p>
+                        {/* Modern Flip HYPE Card - Matches AthleteDashboard */}
+                        <div className="flex justify-center">
+                          <div className="w-72 perspective-1000">
+                            <div 
+                              className={`flip-card-inner cursor-pointer ${indHypeCardFlipped ? "flipped" : ""}`}
+                              onClick={() => setIndHypeCardFlipped(!indHypeCardFlipped)}
+                              data-testid="ind-hype-card-flip"
+                              style={{ height: "384px" }}
+                            >
+                              {/* Front of Card */}
+                              <div className="flip-card-front">
+                                <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-orange-400 to-orange-600 rounded-3xl blur opacity-75" />
+                                <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-3xl overflow-hidden border border-orange-500/30 shadow-2xl h-full">
+                                  <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+                                  
+                                  {/* Top Left - Name */}
+                                  <div className="absolute top-4 left-4 z-10">
+                                    <h3 className="text-lg font-display font-bold text-white uppercase tracking-tight drop-shadow-lg">
+                                      {viewingAsAthlete.athleteName || viewingAsAthlete.athlete?.name}
+                                    </h3>
+                                    <p className="text-xs text-orange-400 font-semibold">{viewingAsAthlete.sport || "Athlete"}</p>
                                   </div>
-                                ))}
+                                  
+                                  {/* Top Right - Jersey Number */}
+                                  {viewingAsAthlete.number && (
+                                    <div className="absolute top-4 right-4 z-10">
+                                      <span className="text-2xl font-display font-bold text-orange-500 drop-shadow-lg">
+                                        #{viewingAsAthlete.number}
+                                      </span>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Full Length Avatar */}
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    {viewingAsAthlete.profileImageUrl || viewingAsAthlete.athlete?.avatar ? (
+                                      <img 
+                                        src={viewingAsAthlete.profileImageUrl || viewingAsAthlete.athlete?.avatar || ""} 
+                                        alt={viewingAsAthlete.athleteName || ""} 
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
+                                        <span className="text-[80px] font-display font-bold text-white/40">
+                                          {(viewingAsAthlete.athleteName || "A").charAt(0).toUpperCase()}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Bottom Left - Position */}
+                                  <div className="absolute bottom-4 left-4 z-10">
+                                    <p className="text-sm font-semibold text-orange-400 drop-shadow-lg">
+                                      {viewingAsAthlete.position || "Athlete"}
+                                    </p>
+                                  </div>
+                                  
+                                  {/* Tap hint */}
+                                  <div className="absolute bottom-4 right-4 z-10">
+                                    <p className="text-xs text-white/50">Tap to flip</p>
+                                  </div>
+                                </div>
                               </div>
-                            )}
+                              
+                              {/* Back of Card */}
+                              <div className="flip-card-back">
+                                <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-orange-400 to-orange-600 rounded-3xl blur opacity-75" />
+                                <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-3xl overflow-hidden border border-orange-500/30 shadow-2xl h-full p-4">
+                                  <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+                                  
+                                  {/* 2x2 Grid */}
+                                  <div className="relative h-full grid grid-cols-2 grid-rows-2 gap-2">
+                                    {/* Events Quadrant */}
+                                    <div className="rounded-xl p-3 flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 transition-colors">
+                                      <CalendarIcon className="h-7 w-7 text-orange-400 mb-2" />
+                                      <span className="text-sm font-semibold text-white">Events</span>
+                                      <span className="text-2xl font-bold text-orange-400 mt-1">{athleteEvents.length}</span>
+                                    </div>
+                                    
+                                    {/* Stats Quadrant */}
+                                    <div className="rounded-xl p-3 flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 transition-colors">
+                                      <BarChart3 className="h-7 w-7 text-orange-400 mb-2" />
+                                      <span className="text-sm font-semibold text-white">Stats</span>
+                                      <span className="text-2xl font-bold text-orange-400 mt-1">{statsSummary?.totalStats || 0}</span>
+                                    </div>
+                                    
+                                    {/* Highlights Quadrant */}
+                                    <div className="rounded-xl p-3 flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 transition-colors">
+                                      <Video className="h-7 w-7 text-orange-400 mb-2" />
+                                      <span className="text-sm font-semibold text-white">Highlights</span>
+                                      <span className="text-2xl font-bold text-orange-400 mt-1">0</span>
+                                    </div>
+                                    
+                                    {/* Games Quadrant */}
+                                    <div className="rounded-xl p-3 flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 transition-colors">
+                                      <Trophy className="h-7 w-7 text-orange-400 mb-2" />
+                                      <span className="text-sm font-semibold text-white">Games</span>
+                                      <span className="text-2xl font-bold text-orange-400 mt-1">{statsSummary?.totalSessions || 0}</span>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Tap hint */}
+                                  <div className="absolute bottom-2 right-4 z-10">
+                                    <p className="text-xs text-white/50">Tap to flip back</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                         
@@ -2125,8 +2183,8 @@ export default function SupporterDashboard() {
                             }
                           }}
                         >
-                          <ChevronRight className="h-4 w-4 mr-2" />
-                          Share Hype Card
+                          <Share2 className="h-4 w-4 mr-2" />
+                          Share HYPE Card
                         </Button>
                       </div>
                     )}
