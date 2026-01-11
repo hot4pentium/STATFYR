@@ -290,7 +290,7 @@ export default function SupporterDashboard() {
 
         <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
           {/* Hero Section - Different for Independent vs Team mode */}
-          <div ref={heroRef} className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-orange-50 via-white to-orange-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border border-orange-200 dark:border-orange-500/20">
+          <div ref={heroRef} className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/10 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border border-primary/20 dark:border-primary/30">
             <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
             <div className="relative p-4 md:p-8 flex flex-row gap-4 md:gap-6 items-center">
               <Avatar className="h-16 w-16 sm:h-24 sm:w-24 rounded-xl border-2 border-primary/50 shadow-lg">
@@ -305,7 +305,7 @@ export default function SupporterDashboard() {
               <div className="flex-1 min-w-0">
                 {isIndependentMode ? (
                   <>
-                    <p className="text-xs text-orange-500 font-bold uppercase tracking-wider">Independent Mode</p>
+                    <p className="text-xs text-primary font-bold uppercase tracking-wider">Independent Mode</p>
                     <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
                       {managedAthletes[0]?.athleteName || "My Athlete"}
                     </h1>
@@ -332,7 +332,7 @@ export default function SupporterDashboard() {
                           className="h-8 w-8 object-contain"
                         />
                       )}
-                      <p className="text-xs text-orange-500 font-bold uppercase tracking-wider">{currentTeam?.name}</p>
+                      <p className="text-xs text-primary font-bold uppercase tracking-wider">{currentTeam?.name}</p>
                     </div>
                     <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
                       Supporter Dashboard
@@ -362,19 +362,19 @@ export default function SupporterDashboard() {
                 }
                 setLocation("/supporter/hype-portal");
               }}
-              className={`relative bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 transition-all cursor-pointer group ${!entitlements?.canUploadHighlights ? "opacity-75" : ""}`}
+              className={`relative bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 border-primary/40 hover:border-primary/60 transition-all cursor-pointer group ${!entitlements?.canUploadHighlights ? "opacity-75" : ""}`}
               data-testid="card-hype-hub"
             >
               {!entitlements?.canUploadHighlights && (
                 <div className="absolute top-2 right-2 z-10">
-                  <Lock className="h-4 w-4 text-orange-500" />
+                  <Lock className="h-4 w-4 text-primary" />
                 </div>
               )}
               <CardContent className="p-3 sm:p-5 flex flex-col items-center gap-2">
-                <div className="p-2.5 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg group-hover:scale-110 transition-transform">
+                <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-accent shadow-lg group-hover:scale-110 transition-transform">
                   <Flame className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
                 </div>
-                <h3 className="font-display font-bold text-sm sm:text-lg uppercase text-orange-500">HYPE Hub</h3>
+                <h3 className="font-display font-bold text-sm sm:text-lg uppercase text-primary">HYPE Hub</h3>
                 <p className="hidden sm:block text-xs text-muted-foreground">Post updates & fire up followers</p>
               </CardContent>
             </Card>
@@ -412,8 +412,8 @@ export default function SupporterDashboard() {
                 <Card 
                   key={card.id}
                   onClick={() => handleCardClick(card.id, card.locked)}
-                  className={`relative bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-orange-500/20 hover:border-orange-400 dark:hover:border-orange-500/50 transition-all cursor-pointer group ${
-                    activeSection === card.id ? "border-orange-500 ring-2 ring-orange-500/20" : ""
+                  className={`relative bg-slate-200 dark:bg-card/80 backdrop-blur-sm border-slate-300 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer group shadow-lg shadow-black/10 dark:shadow-none ${
+                    activeSection === card.id ? "border-primary ring-2 ring-primary/20" : ""
                   } ${card.locked ? "opacity-75" : ""}`}
                   data-testid={`card-nav-${card.id}`}
                 >
@@ -424,9 +424,9 @@ export default function SupporterDashboard() {
                   )}
                   <CardContent className="p-3 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4">
                     <div className={`p-2 rounded-lg border transition-colors ${
-                      activeSection === card.id ? "bg-orange-500/20 border-orange-500/40" : "bg-orange-500/10 border-orange-500/20 group-hover:bg-orange-500/20"
+                      activeSection === card.id ? "bg-primary/20 border-primary/40" : "bg-primary/10 border-primary/20 group-hover:bg-primary/20"
                     }`}>
-                      <card.icon className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
+                      <card.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
                     <div className="text-center sm:text-left">
                       <h3 className="font-bold text-sm sm:text-base">{card.name}</h3>
@@ -502,7 +502,7 @@ export default function SupporterDashboard() {
                     </Card>
                   ) : (
                     teamEvents.map((event: Event) => (
-                      <Card key={event.id} className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-orange-500/20" data-testid={`event-${event.id}`}>
+                      <Card key={event.id} className="bg-background/40 border-white/10 hover:border-primary/50 transition-all" data-testid={`event-${event.id}`}>
                         <CardContent className="p-4">
                           <Badge variant="outline" className="mb-2">{event.type}</Badge>
                           <h3 className="font-bold text-lg">{event.title}</h3>
@@ -645,18 +645,18 @@ export default function SupporterDashboard() {
 
               {activeSection === "game-day-live" && (
                 <div className="space-y-4">
-                  <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30">
+                  <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30">
                     <CardContent className="p-6 text-center space-y-4">
-                      <div className="h-16 w-16 mx-auto rounded-full bg-orange-500/20 flex items-center justify-center">
-                        <Flame className="h-8 w-8 text-orange-500" />
+                      <div className="h-16 w-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
+                        <Flame className="h-8 w-8 text-primary" />
                       </div>
                       <h3 className="text-xl font-bold">Game Day Live</h3>
                       <p className="text-muted-foreground">
                         Send shoutouts and cheers to athletes during live games! When a game is in progress, you'll be able to tap to send real-time encouragement.
                       </p>
-                      <div className="pt-4 border-t border-orange-500/20">
+                      <div className="pt-4 border-t border-primary/20">
                         <p className="text-sm text-muted-foreground">
-                          Check the <span className="font-semibold text-orange-500">Calendar</span> for upcoming games.
+                          Check the <span className="font-semibold text-primary">Calendar</span> for upcoming games.
                         </p>
                       </div>
                     </CardContent>
@@ -687,7 +687,7 @@ export default function SupporterDashboard() {
         <DialogContent className="max-w-md p-0 overflow-hidden">
           {demoModal === "hype-hub" && (
             <div className="relative">
-              <div className="bg-gradient-to-br from-orange-500 via-red-500 to-orange-600 p-6 text-white">
+              <div className="bg-gradient-to-br from-primary via-accent to-primary p-6 text-white">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-3 rounded-xl bg-white/20">
                     <Flame className="h-8 w-8" />
@@ -702,8 +702,8 @@ export default function SupporterDashboard() {
               <div className="p-6 space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-                      <Heart className="h-4 w-4 text-orange-500" />
+                    <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+                      <Heart className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                       <p className="font-semibold text-sm">Post HYPE Updates</p>
@@ -712,8 +712,8 @@ export default function SupporterDashboard() {
                   </div>
                   
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-                      <Star className="h-4 w-4 text-orange-500" />
+                    <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+                      <Star className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                       <p className="font-semibold text-sm">Celebrate Moments</p>
@@ -722,8 +722,8 @@ export default function SupporterDashboard() {
                   </div>
                   
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-                      <Share2 className="h-4 w-4 text-orange-500" />
+                    <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+                      <Share2 className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                       <p className="font-semibold text-sm">Share with Family</p>
@@ -733,16 +733,16 @@ export default function SupporterDashboard() {
                 </div>
                 
                 <div className="pt-4 border-t space-y-3">
-                  <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 mb-2">
-                    <p className="text-center text-sm font-medium text-orange-700 dark:text-orange-300">
+                  <div className="bg-primary/10 dark:bg-primary/20 rounded-lg p-3 mb-2">
+                    <p className="text-center text-sm font-medium text-primary dark:text-primary">
                       One subscription unlocks everything!
                     </p>
-                    <p className="text-center text-xs text-orange-600/80 dark:text-orange-400/80 mt-1">
+                    <p className="text-center text-xs text-primary/80 dark:text-primary/80 mt-1">
                       HYPE Hub + HYPE Card + Highlights included
                     </p>
                   </div>
                   <Button 
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                    className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
                     onClick={() => {
                       setDemoModal(null);
                       setLocation("/supporter/settings?tab=subscription");
