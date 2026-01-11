@@ -160,7 +160,7 @@ export default function SupporterSettings() {
         lastName: athleteLastName.trim(),
       });
       
-      toast.success(`${result.athlete.name} has been added to ${result.team.name}!`);
+      toast.success(`${result.athlete?.name || athleteFirstName + ' ' + athleteLastName} has been added to ${result.team?.name || 'the team'}!`);
       setAthleteTeamCode("");
       setAthleteFirstName("");
       setAthleteLastName("");
@@ -176,7 +176,8 @@ export default function SupporterSettings() {
   const handleDeleteManagedAthlete = async (managed: ManagedAthlete) => {
     try {
       await deleteManagedAthlete(managed.id);
-      toast.success(`${managed.athlete.name} has been removed.`);
+      const athleteName = managed.athlete?.name || managed.athleteName || "Athlete";
+      toast.success(`${athleteName} has been removed.`);
       refetchManagedAthletes();
     } catch (error) {
       console.error("Failed to remove athlete:", error);
@@ -198,23 +199,33 @@ export default function SupporterSettings() {
       return;
     }
 
-    setUploadingAthleteId(selectedAthleteForUpload.athlete.id);
+    const isLinkedAthlete = !!selectedAthleteForUpload.athleteId;
+    const athleteId = selectedAthleteForUpload.athleteId || selectedAthleteForUpload.id;
+    const athleteName = selectedAthleteForUpload.athlete?.name || selectedAthleteForUpload.athleteName || "Athlete";
+    
+    setUploadingAthleteId(athleteId);
 
     const reader = new FileReader();
     reader.onload = async (event) => {
       const base64Avatar = event.target?.result as string;
       try {
-        const response = await fetch(`/api/users/${selectedAthleteForUpload.athlete.id}?requesterId=${contextUser?.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ avatar: base64Avatar }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to update avatar");
+        if (isLinkedAthlete) {
+          const response = await fetch(`/api/users/${selectedAthleteForUpload.athleteId}?requesterId=${contextUser?.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ avatar: base64Avatar }),
+          });
+          if (!response.ok) throw new Error("Failed to update avatar");
+        } else {
+          const response = await fetch(`/api/supporter/managed-athletes/${selectedAthleteForUpload.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", "x-user-id": contextUser?.id || "" },
+            body: JSON.stringify({ profileImageUrl: base64Avatar }),
+          });
+          if (!response.ok) throw new Error("Failed to update avatar");
         }
 
-        toast.success(`${selectedAthleteForUpload.athlete.name}'s photo updated!`);
+        toast.success(`${athleteName}'s photo updated!`);
         refetchManagedAthletes();
       } catch (error) {
         console.error("Failed to update athlete avatar:", error);
@@ -237,9 +248,16 @@ export default function SupporterSettings() {
 
   const handleEditAthleteClick = (managed: ManagedAthlete) => {
     setEditingAthlete(managed);
-    setEditFirstName(managed.athlete.firstName || "");
-    setEditLastName(managed.athlete.lastName || "");
-    setEditAvatarPreview(managed.athlete.avatar || null);
+    if (managed.athlete) {
+      setEditFirstName(managed.athlete.firstName || "");
+      setEditLastName(managed.athlete.lastName || "");
+      setEditAvatarPreview(managed.athlete.avatar || null);
+    } else {
+      const nameParts = (managed.athleteName || "").split(" ");
+      setEditFirstName(nameParts[0] || "");
+      setEditLastName(nameParts.slice(1).join(" ") || "");
+      setEditAvatarPreview(managed.profileImageUrl || null);
+    }
   };
 
   const handleEditAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,25 +286,42 @@ export default function SupporterSettings() {
       return;
     }
 
+    const isLinkedAthlete = !!editingAthlete.athleteId;
+
     setIsSavingEdit(true);
     try {
-      const response = await fetch(`/api/users/${editingAthlete.athlete.id}?requesterId=${contextUser.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: editFirstName.trim(),
-          lastName: editLastName.trim(),
-          name: `${editFirstName.trim()} ${editLastName.trim()}`,
-          avatar: editAvatarPreview,
-        }),
-      });
+      if (isLinkedAthlete) {
+        const response = await fetch(`/api/users/${editingAthlete.athleteId}?requesterId=${contextUser.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName: editFirstName.trim(),
+            lastName: editLastName.trim(),
+            name: `${editFirstName.trim()} ${editLastName.trim()}`,
+            avatar: editAvatarPreview,
+          }),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        if (response.status === 403) {
-          throw new Error(errorData.error || "You don't have permission to edit this athlete");
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          if (response.status === 403) {
+            throw new Error(errorData.error || "You don't have permission to edit this athlete");
+          }
+          throw new Error(errorData.error || "Failed to update athlete");
         }
-        throw new Error(errorData.error || "Failed to update athlete");
+      } else {
+        const response = await fetch(`/api/supporter/managed-athletes/${editingAthlete.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", "x-user-id": contextUser.id },
+          body: JSON.stringify({
+            athleteName: `${editFirstName.trim()} ${editLastName.trim()}`,
+            profileImageUrl: editAvatarPreview,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to update athlete");
+        }
       }
 
       toast.success(`${editFirstName.trim()} ${editLastName.trim()}'s profile updated!`);
@@ -513,55 +548,62 @@ export default function SupporterSettings() {
                       className="hidden"
                       data-testid="input-athlete-avatar-upload"
                     />
-                    {managedAthletes.map((managed) => (
-                      <div 
-                        key={managed.id} 
-                        className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-white/10 cursor-pointer hover:bg-background/50 transition-colors"
-                        data-testid={`managed-athlete-${managed.id}`}
-                        onClick={() => handleEditAthleteClick(managed)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="relative w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
-                            {managed.athlete.avatar ? (
-                              <img 
-                                src={managed.athlete.avatar} 
-                                alt={managed.athlete.name || ""} 
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <User className="h-6 w-6 text-primary" />
-                            )}
+                    {managedAthletes.map((managed) => {
+                      const athleteName = managed.athlete?.name || managed.athleteName || "Athlete";
+                      const athleteAvatar = managed.athlete?.avatar || managed.profileImageUrl;
+                      const athletePosition = managed.athlete?.position || managed.position;
+                      const athleteNumber = managed.athlete?.number || managed.number;
+                      
+                      return (
+                        <div 
+                          key={managed.id} 
+                          className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-white/10 cursor-pointer hover:bg-background/50 transition-colors"
+                          data-testid={`managed-athlete-${managed.id}`}
+                          onClick={() => handleEditAthleteClick(managed)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="relative w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                              {athleteAvatar ? (
+                                <img 
+                                  src={athleteAvatar} 
+                                  alt={athleteName} 
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <User className="h-6 w-6 text-primary" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium">{athleteName}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {athletePosition || "Athlete"}
+                                {athleteNumber && ` • #${athleteNumber}`}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">{managed.athlete.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {managed.athlete.position || "Athlete"}
-                              {managed.athlete.number && ` • #${managed.athlete.number}`}
-                            </p>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => { e.stopPropagation(); handleEditAthleteClick(managed); }}
+                              className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                              data-testid={`button-edit-athlete-${managed.id}`}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => { e.stopPropagation(); handleDeleteManagedAthlete(managed); }}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              data-testid={`button-remove-athlete-${managed.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => { e.stopPropagation(); handleEditAthleteClick(managed); }}
-                            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                            data-testid={`button-edit-athlete-${managed.id}`}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => { e.stopPropagation(); handleDeleteManagedAthlete(managed); }}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            data-testid={`button-remove-athlete-${managed.id}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
