@@ -555,6 +555,14 @@ export async function createSupporterStatEntry(sessionId: string, userId: string
   return result.entry;
 }
 
+export async function deleteSupporterStatEntryById(entryId: string, userId: string): Promise<void> {
+  const res = await fetch(`/api/supporter/stat-entries/${entryId}`, {
+    method: "DELETE",
+    headers: { "x-user-id": userId },
+  });
+  if (!res.ok) throw new Error("Failed to delete stat entry");
+}
+
 // ================== StatTracker API ==================
 
 export interface Game {

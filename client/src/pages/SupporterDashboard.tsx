@@ -26,6 +26,8 @@ import { TeamBadge } from "@/components/TeamBadge";
 import { TeamHeroCard } from "@/components/dashboard/TeamHeroCard";
 import { FollowedAthletesCard } from "@/components/dashboard/FollowedAthletesCard";
 import { SupporterStatTracker } from "@/components/dashboard/SupporterStatTracker";
+import { SPORT_STATS } from "@/lib/sportConstants";
+import { createSupporterStatSession, createSupporterStatEntry, updateSupporterStatSession, deleteSupporterStatEntryById } from "@/lib/api";
 
 // Helper to parse text date - supports both "2026-01-02 05:00 PM" and "2026-01-02 17:00:00" formats
 const parseTextDate = (dateStr: string): Date | null => {
@@ -62,6 +64,216 @@ function Badge({ children, className }: { children: React.ReactNode; className?:
   return <span className={`px-2 py-1 rounded text-xs font-bold ${className}`}>{children}</span>;
 }
 
+interface StatTrackingInterfaceProps {
+  eventId: string;
+  event?: SupporterEvent;
+  managedAthleteId: string;
+  athleteName: string;
+  userId: string;
+  onClose: () => void;
+}
+
+function StatTrackingInterface({ eventId, event, managedAthleteId, athleteName, userId, onClose }: StatTrackingInterfaceProps) {
+  const queryClient = useQueryClient();
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [recentEntries, setRecentEntries] = useState<{ id: string; statName: string; value: number; timestamp: Date }[]>([]);
+  const [ourScore, setOurScore] = useState(0);
+  const [theirScore, setTheirScore] = useState(0);
+  const [currentPeriod, setCurrentPeriod] = useState(1);
+  
+  const sportStats = SPORT_STATS["Basketball"] || [];
+  const allStats = sportStats.flatMap(cat => cat.stats.map(s => s.name));
+  
+  const { data: existingSession, isLoading: isLoadingSession } = useQuery({
+    queryKey: ["supporter-stat-session", managedAthleteId, eventId],
+    queryFn: async () => {
+      const res = await fetch(`/api/supporter/stat-sessions?managedAthleteId=${managedAthleteId}&eventId=${eventId}`, {
+        headers: { "x-user-id": userId }
+      });
+      if (!res.ok) return null;
+      const sessions = await res.json();
+      return sessions.length > 0 ? sessions[0] : null;
+    },
+    enabled: !!managedAthleteId && !!eventId
+  });
+  
+  const { data: sessionEntries = [], refetch: refetchEntries } = useQuery({
+    queryKey: ["supporter-stat-entries", activeSessionId],
+    queryFn: async () => {
+      if (!activeSessionId) return [];
+      const res = await fetch(`/api/supporter/stat-sessions/${activeSessionId}/entries`, {
+        headers: { "x-user-id": userId }
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!activeSessionId
+  });
+  
+  useEffect(() => {
+    if (existingSession) {
+      setActiveSessionId(existingSession.id);
+      setOurScore(existingSession.ourScore || 0);
+      setTheirScore(existingSession.theirScore || 0);
+      setCurrentPeriod(existingSession.currentPeriod || 1);
+    }
+  }, [existingSession]);
+  
+  const handleStartSession = async () => {
+    setIsCreatingSession(true);
+    try {
+      const session = await createSupporterStatSession(managedAthleteId, userId, {
+        eventId,
+        opponentName: event?.title?.replace(/^Game vs /, "") || undefined,
+      });
+      setActiveSessionId(session.id);
+      toast.success("Tracking session started!");
+    } catch (error) {
+      toast.error("Failed to start session");
+    } finally {
+      setIsCreatingSession(false);
+    }
+  };
+  
+  const handleRecordStat = async (statName: string) => {
+    if (!activeSessionId) return;
+    try {
+      const entry = await createSupporterStatEntry(activeSessionId, userId, {
+        statName,
+        value: 1,
+        period: currentPeriod
+      });
+      setRecentEntries(prev => [{ id: entry.id, statName, value: 1, timestamp: new Date() }, ...prev.slice(0, 4)]);
+      refetchEntries();
+      toast.success(`+1 ${statName}`);
+    } catch (error) {
+      toast.error("Failed to record stat");
+    }
+  };
+  
+  const handleUndoLastStat = async () => {
+    if (recentEntries.length === 0) return;
+    const lastEntry = recentEntries[0];
+    try {
+      await deleteSupporterStatEntryById(lastEntry.id, userId);
+      setRecentEntries(prev => prev.slice(1));
+      refetchEntries();
+      toast.info(`Removed ${lastEntry.statName}`);
+    } catch (error) {
+      toast.error("Failed to undo");
+    }
+  };
+  
+  const handleUpdateScore = async (team: 'our' | 'their', delta: number) => {
+    if (!activeSessionId) return;
+    const newOurScore = team === 'our' ? Math.max(0, ourScore + delta) : ourScore;
+    const newTheirScore = team === 'their' ? Math.max(0, theirScore + delta) : theirScore;
+    setOurScore(newOurScore);
+    setTheirScore(newTheirScore);
+    try {
+      await updateSupporterStatSession(activeSessionId, userId, { athleteScore: newOurScore, opponentScore: newTheirScore });
+    } catch (error) {
+      console.error("Failed to update score");
+    }
+  };
+  
+  const entryTotals = sessionEntries.reduce((acc: Record<string, number>, entry: any) => {
+    acc[entry.statName] = (acc[entry.statName] || 0) + (entry.statValue || 1);
+    return acc;
+  }, {});
+  
+  if (isLoadingSession) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+  
+  if (!activeSessionId) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <button onClick={onClose} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
+            <ChevronRight className="h-4 w-4 rotate-180" />
+            Back
+          </button>
+        </div>
+        <div className="text-center py-4">
+          <ClipboardList className="h-10 w-10 mx-auto mb-2 text-green-500" />
+          <p className="font-semibold">{event?.title || "Game"}</p>
+          <p className="text-xs text-muted-foreground mb-4">Ready to track stats for {athleteName}</p>
+          <Button onClick={handleStartSession} disabled={isCreatingSession}>
+            {isCreatingSession ? "Starting..." : "Start Tracking"}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <button onClick={onClose} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
+          <ChevronRight className="h-4 w-4 rotate-180" />
+          Back
+        </button>
+        <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-500">Live</span>
+      </div>
+      
+      <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
+        <p className="text-xs text-center text-muted-foreground mb-2">Score</p>
+        <div className="flex items-center justify-center gap-4">
+          <div className="text-center">
+            <div className="flex items-center gap-2">
+              <button onClick={() => handleUpdateScore('our', -1)} className="w-6 h-6 rounded bg-background/50 text-sm">-</button>
+              <span className="text-2xl font-bold w-8">{ourScore}</span>
+              <button onClick={() => handleUpdateScore('our', 1)} className="w-6 h-6 rounded bg-background/50 text-sm">+</button>
+            </div>
+            <p className="text-xs text-muted-foreground">Us</p>
+          </div>
+          <span className="text-xl text-muted-foreground">-</span>
+          <div className="text-center">
+            <div className="flex items-center gap-2">
+              <button onClick={() => handleUpdateScore('their', -1)} className="w-6 h-6 rounded bg-background/50 text-sm">-</button>
+              <span className="text-2xl font-bold w-8">{theirScore}</span>
+              <button onClick={() => handleUpdateScore('their', 1)} className="w-6 h-6 rounded bg-background/50 text-sm">+</button>
+            </div>
+            <p className="text-xs text-muted-foreground">Them</p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-3 gap-2">
+        {["Points", "Rebounds", "Assists", "Steals", "Blocks", "Turnovers"].map(stat => (
+          <button
+            key={stat}
+            onClick={() => handleRecordStat(stat)}
+            className="p-3 rounded-lg bg-background/50 border border-white/10 hover:border-primary/50 transition-colors text-center"
+          >
+            <p className="text-lg font-bold">{entryTotals[stat] || 0}</p>
+            <p className="text-xs text-muted-foreground">{stat}</p>
+          </button>
+        ))}
+      </div>
+      
+      {recentEntries.length > 0 && (
+        <div className="flex items-center justify-between p-2 rounded-lg bg-background/30 border border-white/5">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Last:</span>
+            <span className="font-medium">{recentEntries[0].statName}</span>
+          </div>
+          <button onClick={handleUndoLastStat} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+            <Trash2 className="h-3 w-3" />
+            Undo
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SupporterDashboard() {
   const [, setLocation] = useLocation();
   const { user, currentTeam, logout, setCurrentTeam, isLoading } = useUser();
@@ -90,6 +302,8 @@ export default function SupporterDashboard() {
   const [newEventOpponent, setNewEventOpponent] = useState("");
   const [newEventNotes, setNewEventNotes] = useState("");
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+  const [activeStatTrackingEventId, setActiveStatTrackingEventId] = useState<string | null>(null);
+  const [statTrackingRecent, setStatTrackingRecent] = useState<{ statName: string; timestamp: Date }[]>([]);
   const queryClient = useQueryClient();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   
@@ -1684,6 +1898,18 @@ export default function SupporterDashboard() {
                               Create Game Event
                             </Button>
                           </div>
+                        ) : activeStatTrackingEventId ? (
+                          <StatTrackingInterface 
+                            eventId={activeStatTrackingEventId}
+                            event={athleteEvents.find(e => e.id === activeStatTrackingEventId)}
+                            managedAthleteId={viewingAsAthlete?.id || ""}
+                            athleteName={viewingAsAthlete?.athleteName || "Athlete"}
+                            userId={user?.id || ""}
+                            onClose={() => {
+                              setActiveStatTrackingEventId(null);
+                              queryClient.invalidateQueries({ queryKey: ["/api/supporter/managed-athletes", viewingAsAthlete?.id, "stats-summary"] });
+                            }}
+                          />
                         ) : (
                           <div className="space-y-3">
                             <p className="text-sm font-medium">Select a game to track:</p>
@@ -1693,7 +1919,7 @@ export default function SupporterDashboard() {
                                 <button
                                   key={event.id}
                                   className="w-full p-3 rounded-lg bg-background/50 border border-white/10 text-left hover:border-primary/50 transition-colors"
-                                  onClick={() => toast.info("StatTracker launching soon!")}
+                                  onClick={() => setActiveStatTrackingEventId(event.id)}
                                 >
                                   <div className="flex items-center justify-between">
                                     <div>
