@@ -220,10 +220,37 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       const img = basketballImageRef.current;
       const imgWidth = img.naturalWidth;
       const imgHeight = img.naturalHeight;
+      
+      // Source is right half of the court image
+      const srcX = imgWidth / 2;
+      const srcY = 0;
+      const srcW = imgWidth / 2;
+      const srcH = imgHeight;
+      
+      // Calculate aspect ratio to fit and center
+      const srcAspect = srcW / srcH;
+      const canvasAspect = width / height;
+      
+      let drawWidth, drawHeight, offsetX, offsetY;
+      
+      if (canvasAspect > srcAspect) {
+        // Canvas is wider - fit to height, center horizontally
+        drawHeight = height;
+        drawWidth = height * srcAspect;
+        offsetX = (width - drawWidth) / 2;
+        offsetY = 0;
+      } else {
+        // Canvas is taller - fit to width, center vertically
+        drawWidth = width;
+        drawHeight = width / srcAspect;
+        offsetX = 0;
+        offsetY = (height - drawHeight) / 2;
+      }
+      
       ctx.drawImage(
         img,
-        imgWidth / 2, 0, imgWidth / 2, imgHeight,
-        0, 0, width, height
+        srcX, srcY, srcW, srcH,
+        offsetX, offsetY, drawWidth, drawHeight
       );
     } else {
       ctx.fillStyle = "#CD853F";
