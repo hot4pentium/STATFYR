@@ -5190,23 +5190,23 @@ interface Entitlements {
   canTrackOwnStats: boolean;
 }
 
-// TESTING MODE: All entitlements enabled for testing
+// Base free entitlements (supporter premium features locked)
 function getDefaultEntitlements(): Entitlements {
   return {
-    canUseStatTracker: true,
-    canEditPlayMaker: true,
-    canUploadHighlights: true,
-    canViewIndividualStats: true,
-    canViewHighlights: true,
-    canViewRoster: true,
-    canViewPlaybook: true,
-    canUseChat: true,
-    canUseGameDayLive: true,
-    canEditEvents: true,
-    canEditRoster: true,
-    canPromoteMembers: true,
-    canFollowCrossTeam: true,
-    canTrackOwnStats: true,
+    canUseStatTracker: false,
+    canEditPlayMaker: false,
+    canUploadHighlights: false, // Supporter Pro
+    canViewIndividualStats: false,
+    canViewHighlights: false, // Supporter Pro
+    canViewRoster: true, // Free
+    canViewPlaybook: true, // Free
+    canUseChat: true, // Free
+    canUseGameDayLive: true, // Free
+    canEditEvents: false,
+    canEditRoster: false,
+    canPromoteMembers: false,
+    canFollowCrossTeam: false,
+    canTrackOwnStats: false,
   };
 }
 
