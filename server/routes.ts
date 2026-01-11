@@ -4020,9 +4020,9 @@ export async function registerRoutes(
         
         // Get FCM tokens for all users
         for (const user of allUsers) {
-          const tokens = await storage.getFcmTokens(user.id);
+          const tokens = await storage.getUserFcmTokens(user.id);
           if (tokens.length > 0) {
-            const tokenStrings = tokens.map(t => t.token);
+            const tokenStrings = tokens.map((t: { token: string }) => t.token);
             const result = await sendPushNotification(
               tokenStrings,
               title || "STATFYR Announcement",
@@ -4041,9 +4041,10 @@ export async function registerRoutes(
         recipientCount: userIds.length,
         pushResult,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Admin broadcast failed:", error);
-      res.status(500).json({ error: "Failed to send broadcast" });
+      console.error("Error details:", error?.message, error?.stack);
+      res.status(500).json({ error: `Failed to send broadcast: ${error?.message || 'Unknown error'}` });
     }
   });
 
@@ -4096,9 +4097,9 @@ export async function registerRoutes(
       let pushSent = false;
       if (sendPush) {
         const { sendPushNotification } = await import("./firebaseAdmin");
-        const tokens = await storage.getFcmTokens(userId);
+        const tokens = await storage.getUserFcmTokens(userId);
         if (tokens.length > 0) {
-          const tokenStrings = tokens.map(t => t.token);
+          const tokenStrings = tokens.map((t: { token: string }) => t.token);
           const result = await sendPushNotification(
             tokenStrings,
             "STATFYR Support",
