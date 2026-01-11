@@ -1076,14 +1076,9 @@ export default function StatTrackerPage() {
                                 {recordedPlayerId === player.athleteId ? (
                                   <Check className="h-5 w-5 animate-pulse" />
                                 ) : (
-                                  <>
-                                    <span className="font-mono text-sm font-bold">
-                                      #{player.jerseyNumber || "--"}
-                                    </span>
-                                    <span className="text-xs font-medium truncate w-full text-center">
-                                      {player.athlete.firstName}
-                                    </span>
-                                  </>
+                                  <span className="text-sm font-medium truncate w-full text-center">
+                                    {player.athlete.firstName} <span className="font-mono font-bold">#{player.jerseyNumber || "--"}</span>
+                                  </span>
                                 )}
                               </Button>
                             ))}
