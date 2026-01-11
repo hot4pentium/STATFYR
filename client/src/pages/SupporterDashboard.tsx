@@ -567,6 +567,14 @@ export default function SupporterDashboard() {
                 </div>
                 
                 <div className="pt-4 border-t space-y-3">
+                  <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 mb-2">
+                    <p className="text-center text-sm font-medium text-orange-700 dark:text-orange-300">
+                      One subscription unlocks everything!
+                    </p>
+                    <p className="text-center text-xs text-orange-600/80 dark:text-orange-400/80 mt-1">
+                      HYPE Hub + HYPE Card + Highlights included
+                    </p>
+                  </div>
                   <Button 
                     className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
                     onClick={() => {
@@ -575,11 +583,8 @@ export default function SupporterDashboard() {
                     }}
                     data-testid="button-upgrade-hype-hub"
                   >
-                    Unlock for $5.99/month
+                    Unlock All for $5.99/month
                   </Button>
-                  <p className="text-center text-xs text-muted-foreground">
-                    Supporter Pro includes HYPE Hub, HYPE Card & Highlights
-                  </p>
                 </div>
               </div>
             </div>
@@ -640,6 +645,14 @@ export default function SupporterDashboard() {
                 </div>
 
                 <div className="pt-4 border-t space-y-3">
+                  <div className="bg-cyan-50 dark:bg-cyan-900/20 rounded-lg p-3 mb-2">
+                    <p className="text-center text-sm font-medium text-cyan-700 dark:text-cyan-300">
+                      One subscription unlocks everything!
+                    </p>
+                    <p className="text-center text-xs text-cyan-600/80 dark:text-cyan-400/80 mt-1">
+                      HYPE Card + HYPE Hub + Highlights included
+                    </p>
+                  </div>
                   <Button 
                     className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
                     onClick={() => {
@@ -648,11 +661,8 @@ export default function SupporterDashboard() {
                     }}
                     data-testid="button-upgrade-hype-card"
                   >
-                    Unlock for $5.99/month
+                    Unlock All for $5.99/month
                   </Button>
-                  <p className="text-center text-xs text-muted-foreground">
-                    Supporter Pro includes HYPE Hub, HYPE Card & Highlights
-                  </p>
                 </div>
               </div>
             </div>
