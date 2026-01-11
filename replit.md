@@ -1,4 +1,4 @@
-# STATFYR v1.1.7 - Sports Stats & Team Management
+# STATFYR v1.1.8 - Sports Stats & Team Management
 
 ## Overview
 STATFYR is a comprehensive sports team management platform for coaches, athletes, and supporters. It facilitates team roster management, event scheduling, performance statistics tracking, playbook design, and team communication. The platform supports role-based access, where coaches manage teams, and athletes/supporters join using team codes. Key features include video highlights, a playbook system, stat tracking, live engagement sessions, shareable athlete profiles, and an admin dashboard.
@@ -45,7 +45,7 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **Shareable Athlete Profiles**: Publicly accessible, read-only profiles displaying athlete stats, highlights, recent cheers, and allowing public likes/comments. Features a HYPE Post Spotlight Modal that opens immediately when arriving from a push notification with `?hypePostId=` parameter, showing the specific post in a full-screen modal with a "View HYPE Card" button.
 - **Admin Dashboard**: Centralized view for managing teams, users, and messaging (security limitations noted).
 - **Admin Messaging System**: Super admins can send broadcasts to all users or direct support messages to individual users. Uses `admin_messages` table for message storage with `admin_message_receipts` table for per-user read tracking. Supports optional push notifications via FCM.
-- **PWA Features**: Service worker (v1.1.7) for offline support and update notifications.
+- **PWA Features**: Service worker (v1.1.8) for offline support and update notifications.
 - **Splash Screen Failsafe**: 5-second timeout in main.tsx ensures splash removal even if React fails to mount.
 - **Auth Persistence**: Explicitly set to browserLocalPersistence to keep users logged in across sessions.
 - **Email Notifications**: Resend API with verified domain (noreply@statfyr.com) for HYPE posts, team chat, events, and stat session alerts.
