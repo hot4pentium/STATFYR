@@ -114,8 +114,8 @@ function StatTrackingInterface({ eventId, event, managedAthleteId, athleteName, 
   useEffect(() => {
     if (existingSession) {
       setActiveSessionId(existingSession.id);
-      setOurScore(existingSession.ourScore || 0);
-      setTheirScore(existingSession.theirScore || 0);
+      setOurScore(existingSession.athleteScore || 0);
+      setTheirScore(existingSession.opponentScore || 0);
       setCurrentPeriod(existingSession.currentPeriod || 1);
     }
   }, [existingSession]);
