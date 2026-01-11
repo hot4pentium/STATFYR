@@ -349,7 +349,6 @@ export default function SupporterDashboard() {
   const [statTrackingRecent, setStatTrackingRecent] = useState<{ statName: string; timestamp: Date }[]>([]);
   const queryClient = useQueryClient();
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const hasAutoSelectedAthlete = useRef(false);
   
   useEffect(() => {
     setMounted(true);
@@ -384,15 +383,6 @@ export default function SupporterDashboard() {
     }
   }, [isManagedAthletesFetched, currentTeam, hasIndependentAthletes, setLocation]);
 
-  // Auto-select managed athlete when supporter has team AND managed athletes
-  // This ensures the managed athlete view is shown by default on initial load only
-  useEffect(() => {
-    if (isManagedAthletesFetched && currentTeam && managedAthletes.length > 0 && !viewingAsAthlete && !hasAutoSelectedAthlete.current) {
-      // Auto-select the first managed athlete on initial load
-      hasAutoSelectedAthlete.current = true;
-      setViewingAsAthlete(managedAthletes[0]);
-    }
-  }, [isManagedAthletesFetched, currentTeam, managedAthletes, viewingAsAthlete]);
 
   const [unreadCount, setUnreadCount] = useState(0);
 
