@@ -11,7 +11,6 @@ import fs from "fs";
 import bcrypt from "bcrypt";
 import { sendPushNotification, getFirebaseAdmin, getFirebaseAdminStatus } from "./firebaseAdmin";
 import { sendWebPushToMany, WebPushSubscription, initWebPush, getWebPushVapidPublicKey } from "./webPush";
-import { sendPushToPlayers, isConfigured as isOneSignalConfigured } from "./onesignal";
 import { sendPasswordResetEmail } from "./emailService";
 import crypto from "crypto";
 import { WebSocketServer, WebSocket } from "ws";
@@ -44,11 +43,6 @@ export async function registerRoutes(
     });
   });
 
-  // Endpoint to provide OneSignal App ID for client
-  app.get("/api/onesignal/config", (req, res) => {
-    const appId = process.env.ONESIGNAL_APP_ID || '';
-    res.json({ appId });
-  });
 
   // Endpoint to provide Web Push VAPID public key for iOS
   app.get("/api/webpush/vapid-public-key", (req, res) => {
@@ -106,16 +100,6 @@ export async function registerRoutes(
       const hashedPassword = await bcrypt.hash(parsed.password, SALT_ROUNDS);
       const user = await withRetry(() => storage.createUser({ ...parsed, password: hashedPassword }));
       
-      // Register email with OneSignal for email notifications (don't block on this)
-      if (user.email) {
-        import('./onesignal').then(({ registerEmailWithOneSignal }) => {
-          registerEmailWithOneSignal(user.email!, user.id).catch(err => {
-            console.error('[Registration] OneSignal email registration failed:', err);
-          });
-        }).catch(err => {
-          console.error('[Registration] Failed to import OneSignal:', err);
-        });
-      }
       
       const { password, ...safeUser } = user;
       res.json(safeUser);
@@ -227,16 +211,6 @@ export async function registerRoutes(
         // No password for social login users
       }));
       
-      // Register email with OneSignal for email notifications (don't block on this)
-      if (newUser.email) {
-        import('./onesignal').then(({ registerEmailWithOneSignal }) => {
-          registerEmailWithOneSignal(newUser.email!, newUser.id).catch(err => {
-            console.error('[Firebase Sync] OneSignal email registration failed:', err);
-          });
-        }).catch(err => {
-          console.error('[Firebase Sync] Failed to import OneSignal:', err);
-        });
-      }
       
       const { password: _, ...safeUser } = newUser;
       res.json(safeUser);
@@ -2278,149 +2252,6 @@ export async function registerRoutes(
     }
   });
 
-  // Debug endpoint to test sending to a specific player ID
-  app.post("/api/debug/onesignal/test-player", async (req, res) => {
-    try {
-      const { playerId } = req.body;
-      const appId = process.env.ONESIGNAL_APP_ID;
-      const restApiKey = process.env.ONESIGNAL_REST_API_KEY;
-      
-      if (!playerId) {
-        return res.json({ error: "playerId required in body" });
-      }
-      
-      if (!appId || !restApiKey) {
-        return res.json({ error: "OneSignal not configured" });
-      }
-      
-      console.log('[OneSignal Debug] Testing player ID:', playerId);
-      
-      const response = await fetch('https://onesignal.com/api/v1/notifications', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${restApiKey}`,
-        },
-        body: JSON.stringify({
-          app_id: appId,
-          include_player_ids: [playerId],
-          headings: { en: 'Test for Player ID' },
-          contents: { en: `Testing player: ${playerId.substring(0, 8)}...` },
-        }),
-      });
-      
-      const result = await response.json();
-      console.log('[OneSignal Debug] Test player result:', JSON.stringify(result, null, 2));
-      
-      // Get notification outcome if we have an ID
-      let outcome = null;
-      if (result.id) {
-        try {
-          await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds for delivery
-          const outcomeRes = await fetch(`https://onesignal.com/api/v1/notifications/${result.id}?app_id=${appId}`, {
-            headers: { 'Authorization': `Basic ${restApiKey}` }
-          });
-          outcome = await outcomeRes.json();
-          console.log('[OneSignal Debug] Notification outcome:', JSON.stringify(outcome, null, 2));
-        } catch (e) {
-          console.log('[OneSignal Debug] Could not get outcome:', e);
-        }
-      }
-      
-      res.json({
-        playerId,
-        httpStatus: response.status,
-        id: result.id,
-        recipients: result.recipients,
-        errors: result.errors,
-        outcome
-      });
-    } catch (error: any) {
-      console.error('[OneSignal Debug] Test player error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // Debug endpoint to test sending to ALL OneSignal subscribers
-  app.post("/api/debug/onesignal/test-send", async (req, res) => {
-    try {
-      const appId = process.env.ONESIGNAL_APP_ID;
-      const restApiKey = process.env.ONESIGNAL_REST_API_KEY;
-      
-      if (!appId || !restApiKey) {
-        return res.json({ error: "OneSignal not configured" });
-      }
-      
-      // Send to ALL subscribed users using segment
-      const response = await fetch('https://onesignal.com/api/v1/notifications', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${restApiKey}`,
-        },
-        body: JSON.stringify({
-          app_id: appId,
-          included_segments: ['Subscribed Users'],
-          headings: { en: 'Test Notification' },
-          contents: { en: 'This is a test from the debug endpoint' },
-        }),
-      });
-      
-      const result = await response.json();
-      console.log('[OneSignal Debug] Test send result:', JSON.stringify(result, null, 2));
-      
-      res.json({
-        httpStatus: response.status,
-        id: result.id,
-        recipients: result.recipients,
-        errors: result.errors
-      });
-    } catch (error: any) {
-      console.error('[OneSignal Debug] Test send error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // Debug endpoint to check OneSignal status
-  app.get("/api/debug/onesignal", async (req, res) => {
-    try {
-      const appId = process.env.ONESIGNAL_APP_ID;
-      const restApiKey = process.env.ONESIGNAL_REST_API_KEY;
-      
-      if (!appId || !restApiKey) {
-        return res.json({ 
-          configured: false, 
-          error: "OneSignal credentials not configured",
-          appIdSet: !!appId,
-          restApiKeySet: !!restApiKey
-        });
-      }
-      
-      // Try to get app info from OneSignal
-      const response = await fetch(`https://onesignal.com/api/v1/apps/${appId}`, {
-        headers: {
-          'Authorization': `Basic ${restApiKey}`,
-        },
-      });
-      
-      const result = await response.json();
-      console.log('[OneSignal Debug] App info:', JSON.stringify(result, null, 2));
-      
-      res.json({
-        configured: true,
-        appId: appId.substring(0, 8) + '...',
-        httpStatus: response.status,
-        appName: result.name,
-        players: result.players,
-        messageable_players: result.messageable_players,
-        errors: result.errors
-      });
-    } catch (error: any) {
-      console.error('[OneSignal Debug] Error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
   // FYR - Send email notification to all athlete followers
   app.post("/api/athletes/:athleteId/fyr", async (req, res) => {
     try {
@@ -2756,17 +2587,19 @@ export async function registerRoutes(
           
           let notificationSent = false;
 
-          // Try push notification first if enabled
+          // Try push notification first if enabled (via Firebase Cloud Messaging)
           if (pushEnabled) {
-            const { sendPushToExternalIds, isConfigured } = await import('./onesignal');
-            if (isConfigured()) {
-              const pushResult = await sendPushToExternalIds([recipientId], {
-                title: `Message from ${senderName}`,
-                message: messagePreview,
-                url: `${APP_BASE_URL}/chat`,
-                data: { type: 'direct_message', teamId, senderId },
-              });
-              if (pushResult.success && pushResult.sentCount > 0) {
+            const userTokens = await storage.getUserFcmTokens(recipientId);
+            if (userTokens.length > 0) {
+              const tokens = userTokens.map(t => t.token);
+              const pushResult = await sendPushNotification(
+                tokens,
+                `Message from ${senderName}`,
+                messagePreview,
+                { type: 'direct_message', teamId, senderId },
+                `${APP_BASE_URL}/chat`
+              );
+              if (pushResult.success && pushResult.successCount > 0) {
                 console.log('[Chat] Push sent to', recipientId);
                 notificationSent = true;
               }
@@ -2920,30 +2753,6 @@ export async function registerRoutes(
     }
   });
 
-  // Register user's email with OneSignal for email notifications
-  app.post("/api/users/:userId/register-email-notifications", async (req, res) => {
-    try {
-      const user = await storage.getUser(req.params.userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      if (!user.email) {
-        return res.status(400).json({ error: "User does not have an email address" });
-      }
-      
-      const { registerEmailWithOneSignal } = await import('./onesignal');
-      const result = await registerEmailWithOneSignal(user.email, user.id);
-      
-      if (result.success) {
-        res.json({ success: true, message: "Email registered with OneSignal" });
-      } else {
-        res.status(500).json({ error: result.error || "Failed to register email" });
-      }
-    } catch (error) {
-      console.error("Error registering email with OneSignal:", error);
-      res.status(500).json({ error: "Failed to register email with OneSignal" });
-    }
-  });
 
   // ============ SHOUTOUTS ROUTES ============
   
@@ -5466,9 +5275,7 @@ async function notifyTeamModeStatSession(teamId: string) {
 
     if (supportersToNotify.length === 0) return;
 
-    const { sendPushToExternalIds, isConfigured } = await import('./onesignal');
     const { sendStatSessionStartedEmail } = await import('./emailService');
-    const pushConfigured = isConfigured();
     
     let pushSent = 0, emailSent = 0, unreachable = 0, skippedNoConsent = 0;
 
@@ -5484,22 +5291,27 @@ async function notifyTeamModeStatSession(teamId: string) {
       
       let notificationSent = false;
       
-      // Try push notification first if user has push enabled
-      if (pushEnabled && pushConfigured) {
-        const athleteList = athleteNames.length > 2 
-          ? `${athleteNames.slice(0, 2).join(', ')} and ${athleteNames.length - 2} more`
-          : athleteNames.join(' and ');
-        
-        const pushResult = await sendPushToExternalIds([supporterId], {
-          title: `${team.name} Stats Session Live`,
-          message: `Track stats for ${athleteList} now!`,
-          url: `${APP_BASE_URL}/supporter?teamId=${teamId}`,
-          data: { type: 'stat_session', teamId },
-        });
+      // Try push notification first if user has push enabled (via Firebase Cloud Messaging)
+      if (pushEnabled) {
+        const userTokens = await storage.getUserFcmTokens(supporterId);
+        if (userTokens.length > 0) {
+          const tokens = userTokens.map(t => t.token);
+          const athleteList = athleteNames.length > 2 
+            ? `${athleteNames.slice(0, 2).join(', ')} and ${athleteNames.length - 2} more`
+            : athleteNames.join(' and ');
+          
+          const pushResult = await sendPushNotification(
+            tokens,
+            `${team.name} Stats Session Live`,
+            `Track stats for ${athleteList} now!`,
+            { type: 'stat_session', teamId },
+            `${APP_BASE_URL}/supporter?teamId=${teamId}`
+          );
 
-        if (pushResult.success && pushResult.sentCount > 0) {
-          pushSent++;
-          notificationSent = true;
+          if (pushResult.success && pushResult.successCount > 0) {
+            pushSent++;
+            notificationSent = true;
+          }
         }
       }
 
@@ -5559,9 +5371,7 @@ async function runPreGameReminders() {
 
 async function sendPreGameRemindersForEvent(event: any, team: any) {
   try {
-    const { sendPushToExternalIds, isConfigured } = await import('./onesignal');
     const { sendPreGameReminderEmail } = await import('./emailService');
-    const pushConfigured = isConfigured();
 
     const supportersToNotify = await storage.getPaidSupportersFollowingTeam(team.id);
     
@@ -5579,22 +5389,27 @@ async function sendPreGameRemindersForEvent(event: any, team: any) {
       
       let notificationSent = false;
       
-      // Try push notification first if user has push enabled
-      if (pushEnabled && pushConfigured) {
-        const athleteList = athleteNames.length > 2 
-          ? `${athleteNames.slice(0, 2).join(', ')} and ${athleteNames.length - 2} more`
-          : athleteNames.join(' and ');
+      // Try push notification first if user has push enabled (via Firebase Cloud Messaging)
+      if (pushEnabled) {
+        const userTokens = await storage.getUserFcmTokens(supporterId);
+        if (userTokens.length > 0) {
+          const tokens = userTokens.map(t => t.token);
+          const athleteList = athleteNames.length > 2 
+            ? `${athleteNames.slice(0, 2).join(', ')} and ${athleteNames.length - 2} more`
+            : athleteNames.join(' and ');
 
-        const pushResult = await sendPushToExternalIds([supporterId], {
-          title: `${eventTitle} Starting Soon`,
-          message: `${team.name} game in 30 min - ${athleteList} playing`,
-          url: `${APP_BASE_URL}/supporter?eventId=${event.id}`,
-          data: { type: 'pre_game_reminder', eventId: event.id, teamId: team.id },
-        });
+          const pushResult = await sendPushNotification(
+            tokens,
+            `${eventTitle} Starting Soon`,
+            `${team.name} game in 30 min - ${athleteList} playing`,
+            { type: 'pre_game_reminder', eventId: event.id, teamId: team.id },
+            `${APP_BASE_URL}/supporter?eventId=${event.id}`
+          );
 
-        if (pushResult.success && pushResult.sentCount > 0) {
-          pushSent++;
-          notificationSent = true;
+          if (pushResult.success && pushResult.successCount > 0) {
+            pushSent++;
+            notificationSent = true;
+          }
         }
       }
 

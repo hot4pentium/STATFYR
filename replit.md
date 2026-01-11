@@ -48,10 +48,10 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **Splash Screen Failsafe**: 5-second timeout in main.tsx ensures splash removal even if React fails to mount.
 - **Auth Persistence**: Explicitly set to browserLocalPersistence to keep users logged in across sessions.
 - **Email Notifications**: Resend API with verified domain (noreply@statfyr.com) for HYPE posts, team chat, events, and stat session alerts.
-- **Chat Notifications**: Push-first (OneSignal) with email fallback (Resend) for direct messages. 5-second delay before sending, skipped if recipient is actively viewing conversation. Uses `chatPresence` table with 15-second TTL and 10-second heartbeat. Controlled by `pushOnMessage` and `emailOnMessage` preferences.
+- **Chat Notifications**: Push-first (Firebase Cloud Messaging) with email fallback (Resend) for direct messages. 5-second delay before sending, skipped if recipient is actively viewing conversation. Uses `chatPresence` table with 15-second TTL and 10-second heartbeat. Controlled by `pushOnMessage` and `emailOnMessage` preferences.
 - **Unread Message Indicators**: Floating chat button on dashboards with glow effect and badge when unread messages exist. Team Chat card on CoachDashboard has green glow styling when unread count > 0.
-- **Stat Session Notifications**: Push-first (OneSignal) with email fallback (Resend). Uses OneSignal `external_id` (STATFYR user ID) for targeting. Pre-game reminders (30 min before) via `/api/internal/run-pregame-reminders` endpoint.
-- **Push Notification System**: OneSignal for cross-platform push (web, PWA, Capacitor native). Uses `sendPushToExternalIds()` targeting users by STATFYR user ID. Personalized notifications per supporter with their followed athlete names. Requires explicit opt-in via `pushOnEvent` preference (defaults to false).
+- **Stat Session Notifications**: Push-first (Firebase Cloud Messaging) with email fallback (Resend). Uses FCM tokens stored in `fcm_tokens` table. Pre-game reminders (30 min before) via `/api/internal/run-pregame-reminders` endpoint.
+- **Push Notification System**: Firebase Cloud Messaging (FCM) for cross-platform push (web, PWA, native iOS/Android via Capacitor). Uses `sendPushNotification()` from firebaseAdmin.ts targeting users by FCM device tokens. Personalized notifications per supporter with their followed athlete names. Requires explicit opt-in via `pushOnEvent` preference (defaults to false).
 
 ## In Progress
 - **Glowing Team Chat Card**: Styling is in place (ring-2 ring-green-500 animate-pulse) but data fetching for unread count needs debugging. The conversations endpoint returns correct unreadCount but the React Query isn't triggering the glow effect on the dashboard.
@@ -89,7 +89,7 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **Oswald**: Display font.
 
 ### Other Integrations
-- **OneSignal**: Cross-platform push notifications (supports iOS Safari PWA, Android, desktop browsers).
+- **Firebase Cloud Messaging (FCM)**: Cross-platform push notifications (supports iOS Safari PWA, Android, desktop browsers, native apps via Capacitor). Replaced OneSignal as of v1.1.3.
 - **FFmpeg**: Video transcoding for highlights.
 - **Replit App Storage (GCS-backed)**: Video file hosting.
 - **Replit Auth**: OAuth2 authentication via Replit's OIDC provider, supporting Google, GitHub, Apple, X, and email/password login.
