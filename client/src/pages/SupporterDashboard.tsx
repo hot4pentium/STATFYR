@@ -46,7 +46,7 @@ const formatTextDate = (dateStr: string, formatType: "date" | "time" | "full" = 
   return format(parsed, "EEEE, MMM d, yyyy") + " at " + (dateStr.split(" ").slice(1).join(" "));
 };
 
-type SectionType = "schedule" | "roster" | "stats" | "highlights" | "playbook" | "chat" | "athlete-profile" | null;
+type SectionType = "schedule" | "roster" | "stats" | "highlights" | "playbook" | "chat" | "athlete-profile" | "game-day-live" | null;
 
 export default function SupporterDashboard() {
   const [, setLocation] = useLocation();
@@ -174,6 +174,7 @@ export default function SupporterDashboard() {
     { id: "playbook", name: "Playbook", icon: BookOpen, description: "View team plays and formations.", locked: false },
     { id: "stats", name: "Stats", icon: BarChart3, description: "View statistics recorded with StatTracker.", locked: false },
     { id: "highlights", name: "Highlights", icon: Video, description: "Team video highlights.", locked: !entitlements?.canViewHighlights },
+    { id: "game-day-live", name: "Game Day Live", icon: Flame, description: "Cheer during live games!", locked: false },
     { id: "chat", name: "Team Chat", icon: MessageSquare, description: "Message your team.", locked: false },
   ];
 
@@ -630,6 +631,27 @@ export default function SupporterDashboard() {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {activeSection === "game-day-live" && (
+                <div className="space-y-4">
+                  <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30">
+                    <CardContent className="p-6 text-center space-y-4">
+                      <div className="h-16 w-16 mx-auto rounded-full bg-orange-500/20 flex items-center justify-center">
+                        <Flame className="h-8 w-8 text-orange-500" />
+                      </div>
+                      <h3 className="text-xl font-bold">Game Day Live</h3>
+                      <p className="text-muted-foreground">
+                        Send shoutouts and cheers to athletes during live games! When a game is in progress, you'll be able to tap to send real-time encouragement.
+                      </p>
+                      <div className="pt-4 border-t border-orange-500/20">
+                        <p className="text-sm text-muted-foreground">
+                          Check the <span className="font-semibold text-orange-500">Calendar</span> for upcoming games.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               )}
             </div>
