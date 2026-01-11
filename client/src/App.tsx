@@ -11,7 +11,6 @@ import { NotificationProvider } from "./lib/notificationContext";
 import { EntitlementsProvider } from "./lib/entitlementsContext";
 import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
-import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
 import CoachDashboard from "@/pages/CoachDashboard";
 import UnifiedDashboard from "@/pages/UnifiedDashboard";
@@ -56,7 +55,7 @@ function Router() {
   
   return (
     <Switch>
-      <Route path="/" component={LandingPage} />
+      <Route path="/" component={AuthPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
