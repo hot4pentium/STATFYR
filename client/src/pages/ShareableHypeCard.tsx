@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin, Download, Smartphone, Plus, ExternalLink, RefreshCw, Mail, ArrowLeft } from "lucide-react";
+import { Share2, Copy, Check, Home, Star, Flame, Zap, Trophy, Video, Clock, TrendingUp, Heart, MessageCircle, Send, User, X, Bell, BellOff, Users, Calendar, ChevronUp, MapPin, Download, Smartphone, Plus, ExternalLink, RefreshCw, Mail, ArrowLeft, Share } from "lucide-react";
+import { shareHypeCard, isNative, hapticTap } from "@/lib/capacitor";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -742,6 +743,23 @@ export default function ShareableHypeCard(props: any) {
     toast.success("Link copied!");
   };
 
+  const handleNativeShare = async () => {
+    await hapticTap();
+    const athleteName = profile?.athlete?.name || profile?.athlete?.username || "Athlete";
+    const teamName = profile?.membership?.team?.name || "STATFYR";
+    
+    const success = await shareHypeCard({
+      athleteName,
+      teamName,
+      hypeScore: shoutoutCount,
+      shareUrl,
+    });
+    
+    if (success) {
+      toast.success("Shared!");
+    }
+  };
+
   const shareToSocial = (platform: string) => {
     const text = profile?.athlete ? `Check out ${profile.athlete.name || profile.athlete.username}'s profile!` : 'Check out this athlete profile!';
     const urls: Record<string, string> = {
@@ -820,7 +838,15 @@ export default function ShareableHypeCard(props: any) {
             <img src={logoImage} alt="STATFYR" className="h-6 w-6" />
             <span className="text-sm font-display font-bold text-slate-900 dark:text-white">STATF<span className="text-orange-500">Y</span>R</span>
           </div>
-          <div className="w-8" /> {/* Spacer for centering */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleNativeShare}
+            className="h-8 w-8"
+            data-testid="button-share-hype-card"
+          >
+            <Share className="h-5 w-5" />
+          </Button>
         </div>
       </header>
 

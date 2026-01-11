@@ -88,6 +88,17 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **Inter**: Sans-serif font.
 - **Oswald**: Display font.
 
+### Capacitor Native Features
+The app supports native iOS/Android via Capacitor with the following features:
+- **Native Share** (`client/src/lib/capacitor.ts`): Uses `@capacitor/share` for native share dialogs on HYPE cards and highlights. Falls back to Web Share API or clipboard on web.
+- **Camera Integration** (`client/src/hooks/useNativeCamera.ts`): Uses `@capacitor/camera` for taking photos or picking from gallery. Integrated in AthleteSettings and SupporterSettings for profile photos.
+- **Offline Caching** (`client/src/hooks/useOfflineCache.ts`): Uses `@capacitor/preferences` to cache data locally with TTL. Applied to managed athletes via `useManagedAthletesCache` hook.
+- **Keep Screen Awake** (`SupporterSessionLive.tsx`, `SupporterGameLive.tsx`): Uses `@capacitor-community/keep-awake` to prevent screen dimming during Game Day Live sessions.
+- **Biometric Auth** (`client/src/lib/capacitor.ts`): Uses `@capgo/capacitor-native-biometric` for Face ID/Touch ID/fingerprint authentication. Functions: `checkBiometricAvailability()`, `enableBiometricAuth()`, `authenticateWithBiometric()`.
+- **App Badge** (`client/src/hooks/useAppBadge.ts`): Uses `@capawesome/capacitor-badge` to show unread message count on app icon. Debounced updates to avoid API churn.
+- **Background Sync** (`client/src/hooks/useBackgroundSync.ts`): Syncs pending stats when app becomes visible or comes online. Only runs on native platforms.
+- **Haptic Feedback** (`client/src/lib/capacitor.ts`): Uses `@capacitor/haptics` for tactile feedback on key interactions.
+
 ### Other Integrations
 - **Firebase Cloud Messaging (FCM)**: Cross-platform push notifications (supports iOS Safari PWA, Android, desktop browsers, native apps via Capacitor). Replaced OneSignal as of v1.1.3.
 - **FFmpeg**: Video transcoding for highlights.

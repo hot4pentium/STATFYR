@@ -8,7 +8,8 @@ import { Settings, LogOut, ArrowLeft, Bell, BellOff, Sun, Moon } from "lucide-re
 import { useTheme } from "next-themes";
 import { useUser } from "@/lib/userContext";
 import { useNotifications } from "@/lib/notificationContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAthleteStats, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete } from "@/lib/api";
+import { getTeamEvents, getAllTeamHighlights, getTeamPlays, getTeamAggregateStats, getAthleteStats, type Event, type HighlightVideo, type Play, type ManagedAthlete } from "@/lib/api";
+import { useManagedAthletesCache } from "@/hooks/useManagedAthletesCache";
 import { toast } from "sonner";
 
 export default function SupporterHypeHub() {
@@ -25,11 +26,7 @@ export default function SupporterHypeHub() {
     }
   }, [user, currentTeam, setLocation]);
 
-  const { data: managedAthletes = [] } = useQuery({
-    queryKey: ["/api/users", user?.id, "managed-athletes"],
-    queryFn: () => user ? getManagedAthletes(user.id) : Promise.resolve([]),
-    enabled: !!user,
-  });
+  const { data: managedAthletes = [] } = useManagedAthletesCache(user?.id);
 
   const { data: teamEvents = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "events"],

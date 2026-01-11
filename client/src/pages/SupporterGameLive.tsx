@@ -27,6 +27,7 @@ import {
   type Event,
   type LiveEngagementSession
 } from "@/lib/api";
+import { enableKeepAwake, disableKeepAwake } from "@/lib/capacitor";
 
 const SHOUTOUT_OPTIONS = [
   { emoji: "🔥", label: "On Fire!", icon: Flame, color: "bg-orange-500" },
@@ -110,6 +111,20 @@ export default function SupporterGameLive() {
       }).catch(() => {});
     }
   }, [user, currentTeam]);
+
+  useEffect(() => {
+    const isLive = liveSession?.status === "live" || !!event;
+    
+    if (isLive) {
+      enableKeepAwake();
+    } else {
+      disableKeepAwake();
+    }
+
+    return () => {
+      disableKeepAwake();
+    };
+  }, [liveSession?.status, event]);
 
   const inGamePlayers = roster.filter(r => r.isInGame);
 

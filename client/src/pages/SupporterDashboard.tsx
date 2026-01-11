@@ -16,6 +16,7 @@ import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, type
 import { useQuery } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
 import { useEntitlements } from "@/lib/entitlementsContext";
+import { useAppBadge } from "@/hooks/useAppBadge";
 import { format } from "date-fns";
 
 const parseTextDate = (dateStr: string): Date | null => {
@@ -115,6 +116,9 @@ export default function SupporterDashboard() {
     }
     return 0;
   }, [conversationsData]);
+
+  // Sync unread count to app badge on native platforms
+  useAppBadge(unreadCount);
 
   const athletes = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "athlete"), [teamMembers]);
   const coaches = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "coach" || m.role === "staff"), [teamMembers]);

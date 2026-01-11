@@ -11,6 +11,8 @@ import generatedImage from '@assets/generated_images/minimal_tech_sports_backgro
 import { useUser } from "@/lib/userContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getManagedAthletes, createManagedAthlete, deleteManagedAthlete, type ManagedAthlete } from "@/lib/api";
+import { useNativeCamera } from "@/hooks/useNativeCamera";
+import { isNative } from "@/lib/capacitor";
 
 export default function SupporterSettings() {
   const [, setLocation] = useLocation();
@@ -44,6 +46,43 @@ export default function SupporterSettings() {
   const editAvatarInputRef = useRef<HTMLInputElement>(null);
 
   const appVersion = "1.0.10";
+
+  const handleProfilePhotoSave = async (dataUrl: string) => {
+    if (!contextUser) return;
+    setAvatarPreview(dataUrl);
+    setIsUploadingAvatar(true);
+    
+    try {
+      const response = await fetch(`/api/users/${contextUser.id}?requesterId=${contextUser.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar: dataUrl }),
+      });
+
+      if (!response.ok) throw new Error("Failed to save avatar");
+
+      const updatedUser = await response.json();
+      updateUser({ ...contextUser, ...updatedUser });
+      toast.success("Avatar saved!");
+    } catch (error) {
+      console.error("Avatar save failed:", error);
+      toast.error("Failed to save avatar. Please try again.");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const { isCapturing: isCapturingProfile, handleNativePhoto: handleProfileNativePhoto, handleFileInput: handleProfileFileInput } = useNativeCamera({
+    onPhotoTaken: handleProfilePhotoSave,
+  });
+
+  const handleEditPhotoTaken = (dataUrl: string) => {
+    setEditAvatarPreview(dataUrl);
+  };
+
+  const { isCapturing: isCapturingEdit, handleNativePhoto: handleEditNativePhoto, handleFileInput: handleEditFileInput } = useNativeCamera({
+    onPhotoTaken: handleEditPhotoTaken,
+  });
 
   const { data: managedAthletes = [], refetch: refetchManagedAthletes } = useQuery({
     queryKey: ["/api/users", contextUser?.id, "managed-athletes"],
@@ -441,26 +480,40 @@ export default function SupporterSettings() {
                   
                   <div className="flex-1 space-y-4 w-full md:w-auto">
                     <Label htmlFor="avatar-upload" className="text-sm font-medium uppercase tracking-wider">Upload Photo</Label>
-                    <div className="relative">
-                      <input
-                        id="avatar-upload"
-                        data-testid="input-avatar-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarChange}
-                        disabled={isUploadingAvatar}
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                      />
-                      <Button
-                        disabled={isUploadingAvatar}
-                        variant="outline"
-                        className="w-full md:w-auto border-white/10 hover:bg-white/5"
-                        onClick={() => document.getElementById("avatar-upload")?.click()}
-                        data-testid="button-upload-avatar"
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {isUploadingAvatar ? "Uploading..." : "Choose Photo"}
-                      </Button>
+                    <div className="flex gap-2">
+                      {isNative && (
+                        <Button
+                          disabled={isUploadingAvatar || isCapturingProfile}
+                          variant="outline"
+                          className="border-white/10 hover:bg-white/5"
+                          onClick={handleProfileNativePhoto}
+                          data-testid="button-take-photo"
+                        >
+                          <Camera className="mr-2 h-4 w-4" />
+                          {isCapturingProfile ? "Capturing..." : "Take Photo"}
+                        </Button>
+                      )}
+                      <div className="relative">
+                        <input
+                          id="avatar-upload"
+                          data-testid="input-avatar-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleProfileFileInput(e)}
+                          disabled={isUploadingAvatar || isCapturingProfile}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                        <Button
+                          disabled={isUploadingAvatar || isCapturingProfile}
+                          variant="outline"
+                          className="border-white/10 hover:bg-white/5"
+                          onClick={() => document.getElementById("avatar-upload")?.click()}
+                          data-testid="button-upload-avatar"
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          {isUploadingAvatar ? "Saving..." : "Choose Photo"}
+                        </Button>
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground">JPG, PNG or GIF. Max 5MB.</p>
                   </div>
@@ -826,19 +879,34 @@ export default function SupporterSettings() {
                 type="file"
                 ref={editAvatarInputRef}
                 accept="image/*"
-                onChange={handleEditAvatarChange}
+                onChange={(e) => handleEditFileInput(e)}
                 className="hidden"
                 data-testid="input-edit-athlete-avatar"
               />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => editAvatarInputRef.current?.click()}
-                data-testid="button-change-athlete-photo"
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Change Photo
-              </Button>
+              <div className="flex gap-2">
+                {isNative && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleEditNativePhoto}
+                    disabled={isCapturingEdit}
+                    data-testid="button-take-athlete-photo"
+                  >
+                    <Camera className="mr-2 h-4 w-4" />
+                    {isCapturingEdit ? "Capturing..." : "Take Photo"}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => editAvatarInputRef.current?.click()}
+                  disabled={isCapturingEdit}
+                  data-testid="button-change-athlete-photo"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Choose Photo
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-4">

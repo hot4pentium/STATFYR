@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { enableKeepAwake, disableKeepAwake } from "@/lib/capacitor";
 
 const SHOUTOUT_OPTIONS = ["🔥", "💪", "⭐", "❤️", "⚡", "🏆"];
 
@@ -104,6 +105,20 @@ export default function SupporterSessionLive() {
       }
     }
   }, [session, showExtendPrompt]);
+
+  useEffect(() => {
+    const isLive = session?.status === "live";
+    
+    if (isLive) {
+      enableKeepAwake();
+    } else {
+      disableKeepAwake();
+    }
+
+    return () => {
+      disableKeepAwake();
+    };
+  }, [session?.status]);
 
   const checkForBadges = useCallback(async () => {
     if (!user || !currentTeam) return;

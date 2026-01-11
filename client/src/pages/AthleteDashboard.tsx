@@ -14,6 +14,7 @@ import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVid
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
 import { useEntitlements } from "@/lib/entitlementsContext";
+import { useAppBadge } from "@/hooks/useAppBadge";
 import { format, isSameDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -189,6 +190,9 @@ export default function AthleteDashboard() {
       setUnreadCount(total);
     }
   }, [conversationsData]);
+
+  // Sync unread count to app badge on native platforms
+  useAppBadge(unreadCount);
 
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/athlete/${user?.id}` : '';
 

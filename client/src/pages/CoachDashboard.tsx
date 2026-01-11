@@ -31,6 +31,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
 import { MapPin, Clock, Utensils, Coffee } from "lucide-react";
 import { SPORT_POSITIONS } from "@/lib/sportConstants";
+import { useAppBadge } from "@/hooks/useAppBadge";
 
 // Helper to parse text date - supports both "2026-01-02 05:00 PM" and "2026-01-02 17:00:00" formats
 const parseTextDate = (dateStr: string): Date | null => {
@@ -129,6 +130,9 @@ export default function CoachDashboard() {
       setUnreadCount(total);
     }
   }, [conversationsData]);
+
+  // Sync unread count to app badge on native platforms
+  useAppBadge(unreadCount);
 
   const { data: coachTeams } = useQuery({
     queryKey: ["/api/coach", user?.id, "teams"],

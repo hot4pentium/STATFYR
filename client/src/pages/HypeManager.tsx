@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Flame, ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Video, Heart, MessageCircle, ChevronDown, BarChart3, Calendar, Play, Zap, Users } from "lucide-react";
+import { Flame, ArrowLeft, Copy, ExternalLink, Loader2, Trash2, Video, Heart, MessageCircle, ChevronDown, BarChart3, Calendar, Play, Zap, Users, Share } from "lucide-react";
+import { shareHypeCard, hapticTap } from "@/lib/capacitor";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -267,6 +268,19 @@ export default function HypeManager() {
     toast.success("Link copied!");
   };
 
+  const handleNativeShare = async () => {
+    await hapticTap();
+    const success = await shareHypeCard({
+      athleteName,
+      teamName: currentTeam?.name || "STATFYR",
+      hypeScore: followerData?.count,
+      shareUrl,
+    });
+    if (success) {
+      toast.success("Shared!");
+    }
+  };
+
   const handleTemplateClick = (template: typeof HYPE_TEMPLATES[0]) => {
     setSelectedTemplate(template);
     setShowPostDialog(true);
@@ -432,6 +446,38 @@ export default function HypeManager() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Share HYPE Card Section */}
+          <Card className="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border-cyan-700/50 mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-white mb-1">Share Your HYPE Card</h3>
+                  <p className="text-xs text-zinc-400">Let fans discover your profile</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleNativeShare}
+                    size="sm"
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                    data-testid="button-share-hype-card"
+                  >
+                    <Share className="h-4 w-4 mr-1" />
+                    Share
+                  </Button>
+                  <Button
+                    onClick={copyShareLink}
+                    size="sm"
+                    variant="outline"
+                    className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
+                    data-testid="button-copy-link"
+                  >
+                    {linkCopied ? <ExternalLink className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Team Support Stats */}
           {teamEngagement && (teamEngagement.totalTaps > 0 || teamEngagement.totalShoutouts > 0) && (

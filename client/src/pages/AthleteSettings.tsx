@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, Users, Plus } from "lucide-react";
+import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, Users, Plus, Camera } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -10,6 +10,8 @@ import generatedImage from '@assets/generated_images/minimal_tech_sports_backgro
 import { useUser } from "@/lib/userContext";
 import { joinTeamByCode, getUserTeams } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNativeCamera } from "@/hooks/useNativeCamera";
+import { isNative } from "@/lib/capacitor";
 
 export default function AthleteSettings() {
   const { user: contextUser, updateUser } = useUser();
@@ -25,6 +27,35 @@ export default function AthleteSettings() {
   const [isJoiningTeam, setIsJoiningTeam] = useState(false);
 
   const appVersion = "1.0.10";
+
+  const handlePhotoSave = async (dataUrl: string) => {
+    if (!contextUser) return;
+    setAvatarPreview(dataUrl);
+    setIsUploadingAvatar(true);
+    
+    try {
+      const response = await fetch(`/api/users/${contextUser.id}?requesterId=${contextUser.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar: dataUrl }),
+      });
+
+      if (!response.ok) throw new Error("Failed to save avatar");
+
+      const updatedUser = await response.json();
+      updateUser({ ...contextUser, ...updatedUser });
+      toast.success("Avatar saved!");
+    } catch (error) {
+      console.error("Avatar save failed:", error);
+      toast.error("Failed to save avatar. Please try again.");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const { isCapturing, handleNativePhoto, handleFileInput } = useNativeCamera({
+    onPhotoTaken: handlePhotoSave,
+  });
 
   const { data: userTeams = [] } = useQuery({
     queryKey: ["/api/users", contextUser?.id, "teams"],
@@ -227,26 +258,40 @@ export default function AthleteSettings() {
                   
                   <div className="flex-1 space-y-4 w-full md:w-auto">
                     <Label htmlFor="avatar-upload" className="text-sm font-medium uppercase tracking-wider">Upload Photo</Label>
-                    <div className="relative">
-                      <input
-                        id="avatar-upload"
-                        data-testid="input-avatar-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarChange}
-                        disabled={isUploadingAvatar}
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                      />
-                      <Button
-                        disabled={isUploadingAvatar}
-                        variant="outline"
-                        className="w-full md:w-auto border-white/10 hover:bg-white/5"
-                        onClick={() => document.getElementById("avatar-upload")?.click()}
-                        data-testid="button-upload-avatar"
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {isUploadingAvatar ? "Uploading..." : "Choose Photo"}
-                      </Button>
+                    <div className="flex gap-2">
+                      {isNative && (
+                        <Button
+                          disabled={isUploadingAvatar || isCapturing}
+                          variant="outline"
+                          className="border-white/10 hover:bg-white/5"
+                          onClick={handleNativePhoto}
+                          data-testid="button-take-photo"
+                        >
+                          <Camera className="mr-2 h-4 w-4" />
+                          {isCapturing ? "Capturing..." : "Take Photo"}
+                        </Button>
+                      )}
+                      <div className="relative">
+                        <input
+                          id="avatar-upload"
+                          data-testid="input-avatar-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileInput(e)}
+                          disabled={isUploadingAvatar || isCapturing}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                        <Button
+                          disabled={isUploadingAvatar || isCapturing}
+                          variant="outline"
+                          className="border-white/10 hover:bg-white/5"
+                          onClick={() => document.getElementById("avatar-upload")?.click()}
+                          data-testid="button-upload-avatar"
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          {isUploadingAvatar ? "Saving..." : "Choose Photo"}
+                        </Button>
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground">JPG, PNG or GIF. Max 5MB.</p>
                   </div>
