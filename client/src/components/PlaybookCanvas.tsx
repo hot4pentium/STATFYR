@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save } from "lucide-react";
+import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save, Plus, Minus } from "lucide-react";
 import basketballCourtImg from "@assets/bball_court_1766345509497.png";
 import footballFieldImg from "@assets/football_1768077466658.png";
 import soccerPitchImg from "@assets/generated_images/clean_flat_soccer_pitch_top-down.png";
@@ -79,6 +79,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const [playName, setPlayName] = useState("");
   const [playDescription, setPlayDescription] = useState("");
   const [playCategory, setPlayCategory] = useState("Offense");
+  const [showFullCourt, setShowFullCourt] = useState(false);
 
   useEffect(() => {
     const imagesToLoad = [
@@ -172,7 +173,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     elements.forEach((element) => {
       drawElement(ctx, element);
     });
-  }, [elements, sport, sportImagesLoaded]);
+  }, [elements, sport, sportImagesLoaded, showFullCourt]);
 
   useEffect(() => {
     redrawCanvas();
@@ -221,10 +222,10 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       const imgWidth = img.naturalWidth;
       const imgHeight = img.naturalHeight;
       
-      // Source is right half of the court image
-      const srcX = imgWidth / 2;
+      // Source depends on whether showing full court or half court
+      const srcX = showFullCourt ? 0 : imgWidth / 2;
       const srcY = 0;
-      const srcW = imgWidth / 2;
+      const srcW = showFullCourt ? imgWidth : imgWidth / 2;
       const srcH = imgHeight;
       
       // Calculate aspect ratio to fit and center
@@ -263,10 +264,35 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       const img = footballImageRef.current;
       const imgWidth = img.naturalWidth;
       const imgHeight = img.naturalHeight;
+      
+      // Source depends on whether showing full field or half field
+      const srcX = 0;
+      const srcY = 0;
+      const srcW = imgWidth;
+      const srcH = showFullCourt ? imgHeight : imgHeight / 2;
+      
+      // Calculate aspect ratio to fit and center
+      const srcAspect = srcW / srcH;
+      const canvasAspect = width / height;
+      
+      let drawWidth, drawHeight, offsetX, offsetY;
+      
+      if (canvasAspect > srcAspect) {
+        drawHeight = height;
+        drawWidth = height * srcAspect;
+        offsetX = (width - drawWidth) / 2;
+        offsetY = 0;
+      } else {
+        drawWidth = width;
+        drawHeight = width / srcAspect;
+        offsetX = 0;
+        offsetY = (height - drawHeight) / 2;
+      }
+      
       ctx.drawImage(
         img,
-        0, 0, imgWidth, imgHeight / 2,
-        0, 0, width, height
+        srcX, srcY, srcW, srcH,
+        offsetX, offsetY, drawWidth, drawHeight
       );
     } else {
       ctx.fillStyle = "#1a472a";
@@ -279,13 +305,38 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       const img = soccerImageRef.current;
       const imgWidth = img.naturalWidth;
       const imgHeight = img.naturalHeight;
+      
+      // Source depends on whether showing full pitch or half pitch
+      const srcX = 0;
+      const srcY = 0;
+      const srcW = showFullCourt ? imgWidth : imgWidth / 2;
+      const srcH = imgHeight;
+      
+      // Calculate aspect ratio to fit and center (rotated 90 degrees)
+      const srcAspect = srcH / srcW; // Swapped because we rotate
+      const canvasAspect = width / height;
+      
+      let drawWidth, drawHeight, offsetX, offsetY;
+      
+      if (canvasAspect > srcAspect) {
+        drawHeight = height;
+        drawWidth = height * srcAspect;
+        offsetX = (width - drawWidth) / 2;
+        offsetY = 0;
+      } else {
+        drawWidth = width;
+        drawHeight = width / srcAspect;
+        offsetX = 0;
+        offsetY = (height - drawHeight) / 2;
+      }
+      
       ctx.save();
-      ctx.translate(width / 2, height / 2);
+      ctx.translate(offsetX + drawWidth / 2, offsetY + drawHeight / 2);
       ctx.rotate(Math.PI / 2);
       ctx.drawImage(
         img,
-        0, 0, imgWidth / 2, imgHeight,
-        -height / 2, -width / 2, height, width
+        srcX, srcY, srcW, srcH,
+        -drawHeight / 2, -drawWidth / 2, drawHeight, drawWidth
       );
       ctx.restore();
     } else {
@@ -867,6 +918,32 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
           onTouchEnd={handleEnd}
           data-testid="playbook-canvas"
         />
+        
+        {/* Zoom controls - bottom right corner */}
+        <div className="absolute bottom-3 right-3 flex flex-col gap-1 z-10">
+          <Button
+            variant="secondary"
+            size="icon"
+            className="h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm border border-white/20 shadow-lg"
+            onClick={() => setShowFullCourt(false)}
+            disabled={!showFullCourt}
+            data-testid="zoom-in"
+            title="Show half court/field"
+          >
+            <Plus className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="secondary"
+            size="icon"
+            className="h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm border border-white/20 shadow-lg"
+            onClick={() => setShowFullCourt(true)}
+            disabled={showFullCourt}
+            data-testid="zoom-out"
+            title="Show full court/field"
+          >
+            <Minus className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
     </div>
   );
