@@ -228,7 +228,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         // Extended view: stack both halves vertically
         const halfHeight = height / 2;
         
-        // Draw right half (primary) in top section
+        // Primary half (right side of image) stays on TOP
         const srcAspect = (imgWidth / 2) / imgHeight;
         let drawWidth = width;
         let drawHeight = width / srcAspect;
@@ -242,16 +242,17 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
           offsetY = 0;
         }
         
-        ctx.drawImage(
-          img,
-          imgWidth / 2, 0, imgWidth / 2, imgHeight,
-          offsetX, offsetY, drawWidth, drawHeight
-        );
-        
-        // Draw left half (secondary) in bottom section
+        // Draw secondary half (left side) on top - the extension (other end of court)
         ctx.drawImage(
           img,
           0, 0, imgWidth / 2, imgHeight,
+          offsetX, offsetY, drawWidth, drawHeight
+        );
+        
+        // Draw primary half (right side) on bottom - this is what user sees in half-court mode
+        ctx.drawImage(
+          img,
+          imgWidth / 2, 0, imgWidth / 2, imgHeight,
           offsetX, halfHeight + offsetY, drawWidth, drawHeight
         );
       } else {
@@ -300,7 +301,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         // Extended view: stack both halves vertically
         const halfHeight = height / 2;
         
-        // Draw top half of field in top section
+        // Primary half (top of image) stays on TOP - this is what user sees in half-field mode
         const srcAspect = imgWidth / (imgHeight / 2);
         let drawWidth = width;
         let drawHeight = width / srcAspect;
@@ -314,16 +315,17 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
           offsetY = 0;
         }
         
-        ctx.drawImage(
-          img,
-          0, 0, imgWidth, imgHeight / 2,
-          offsetX, offsetY, drawWidth, drawHeight
-        );
-        
-        // Draw bottom half of field in bottom section
+        // Draw secondary half (bottom of image) on top - the extension (other end of field)
         ctx.drawImage(
           img,
           0, imgHeight / 2, imgWidth, imgHeight / 2,
+          offsetX, offsetY, drawWidth, drawHeight
+        );
+        
+        // Draw primary half (top of image) on bottom - this is what user sees in half-field mode
+        ctx.drawImage(
+          img,
+          0, 0, imgWidth, imgHeight / 2,
           offsetX, halfHeight + offsetY, drawWidth, drawHeight
         );
       } else {
@@ -381,24 +383,24 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
           offsetY = 0;
         }
         
-        // Draw right half (rotated) in top section
+        // Draw secondary half (left side of image, rotated) on TOP - the extension (other end of pitch)
         ctx.save();
         ctx.translate(offsetX + drawWidth / 2, offsetY + drawHeight / 2);
         ctx.rotate(Math.PI / 2);
         ctx.drawImage(
           img,
-          imgWidth / 2, 0, imgWidth / 2, imgHeight,
+          0, 0, imgWidth / 2, imgHeight,
           -drawHeight / 2, -drawWidth / 2, drawHeight, drawWidth
         );
         ctx.restore();
         
-        // Draw left half (rotated) in bottom section
+        // Draw primary half (right side of image, rotated) on BOTTOM - same as half-pitch mode
         ctx.save();
         ctx.translate(offsetX + drawWidth / 2, halfHeight + offsetY + drawHeight / 2);
         ctx.rotate(Math.PI / 2);
         ctx.drawImage(
           img,
-          0, 0, imgWidth / 2, imgHeight,
+          imgWidth / 2, 0, imgWidth / 2, imgHeight,
           -drawHeight / 2, -drawWidth / 2, drawHeight, drawWidth
         );
         ctx.restore();
