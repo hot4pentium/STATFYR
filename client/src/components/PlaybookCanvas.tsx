@@ -148,7 +148,11 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       const container = canvasRef.current?.parentElement;
       if (container) {
         const width = container.clientWidth;
-        const height = Math.max(650, (window.innerHeight - 200) * 1.2);
+        const normalizedSport = sport?.toLowerCase();
+        const isHalfFieldSport = ["basketball", "football", "soccer"].includes(normalizedSport);
+        const height = isHalfFieldSport 
+          ? Math.max(450, (window.innerHeight - 200) * 0.7)
+          : Math.max(650, (window.innerHeight - 200) * 1.2);
         setCanvasSize({ width, height });
       }
     };
@@ -156,7 +160,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     updateCanvasSize();
     window.addEventListener("resize", updateCanvasSize);
     return () => window.removeEventListener("resize", updateCanvasSize);
-  }, []);
+  }, [sport]);
 
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -213,7 +217,14 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
   const drawBasketballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (basketballImageRef.current) {
-      ctx.drawImage(basketballImageRef.current, 0, 0, width, height);
+      const img = basketballImageRef.current;
+      const imgWidth = img.naturalWidth;
+      const imgHeight = img.naturalHeight;
+      ctx.drawImage(
+        img,
+        imgWidth / 2, 0, imgWidth / 2, imgHeight,
+        0, 0, width, height
+      );
     } else {
       ctx.fillStyle = "#CD853F";
       ctx.fillRect(0, 0, width, height);
@@ -222,7 +233,14 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
   const drawFootballField = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (footballImageRef.current) {
-      ctx.drawImage(footballImageRef.current, 0, 0, width, height);
+      const img = footballImageRef.current;
+      const imgWidth = img.naturalWidth;
+      const imgHeight = img.naturalHeight;
+      ctx.drawImage(
+        img,
+        0, 0, imgWidth, imgHeight / 2,
+        0, 0, width, height
+      );
     } else {
       ctx.fillStyle = "#1a472a";
       ctx.fillRect(0, 0, width, height);
@@ -231,10 +249,17 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
   const drawSoccerPitch = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (soccerImageRef.current) {
+      const img = soccerImageRef.current;
+      const imgWidth = img.naturalWidth;
+      const imgHeight = img.naturalHeight;
       ctx.save();
       ctx.translate(width / 2, height / 2);
       ctx.rotate(Math.PI / 2);
-      ctx.drawImage(soccerImageRef.current, -height / 2, -width / 2, height, width);
+      ctx.drawImage(
+        img,
+        0, 0, imgWidth / 2, imgHeight,
+        -height / 2, -width / 2, height, width
+      );
       ctx.restore();
     } else {
       ctx.fillStyle = "#228B22";
