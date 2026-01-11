@@ -873,10 +873,10 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
             variant="secondary"
             size="icon"
             className="h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm border border-white/20 shadow-lg"
-            onClick={() => setShowFullCourt(false)}
-            disabled={!showFullCourt}
-            data-testid="zoom-in"
-            title="Show half court/field"
+            onClick={() => setShowFullCourt(true)}
+            disabled={showFullCourt}
+            data-testid="zoom-extend"
+            title="Show full court/field"
           >
             <Plus className="h-5 w-5" />
           </Button>
@@ -884,10 +884,10 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
             variant="secondary"
             size="icon"
             className="h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm border border-white/20 shadow-lg"
-            onClick={() => setShowFullCourt(true)}
-            disabled={showFullCourt}
-            data-testid="zoom-out"
-            title="Show full court/field"
+            onClick={() => setShowFullCourt(false)}
+            disabled={!showFullCourt}
+            data-testid="zoom-collapse"
+            title="Show half court/field"
           >
             <Minus className="h-5 w-5" />
           </Button>
