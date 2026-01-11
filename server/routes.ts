@@ -1184,13 +1184,13 @@ export async function registerRoutes(
     }
   });
 
-  // Create a managed athlete (supporter creates athlete account and adds to team)
+  // Create a managed athlete (supporter creates athlete account - with or without team)
   app.post("/api/users/:supporterId/managed-athletes", async (req, res) => {
     try {
-      const { teamCode, firstName, lastName } = req.body;
+      const { teamCode, firstName, lastName, sport, position, number } = req.body;
       
-      if (!teamCode || !firstName || !lastName) {
-        return res.status(400).json({ error: "Team code, first name, and last name are required" });
+      if (!firstName || !lastName) {
+        return res.status(400).json({ error: "First name and last name are required" });
       }
 
       // Verify supporter exists
@@ -1199,38 +1199,59 @@ export async function registerRoutes(
         return res.status(403).json({ error: "Only supporters can manage athletes" });
       }
 
-      // Find team by code
-      const team = await storage.getTeamByCode(teamCode);
-      if (!team) {
-        return res.status(404).json({ error: "Team not found with that code" });
+      // If teamCode is provided, create linked athlete (joins a team)
+      if (teamCode) {
+        // Find team by code
+        const team = await storage.getTeamByCode(teamCode);
+        if (!team) {
+          return res.status(404).json({ error: "Team not found with that code" });
+        }
+
+        // Create athlete user account (no login credentials - managed by supporter)
+        const username = `managed_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        const athlete = await storage.createUser({
+          username,
+          password: "", // No password - can't log in directly
+          role: "athlete",
+          firstName,
+          lastName,
+          name: `${firstName} ${lastName}`,
+          email: "",
+        });
+
+        // Add athlete to team roster
+        await storage.addTeamMember({
+          teamId: team.id,
+          userId: athlete.id,
+          role: "athlete",
+        });
+
+        // Create managed athlete relationship
+        const managed = await storage.createManagedAthlete({
+          supporterId: req.params.supporterId,
+          athleteId: athlete.id,
+        });
+
+        return res.json({ ...managed, athlete, team });
       }
 
-      // Create athlete user account (no login credentials - managed by supporter)
-      const username = `managed_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      const athlete = await storage.createUser({
-        username,
-        password: "", // No password - can't log in directly
-        role: "athlete",
-        firstName,
-        lastName,
-        name: `${firstName} ${lastName}`,
-        email: "",
-      });
+      // No teamCode - create independent managed athlete
+      if (!sport) {
+        return res.status(400).json({ error: "Sport is required for independent athletes" });
+      }
 
-      // Add athlete to team roster
-      await storage.addTeamMember({
-        teamId: team.id,
-        userId: athlete.id,
-        role: "athlete",
-      });
-
-      // Create managed athlete relationship
       const managed = await storage.createManagedAthlete({
         supporterId: req.params.supporterId,
-        athleteId: athlete.id,
+        athleteId: null,
+        athleteName: `${firstName} ${lastName}`,
+        sport,
+        position: position || null,
+        number: number || null,
+        isOwner: true,
+        profileImageUrl: null,
       });
 
-      res.json({ ...managed, athlete, team });
+      res.json({ ...managed, athlete: { name: `${firstName} ${lastName}` } });
     } catch (error) {
       console.error("Error creating managed athlete:", error);
       res.status(500).json({ error: "Failed to create managed athlete" });

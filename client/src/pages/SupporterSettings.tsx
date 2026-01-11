@@ -27,6 +27,10 @@ export default function SupporterSettings() {
   const [athleteTeamCode, setAthleteTeamCode] = useState("");
   const [athleteFirstName, setAthleteFirstName] = useState("");
   const [athleteLastName, setAthleteLastName] = useState("");
+  const [athleteSport, setAthleteSport] = useState("");
+  const [athletePosition, setAthletePosition] = useState("");
+  const [athleteNumber, setAthleteNumber] = useState("");
+  const [isIndependentAthleteMode, setIsIndependentAthleteMode] = useState(false);
   const [isAddingAthlete, setIsAddingAthlete] = useState(false);
   const [uploadingAthleteId, setUploadingAthleteId] = useState<string | null>(null);
   const athleteAvatarInputRef = useRef<HTMLInputElement>(null);
@@ -147,27 +151,48 @@ export default function SupporterSettings() {
       return;
     }
 
-    if (!athleteTeamCode.trim() || !athleteFirstName.trim() || !athleteLastName.trim()) {
-      toast.error("Please fill in all fields: team code, first name, and last name.");
+    if (!athleteFirstName.trim() || !athleteLastName.trim()) {
+      toast.error("Please fill in first name and last name.");
+      return;
+    }
+
+    if (!isIndependentAthleteMode && !athleteTeamCode.trim()) {
+      toast.error("Please enter a team code or switch to independent mode.");
+      return;
+    }
+
+    if (isIndependentAthleteMode && !athleteSport.trim()) {
+      toast.error("Please select a sport for independent athletes.");
       return;
     }
 
     setIsAddingAthlete(true);
     try {
       const result = await createManagedAthlete(contextUser.id, {
-        teamCode: athleteTeamCode.trim().toUpperCase(),
+        teamCode: isIndependentAthleteMode ? undefined : athleteTeamCode.trim().toUpperCase(),
         firstName: athleteFirstName.trim(),
         lastName: athleteLastName.trim(),
+        sport: isIndependentAthleteMode ? athleteSport.trim() : undefined,
+        position: isIndependentAthleteMode ? athletePosition.trim() : undefined,
+        number: isIndependentAthleteMode ? athleteNumber.trim() : undefined,
       });
       
-      toast.success(`${result.athlete?.name || athleteFirstName + ' ' + athleteLastName} has been added to ${result.team?.name || 'the team'}!`);
+      const athleteName = result.athlete?.name || `${athleteFirstName} ${athleteLastName}`;
+      if (isIndependentAthleteMode) {
+        toast.success(`${athleteName} has been added as an independent athlete!`);
+      } else {
+        toast.success(`${athleteName} has been added to ${result.team?.name || 'the team'}!`);
+      }
       setAthleteTeamCode("");
       setAthleteFirstName("");
       setAthleteLastName("");
+      setAthleteSport("");
+      setAthletePosition("");
+      setAthleteNumber("");
       refetchManagedAthletes();
     } catch (error: any) {
       console.error("Failed to add athlete:", error);
-      toast.error(error.message || "Failed to add athlete. Please check the team code and try again.");
+      toast.error(error.message || "Failed to add athlete. Please try again.");
     } finally {
       setIsAddingAthlete(false);
     }
@@ -610,18 +635,47 @@ export default function SupporterSettings() {
                 <div className="space-y-4 p-4 bg-background/30 rounded-lg border border-white/10">
                   <h4 className="text-sm font-medium uppercase tracking-wider">Add New Athlete</h4>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="athlete-team-code" className="text-sm font-medium">Team Code</Label>
-                    <Input
-                      id="athlete-team-code"
-                      data-testid="input-athlete-team-code"
-                      value={athleteTeamCode}
-                      onChange={(e) => setAthleteTeamCode(e.target.value.toUpperCase())}
-                      placeholder="Enter 6-character team code"
-                      maxLength={6}
-                      className="bg-background/50 border-white/10 focus:border-primary/50 h-11 uppercase"
-                    />
+                  <div className="flex gap-2 p-1 bg-background/50 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => setIsIndependentAthleteMode(false)}
+                      className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                        !isIndependentAthleteMode 
+                          ? "bg-primary text-primary-foreground" 
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      data-testid="button-team-athlete-mode"
+                    >
+                      Join Team
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsIndependentAthleteMode(true)}
+                      className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                        isIndependentAthleteMode 
+                          ? "bg-primary text-primary-foreground" 
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      data-testid="button-independent-athlete-mode"
+                    >
+                      Independent
+                    </button>
                   </div>
+
+                  {!isIndependentAthleteMode && (
+                    <div className="space-y-2">
+                      <Label htmlFor="athlete-team-code" className="text-sm font-medium">Team Code</Label>
+                      <Input
+                        id="athlete-team-code"
+                        data-testid="input-athlete-team-code"
+                        value={athleteTeamCode}
+                        onChange={(e) => setAthleteTeamCode(e.target.value.toUpperCase())}
+                        placeholder="Enter 6-character team code"
+                        maxLength={6}
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11 uppercase"
+                      />
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -648,9 +702,65 @@ export default function SupporterSettings() {
                     </div>
                   </div>
 
+                  {isIndependentAthleteMode && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="athlete-sport" className="text-sm font-medium">Sport</Label>
+                        <select
+                          id="athlete-sport"
+                          data-testid="select-athlete-sport"
+                          value={athleteSport}
+                          onChange={(e) => setAthleteSport(e.target.value)}
+                          className="w-full bg-background/50 border border-white/10 focus:border-primary/50 h-11 rounded-md px-3 text-sm"
+                        >
+                          <option value="">Select a sport</option>
+                          <option value="Soccer">Soccer</option>
+                          <option value="Football">Football</option>
+                          <option value="Basketball">Basketball</option>
+                          <option value="Baseball">Baseball</option>
+                          <option value="Volleyball">Volleyball</option>
+                          <option value="Hockey">Hockey</option>
+                          <option value="Lacrosse">Lacrosse</option>
+                          <option value="Softball">Softball</option>
+                          <option value="Tennis">Tennis</option>
+                          <option value="Swimming">Swimming</option>
+                          <option value="Track and Field">Track and Field</option>
+                          <option value="Wrestling">Wrestling</option>
+                          <option value="Gymnastics">Gymnastics</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="athlete-position" className="text-sm font-medium">Position (Optional)</Label>
+                          <Input
+                            id="athlete-position"
+                            data-testid="input-athlete-position"
+                            value={athletePosition}
+                            onChange={(e) => setAthletePosition(e.target.value)}
+                            placeholder="e.g. Forward"
+                            className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="athlete-number" className="text-sm font-medium">Number (Optional)</Label>
+                          <Input
+                            id="athlete-number"
+                            data-testid="input-athlete-number"
+                            value={athleteNumber}
+                            onChange={(e) => setAthleteNumber(e.target.value)}
+                            placeholder="e.g. 10"
+                            className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   <Button 
                     onClick={handleAddAthlete}
-                    disabled={isAddingAthlete || !athleteTeamCode || !athleteFirstName || !athleteLastName}
+                    disabled={isAddingAthlete || !athleteFirstName || !athleteLastName || (!isIndependentAthleteMode && !athleteTeamCode) || (isIndependentAthleteMode && !athleteSport)}
                     data-testid="button-add-athlete"
                     className="w-full"
                   >
@@ -662,7 +772,7 @@ export default function SupporterSettings() {
                     ) : (
                       <>
                         <UserPlus className="mr-2 h-4 w-4" />
-                        Add Athlete to Team
+                        {isIndependentAthleteMode ? "Add Independent Athlete" : "Add Athlete to Team"}
                       </>
                     )}
                   </Button>

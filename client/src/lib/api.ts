@@ -343,10 +343,13 @@ export async function getManagedAthletes(supporterId: string): Promise<ManagedAt
 }
 
 export async function createManagedAthlete(supporterId: string, data: {
-  teamCode: string;
+  teamCode?: string;
   firstName: string;
   lastName: string;
-}): Promise<ManagedAthlete & { team: Team }> {
+  sport?: string;
+  position?: string;
+  number?: string;
+}): Promise<ManagedAthlete & { team?: Team; athlete?: { name: string } }> {
   const res = await apiRequest("POST", `/api/users/${supporterId}/managed-athletes`, data);
   return res.json();
 }

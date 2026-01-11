@@ -369,9 +369,39 @@ export default function SupporterDashboard() {
                       )}
                       <p className="text-xs text-primary font-bold uppercase tracking-wider">{currentTeam?.name}</p>
                     </div>
-                    <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
-                      Supporter Dashboard
-                    </h1>
+                    {managedAthletes.length > 1 ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="flex items-center gap-2 text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide hover:opacity-80 transition-opacity" data-testid="button-switch-athlete-team">
+                            {selectedAthlete?.athlete?.name || selectedAthlete?.athleteName || "Supporter Dashboard"}
+                            <ChevronDown className="h-5 w-5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          {managedAthletes.map((athlete: any, index: number) => (
+                            <DropdownMenuItem 
+                              key={athlete.id}
+                              onClick={() => setSelectedAthleteIndex(index)}
+                              className={selectedAthleteIndex === index ? "bg-primary/10" : ""}
+                              data-testid={`athlete-option-team-${athlete.id}`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={athlete.athlete?.avatar || athlete.profileImageUrl || ""} />
+                                  <AvatarFallback className="text-xs">{(athlete.athlete?.name || athlete.athleteName || "A").charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span>{athlete.athlete?.name || athlete.athleteName}</span>
+                                {athlete.team && <Badge variant="outline" className="text-[10px] ml-1">{athlete.team.name}</Badge>}
+                              </div>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
+                        Supporter Dashboard
+                      </h1>
+                    )}
                     <p className="text-sm text-muted-foreground mt-1">Welcome, {user?.name?.split(' ')[0] || user?.username}!</p>
                     <div className="mt-2 flex items-center gap-2">
                       <div className="flex items-center gap-1 px-2 py-0.5 bg-muted/50 rounded border border-muted-foreground/20">
