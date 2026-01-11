@@ -106,7 +106,8 @@ function StatTrackingInterface({ eventId, event, managedAthleteId, athleteName, 
         headers: { "x-user-id": userId }
       });
       if (!res.ok) return [];
-      return res.json();
+      const data = await res.json();
+      return data.entries || [];
     },
     enabled: !!activeSessionId
   });
