@@ -187,6 +187,59 @@ export const supporterEventsRelations = relations(supporterEvents, ({ one }) => 
   }),
 }));
 
+// Supporter StatTracker tables (for independent supporters tracking their managed athletes)
+export const supporterStatSessions = pgTable("supporter_stat_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  supporterId: varchar("supporter_id").notNull().references(() => users.id),
+  managedAthleteId: varchar("managed_athlete_id").notNull().references(() => managedAthletes.id),
+  eventId: varchar("event_id").references(() => supporterEvents.id),
+  sport: text("sport"),
+  opponentName: text("opponent_name"),
+  status: text("status").notNull().default("active"), // 'active', 'paused', 'completed'
+  currentPeriod: integer("current_period").notNull().default(1),
+  totalPeriods: integer("total_periods").notNull().default(4),
+  periodType: text("period_type").notNull().default("quarter"),
+  athleteScore: integer("athlete_score").notNull().default(0),
+  opponentScore: integer("opponent_score").notNull().default(0),
+  startedAt: timestamp("started_at").defaultNow(),
+  endedAt: timestamp("ended_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const supporterStatEntries = pgTable("supporter_stat_entries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().references(() => supporterStatSessions.id),
+  statName: text("stat_name").notNull(), // e.g., "Points", "Rebounds", "Assists"
+  statShortName: text("stat_short_name"), // e.g., "PTS", "REB", "AST"
+  value: integer("value").notNull().default(1),
+  pointsValue: integer("points_value").notNull().default(0),
+  period: integer("period").notNull().default(1),
+  recordedAt: timestamp("recorded_at").defaultNow(),
+});
+
+export const supporterStatSessionsRelations = relations(supporterStatSessions, ({ one, many }) => ({
+  supporter: one(users, {
+    fields: [supporterStatSessions.supporterId],
+    references: [users.id],
+  }),
+  managedAthlete: one(managedAthletes, {
+    fields: [supporterStatSessions.managedAthleteId],
+    references: [managedAthletes.id],
+  }),
+  event: one(supporterEvents, {
+    fields: [supporterStatSessions.eventId],
+    references: [supporterEvents.id],
+  }),
+  entries: many(supporterStatEntries),
+}));
+
+export const supporterStatEntriesRelations = relations(supporterStatEntries, ({ one }) => ({
+  session: one(supporterStatSessions, {
+    fields: [supporterStatEntries.sessionId],
+    references: [supporterStatSessions.id],
+  }),
+}));
+
 // StatTracker tables
 export const games = pgTable("games", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -452,6 +505,30 @@ export const updateSupporterEventSchema = createInsertSchema(supporterEvents).om
 export type InsertSupporterEvent = z.infer<typeof insertSupporterEventSchema>;
 export type UpdateSupporterEvent = z.infer<typeof updateSupporterEventSchema>;
 export type SupporterEvent = typeof supporterEvents.$inferSelect;
+
+// Supporter StatTracker schemas
+export const insertSupporterStatSessionSchema = createInsertSchema(supporterStatSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateSupporterStatSessionSchema = createInsertSchema(supporterStatSessions).omit({
+  id: true,
+  supporterId: true,
+  managedAthleteId: true,
+  createdAt: true,
+}).partial();
+
+export const insertSupporterStatEntrySchema = createInsertSchema(supporterStatEntries).omit({
+  id: true,
+  recordedAt: true,
+});
+
+export type InsertSupporterStatSession = z.infer<typeof insertSupporterStatSessionSchema>;
+export type UpdateSupporterStatSession = z.infer<typeof updateSupporterStatSessionSchema>;
+export type SupporterStatSession = typeof supporterStatSessions.$inferSelect;
+export type InsertSupporterStatEntry = z.infer<typeof insertSupporterStatEntrySchema>;
+export type SupporterStatEntry = typeof supporterStatEntries.$inferSelect;
 
 // StatTracker schemas
 export const insertGameSchema = createInsertSchema(games).omit({

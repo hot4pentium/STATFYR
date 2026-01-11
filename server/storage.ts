@@ -1,5 +1,6 @@
 import { 
   users, teams, teamMembers, events, highlightVideos, plays, managedAthletes, supporterEvents,
+  supporterStatSessions, supporterStatEntries,
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
   liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
@@ -13,6 +14,8 @@ import {
   type Play, type InsertPlay, type UpdatePlay,
   type ManagedAthlete, type InsertManagedAthlete,
   type SupporterEvent, type InsertSupporterEvent, type UpdateSupporterEvent,
+  type SupporterStatSession, type InsertSupporterStatSession, type UpdateSupporterStatSession,
+  type SupporterStatEntry, type InsertSupporterStatEntry,
   type Game, type InsertGame, type UpdateGame,
   type StatConfig, type InsertStatConfig, type UpdateStatConfig,
   type GameStat, type InsertGameStat,
@@ -122,6 +125,23 @@ export interface IStorage {
   createSupporterEvent(data: InsertSupporterEvent): Promise<SupporterEvent>;
   updateSupporterEvent(id: string, data: UpdateSupporterEvent): Promise<SupporterEvent | undefined>;
   deleteSupporterEvent(id: string): Promise<void>;
+  
+  // Supporter StatTracker methods
+  getSupporterStatSessions(managedAthleteId: string): Promise<SupporterStatSession[]>;
+  getSupporterStatSession(id: string): Promise<SupporterStatSession | undefined>;
+  createSupporterStatSession(data: InsertSupporterStatSession): Promise<SupporterStatSession>;
+  updateSupporterStatSession(id: string, data: UpdateSupporterStatSession): Promise<SupporterStatSession | undefined>;
+  deleteSupporterStatSession(id: string): Promise<void>;
+  getSupporterStatEntries(sessionId: string): Promise<SupporterStatEntry[]>;
+  getSupporterStatEntry(id: string): Promise<SupporterStatEntry | undefined>;
+  createSupporterStatEntry(data: InsertSupporterStatEntry): Promise<SupporterStatEntry>;
+  deleteSupporterStatEntry(id: string): Promise<void>;
+  getSupporterStatsSummary(managedAthleteId: string): Promise<{ 
+    totalSessions: number; 
+    totalStats: number; 
+    recentSessions: SupporterStatSession[]; 
+    statTotals: { statName: string; total: number }[] 
+  }>;
   
   // StatTracker methods
   getGame(id: string): Promise<Game | undefined>;
@@ -721,6 +741,94 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSupporterEvent(id: string): Promise<void> {
     await db.delete(supporterEvents).where(eq(supporterEvents.id, id));
+  }
+
+  // Supporter StatTracker implementations
+  async getSupporterStatSessions(managedAthleteId: string): Promise<SupporterStatSession[]> {
+    return await db.select().from(supporterStatSessions)
+      .where(eq(supporterStatSessions.managedAthleteId, managedAthleteId))
+      .orderBy(desc(supporterStatSessions.createdAt));
+  }
+
+  async getSupporterStatSession(id: string): Promise<SupporterStatSession | undefined> {
+    const [session] = await db.select().from(supporterStatSessions)
+      .where(eq(supporterStatSessions.id, id));
+    return session || undefined;
+  }
+
+  async createSupporterStatSession(data: InsertSupporterStatSession): Promise<SupporterStatSession> {
+    const [session] = await db.insert(supporterStatSessions).values(data).returning();
+    return session;
+  }
+
+  async updateSupporterStatSession(id: string, data: UpdateSupporterStatSession): Promise<SupporterStatSession | undefined> {
+    const [updated] = await db.update(supporterStatSessions).set(data)
+      .where(eq(supporterStatSessions.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async deleteSupporterStatSession(id: string): Promise<void> {
+    await db.delete(supporterStatEntries).where(eq(supporterStatEntries.sessionId, id));
+    await db.delete(supporterStatSessions).where(eq(supporterStatSessions.id, id));
+  }
+
+  async getSupporterStatEntries(sessionId: string): Promise<SupporterStatEntry[]> {
+    return await db.select().from(supporterStatEntries)
+      .where(eq(supporterStatEntries.sessionId, sessionId))
+      .orderBy(desc(supporterStatEntries.recordedAt));
+  }
+
+  async createSupporterStatEntry(data: InsertSupporterStatEntry): Promise<SupporterStatEntry> {
+    const [entry] = await db.insert(supporterStatEntries).values(data).returning();
+    return entry;
+  }
+
+  async getSupporterStatEntry(id: string): Promise<SupporterStatEntry | undefined> {
+    const [entry] = await db.select().from(supporterStatEntries)
+      .where(eq(supporterStatEntries.id, id));
+    return entry || undefined;
+  }
+
+  async deleteSupporterStatEntry(id: string): Promise<void> {
+    await db.delete(supporterStatEntries).where(eq(supporterStatEntries.id, id));
+  }
+
+  async getSupporterStatsSummary(managedAthleteId: string): Promise<{ 
+    totalSessions: number; 
+    totalStats: number; 
+    recentSessions: SupporterStatSession[]; 
+    statTotals: { statName: string; total: number }[] 
+  }> {
+    const sessions = await db.select().from(supporterStatSessions)
+      .where(eq(supporterStatSessions.managedAthleteId, managedAthleteId))
+      .orderBy(desc(supporterStatSessions.createdAt));
+    
+    const recentSessions = sessions.slice(0, 5);
+    
+    const statTotalsMap: Record<string, number> = {};
+    let totalStats = 0;
+    
+    for (const session of sessions) {
+      const entries = await db.select().from(supporterStatEntries)
+        .where(eq(supporterStatEntries.sessionId, session.id));
+      
+      totalStats += entries.length;
+      
+      for (const entry of entries) {
+        statTotalsMap[entry.statName] = (statTotalsMap[entry.statName] || 0) + entry.value;
+      }
+    }
+    
+    const statTotals = Object.entries(statTotalsMap)
+      .map(([statName, total]) => ({ statName, total }))
+      .sort((a, b) => b.total - a.total);
+    
+    return {
+      totalSessions: sessions.length,
+      totalStats,
+      recentSessions,
+      statTotals
+    };
   }
 
   // StatTracker implementations

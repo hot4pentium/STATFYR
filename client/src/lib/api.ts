@@ -431,6 +431,130 @@ export async function deleteSupporterEvent(eventId: string, userId: string): Pro
   if (!res.ok) throw new Error("Failed to delete event");
 }
 
+// ================== Supporter Stat Sessions API ==================
+
+export interface SupporterStatSession {
+  id: string;
+  supporterId: string;
+  managedAthleteId: string;
+  eventId?: string | null;
+  sport?: string | null;
+  opponentName?: string | null;
+  status: string;
+  currentPeriod: number;
+  totalPeriods: number;
+  periodType: string;
+  athleteScore: number;
+  opponentScore: number;
+  startedAt?: string | null;
+  endedAt?: string | null;
+  createdAt?: string | null;
+}
+
+export interface SupporterStatEntry {
+  id: string;
+  sessionId: string;
+  statName: string;
+  statShortName?: string | null;
+  value: number;
+  pointsValue: number;
+  period: number;
+  recordedAt?: string | null;
+}
+
+export interface SupporterStatsSummary {
+  totalSessions: number;
+  totalStats: number;
+  recentSessions: SupporterStatSession[];
+  statTotals: { statName: string; total: number }[];
+}
+
+export async function getSupporterStatsSummary(managedAthleteId: string, userId: string): Promise<SupporterStatsSummary> {
+  const res = await fetch(`/api/supporter/managed-athletes/${managedAthleteId}/stats-summary`, {
+    headers: { "x-user-id": userId },
+  });
+  if (!res.ok) throw new Error("Failed to get stats summary");
+  return res.json();
+}
+
+export async function getSupporterStatSessions(managedAthleteId: string, userId: string): Promise<SupporterStatSession[]> {
+  const res = await fetch(`/api/supporter/managed-athletes/${managedAthleteId}/stat-sessions`, {
+    headers: { "x-user-id": userId },
+  });
+  if (!res.ok) throw new Error("Failed to get stat sessions");
+  const data = await res.json();
+  return data.sessions;
+}
+
+export async function createSupporterStatSession(managedAthleteId: string, userId: string, data: {
+  eventId?: string;
+  sport?: string;
+  opponentName?: string;
+  totalPeriods?: number;
+  periodType?: string;
+}): Promise<SupporterStatSession> {
+  const res = await fetch(`/api/supporter/managed-athletes/${managedAthleteId}/stat-sessions`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "x-user-id": userId,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to create stat session");
+  const result = await res.json();
+  return result.session;
+}
+
+export async function updateSupporterStatSession(sessionId: string, userId: string, data: {
+  status?: string;
+  currentPeriod?: number;
+  athleteScore?: number;
+  opponentScore?: number;
+  endedAt?: string | null;
+}): Promise<SupporterStatSession> {
+  const res = await fetch(`/api/supporter/stat-sessions/${sessionId}`, {
+    method: "PATCH",
+    headers: { 
+      "Content-Type": "application/json",
+      "x-user-id": userId,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update stat session");
+  const result = await res.json();
+  return result.session;
+}
+
+export async function getSupporterStatEntries(sessionId: string, userId: string): Promise<SupporterStatEntry[]> {
+  const res = await fetch(`/api/supporter/stat-sessions/${sessionId}/entries`, {
+    headers: { "x-user-id": userId },
+  });
+  if (!res.ok) throw new Error("Failed to get stat entries");
+  const data = await res.json();
+  return data.entries;
+}
+
+export async function createSupporterStatEntry(sessionId: string, userId: string, data: {
+  statName: string;
+  statShortName?: string;
+  value?: number;
+  pointsValue?: number;
+  period?: number;
+}): Promise<SupporterStatEntry> {
+  const res = await fetch(`/api/supporter/stat-sessions/${sessionId}/entries`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "x-user-id": userId,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to create stat entry");
+  const result = await res.json();
+  return result.entry;
+}
+
 // ================== StatTracker API ==================
 
 export interface Game {

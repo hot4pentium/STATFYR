@@ -5001,6 +5001,285 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== Supporter Stat Session Endpoints ====================
+
+  // Get stat sessions for a managed athlete
+  app.get("/api/supporter/managed-athletes/:id/stat-sessions", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { id: managedAthleteId } = req.params;
+      
+      const managed = await storage.getManagedAthleteById(managedAthleteId);
+      if (!managed) {
+        return res.status(404).json({ error: "Managed athlete not found" });
+      }
+      if (managed.supporterId !== userId) {
+        return res.status(403).json({ error: "Not your managed athlete" });
+      }
+
+      const sessions = await storage.getSupporterStatSessions(managedAthleteId);
+      res.json({ sessions });
+    } catch (error) {
+      console.error("Failed to get supporter stat sessions:", error);
+      res.status(500).json({ error: "Failed to get stat sessions" });
+    }
+  });
+
+  // Get stats summary for a managed athlete
+  app.get("/api/supporter/managed-athletes/:id/stats-summary", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { id: managedAthleteId } = req.params;
+      
+      const managed = await storage.getManagedAthleteById(managedAthleteId);
+      if (!managed) {
+        return res.status(404).json({ error: "Managed athlete not found" });
+      }
+      if (managed.supporterId !== userId) {
+        return res.status(403).json({ error: "Not your managed athlete" });
+      }
+
+      const summary = await storage.getSupporterStatsSummary(managedAthleteId);
+      res.json(summary);
+    } catch (error) {
+      console.error("Failed to get supporter stats summary:", error);
+      res.status(500).json({ error: "Failed to get stats summary" });
+    }
+  });
+
+  // Create a stat session
+  app.post("/api/supporter/managed-athletes/:id/stat-sessions", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { id: managedAthleteId } = req.params;
+      const { eventId, sport, opponentName, totalPeriods, periodType } = req.body;
+      
+      const managed = await storage.getManagedAthleteById(managedAthleteId);
+      if (!managed) {
+        return res.status(404).json({ error: "Managed athlete not found" });
+      }
+      if (managed.supporterId !== userId) {
+        return res.status(403).json({ error: "Not your managed athlete" });
+      }
+
+      const session = await storage.createSupporterStatSession({
+        supporterId: userId,
+        managedAthleteId,
+        eventId: eventId || null,
+        sport: sport || managed.sport || null,
+        opponentName: opponentName || null,
+        totalPeriods: totalPeriods || 4,
+        periodType: periodType || "quarter",
+      });
+
+      res.json({ session });
+    } catch (error) {
+      console.error("Failed to create supporter stat session:", error);
+      res.status(500).json({ error: "Failed to create stat session" });
+    }
+  });
+
+  // Update a stat session
+  app.patch("/api/supporter/stat-sessions/:sessionId", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { sessionId } = req.params;
+      const { status, currentPeriod, athleteScore, opponentScore, endedAt } = req.body;
+
+      const session = await storage.getSupporterStatSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      if (session.supporterId !== userId) {
+        return res.status(403).json({ error: "Not your session" });
+      }
+
+      const updates: any = {};
+      if (status !== undefined) updates.status = status;
+      if (currentPeriod !== undefined) updates.currentPeriod = currentPeriod;
+      if (athleteScore !== undefined) updates.athleteScore = athleteScore;
+      if (opponentScore !== undefined) updates.opponentScore = opponentScore;
+      if (endedAt !== undefined) updates.endedAt = endedAt ? new Date(endedAt) : null;
+
+      const updated = await storage.updateSupporterStatSession(sessionId, updates);
+      res.json({ session: updated });
+    } catch (error) {
+      console.error("Failed to update supporter stat session:", error);
+      res.status(500).json({ error: "Failed to update stat session" });
+    }
+  });
+
+  // Delete a stat session
+  app.delete("/api/supporter/stat-sessions/:sessionId", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { sessionId } = req.params;
+
+      const session = await storage.getSupporterStatSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      if (session.supporterId !== userId) {
+        return res.status(403).json({ error: "Not your session" });
+      }
+
+      await storage.deleteSupporterStatSession(sessionId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to delete supporter stat session:", error);
+      res.status(500).json({ error: "Failed to delete stat session" });
+    }
+  });
+
+  // Get entries for a stat session
+  app.get("/api/supporter/stat-sessions/:sessionId/entries", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { sessionId } = req.params;
+
+      const session = await storage.getSupporterStatSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      if (session.supporterId !== userId) {
+        return res.status(403).json({ error: "Not your session" });
+      }
+
+      const entries = await storage.getSupporterStatEntries(sessionId);
+      res.json({ entries });
+    } catch (error) {
+      console.error("Failed to get supporter stat entries:", error);
+      res.status(500).json({ error: "Failed to get stat entries" });
+    }
+  });
+
+  // Create a stat entry
+  app.post("/api/supporter/stat-sessions/:sessionId/entries", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { sessionId } = req.params;
+      const { statName, statShortName, value, pointsValue, period } = req.body;
+
+      if (!statName) {
+        return res.status(400).json({ error: "statName is required" });
+      }
+
+      const session = await storage.getSupporterStatSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      if (session.supporterId !== userId) {
+        return res.status(403).json({ error: "Not your session" });
+      }
+
+      const entry = await storage.createSupporterStatEntry({
+        sessionId,
+        statName,
+        statShortName: statShortName || null,
+        value: value || 1,
+        pointsValue: pointsValue || 0,
+        period: period || session.currentPeriod,
+      });
+
+      // Update athlete score if pointsValue > 0
+      if (pointsValue && pointsValue > 0) {
+        await storage.updateSupporterStatSession(sessionId, {
+          athleteScore: session.athleteScore + pointsValue,
+        });
+      }
+
+      res.json({ entry });
+    } catch (error) {
+      console.error("Failed to create supporter stat entry:", error);
+      res.status(500).json({ error: "Failed to create stat entry" });
+    }
+  });
+
+  // Delete a stat entry
+  app.delete("/api/supporter/stat-entries/:entryId", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { entryId } = req.params;
+
+      // Verify ownership via session
+      const entry = await storage.getSupporterStatEntry(entryId);
+      if (!entry) {
+        return res.status(404).json({ error: "Entry not found" });
+      }
+      
+      const session = await storage.getSupporterStatSession(entry.sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      
+      if (session.supporterId !== userId) {
+        return res.status(403).json({ error: "Not your stat entry" });
+      }
+
+      await storage.deleteSupporterStatEntry(entryId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to delete supporter stat entry:", error);
+      res.status(500).json({ error: "Failed to delete stat entry" });
+    }
+  });
+
   // ==================== Athlete Code Endpoints ====================
 
   // Get athlete's personal code

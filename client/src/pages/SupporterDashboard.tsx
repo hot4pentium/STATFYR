@@ -13,7 +13,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getSupporterBadges, getAllBadges, getSupporterThemes, getActiveTheme, activateTheme, getSupporterTapTotal, getActiveLiveSessions, checkSessionLifecycle, joinTeamByCode, getUnreadMessageCount, getSupporterEvents, createSupporterEvent, deleteSupporterEvent, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats, type SupporterBadge, type BadgeDefinition, type ThemeUnlock, type LiveEngagementSession, type SupporterEvent } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getManagedAthletes, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getSupporterBadges, getAllBadges, getSupporterThemes, getActiveTheme, activateTheme, getSupporterTapTotal, getActiveLiveSessions, checkSessionLifecycle, joinTeamByCode, getUnreadMessageCount, getSupporterEvents, createSupporterEvent, deleteSupporterEvent, getSupporterStatsSummary, type TeamMember, type Event, type HighlightVideo, type Play, type ManagedAthlete, type TeamAggregateStats, type AdvancedTeamStats, type AthleteStats, type SupporterBadge, type BadgeDefinition, type ThemeUnlock, type LiveEngagementSession, type SupporterEvent, type SupporterStatsSummary } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, startOfMonth } from "date-fns";
@@ -110,6 +110,12 @@ export default function SupporterDashboard() {
   const { data: athleteEvents = [], refetch: refetchAthleteEvents } = useQuery({
     queryKey: ["/api/supporter/managed-athletes", viewingAsAthlete?.id, "events"],
     queryFn: () => viewingAsAthlete && user ? getSupporterEvents(viewingAsAthlete.id, user.id) : Promise.resolve([]),
+    enabled: !!viewingAsAthlete && !!user,
+  });
+
+  const { data: statsSummary } = useQuery({
+    queryKey: ["/api/supporter/managed-athletes", viewingAsAthlete?.id, "stats-summary"],
+    queryFn: () => viewingAsAthlete && user ? getSupporterStatsSummary(viewingAsAthlete.id, user.id) : Promise.resolve({ totalSessions: 0, totalStats: 0, recentSessions: [], statTotals: [] }),
     enabled: !!viewingAsAthlete && !!user,
   });
 
@@ -1717,14 +1723,28 @@ export default function SupporterDashboard() {
                         
                         <div className="grid grid-cols-2 gap-3">
                           <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-center">
-                            <p className="text-2xl font-bold text-amber-500">0</p>
+                            <p className="text-2xl font-bold text-amber-500">{statsSummary?.totalSessions || 0}</p>
                             <p className="text-xs text-muted-foreground">Games Tracked</p>
                           </div>
                           <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 text-center">
-                            <p className="text-2xl font-bold text-green-500">0</p>
+                            <p className="text-2xl font-bold text-green-500">{statsSummary?.totalStats || 0}</p>
                             <p className="text-xs text-muted-foreground">Stats Recorded</p>
                           </div>
                         </div>
+                        
+                        {statsSummary && statsSummary.statTotals.length > 0 && (
+                          <div className="p-3 rounded-xl bg-background/50 border border-white/10">
+                            <p className="text-xs text-muted-foreground mb-2 font-medium">Top Stats</p>
+                            <div className="space-y-1">
+                              {statsSummary.statTotals.slice(0, 4).map((stat) => (
+                                <div key={stat.statName} className="flex justify-between text-sm">
+                                  <span>{stat.statName}</span>
+                                  <span className="font-bold text-primary">{stat.total}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         
                         <Button 
                           variant="outline" 
