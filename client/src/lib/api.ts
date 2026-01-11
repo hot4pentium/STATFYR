@@ -365,6 +365,7 @@ export interface SupporterEvent {
   endTime?: string | null;
   location?: string | null;
   opponentName?: string | null;
+  notes?: string | null;
   createdAt?: string | null;
 }
 
@@ -385,6 +386,7 @@ export async function createSupporterEvent(managedAthleteId: string, userId: str
   endTime?: string;
   location?: string;
   opponentName?: string;
+  notes?: string;
 }): Promise<SupporterEvent> {
   const res = await fetch(`/api/supporter/managed-athletes/${managedAthleteId}/events`, {
     method: "POST",

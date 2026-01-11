@@ -83,12 +83,12 @@ export default function SupporterDashboard() {
   const [isJoiningTeam, setIsJoiningTeam] = useState(false);
   const [independentSelectedCard, setIndependentSelectedCard] = useState<string | null>(null);
   const [showEventForm, setShowEventForm] = useState(false);
-  const [newEventTitle, setNewEventTitle] = useState("");
   const [newEventType, setNewEventType] = useState("game");
   const [newEventDate, setNewEventDate] = useState("");
   const [newEventTime, setNewEventTime] = useState("");
   const [newEventLocation, setNewEventLocation] = useState("");
   const [newEventOpponent, setNewEventOpponent] = useState("");
+  const [newEventNotes, setNewEventNotes] = useState("");
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
   const queryClient = useQueryClient();
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -1056,7 +1056,7 @@ export default function SupporterDashboard() {
   };
 
   const handleCreateEvent = async () => {
-    if (!viewingAsAthlete || !user || !newEventTitle.trim() || !newEventDate || !newEventTime) {
+    if (!viewingAsAthlete || !user || !newEventDate || !newEventTime) {
       toast.error("Please fill in the required fields");
       return;
     }
@@ -1067,20 +1067,24 @@ export default function SupporterDashboard() {
       const ampm = hours >= 12 ? 'PM' : 'AM';
       const hour12 = hours % 12 || 12;
       const startTime = `${newEventDate} ${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+      // Auto-generate title from type and opponent
+      const typeLabel = newEventType.charAt(0).toUpperCase() + newEventType.slice(1);
+      const title = newEventOpponent.trim() ? `${typeLabel} vs ${newEventOpponent.trim()}` : typeLabel;
       await createSupporterEvent(viewingAsAthlete.id, user.id, {
-        title: newEventTitle.trim(),
+        title,
         eventType: newEventType,
         startTime,
         location: newEventLocation.trim() || undefined,
         opponentName: newEventOpponent.trim() || undefined,
+        notes: newEventNotes.trim() || undefined,
       });
       toast.success("Event created!");
-      setNewEventTitle("");
       setNewEventType("game");
       setNewEventDate("");
       setNewEventTime("");
       setNewEventLocation("");
       setNewEventOpponent("");
+      setNewEventNotes("");
       setShowEventForm(false);
       refetchAthleteEvents();
     } catch (error) {
@@ -1547,14 +1551,6 @@ export default function SupporterDashboard() {
                           </>
                         ) : (
                           <div className="space-y-4">
-                            <div className="space-y-2">
-                              <Label>Event Title *</Label>
-                              <Input
-                                placeholder="e.g., Game vs Tigers"
-                                value={newEventTitle}
-                                onChange={(e) => setNewEventTitle(e.target.value)}
-                              />
-                            </div>
                             <div className="grid grid-cols-2 gap-3">
                               <div className="space-y-2">
                                 <Label>Type</Label>
@@ -1604,6 +1600,14 @@ export default function SupporterDashboard() {
                                 placeholder="e.g., Home Field"
                                 value={newEventLocation}
                                 onChange={(e) => setNewEventLocation(e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Notes</Label>
+                              <Input
+                                placeholder="Optional notes about the event"
+                                value={newEventNotes}
+                                onChange={(e) => setNewEventNotes(e.target.value)}
                               />
                             </div>
                             <div className="flex gap-2">

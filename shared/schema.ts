@@ -160,6 +160,7 @@ export const supporterEvents = pgTable("supporter_events", {
   endTime: timestamp("end_time"),
   location: text("location"),
   opponentName: text("opponent_name"),
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
