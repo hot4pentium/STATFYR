@@ -137,17 +137,26 @@ function StatTrackingInterface({ eventId, event, managedAthleteId, athleteName, 
     }
   };
   
-  const handleRecordStat = async (statName: string) => {
+  const handleRecordStat = async (statName: string, pointsValue: number = 0) => {
     if (!activeSessionId) return;
     try {
       const entry = await createSupporterStatEntry(activeSessionId, userId, {
         statName,
         value: 1,
+        pointsValue,
         period: currentPeriod
       });
       setRecentEntries(prev => [{ id: entry.id, statName, value: 1, timestamp: new Date() }, ...prev.slice(0, 4)]);
       refetchEntries();
-      toast.success(`+1 ${statName}`);
+      
+      if (pointsValue > 0) {
+        const newScore = ourScore + pointsValue;
+        setOurScore(newScore);
+        await updateSupporterStatSession(activeSessionId, userId, { athleteScore: newScore });
+        toast.success(`+${pointsValue} pts (${statName})`);
+      } else {
+        toast.success(`+1 ${statName}`);
+      }
     } catch (error) {
       toast.error("Failed to record stat");
     }
@@ -247,14 +256,31 @@ function StatTrackingInterface({ eventId, event, managedAthleteId, athleteName, 
       </div>
       
       <div className="grid grid-cols-3 gap-2">
-        {["Points", "Rebounds", "Assists", "Steals", "Blocks", "Turnovers"].map(stat => (
+        {[
+          { name: "2PT", label: "2 Pointer", points: 2 },
+          { name: "3PT", label: "3 Pointer", points: 3 },
+          { name: "FT", label: "Free Throw", points: 1 },
+          { name: "REB", label: "Rebound", points: 0 },
+          { name: "AST", label: "Assist", points: 0 },
+          { name: "STL", label: "Steal", points: 0 },
+          { name: "BLK", label: "Block", points: 0 },
+          { name: "TO", label: "Turnover", points: 0 },
+          { name: "FG Miss", label: "Missed Shot", points: 0 },
+        ].map(stat => (
           <button
-            key={stat}
-            onClick={() => handleRecordStat(stat)}
-            className="p-3 rounded-lg bg-background/50 border border-white/10 hover:border-primary/50 transition-colors text-center"
+            key={stat.name}
+            onClick={() => handleRecordStat(stat.name, stat.points)}
+            className={`p-3 rounded-lg border transition-colors text-center ${
+              stat.points > 0 
+                ? "bg-green-500/10 border-green-500/30 hover:border-green-500/50" 
+                : "bg-background/50 border-white/10 hover:border-primary/50"
+            }`}
           >
-            <p className="text-lg font-bold">{entryTotals[stat] || 0}</p>
-            <p className="text-xs text-muted-foreground">{stat}</p>
+            <p className="text-lg font-bold">{entryTotals[stat.name] || 0}</p>
+            <p className="text-xs text-muted-foreground">{stat.label}</p>
+            {stat.points > 0 && (
+              <p className="text-[10px] text-green-500">+{stat.points} pts</p>
+            )}
           </button>
         ))}
       </div>
