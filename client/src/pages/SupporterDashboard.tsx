@@ -153,9 +153,6 @@ function StatTrackingInterface({ eventId, event, managedAthleteId, athleteName, 
         const newScore = ourScore + pointsValue;
         setOurScore(newScore);
         await updateSupporterStatSession(activeSessionId, userId, { athleteScore: newScore });
-        toast.success(`+${pointsValue} pts (${statName})`);
-      } else {
-        toast.success(`+1 ${statName}`);
       }
     } catch (error) {
       toast.error("Failed to record stat");
