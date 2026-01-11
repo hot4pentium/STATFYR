@@ -2080,20 +2080,31 @@ export default function SupporterDashboard() {
                               </div>
                             </div>
                             
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-3 gap-3 mb-4">
                               <div className="text-center p-2 rounded-lg bg-background/30">
-                                <p className="text-lg font-bold">0</p>
+                                <p className="text-lg font-bold">{statsSummary?.totalSessions || 0}</p>
                                 <p className="text-xs text-muted-foreground">Games</p>
+                              </div>
+                              <div className="text-center p-2 rounded-lg bg-background/30">
+                                <p className="text-lg font-bold">{statsSummary?.totalStats || 0}</p>
+                                <p className="text-xs text-muted-foreground">Stats</p>
                               </div>
                               <div className="text-center p-2 rounded-lg bg-background/30">
                                 <p className="text-lg font-bold">0</p>
                                 <p className="text-xs text-muted-foreground">Highlights</p>
                               </div>
-                              <div className="text-center p-2 rounded-lg bg-background/30">
-                                <p className="text-lg font-bold">0</p>
-                                <p className="text-xs text-muted-foreground">Hypes</p>
-                              </div>
                             </div>
+                            
+                            {statsSummary && statsSummary.statTotals.length > 0 && (
+                              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/10">
+                                {statsSummary.statTotals.slice(0, 6).map((stat) => (
+                                  <div key={stat.statName} className="text-center">
+                                    <p className="text-xl font-bold text-primary">{stat.total}</p>
+                                    <p className="text-[10px] text-muted-foreground uppercase">{stat.statName}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                         
