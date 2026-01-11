@@ -3987,6 +3987,196 @@ export async function registerRoutes(
     }
   });
 
+  // ============ ADMIN MESSAGING ROUTES ============
+
+  // Send broadcast to all users
+  app.post("/api/admin/broadcast", requireSuperAdmin, async (req, res) => {
+    try {
+      const { title, message, sendPush } = req.body;
+      const adminUser = (req as any).adminUser;
+
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      // Create the broadcast message
+      const broadcastMsg = await storage.createAdminMessage({
+        senderId: adminUser.id,
+        recipientId: null,
+        type: "broadcast",
+        message,
+        title: title || "STATFYR Announcement",
+      });
+
+      // Get all users and create receipts
+      const allUsers = await storage.getAllUsersForBroadcast();
+      const userIds = allUsers.map(u => u.id);
+      await storage.createBroadcastReceipts(broadcastMsg.id, userIds);
+
+      // Send push notifications if requested
+      let pushResult = { successCount: 0, failureCount: 0 };
+      if (sendPush) {
+        const { sendPushNotification } = await import("./firebaseAdmin");
+        
+        // Get FCM tokens for all users
+        for (const user of allUsers) {
+          const tokens = await storage.getFcmTokens(user.id);
+          if (tokens.length > 0) {
+            const tokenStrings = tokens.map(t => t.token);
+            const result = await sendPushNotification(
+              tokenStrings,
+              title || "STATFYR Announcement",
+              message,
+              { type: "broadcast", messageId: broadcastMsg.id }
+            );
+            pushResult.successCount += result.successCount;
+            pushResult.failureCount += result.failureCount;
+          }
+        }
+      }
+
+      res.json({
+        success: true,
+        message: broadcastMsg,
+        recipientCount: userIds.length,
+        pushResult,
+      });
+    } catch (error) {
+      console.error("Admin broadcast failed:", error);
+      res.status(500).json({ error: "Failed to send broadcast" });
+    }
+  });
+
+  // Get all broadcasts sent
+  app.get("/api/admin/broadcasts", requireSuperAdmin, async (req, res) => {
+    try {
+      const broadcasts = await storage.getAdminBroadcasts();
+      res.json(broadcasts);
+    } catch (error) {
+      console.error("Get broadcasts failed:", error);
+      res.status(500).json({ error: "Failed to get broadcasts" });
+    }
+  });
+
+  // Send direct support message to a user
+  app.post("/api/admin/message/:userId", requireSuperAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { message, sendPush } = req.body;
+      const adminUser = (req as any).adminUser;
+
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      // Verify user exists
+      const targetUser = await storage.getUser(userId);
+      if (!targetUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Create the support message
+      const supportMsg = await storage.createAdminMessage({
+        senderId: adminUser.id,
+        recipientId: userId,
+        type: "support",
+        message,
+        title: null,
+      });
+
+      // Create receipt for the user
+      await storage.createAdminMessageReceipt({
+        messageId: supportMsg.id,
+        userId,
+        sentViaPush: false,
+        deliveredAt: new Date(),
+      });
+
+      // Send push notification if requested
+      let pushSent = false;
+      if (sendPush) {
+        const { sendPushNotification } = await import("./firebaseAdmin");
+        const tokens = await storage.getFcmTokens(userId);
+        if (tokens.length > 0) {
+          const tokenStrings = tokens.map(t => t.token);
+          const result = await sendPushNotification(
+            tokenStrings,
+            "STATFYR Support",
+            message,
+            { type: "support", messageId: supportMsg.id }
+          );
+          pushSent = result.successCount > 0;
+        }
+      }
+
+      res.json({
+        success: true,
+        message: supportMsg,
+        pushSent,
+      });
+    } catch (error) {
+      console.error("Admin support message failed:", error);
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
+  // Get all support conversations (admin view)
+  app.get("/api/admin/conversations", requireSuperAdmin, async (req, res) => {
+    try {
+      const conversations = await storage.getAdminSupportConversations();
+      res.json(conversations);
+    } catch (error) {
+      console.error("Get admin conversations failed:", error);
+      res.status(500).json({ error: "Failed to get conversations" });
+    }
+  });
+
+  // Get conversation with a specific user (admin view)
+  app.get("/api/admin/conversations/:userId", requireSuperAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const messages = await storage.getAdminConversation(userId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Get admin conversation failed:", error);
+      res.status(500).json({ error: "Failed to get conversation" });
+    }
+  });
+
+  // User endpoint: Get messages from STATFYR Support
+  app.get("/api/user/support-messages", async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const messages = await storage.getUserAdminMessages(userId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Get user support messages failed:", error);
+      res.status(500).json({ error: "Failed to get messages" });
+    }
+  });
+
+  // User endpoint: Mark message as read
+  app.post("/api/user/support-messages/:messageId/read", async (req, res) => {
+    try {
+      const userId = req.body.userId as string;
+      const { messageId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      await storage.markAdminMessageRead(userId, messageId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Mark message read failed:", error);
+      res.status(500).json({ error: "Failed to mark message as read" });
+    }
+  });
+
   // ============ STRIPE SUBSCRIPTION ROUTES ============
   
   // Get Stripe publishable key for frontend

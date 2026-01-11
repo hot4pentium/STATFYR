@@ -5,7 +5,7 @@ import {
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
   liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
   impersonationSessions, hypes, athleteHypeTotals, directMessages, messageReads, notificationPreferences,
-  supporterAthleteLinks, supporterStats, subscriptions,
+  supporterAthleteLinks, supporterStats, subscriptions, adminMessages,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -43,6 +43,9 @@ import {
   type NotificationPreferences, type UpdateNotificationPreferences,
   type ChatPresence, type InsertChatPresence,
   type SupporterStat, type InsertSupporterStat,
+  type AdminMessage, type InsertAdminMessage,
+  type AdminMessageReceipt, type InsertAdminMessageReceipt,
+  adminMessageReceipts,
   chatPresence
 } from "@shared/schema";
 import { db } from "./db";
@@ -303,6 +306,17 @@ export interface IStorage {
   
   // Optimized supporter notification queries
   getPaidSupportersFollowingTeam(teamId: string): Promise<{ supporterId: string; email: string; name: string; athleteNames: string[]; emailEnabled: boolean; pushEnabled: boolean }[]>;
+  
+  // Admin Messages methods
+  createAdminMessage(data: InsertAdminMessage): Promise<AdminMessage>;
+  createAdminMessageReceipt(data: InsertAdminMessageReceipt): Promise<AdminMessageReceipt>;
+  createBroadcastReceipts(messageId: string, userIds: string[]): Promise<void>;
+  getAdminBroadcasts(): Promise<(AdminMessage & { sender: User; recipientCount: number })[]>;
+  getUserAdminMessages(userId: string): Promise<(AdminMessage & { sender: User; isRead: boolean })[]>;
+  getAdminSupportConversations(): Promise<{ recipientId: string; recipient: User; lastMessage: AdminMessage; unreadCount: number }[]>;
+  getAdminConversation(recipientId: string): Promise<(AdminMessage & { sender: User })[]>;
+  markAdminMessageRead(userId: string, messageId: string): Promise<void>;
+  getAllUsersForBroadcast(): Promise<{ id: string; email: string; firstName: string; lastName: string }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2563,6 +2577,193 @@ export class DatabaseStorage implements IStorage {
     }
 
     return Array.from(supporterMap.values());
+  }
+
+  // Admin Messages implementation
+  async createAdminMessage(data: InsertAdminMessage): Promise<AdminMessage> {
+    const [message] = await db.insert(adminMessages).values(data).returning();
+    return message;
+  }
+
+  async createAdminMessageReceipt(data: InsertAdminMessageReceipt): Promise<AdminMessageReceipt> {
+    const [receipt] = await db.insert(adminMessageReceipts).values(data).returning();
+    return receipt;
+  }
+
+  async createBroadcastReceipts(messageId: string, userIds: string[]): Promise<void> {
+    if (userIds.length === 0) return;
+    const receipts = userIds.map(userId => ({
+      messageId,
+      userId,
+      sentViaPush: false,
+      deliveredAt: new Date(),
+    }));
+    await db.insert(adminMessageReceipts).values(receipts);
+  }
+
+  async getAdminBroadcasts(): Promise<(AdminMessage & { sender: User; recipientCount: number })[]> {
+    const broadcasts = await db
+      .select()
+      .from(adminMessages)
+      .leftJoin(users, eq(users.id, adminMessages.senderId))
+      .where(eq(adminMessages.type, 'broadcast'))
+      .orderBy(desc(adminMessages.createdAt));
+
+    const results: (AdminMessage & { sender: User; recipientCount: number })[] = [];
+    for (const row of broadcasts) {
+      if (!row.users) continue;
+      const [countResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(adminMessageReceipts)
+        .where(eq(adminMessageReceipts.messageId, row.admin_messages.id));
+      results.push({
+        ...row.admin_messages,
+        sender: row.users,
+        recipientCount: Number(countResult?.count || 0),
+      });
+    }
+    return results;
+  }
+
+  async getUserAdminMessages(userId: string): Promise<(AdminMessage & { sender: User; isRead: boolean })[]> {
+    // Get broadcasts with receipts for this user
+    const broadcastMessages = await db
+      .select()
+      .from(adminMessages)
+      .innerJoin(adminMessageReceipts, and(
+        eq(adminMessageReceipts.messageId, adminMessages.id),
+        eq(adminMessageReceipts.userId, userId)
+      ))
+      .leftJoin(users, eq(users.id, adminMessages.senderId))
+      .where(eq(adminMessages.type, 'broadcast'))
+      .orderBy(desc(adminMessages.createdAt));
+
+    // Get direct support messages to this user
+    const directMessages = await db
+      .select()
+      .from(adminMessages)
+      .leftJoin(users, eq(users.id, adminMessages.senderId))
+      .leftJoin(adminMessageReceipts, and(
+        eq(adminMessageReceipts.messageId, adminMessages.id),
+        eq(adminMessageReceipts.userId, userId)
+      ))
+      .where(and(
+        eq(adminMessages.type, 'support'),
+        eq(adminMessages.recipientId, userId)
+      ))
+      .orderBy(desc(adminMessages.createdAt));
+
+    const results: (AdminMessage & { sender: User; isRead: boolean })[] = [];
+
+    for (const row of broadcastMessages) {
+      if (!row.users) continue;
+      results.push({
+        ...row.admin_messages,
+        sender: row.users,
+        isRead: row.admin_message_receipts?.isRead || false,
+      });
+    }
+
+    for (const row of directMessages) {
+      if (!row.users) continue;
+      results.push({
+        ...row.admin_messages,
+        sender: row.users,
+        isRead: row.admin_message_receipts?.isRead || false,
+      });
+    }
+
+    return results.sort((a, b) => 
+      new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
+  }
+
+  async getAdminSupportConversations(): Promise<{ recipientId: string; recipient: User; lastMessage: AdminMessage; unreadCount: number }[]> {
+    const conversations = await db
+      .select()
+      .from(adminMessages)
+      .leftJoin(users, eq(users.id, adminMessages.recipientId))
+      .where(and(
+        eq(adminMessages.type, 'support'),
+        sql`${adminMessages.recipientId} IS NOT NULL`
+      ))
+      .orderBy(desc(adminMessages.createdAt));
+
+    const convMap = new Map<string, { recipientId: string; recipient: User; lastMessage: AdminMessage; unreadCount: number }>();
+
+    for (const row of conversations) {
+      if (!row.users || !row.admin_messages.recipientId) continue;
+      
+      if (!convMap.has(row.admin_messages.recipientId)) {
+        // Get unread count for this conversation
+        const [unreadResult] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(adminMessageReceipts)
+          .innerJoin(adminMessages, eq(adminMessages.id, adminMessageReceipts.messageId))
+          .where(and(
+            eq(adminMessageReceipts.userId, row.admin_messages.recipientId),
+            eq(adminMessageReceipts.isRead, false),
+            eq(adminMessages.type, 'support')
+          ));
+
+        convMap.set(row.admin_messages.recipientId, {
+          recipientId: row.admin_messages.recipientId,
+          recipient: row.users,
+          lastMessage: row.admin_messages,
+          unreadCount: Number(unreadResult?.count || 0),
+        });
+      }
+    }
+
+    return Array.from(convMap.values());
+  }
+
+  async getAdminConversation(recipientId: string): Promise<(AdminMessage & { sender: User })[]> {
+    const messages = await db
+      .select()
+      .from(adminMessages)
+      .leftJoin(users, eq(users.id, adminMessages.senderId))
+      .where(and(
+        eq(adminMessages.type, 'support'),
+        eq(adminMessages.recipientId, recipientId)
+      ))
+      .orderBy(adminMessages.createdAt);
+
+    return messages
+      .filter(row => row.users)
+      .map(row => ({
+        ...row.admin_messages,
+        sender: row.users!,
+      }));
+  }
+
+  async markAdminMessageRead(userId: string, messageId: string): Promise<void> {
+    await db
+      .update(adminMessageReceipts)
+      .set({ isRead: true, readAt: new Date() })
+      .where(and(
+        eq(adminMessageReceipts.userId, userId),
+        eq(adminMessageReceipts.messageId, messageId)
+      ));
+  }
+
+  async getAllUsersForBroadcast(): Promise<{ id: string; email: string; firstName: string; lastName: string }[]> {
+    const allUsers = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+      })
+      .from(users)
+      .where(sql`${users.email} IS NOT NULL`);
+
+    return allUsers.map(u => ({
+      id: u.id,
+      email: u.email || '',
+      firstName: u.firstName || '',
+      lastName: u.lastName || '',
+    }));
   }
 }
 

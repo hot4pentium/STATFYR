@@ -1304,6 +1304,38 @@ export async function adminUpdateUserSubscription(
   return res.json();
 }
 
+// ============ ADMIN MESSAGING ============
+
+export interface AdminBroadcastResult {
+  success: boolean;
+  message: { id: string; type: string; title: string; message: string };
+  recipientCount: number;
+  pushResult: { successCount: number; failureCount: number };
+}
+
+export interface AdminSupportMessageResult {
+  success: boolean;
+  message: { id: string; type: string; message: string };
+  pushSent: boolean;
+}
+
+export async function adminSendBroadcast(
+  data: { title?: string; message: string; sendPush: boolean },
+  requesterId: string
+): Promise<AdminBroadcastResult> {
+  const res = await apiRequest("POST", `/api/admin/broadcast?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
+export async function adminSendSupportMessage(
+  userId: string,
+  data: { message: string; sendPush: boolean },
+  requesterId: string
+): Promise<AdminSupportMessageResult> {
+  const res = await apiRequest("POST", `/api/admin/message/${userId}?requesterId=${requesterId}`, data);
+  return res.json();
+}
+
 // ============ HYPES (UNIFIED ENGAGEMENT) ============
 
 export interface Hype {

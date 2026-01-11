@@ -1338,3 +1338,65 @@ export const insertSupporterStatSchema = createInsertSchema(supporterStats).omit
 
 export type InsertSupporterStat = z.infer<typeof insertSupporterStatSchema>;
 export type SupporterStat = typeof supporterStats.$inferSelect;
+
+// Admin Messages - broadcasts and support DMs from admin to users
+export const adminMessages = pgTable("admin_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  senderId: varchar("sender_id").notNull().references(() => users.id), // Admin who sent
+  recipientId: varchar("recipient_id").references(() => users.id), // Null for broadcasts
+  type: text("type").notNull().default("support"), // 'broadcast' or 'support'
+  message: text("message").notNull(),
+  title: text("title"), // For broadcasts
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Per-user receipt tracking for admin messages (especially broadcasts)
+export const adminMessageReceipts = pgTable("admin_message_receipts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  messageId: varchar("message_id").notNull().references(() => adminMessages.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  isRead: boolean("is_read").notNull().default(false),
+  sentViaPush: boolean("sent_via_push").notNull().default(false),
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+});
+
+export const adminMessagesRelations = relations(adminMessages, ({ one, many }) => ({
+  sender: one(users, {
+    fields: [adminMessages.senderId],
+    references: [users.id],
+  }),
+  recipient: one(users, {
+    fields: [adminMessages.recipientId],
+    references: [users.id],
+  }),
+  receipts: many(adminMessageReceipts),
+}));
+
+export const adminMessageReceiptsRelations = relations(adminMessageReceipts, ({ one }) => ({
+  message: one(adminMessages, {
+    fields: [adminMessageReceipts.messageId],
+    references: [adminMessages.id],
+  }),
+  user: one(users, {
+    fields: [adminMessageReceipts.userId],
+    references: [users.id],
+  }),
+}));
+
+// Admin Message schemas
+export const insertAdminMessageSchema = createInsertSchema(adminMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAdminMessageReceiptSchema = createInsertSchema(adminMessageReceipts).omit({
+  id: true,
+  isRead: true,
+  readAt: true,
+});
+
+export type InsertAdminMessage = z.infer<typeof insertAdminMessageSchema>;
+export type AdminMessage = typeof adminMessages.$inferSelect;
+export type InsertAdminMessageReceipt = z.infer<typeof insertAdminMessageReceiptSchema>;
+export type AdminMessageReceipt = typeof adminMessageReceipts.$inferSelect;

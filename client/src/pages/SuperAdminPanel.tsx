@@ -9,7 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, User, Users, Shield, Eye, Trash2, ArrowLeft, Loader2, ChevronRight, CreditCard, Crown } from "lucide-react";
+import { Search, User, Users, Shield, Eye, Trash2, ArrowLeft, Loader2, ChevronRight, CreditCard, Crown, MessageSquare, Send, Bell } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { useUser } from "@/lib/userContext";
@@ -23,6 +26,8 @@ import {
   adminGetAllTeams,
   adminGetAllSubscriptions,
   adminUpdateUserSubscription,
+  adminSendBroadcast,
+  adminSendSupportMessage,
   type AdminUser,
   type AdminTeamMember,
   type Team,
@@ -65,6 +70,15 @@ export default function SuperAdminPanel() {
   const [subscriptionSearch, setSubscriptionSearch] = useState("");
   const [editingSubscription, setEditingSubscription] = useState<UserWithSubscription | null>(null);
   const [newTier, setNewTier] = useState("");
+  
+  // Messaging state
+  const [broadcastTitle, setBroadcastTitle] = useState("");
+  const [broadcastMessage, setBroadcastMessage] = useState("");
+  const [sendPush, setSendPush] = useState(true);
+  const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
+  const [supportUserId, setSupportUserId] = useState("");
+  const [supportMessage, setSupportMessage] = useState("");
+  const [isSendingSupport, setIsSendingSupport] = useState(false);
 
   const { data: teams = [], isLoading: isLoadingTeams, refetch: refetchTeams } = useQuery({
     queryKey: ["admin-teams", user?.id],
@@ -259,7 +273,7 @@ export default function SuperAdminPanel() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-lg grid-cols-3">
+          <TabsList className="grid w-full max-w-2xl grid-cols-4">
             <TabsTrigger value="teams" data-testid="tab-teams">
               <Users className="h-4 w-4 mr-2" />
               Teams
@@ -271,6 +285,10 @@ export default function SuperAdminPanel() {
             <TabsTrigger value="subscriptions" data-testid="tab-subscriptions">
               <CreditCard className="h-4 w-4 mr-2" />
               Subscriptions
+            </TabsTrigger>
+            <TabsTrigger value="messaging" data-testid="tab-messaging">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Messaging
             </TabsTrigger>
           </TabsList>
 
@@ -670,6 +688,157 @@ export default function SuperAdminPanel() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="messaging" className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="h-5 w-5" />
+                    Broadcast to All Users
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="broadcast-title">Title (Optional)</Label>
+                    <Input
+                      id="broadcast-title"
+                      placeholder="STATFYR Announcement"
+                      value={broadcastTitle}
+                      onChange={(e) => setBroadcastTitle(e.target.value)}
+                      data-testid="input-broadcast-title"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="broadcast-message">Message *</Label>
+                    <Textarea
+                      id="broadcast-message"
+                      placeholder="Enter your announcement message..."
+                      value={broadcastMessage}
+                      onChange={(e) => setBroadcastMessage(e.target.value)}
+                      rows={4}
+                      data-testid="input-broadcast-message"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="send-push"
+                      checked={sendPush}
+                      onCheckedChange={(checked) => setSendPush(checked === true)}
+                      data-testid="checkbox-send-push"
+                    />
+                    <Label htmlFor="send-push" className="cursor-pointer">
+                      Send push notification
+                    </Label>
+                  </div>
+                  <Button
+                    onClick={async () => {
+                      if (!broadcastMessage.trim()) {
+                        toast.error("Message is required");
+                        return;
+                      }
+                      setIsSendingBroadcast(true);
+                      try {
+                        const result = await adminSendBroadcast(
+                          {
+                            title: broadcastTitle || "STATFYR Announcement",
+                            message: broadcastMessage,
+                            sendPush,
+                          },
+                          user.id
+                        );
+                        toast.success(`Broadcast sent to ${result.recipientCount} users`);
+                        setBroadcastTitle("");
+                        setBroadcastMessage("");
+                      } catch (error: any) {
+                        toast.error(error.message || "Failed to send broadcast");
+                      } finally {
+                        setIsSendingBroadcast(false);
+                      }
+                    }}
+                    disabled={isSendingBroadcast || !broadcastMessage.trim()}
+                    className="w-full"
+                    data-testid="button-send-broadcast"
+                  >
+                    {isSendingBroadcast ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Send className="h-4 w-4 mr-2" />
+                    )}
+                    Send Broadcast
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Direct Support Message
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="support-user">User ID or Email</Label>
+                    <Input
+                      id="support-user"
+                      placeholder="Enter user ID or search..."
+                      value={supportUserId}
+                      onChange={(e) => setSupportUserId(e.target.value)}
+                      data-testid="input-support-user"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Use the User Search tab to find user IDs
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="support-message">Message *</Label>
+                    <Textarea
+                      id="support-message"
+                      placeholder="Enter your support message..."
+                      value={supportMessage}
+                      onChange={(e) => setSupportMessage(e.target.value)}
+                      rows={4}
+                      data-testid="input-support-message"
+                    />
+                  </div>
+                  <Button
+                    onClick={async () => {
+                      if (!supportUserId.trim() || !supportMessage.trim()) {
+                        toast.error("User ID and message are required");
+                        return;
+                      }
+                      setIsSendingSupport(true);
+                      try {
+                        await adminSendSupportMessage(
+                          supportUserId,
+                          { message: supportMessage, sendPush: true },
+                          user.id
+                        );
+                        toast.success("Support message sent");
+                        setSupportUserId("");
+                        setSupportMessage("");
+                      } catch (error: any) {
+                        toast.error(error.message || "Failed to send message");
+                      } finally {
+                        setIsSendingSupport(false);
+                      }
+                    }}
+                    disabled={isSendingSupport || !supportUserId.trim() || !supportMessage.trim()}
+                    className="w-full"
+                    data-testid="button-send-support"
+                  >
+                    {isSendingSupport ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Send className="h-4 w-4 mr-2" />
+                    )}
+                    Send Support Message
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
 

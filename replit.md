@@ -43,7 +43,8 @@ Core entities include Users, Teams, TeamMembers, and HighlightVideos.
 - **Live Engagement Sessions (Game Day Live)**: Allows supporters to send shoutouts and taps during live events, tied to calendar events.
 - **Badge & Theme System**: Awards badges based on supporter engagement (taps), unlocking custom dashboard themes.
 - **Shareable Athlete Profiles**: Publicly accessible, read-only profiles displaying athlete stats, highlights, recent cheers, and allowing public likes/comments. Features a HYPE Post Spotlight Modal that opens immediately when arriving from a push notification with `?hypePostId=` parameter, showing the specific post in a full-screen modal with a "View HYPE Card" button.
-- **Admin Dashboard**: Centralized view for managing teams and users (security limitations noted).
+- **Admin Dashboard**: Centralized view for managing teams, users, and messaging (security limitations noted).
+- **Admin Messaging System**: Super admins can send broadcasts to all users or direct support messages to individual users. Uses `admin_messages` table for message storage with `admin_message_receipts` table for per-user read tracking. Supports optional push notifications via FCM.
 - **PWA Features**: Service worker (v1.1.7) for offline support and update notifications.
 - **Splash Screen Failsafe**: 5-second timeout in main.tsx ensures splash removal even if React fails to mount.
 - **Auth Persistence**: Explicitly set to browserLocalPersistence to keep users logged in across sessions.
