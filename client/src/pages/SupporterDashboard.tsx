@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, Settings, LogOut, Clock, Video, Trophy, BookOpen, AlertCircle, Sun, Moon, Bell, Lock, ArrowLeft, Flame } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, Settings, LogOut, Clock, Video, Trophy, BookOpen, AlertCircle, Sun, Moon, Bell, Lock, ArrowLeft, Flame, Star, Heart, Share2, X } from "lucide-react";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
@@ -56,6 +57,7 @@ export default function SupporterDashboard() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>(null);
+  const [demoModal, setDemoModal] = useState<"hype-hub" | "hype-card" | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -253,9 +255,7 @@ export default function SupporterDashboard() {
             <Card 
               onClick={() => {
                 if (!entitlements?.canUploadHighlights) {
-                  toast.error("Upgrade to Supporter Pro to unlock HYPE Hub!", {
-                    action: { label: "Upgrade", onClick: () => setLocation("/supporter/settings?tab=subscription") },
-                  });
+                  setDemoModal("hype-hub");
                   return;
                 }
                 setLocation("/supporter/hype-portal");
@@ -280,9 +280,7 @@ export default function SupporterDashboard() {
             <Card 
               onClick={() => {
                 if (!entitlements?.canViewHighlights) {
-                  toast.error("Upgrade to Supporter Pro to unlock HYPE Card!", {
-                    action: { label: "Upgrade", onClick: () => setLocation("/supporter/settings?tab=subscription") },
-                  });
+                  setDemoModal("hype-card");
                   return;
                 }
                 setLocation("/supporter/hype-card");
@@ -517,6 +515,150 @@ export default function SupporterDashboard() {
           </button>
         </Link>
       </div>
+
+      {/* Demo Modal for Locked Features */}
+      <Dialog open={demoModal !== null} onOpenChange={() => setDemoModal(null)}>
+        <DialogContent className="max-w-md p-0 overflow-hidden">
+          {demoModal === "hype-hub" && (
+            <div className="relative">
+              <div className="bg-gradient-to-br from-orange-500 via-red-500 to-orange-600 p-6 text-white">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-3 rounded-xl bg-white/20">
+                    <Flame className="h-8 w-8" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-display font-bold uppercase">HYPE Hub</h2>
+                    <p className="text-white/80 text-sm">Fire up your athlete's fans!</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                      <Heart className="h-4 w-4 text-orange-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">Post HYPE Updates</p>
+                      <p className="text-xs text-muted-foreground">Share photos, stats, and achievements with fans</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                      <Star className="h-4 w-4 text-orange-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">Celebrate Moments</p>
+                      <p className="text-xs text-muted-foreground">Highlight game-winning plays and milestones</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                      <Share2 className="h-4 w-4 text-orange-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">Share with Family</p>
+                      <p className="text-xs text-muted-foreground">Let grandparents and friends follow along</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t space-y-3">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                    onClick={() => {
+                      setDemoModal(null);
+                      setLocation("/supporter/settings?tab=subscription");
+                    }}
+                    data-testid="button-upgrade-hype-hub"
+                  >
+                    Unlock for $5.99/month
+                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Supporter Pro includes HYPE Hub, HYPE Card & Highlights
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {demoModal === "hype-card" && (
+            <div className="relative">
+              <div className="bg-gradient-to-br from-cyan-500 via-blue-500 to-cyan-600 p-6 text-white">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-3 rounded-xl bg-white/20">
+                    <Trophy className="h-8 w-8" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-display font-bold uppercase">HYPE Card</h2>
+                    <p className="text-white/80 text-sm">Your athlete's digital trading card!</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Demo Card Preview */}
+              <div className="p-6 space-y-4">
+                <div className="relative mx-auto w-48 aspect-[3/4] rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-3 shadow-xl">
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20" />
+                  <div className="relative h-full flex flex-col items-center justify-center text-white">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center mb-2">
+                      <Trophy className="h-8 w-8" />
+                    </div>
+                    <p className="font-display font-bold text-sm uppercase">Player Name</p>
+                    <p className="text-xs text-cyan-300">#00 • Position</p>
+                    <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <p className="text-lg font-bold">--</p>
+                        <p className="text-[10px] text-slate-400">PTS</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold">--</p>
+                        <p className="text-[10px] text-slate-400">AST</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold">--</p>
+                        <p className="text-[10px] text-slate-400">REB</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute inset-0 rounded-xl border border-white/10" />
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
+                      <Share2 className="h-4 w-4 text-cyan-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">Share Anywhere</p>
+                      <p className="text-xs text-muted-foreground">Download and share on social media</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t space-y-3">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+                    onClick={() => {
+                      setDemoModal(null);
+                      setLocation("/supporter/settings?tab=subscription");
+                    }}
+                    data-testid="button-upgrade-hype-card"
+                  >
+                    Unlock for $5.99/month
+                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Supporter Pro includes HYPE Hub, HYPE Card & Highlights
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
