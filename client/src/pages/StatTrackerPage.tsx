@@ -1060,39 +1060,37 @@ export default function StatTrackerPage() {
                               <X className="h-4 w-4" />
                             </Button>
                           </div>
-                          <ScrollArea className="w-full">
-                            <div className="flex gap-2 pb-1 snap-x snap-mandatory">
-                              {filteredPlayers.map(player => (
-                                <Button
-                                  key={player.id}
-                                  variant={recordedPlayerId === player.athleteId ? "default" : "outline"}
-                                  className={`flex-shrink-0 h-12 px-4 rounded-xl snap-start transition-all duration-200 ${
-                                    recordedPlayerId === player.athleteId 
-                                      ? "bg-green-500 text-white scale-105 shadow-lg" 
-                                      : "bg-white/10 dark:bg-white/5 border-white/20 hover:bg-primary hover:text-primary-foreground active:scale-95"
-                                  }`}
-                                  onClick={() => handlePlayerClick(player)}
-                                  data-testid={`button-player-${player.athleteId}`}
-                                >
-                                  {recordedPlayerId === player.athleteId ? (
-                                    <Check className="h-5 w-5 animate-pulse" />
-                                  ) : (
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-mono text-sm font-bold">
-                                        #{player.jerseyNumber || "--"}
-                                      </span>
-                                      <span className="text-sm font-medium">
-                                        {player.athlete.firstName}
-                                      </span>
-                                    </div>
-                                  )}
-                                </Button>
-                              ))}
-                              {filteredPlayers.length === 0 && (
-                                <span className="text-sm text-muted-foreground py-3">No eligible players</span>
-                              )}
-                            </div>
-                          </ScrollArea>
+                          <div className="grid grid-cols-3 gap-2">
+                            {filteredPlayers.map(player => (
+                              <Button
+                                key={player.id}
+                                variant={recordedPlayerId === player.athleteId ? "default" : "outline"}
+                                className={`h-14 px-2 rounded-xl transition-all duration-200 flex flex-col items-center justify-center ${
+                                  recordedPlayerId === player.athleteId 
+                                    ? "bg-green-500 text-white scale-105 shadow-lg" 
+                                    : "bg-white/10 dark:bg-white/5 border-white/20 hover:bg-primary hover:text-primary-foreground active:scale-95"
+                                }`}
+                                onClick={() => handlePlayerClick(player)}
+                                data-testid={`button-player-${player.athleteId}`}
+                              >
+                                {recordedPlayerId === player.athleteId ? (
+                                  <Check className="h-5 w-5 animate-pulse" />
+                                ) : (
+                                  <>
+                                    <span className="font-mono text-sm font-bold">
+                                      #{player.jerseyNumber || "--"}
+                                    </span>
+                                    <span className="text-xs font-medium truncate max-w-full">
+                                      {player.athlete.firstName}
+                                    </span>
+                                  </>
+                                )}
+                              </Button>
+                            ))}
+                            {filteredPlayers.length === 0 && (
+                              <span className="col-span-3 text-center text-sm text-muted-foreground py-3">No eligible players</span>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
