@@ -2,7 +2,6 @@ import { TeamBadge } from "@/components/TeamBadge";
 import { Trophy, Shield, Star, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { QRCodeSVG } from "qrcode.react";
 
 interface TeamData {
   id: string;
@@ -136,33 +135,18 @@ export function TeamHeroCard({
 
           {/* Team Code or Action Slot */}
           {showCode && team.code ? (
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={handleCopyCode}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30 hover:bg-white/30 transition-all"
-                data-testid="button-copy-team-code"
-              >
-                <span className="font-mono font-bold text-lg tracking-widest">{team.code}</span>
-                {copied ? (
-                  <Check className="h-5 w-5 text-green-300" />
-                ) : (
-                  <Copy className="h-5 w-5 text-white/70" />
-                )}
-              </button>
-              <div 
-                className="bg-white p-2 rounded-xl shadow-lg"
-                title="Scan to join team"
-                data-testid="qr-team-code"
-              >
-                <QRCodeSVG 
-                  value={`${window.location.origin}/join?code=${team.code}`}
-                  size={56}
-                  level="M"
-                  bgColor="#ffffff"
-                  fgColor="#000000"
-                />
-              </div>
-            </div>
+            <button 
+              onClick={handleCopyCode}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30 hover:bg-white/30 transition-all"
+              data-testid="button-copy-team-code"
+            >
+              <span className="font-mono font-bold text-lg tracking-widest">{team.code}</span>
+              {copied ? (
+                <Check className="h-5 w-5 text-green-300" />
+              ) : (
+                <Copy className="h-5 w-5 text-white/70" />
+              )}
+            </button>
           ) : actionSlot ? (
             <div className="w-full">
               {actionSlot}

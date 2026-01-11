@@ -62,16 +62,15 @@ import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/O
 import { VideoUploader } from "@/components/VideoUploader";
 import { PlaybookCanvas } from "@/components/PlaybookCanvas";
 import { TeamBadge } from "@/components/TeamBadge";
-import { QRCodeSVG } from "qrcode.react";
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
 import {
   Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, 
   Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, 
-  Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Share2, Bell,
+  Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Bell,
   ArrowLeft, MapPin, Clock, Utensils, Coffee, MoreVertical, UserCog, UserMinus, 
   Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User, Calendar,
-  List, Grid, Lock, Crown, QrCode
+  List, Grid, Lock, Crown
 } from "lucide-react";
 
 import {
@@ -142,7 +141,6 @@ export default function UnifiedDashboard() {
   const [mounted, setMounted] = useState(false);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
-  const [showQRModal, setShowQRModal] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const [rosterTab, setRosterTab] = useState<"all" | "athletes" | "coach" | "supporters">("all");
@@ -997,14 +995,6 @@ export default function UnifiedDashboard() {
                         data-testid="button-copy-team-code"
                       >
                         <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        onClick={() => setShowQRModal(true)}
-                        data-testid="button-show-qr"
-                      >
-                        <QrCode className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -2612,26 +2602,15 @@ export default function UnifiedDashboard() {
                 <div className="flex items-center gap-3 mb-4 landscape:mb-5 flex-wrap">
                   <h2 className="text-xl landscape:text-2xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
                   {currentTeam?.code && userRole === "coach" && (
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                        variant="outline" 
-                        className="gap-1 cursor-pointer hover:bg-primary/10 font-mono"
-                        onClick={handleCopyCode}
-                        data-testid="badge-team-code"
-                      >
-                        Team Code: {currentTeam.code}
-                        {codeCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                      </Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-6 px-2 text-xs"
-                        onClick={() => setShowQRModal(true)}
-                        data-testid="button-show-qr"
-                      >
-                        QR
-                      </Button>
-                    </div>
+                    <Badge 
+                      variant="outline" 
+                      className="gap-1 cursor-pointer hover:bg-primary/10 font-mono"
+                      onClick={handleCopyCode}
+                      data-testid="badge-team-code"
+                    >
+                      Team Code: {currentTeam.code}
+                      {codeCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    </Badge>
                   )}
                 </div>
                 {/* Cards Grid */}
@@ -2851,34 +2830,6 @@ export default function UnifiedDashboard() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
-        {/* QR Code Modal */}
-        <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
-          <DialogContent className="max-w-xs">
-            <DialogHeader>
-              <DialogTitle className="text-center">Scan to Join Team</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col items-center gap-4 py-4">
-              {currentTeam?.code && (
-                <div className="bg-white p-4 rounded-xl">
-                  <QRCodeSVG 
-                    value={`${window.location.origin}/join?code=${currentTeam.code}`}
-                    size={200}
-                    level="M"
-                    bgColor="#ffffff"
-                    fgColor="#000000"
-                  />
-                </div>
-              )}
-              <p className="text-sm text-muted-foreground text-center">
-                Athletes and supporters can scan this code to join <span className="font-bold">{currentTeam?.name}</span>
-              </p>
-              <Badge variant="outline" className="font-mono text-lg px-4 py-2">
-                {currentTeam?.code}
-              </Badge>
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Edit Member Dialog */}
         <Dialog open={!!editingMember} onOpenChange={(open) => !open && setEditingMember(null)}>
