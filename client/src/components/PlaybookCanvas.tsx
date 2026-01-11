@@ -150,12 +150,31 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       if (container) {
         const width = container.clientWidth;
         const normalizedSport = sport?.toLowerCase();
-        const isHalfFieldSport = ["basketball", "football", "soccer"].includes(normalizedSport);
-        const baseHeight = isHalfFieldSport 
-          ? Math.max(450, (window.innerHeight - 200) * 0.7)
-          : Math.max(650, (window.innerHeight - 200) * 1.2);
-        // Double the height when showing full court/field (extended view)
-        const height = (showFullCourt && isHalfFieldSport) ? baseHeight * 2 : baseHeight;
+        const isExtendableSport = ["basketball", "football", "soccer"].includes(normalizedSport);
+        
+        // Calculate height based on full field dimensions, then show half or full
+        let fullHeight: number;
+        if (normalizedSport === "basketball" && basketballImageRef.current) {
+          // Basketball: full court is 2x as tall as half court
+          const img = basketballImageRef.current;
+          fullHeight = width * img.naturalHeight / img.naturalWidth;
+        } else if (normalizedSport === "football" && footballImageRef.current) {
+          const img = footballImageRef.current;
+          fullHeight = width * img.naturalHeight / img.naturalWidth;
+        } else if (normalizedSport === "soccer" && soccerImageRef.current) {
+          // Soccer is rotated, so swap dimensions
+          const img = soccerImageRef.current;
+          fullHeight = width * img.naturalWidth / img.naturalHeight;
+        } else {
+          // Fallback
+          fullHeight = Math.max(900, (window.innerHeight - 200) * 1.4);
+        }
+        
+        // Ensure minimum height
+        fullHeight = Math.max(fullHeight, 600);
+        
+        // Show half or full based on toggle
+        const height = (showFullCourt && isExtendableSport) ? fullHeight : fullHeight / 2;
         setCanvasSize({ width, height });
       }
     };
@@ -163,7 +182,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     updateCanvasSize();
     window.addEventListener("resize", updateCanvasSize);
     return () => window.removeEventListener("resize", updateCanvasSize);
-  }, [sport, showFullCourt]);
+  }, [sport, showFullCourt, sportImagesLoaded]);
 
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -221,70 +240,15 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const drawBasketballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (basketballImageRef.current) {
       const img = basketballImageRef.current;
-      const imgWidth = img.naturalWidth;
-      const imgHeight = img.naturalHeight;
+      const imgAspect = img.naturalWidth / img.naturalHeight;
       
-      if (showFullCourt) {
-        // Extended view: stack both halves vertically
-        const halfHeight = height / 2;
-        
-        // Primary half (right side of image) stays on TOP
-        const srcAspect = (imgWidth / 2) / imgHeight;
-        let drawWidth = width;
-        let drawHeight = width / srcAspect;
-        let offsetX = 0;
-        let offsetY = (halfHeight - drawHeight) / 2;
-        
-        if (drawHeight > halfHeight) {
-          drawHeight = halfHeight;
-          drawWidth = halfHeight * srcAspect;
-          offsetX = (width - drawWidth) / 2;
-          offsetY = 0;
-        }
-        
-        // Draw secondary half (left side) on top - the extension (other end of court)
-        ctx.drawImage(
-          img,
-          0, 0, imgWidth / 2, imgHeight,
-          offsetX, offsetY, drawWidth, drawHeight
-        );
-        
-        // Draw primary half (right side) on bottom - this is what user sees in half-court mode
-        ctx.drawImage(
-          img,
-          imgWidth / 2, 0, imgWidth / 2, imgHeight,
-          offsetX, halfHeight + offsetY, drawWidth, drawHeight
-        );
-      } else {
-        // Half court view (default)
-        const srcX = imgWidth / 2;
-        const srcY = 0;
-        const srcW = imgWidth / 2;
-        const srcH = imgHeight;
-        
-        const srcAspect = srcW / srcH;
-        const canvasAspect = width / height;
-        
-        let drawWidth, drawHeight, offsetX, offsetY;
-        
-        if (canvasAspect > srcAspect) {
-          drawHeight = height;
-          drawWidth = height * srcAspect;
-          offsetX = (width - drawWidth) / 2;
-          offsetY = 0;
-        } else {
-          drawWidth = width;
-          drawHeight = width / srcAspect;
-          offsetX = 0;
-          offsetY = (height - drawHeight) / 2;
-        }
-        
-        ctx.drawImage(
-          img,
-          srcX, srcY, srcW, srcH,
-          offsetX, offsetY, drawWidth, drawHeight
-        );
-      }
+      // Calculate full image dimensions to fill width
+      const fullHeight = showFullCourt ? height : height * 2;
+      const drawWidth = width;
+      const drawHeight = fullHeight;
+      
+      // Draw full image - canvas height handles the cropping
+      ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
     } else {
       ctx.fillStyle = "#CD853F";
       ctx.fillRect(0, 0, width, height);
@@ -294,65 +258,14 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const drawFootballField = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (footballImageRef.current) {
       const img = footballImageRef.current;
-      const imgWidth = img.naturalWidth;
-      const imgHeight = img.naturalHeight;
       
-      if (showFullCourt) {
-        // Extended view: stack both halves vertically
-        const halfHeight = height / 2;
-        
-        // Primary half (top of image) stays on TOP - this is what user sees in half-field mode
-        const srcAspect = imgWidth / (imgHeight / 2);
-        let drawWidth = width;
-        let drawHeight = width / srcAspect;
-        let offsetX = 0;
-        let offsetY = (halfHeight - drawHeight) / 2;
-        
-        if (drawHeight > halfHeight) {
-          drawHeight = halfHeight;
-          drawWidth = halfHeight * srcAspect;
-          offsetX = (width - drawWidth) / 2;
-          offsetY = 0;
-        }
-        
-        // Draw secondary half (bottom of image) on top - the extension (other end of field)
-        ctx.drawImage(
-          img,
-          0, imgHeight / 2, imgWidth, imgHeight / 2,
-          offsetX, offsetY, drawWidth, drawHeight
-        );
-        
-        // Draw primary half (top of image) on bottom - this is what user sees in half-field mode
-        ctx.drawImage(
-          img,
-          0, 0, imgWidth, imgHeight / 2,
-          offsetX, halfHeight + offsetY, drawWidth, drawHeight
-        );
-      } else {
-        // Half field view (default)
-        const srcAspect = imgWidth / (imgHeight / 2);
-        const canvasAspect = width / height;
-        
-        let drawWidth, drawHeight, offsetX, offsetY;
-        
-        if (canvasAspect > srcAspect) {
-          drawHeight = height;
-          drawWidth = height * srcAspect;
-          offsetX = (width - drawWidth) / 2;
-          offsetY = 0;
-        } else {
-          drawWidth = width;
-          drawHeight = width / srcAspect;
-          offsetX = 0;
-          offsetY = (height - drawHeight) / 2;
-        }
-        
-        ctx.drawImage(
-          img,
-          0, 0, imgWidth, imgHeight / 2,
-          offsetX, offsetY, drawWidth, drawHeight
-        );
-      }
+      // Calculate full image dimensions to fill width
+      const fullHeight = showFullCourt ? height : height * 2;
+      const drawWidth = width;
+      const drawHeight = fullHeight;
+      
+      // Draw full image - canvas height handles the cropping
+      ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
     } else {
       ctx.fillStyle = "#1a472a";
       ctx.fillRect(0, 0, width, height);
@@ -362,77 +275,18 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const drawSoccerPitch = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (soccerImageRef.current) {
       const img = soccerImageRef.current;
-      const imgWidth = img.naturalWidth;
-      const imgHeight = img.naturalHeight;
       
-      if (showFullCourt) {
-        // Extended view: stack both halves vertically (rotated)
-        const halfHeight = height / 2;
-        
-        // For soccer, we rotate 90 degrees, so we use half of imgWidth as source
-        const srcAspect = imgHeight / (imgWidth / 2);
-        let drawWidth = width;
-        let drawHeight = width / srcAspect;
-        let offsetX = 0;
-        let offsetY = (halfHeight - drawHeight) / 2;
-        
-        if (drawHeight > halfHeight) {
-          drawHeight = halfHeight;
-          drawWidth = halfHeight * srcAspect;
-          offsetX = (width - drawWidth) / 2;
-          offsetY = 0;
-        }
-        
-        // Draw secondary half (left side of image, rotated) on TOP - the extension (other end of pitch)
-        ctx.save();
-        ctx.translate(offsetX + drawWidth / 2, offsetY + drawHeight / 2);
-        ctx.rotate(Math.PI / 2);
-        ctx.drawImage(
-          img,
-          0, 0, imgWidth / 2, imgHeight,
-          -drawHeight / 2, -drawWidth / 2, drawHeight, drawWidth
-        );
-        ctx.restore();
-        
-        // Draw primary half (right side of image, rotated) on BOTTOM - same as half-pitch mode
-        ctx.save();
-        ctx.translate(offsetX + drawWidth / 2, halfHeight + offsetY + drawHeight / 2);
-        ctx.rotate(Math.PI / 2);
-        ctx.drawImage(
-          img,
-          imgWidth / 2, 0, imgWidth / 2, imgHeight,
-          -drawHeight / 2, -drawWidth / 2, drawHeight, drawWidth
-        );
-        ctx.restore();
-      } else {
-        // Half pitch view (default, rotated)
-        const srcAspect = imgHeight / (imgWidth / 2);
-        const canvasAspect = width / height;
-        
-        let drawWidth, drawHeight, offsetX, offsetY;
-        
-        if (canvasAspect > srcAspect) {
-          drawHeight = height;
-          drawWidth = height * srcAspect;
-          offsetX = (width - drawWidth) / 2;
-          offsetY = 0;
-        } else {
-          drawWidth = width;
-          drawHeight = width / srcAspect;
-          offsetX = 0;
-          offsetY = (height - drawHeight) / 2;
-        }
-        
-        ctx.save();
-        ctx.translate(offsetX + drawWidth / 2, offsetY + drawHeight / 2);
-        ctx.rotate(Math.PI / 2);
-        ctx.drawImage(
-          img,
-          imgWidth / 2, 0, imgWidth / 2, imgHeight,
-          -drawHeight / 2, -drawWidth / 2, drawHeight, drawWidth
-        );
-        ctx.restore();
-      }
+      // Calculate full image dimensions (rotated 90 degrees)
+      const fullHeight = showFullCourt ? height : height * 2;
+      const drawWidth = width;
+      const drawHeight = fullHeight;
+      
+      // Draw full image rotated 90 degrees - canvas height handles the cropping
+      ctx.save();
+      ctx.translate(drawWidth / 2, drawHeight / 2);
+      ctx.rotate(Math.PI / 2);
+      ctx.drawImage(img, -drawHeight / 2, -drawWidth / 2, drawHeight, drawWidth);
+      ctx.restore();
     } else {
       ctx.fillStyle = "#228B22";
       ctx.fillRect(0, 0, width, height);
