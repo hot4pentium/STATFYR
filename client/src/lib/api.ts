@@ -28,6 +28,9 @@ export interface Team {
   teamColor?: string | null;
   coachId?: string | null;
   createdAt?: string | null;
+  wins?: number;
+  losses?: number;
+  ties?: number;
 }
 
 export interface TeamMember {
