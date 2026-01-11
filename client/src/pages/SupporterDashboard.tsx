@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, Settings, LogOut, Clock, Video, Trophy, BookOpen, AlertCircle, Sun, Moon, Bell, Lock, ArrowLeft, Flame, Star, Heart, Share2, X } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, Settings, LogOut, Clock, Video, Trophy, BookOpen, AlertCircle, Sun, Moon, Bell, Lock, ArrowLeft, Flame, Star, Heart, Share2, X, ChevronDown } from "lucide-react";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
@@ -58,6 +59,7 @@ export default function SupporterDashboard() {
   const [mounted, setMounted] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>(null);
   const [demoModal, setDemoModal] = useState<"hype-hub" | "hype-card" | null>(null);
+  const [selectedAthleteIndex, setSelectedAthleteIndex] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -126,7 +128,7 @@ export default function SupporterDashboard() {
   // Allow independent mode - don't redirect if no team
   const isIndependentMode = !currentTeam;
 
-  // Fetch managed athletes for independent mode
+  // Fetch managed athletes
   const { data: managedAthletes = [] } = useQuery({
     queryKey: ["/api/supporter/managed-athletes", user?.id],
     queryFn: async () => {
@@ -137,8 +139,11 @@ export default function SupporterDashboard() {
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: !!user?.id && isIndependentMode,
+    enabled: !!user?.id,
   });
+
+  // Get the currently selected athlete (for profile switching)
+  const selectedAthlete = managedAthletes[selectedAthleteIndex] || managedAthletes[0];
 
   const handleLogout = () => {
     logout();
@@ -180,7 +185,7 @@ export default function SupporterDashboard() {
 
   const welcomeModal: WelcomeModal = isIndependentMode ? {
     title: "Welcome, Supporter!",
-    subtitle: `Managing ${managedAthletes[0]?.athleteName || "your athlete"}`,
+    subtitle: `Managing ${selectedAthlete?.athleteName || "your athlete"}`,
     description: "Track stats, share HYPE posts, and create a digital trading card for your athlete!",
     buttonText: "Let's Go!"
   } : {
@@ -294,10 +299,10 @@ export default function SupporterDashboard() {
             <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
             <div className="relative p-4 md:p-8 flex flex-row gap-4 md:gap-6 items-center">
               <Avatar className="h-16 w-16 sm:h-24 sm:w-24 rounded-xl border-2 border-primary/50 shadow-lg">
-                <AvatarImage src={isIndependentMode ? (managedAthletes[0]?.profileImageUrl || "") : (user?.avatar || "")} className="object-cover" />
+                <AvatarImage src={isIndependentMode ? (selectedAthlete?.profileImageUrl || "") : (user?.avatar || "")} className="object-cover" />
                 <AvatarFallback className="text-xl font-bold bg-primary/20 rounded-xl">
                   {isIndependentMode 
-                    ? (managedAthletes[0]?.athleteName || "A").charAt(0).toUpperCase()
+                    ? (selectedAthlete?.athleteName || "A").charAt(0).toUpperCase()
                     : (user?.name || user?.username || "S").charAt(0).toUpperCase()
                   }
                 </AvatarFallback>
@@ -306,11 +311,41 @@ export default function SupporterDashboard() {
                 {isIndependentMode ? (
                   <>
                     <p className="text-xs text-primary font-bold uppercase tracking-wider">Independent Mode</p>
-                    <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
-                      {managedAthletes[0]?.athleteName || "My Athlete"}
-                    </h1>
+                    {managedAthletes.length > 1 ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="flex items-center gap-2 text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide hover:opacity-80 transition-opacity" data-testid="button-switch-athlete">
+                            {selectedAthlete?.athleteName || "My Athlete"}
+                            <ChevronDown className="h-5 w-5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          {managedAthletes.map((athlete: any, index: number) => (
+                            <DropdownMenuItem 
+                              key={athlete.id}
+                              onClick={() => setSelectedAthleteIndex(index)}
+                              className={selectedAthleteIndex === index ? "bg-primary/10" : ""}
+                              data-testid={`athlete-option-${athlete.id}`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={athlete.profileImageUrl || ""} />
+                                  <AvatarFallback className="text-xs">{(athlete.athleteName || "A").charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span>{athlete.athleteName}</span>
+                                {athlete.teamId && <Badge variant="outline" className="text-[10px] ml-1">Team</Badge>}
+                              </div>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
+                        {selectedAthlete?.athleteName || "My Athlete"}
+                      </h1>
+                    )}
                     <p className="text-sm text-muted-foreground mt-1">
-                      {managedAthletes[0]?.sport} {managedAthletes[0]?.position ? `• ${managedAthletes[0].position}` : ""} {managedAthletes[0]?.number ? `• #${managedAthletes[0].number}` : ""}
+                      {selectedAthlete?.sport} {selectedAthlete?.position ? `• ${selectedAthlete.position}` : ""} {selectedAthlete?.number ? `• #${selectedAthlete.number}` : ""}
                     </p>
                     <Button 
                       variant="outline" 
@@ -451,20 +486,20 @@ export default function SupporterDashboard() {
               </div>
 
               {/* Athlete Profile Section - Independent Mode Only */}
-              {activeSection === "athlete-profile" && isIndependentMode && managedAthletes[0] && (
+              {activeSection === "athlete-profile" && isIndependentMode && selectedAthlete && (
                 <Card className="bg-white/80 dark:bg-slate-900/80">
                   <CardContent className="p-6 space-y-4">
                     <div className="flex items-center gap-4">
                       <Avatar className="h-20 w-20 rounded-xl">
-                        <AvatarImage src={managedAthletes[0].profileImageUrl || ""} />
+                        <AvatarImage src={selectedAthlete.profileImageUrl || ""} />
                         <AvatarFallback className="text-2xl rounded-xl">
-                          {(managedAthletes[0].athleteName || "A").charAt(0)}
+                          {(selectedAthlete.athleteName || "A").charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold">{managedAthletes[0].athleteName}</h3>
+                        <h3 className="text-xl font-bold">{selectedAthlete.athleteName}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {managedAthletes[0].sport} {managedAthletes[0].position ? `• ${managedAthletes[0].position}` : ""} {managedAthletes[0].number ? `• #${managedAthletes[0].number}` : ""}
+                          {selectedAthlete.sport} {selectedAthlete.position ? `• ${selectedAthlete.position}` : ""} {selectedAthlete.number ? `• #${selectedAthlete.number}` : ""}
                         </p>
                       </div>
                     </div>
