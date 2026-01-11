@@ -12,13 +12,13 @@ interface EntitlementsContextType {
   refetch: () => Promise<void>;
 }
 
-// TESTING MODE: All entitlements enabled for testing
+// TESTING MODE: Supporter premium features locked for demo
 const defaultEntitlements: Entitlements = {
   canUseStatTracker: true,
   canEditPlayMaker: true,
-  canUploadHighlights: true,
+  canUploadHighlights: false, // Supporter Pro - locked for demo
   canViewIndividualStats: true,
-  canViewHighlights: true,
+  canViewHighlights: false, // Supporter Pro - locked for demo
   canViewRoster: true,
   canViewPlaybook: true,
   canUseChat: true,
