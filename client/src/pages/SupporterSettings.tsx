@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, UserPlus, Trash2, Camera, Pencil } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
@@ -13,7 +13,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getManagedAthletes, createManagedAthlete, deleteManagedAthlete, type ManagedAthlete } from "@/lib/api";
 
 export default function SupporterSettings() {
-  const { user: contextUser, updateUser } = useUser();
+  const [, setLocation] = useLocation();
+  const { user: contextUser, updateUser, currentTeam } = useUser();
   const queryClient = useQueryClient();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -406,6 +407,28 @@ export default function SupporterSettings() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Join a Team - Only show for independent supporters */}
+            {!currentTeam && (
+              <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+                <CardHeader>
+                  <CardTitle className="text-lg font-display font-bold uppercase tracking-wide flex items-center gap-2">
+                    <UserPlus className="h-5 w-5 text-primary" />
+                    Join a Team
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">Connect with your athlete's coach to see team events, roster, and playbook</p>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    onClick={() => setLocation("/supporter/onboarding?step=team-code")}
+                    className="w-full"
+                    data-testid="button-join-team-settings"
+                  >
+                    I Have a Team Code
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="bg-card/80 backdrop-blur-sm border-white/5">
               <CardHeader>

@@ -46,7 +46,7 @@ const formatTextDate = (dateStr: string, formatType: "date" | "time" | "full" = 
   return format(parsed, "EEEE, MMM d, yyyy") + " at " + (dateStr.split(" ").slice(1).join(" "));
 };
 
-type SectionType = "schedule" | "roster" | "stats" | "highlights" | "playbook" | "chat" | null;
+type SectionType = "schedule" | "roster" | "stats" | "highlights" | "playbook" | "chat" | "athlete-profile" | null;
 
 export default function SupporterDashboard() {
   const [, setLocation] = useLocation();
@@ -123,11 +123,22 @@ export default function SupporterDashboard() {
     }
   }, [user, isLoading, setLocation]);
 
-  useEffect(() => {
-    if (!isLoading && user && !currentTeam) {
-      setLocation("/supporter/onboarding");
-    }
-  }, [user, currentTeam, isLoading, setLocation]);
+  // Allow independent mode - don't redirect if no team
+  const isIndependentMode = !currentTeam;
+
+  // Fetch managed athletes for independent mode
+  const { data: managedAthletes = [] } = useQuery({
+    queryKey: ["/api/supporter/managed-athletes", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const res = await fetch(`/api/supporter/managed-athletes`, {
+        headers: { "x-user-id": user.id },
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!user?.id && isIndependentMode,
+  });
 
   const handleLogout = () => {
     logout();
@@ -151,7 +162,13 @@ export default function SupporterDashboard() {
     setLocation(`/supporter/dashboard?section=${cardId}`);
   };
 
-  const navCards = [
+  // Different nav cards for independent vs team mode
+  const navCards = isIndependentMode ? [
+    { id: "athlete-profile", name: "My Athlete", icon: Users, description: "Edit athlete profile & photo.", locked: false },
+    { id: "schedule", name: "Calendar", icon: CalendarIcon, description: "Track games & practices.", locked: false },
+    { id: "stats", name: "Stats", icon: BarChart3, description: "Track your athlete's stats.", locked: false },
+    { id: "highlights", name: "Highlights", icon: Video, description: "Upload video highlights.", locked: !entitlements?.canViewHighlights },
+  ] : [
     { id: "roster", name: "Roster", icon: Users, description: "Access and view player roster.", locked: false },
     { id: "schedule", name: "Calendar", icon: CalendarIcon, description: "View and manage team schedule.", locked: false },
     { id: "playbook", name: "Playbook", icon: BookOpen, description: "View team plays and formations.", locked: false },
@@ -160,24 +177,72 @@ export default function SupporterDashboard() {
     { id: "chat", name: "Team Chat", icon: MessageSquare, description: "Message your team.", locked: false },
   ];
 
-  const welcomeModal: WelcomeModal = {
+  const welcomeModal: WelcomeModal = isIndependentMode ? {
+    title: "Welcome, Supporter!",
+    subtitle: `Managing ${managedAthletes[0]?.athleteName || "your athlete"}`,
+    description: "Track stats, share HYPE posts, and create a digital trading card for your athlete!",
+    buttonText: "Let's Go!"
+  } : {
     title: "Welcome, Supporter!",
     subtitle: `Cheering for ${currentTeam?.name || "the team"}`,
     description: "You're all set to support your athletes! Let us show you around so you can stay connected.",
     buttonText: "Let's Go!"
   };
 
-  const tourSteps: TourStep[] = [
+  const tourSteps: TourStep[] = isIndependentMode ? [
+    { target: '[data-testid="card-hype-hub"]', title: "HYPE Hub", description: "Post updates about your athlete.", position: "bottom" },
+    { target: '[data-testid="card-hype-card"]', title: "HYPE Card", description: "Create a shareable trading card.", position: "bottom" },
+    { target: '[data-testid="card-nav-stats"]', title: "Stats", description: "Track your athlete's performance.", position: "bottom" },
+  ] : [
     { target: '[data-testid="card-nav-schedule"]', title: "Team Calendar", description: "View upcoming games and practices.", position: "bottom" },
     { target: '[data-testid="card-nav-roster"]', title: "Team Roster", description: "See all team members.", position: "bottom" },
     { target: '[data-testid="card-nav-stats"]', title: "Team Stats", description: "View team performance.", position: "bottom" },
   ];
 
-  if (isLoading || !user || !currentTeam) {
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
+    );
+  }
+
+  // Check if independent supporter has no managed athletes yet
+  if (isIndependentMode && managedAthletes.length === 0) {
+    return (
+      <>
+        <DashboardBackground />
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <Card className="max-w-md w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur">
+            <CardContent className="p-6 text-center space-y-4">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                <Users className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-xl font-display font-bold uppercase">Get Started</h2>
+              <p className="text-sm text-muted-foreground">
+                Add your athlete to start tracking their stats, creating HYPE posts, and more!
+              </p>
+              <div className="space-y-3 pt-2">
+                <Button 
+                  className="w-full" 
+                  onClick={() => setLocation("/supporter/onboarding")}
+                  data-testid="button-add-athlete"
+                >
+                  Add Your Athlete
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setLocation("/supporter/onboarding?step=team-code")}
+                  data-testid="button-join-team"
+                >
+                  I Have a Team Code
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </>
     );
   }
 
@@ -223,30 +288,57 @@ export default function SupporterDashboard() {
         )}
 
         <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          {/* Hero Section - Different for Independent vs Team mode */}
           <div ref={heroRef} className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-orange-50 via-white to-orange-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border border-orange-200 dark:border-orange-500/20">
             <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
             <div className="relative p-4 md:p-8 flex flex-row gap-4 md:gap-6 items-center">
               <Avatar className="h-16 w-16 sm:h-24 sm:w-24 rounded-xl border-2 border-primary/50 shadow-lg">
-                <AvatarImage src={user?.avatar || ""} className="object-cover" />
+                <AvatarImage src={isIndependentMode ? (managedAthletes[0]?.profileImageUrl || "") : (user?.avatar || "")} className="object-cover" />
                 <AvatarFallback className="text-xl font-bold bg-primary/20 rounded-xl">
-                  {(user?.name || user?.username || "S").charAt(0).toUpperCase()}
+                  {isIndependentMode 
+                    ? (managedAthletes[0]?.athleteName || "A").charAt(0).toUpperCase()
+                    : (user?.name || user?.username || "S").charAt(0).toUpperCase()
+                  }
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-orange-500 font-bold uppercase tracking-wider">{currentTeam?.name}</p>
-                <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
-                  Supporter Dashboard
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1">Welcome, {user?.name?.split(' ')[0] || user?.username}!</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="flex items-center gap-1 px-2 py-0.5 bg-muted/50 rounded border border-muted-foreground/20">
-                    <span className="text-xs font-bold text-green-500">{currentTeam?.wins || 0}W</span>
-                    <span className="text-muted-foreground/50">-</span>
-                    <span className="text-xs font-bold text-red-500">{currentTeam?.losses || 0}L</span>
-                    <span className="text-muted-foreground/50">-</span>
-                    <span className="text-xs font-bold text-yellow-500">{currentTeam?.ties || 0}T</span>
-                  </div>
-                </div>
+                {isIndependentMode ? (
+                  <>
+                    <p className="text-xs text-orange-500 font-bold uppercase tracking-wider">Independent Mode</p>
+                    <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
+                      {managedAthletes[0]?.athleteName || "My Athlete"}
+                    </h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {managedAthletes[0]?.sport} {managedAthletes[0]?.position ? `• ${managedAthletes[0].position}` : ""} {managedAthletes[0]?.number ? `• #${managedAthletes[0].number}` : ""}
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-2 text-xs"
+                      onClick={() => setLocation("/supporter/onboarding?step=team-code")}
+                      data-testid="button-join-team-hero"
+                    >
+                      Join a Team
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-orange-500 font-bold uppercase tracking-wider">{currentTeam?.name}</p>
+                    <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
+                      Supporter Dashboard
+                    </h1>
+                    <p className="text-sm text-muted-foreground mt-1">Welcome, {user?.name?.split(' ')[0] || user?.username}!</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <div className="flex items-center gap-1 px-2 py-0.5 bg-muted/50 rounded border border-muted-foreground/20">
+                        <span className="text-xs font-bold text-green-500">{currentTeam?.wins || 0}W</span>
+                        <span className="text-muted-foreground/50">-</span>
+                        <span className="text-xs font-bold text-red-500">{currentTeam?.losses || 0}L</span>
+                        <span className="text-muted-foreground/50">-</span>
+                        <span className="text-xs font-bold text-yellow-500">{currentTeam?.ties || 0}T</span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -348,12 +440,55 @@ export default function SupporterDashboard() {
                 </h2>
               </div>
 
+              {/* Athlete Profile Section - Independent Mode Only */}
+              {activeSection === "athlete-profile" && isIndependentMode && managedAthletes[0] && (
+                <Card className="bg-white/80 dark:bg-slate-900/80">
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-20 w-20 rounded-xl">
+                        <AvatarImage src={managedAthletes[0].profileImageUrl || ""} />
+                        <AvatarFallback className="text-2xl rounded-xl">
+                          {(managedAthletes[0].athleteName || "A").charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold">{managedAthletes[0].athleteName}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {managedAthletes[0].sport} {managedAthletes[0].position ? `• ${managedAthletes[0].position}` : ""} {managedAthletes[0].number ? `• #${managedAthletes[0].number}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="pt-4 border-t space-y-3">
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => setLocation("/supporter/onboarding?edit=true")}
+                        data-testid="button-edit-athlete"
+                      >
+                        Edit Profile
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => setLocation("/supporter/onboarding")}
+                        data-testid="button-add-another-athlete"
+                      >
+                        Add Another Athlete
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {activeSection === "schedule" && (
                 <div className="space-y-4">
-                  {teamEvents.length === 0 ? (
+                  {(isIndependentMode ? [] : teamEvents).length === 0 ? (
                     <Card className="p-8 text-center">
                       <CalendarIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                      <p className="text-lg font-bold">No events scheduled</p>
+                      <p className="text-lg font-bold">{isIndependentMode ? "No events yet" : "No events scheduled"}</p>
+                      {isIndependentMode && (
+                        <p className="text-sm text-muted-foreground mt-2">Join a team to see their schedule, or track your own games.</p>
+                      )}
                     </Card>
                   ) : (
                     teamEvents.map((event: Event) => (
