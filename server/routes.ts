@@ -4747,6 +4747,12 @@ export async function registerRoutes(
         return res.status(400).json({ error: "athleteName and sport are required" });
       }
 
+      // Verify the supporter exists in the database (handles stale sessions)
+      const supporter = await storage.getUser(supporterId);
+      if (!supporter) {
+        return res.status(401).json({ error: "Session expired. Please log out and log back in." });
+      }
+
       const managedAthlete = await storage.createManagedAthlete({
         supporterId,
         athleteId: null,

@@ -149,7 +149,12 @@ export default function SupporterOnboarding() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create athlete");
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+          toast.error("Your session has expired. Please log out and log back in.");
+          return;
+        }
+        throw new Error(errorData.error || "Failed to create athlete");
       }
 
       const result = await response.json();
@@ -158,8 +163,8 @@ export default function SupporterOnboarding() {
       setTimeout(() => {
         setLocation("/supporter/dashboard");
       }, 1500);
-    } catch (error) {
-      toast.error("Failed to create athlete. Please try again.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create athlete. Please try again.");
     } finally {
       setIsCreating(false);
     }
