@@ -294,6 +294,24 @@ function StatTrackingInterface({ eventId, event, managedAthleteId, athleteName, 
           </button>
         </div>
       )}
+      
+      <Button 
+        variant="outline" 
+        className="w-full border-red-500/30 text-red-500 hover:bg-red-500/10"
+        onClick={() => {
+          if (window.confirm(`End game? Final score: ${ourScore} - ${theirScore}`)) {
+            updateSupporterStatSession(activeSessionId, userId, { 
+              status: "completed",
+              endedAt: new Date().toISOString()
+            }).then(() => {
+              toast.success("Game saved!");
+              onClose();
+            });
+          }
+        }}
+      >
+        End Game & Save
+      </Button>
     </div>
   );
 }
