@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation, useSearch } from "wouter";
-import { User, Users, Clipboard, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { User, Users, Clipboard, ArrowLeft, Eye, EyeOff, LogOut } from "lucide-react";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
 import { registerUser, loginUser, getUserTeams } from "@/lib/api";
@@ -13,7 +13,7 @@ import { useTheme } from "next-themes";
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
-  const { user, setUser, setCurrentTeam, isLoading: isUserLoading } = useUser();
+  const { user, setUser, setCurrentTeam, isLoading: isUserLoading, logout } = useUser();
   const { setTheme, resolvedTheme } = useTheme();
   const previousTheme = useRef<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
@@ -234,6 +234,25 @@ export default function AuthPage() {
         }}
       />
       <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+
+      {/* Logout button for stuck sessions */}
+      {user && (
+        <div className="absolute top-4 right-4 z-20">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-muted-foreground hover:text-destructive gap-2"
+            onClick={() => {
+              logout();
+              window.location.reload();
+            }}
+            data-testid="button-logout"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
+        </div>
+      )}
 
       <div className="relative z-10 w-full max-w-4xl px-4 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div className="space-y-6">

@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation, useSearch } from "wouter";
-import { Shield, ArrowLeft, CheckCircle, Users, User, UserPlus } from "lucide-react";
+import { Shield, ArrowLeft, CheckCircle, Users, User, UserPlus, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
@@ -26,7 +26,7 @@ const POSITIONS: Record<string, string[]> = {
 export default function SupporterOnboarding() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
-  const { user, setCurrentTeam } = useUser();
+  const { user, setCurrentTeam, logout } = useUser();
   const [step, setStep] = useState<OnboardingStep>("choice");
   const [teamCode, setTeamCode] = useState("");
   const [athleteCode, setAthleteCode] = useState("");
@@ -477,8 +477,8 @@ export default function SupporterOnboarding() {
       <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
 
       <div className="relative z-10 w-full max-w-md px-4">
-        {step !== "choice" && step !== "success" && (
-          <div className="mb-8">
+        {step !== "success" && (
+          <div className="mb-8 flex items-center justify-between">
             <Button 
               variant="ghost" 
               size="sm" 
@@ -488,20 +488,21 @@ export default function SupporterOnboarding() {
               <ArrowLeft className="h-4 w-4" />
               Back to Login
             </Button>
-          </div>
-        )}
-
-        {step === "choice" && (
-          <div className="mb-8">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-muted-foreground hover:text-foreground gap-2"
-              onClick={() => setLocation("/")}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Login
-            </Button>
+            {user && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-muted-foreground hover:text-destructive gap-2"
+                onClick={() => {
+                  logout();
+                  setLocation("/");
+                }}
+                data-testid="button-logout"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            )}
           </div>
         )}
 
