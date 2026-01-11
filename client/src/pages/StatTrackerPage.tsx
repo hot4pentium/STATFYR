@@ -891,95 +891,95 @@ export default function StatTrackerPage() {
                 </div>
                 
                 {/* Main Scoreboard */}
-                <div className="flex items-center justify-between px-4 py-5">
+                <div className="flex items-center justify-between px-2 sm:px-4 py-4">
                   {/* Home Team */}
-                  <div className="flex-1 text-center">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                  <div className="flex-1 text-center min-w-0">
+                    <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 truncate px-1">
                       {selectedTeam?.name || "Your Team"}
                     </p>
-                    <div className="flex items-center justify-center gap-3">
+                    <div className="flex items-center justify-center gap-1 sm:gap-2">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-12 w-12 rounded-xl bg-white/10 dark:bg-white/5 hover:bg-white/20 active:scale-95 transition-all"
+                        className="h-9 w-9 sm:h-11 sm:w-11 rounded-lg bg-white/10 dark:bg-white/5 hover:bg-white/20 active:scale-95 transition-all shrink-0"
                         onClick={() => handleScoreUpdate("home", -1)}
                         data-testid="button-team-score-minus"
                       >
-                        <Minus className="h-5 w-5" />
+                        <Minus className="h-4 w-4" />
                       </Button>
-                      <p className="text-5xl font-display font-black tabular-nums min-w-[4rem]" data-testid="text-team-score">
+                      <p className="text-4xl sm:text-5xl font-display font-black tabular-nums" data-testid="text-team-score">
                         {effectiveGame.teamScore}
                       </p>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-12 w-12 rounded-xl bg-white/10 dark:bg-white/5 hover:bg-white/20 active:scale-95 transition-all"
+                        className="h-9 w-9 sm:h-11 sm:w-11 rounded-lg bg-white/10 dark:bg-white/5 hover:bg-white/20 active:scale-95 transition-all shrink-0"
                         onClick={() => handleScoreUpdate("home", 1)}
                         data-testid="button-team-score-plus"
                       >
-                        <Plus className="h-5 w-5" />
+                        <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                   
                   {/* VS Divider */}
-                  <div className="px-4 flex flex-col items-center gap-1">
-                    <span className="text-xl font-bold text-muted-foreground/50">VS</span>
+                  <div className="px-2 sm:px-4 flex flex-col items-center gap-1 shrink-0">
+                    <span className="text-base sm:text-xl font-bold text-muted-foreground/50">VS</span>
                   </div>
                   
                   {/* Opponent */}
-                  <div className="flex-1 text-center">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                  <div className="flex-1 text-center min-w-0">
+                    <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 truncate px-1">
                       {effectiveGame.opponentName || "Opponent"}
                     </p>
-                    <div className="flex items-center justify-center gap-3">
+                    <div className="flex items-center justify-center gap-1 sm:gap-2">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-12 w-12 rounded-xl bg-white/10 dark:bg-white/5 hover:bg-white/20 active:scale-95 transition-all"
+                        className="h-9 w-9 sm:h-11 sm:w-11 rounded-lg bg-white/10 dark:bg-white/5 hover:bg-white/20 active:scale-95 transition-all shrink-0"
                         onClick={() => handleScoreUpdate("opponent", -1)}
                         data-testid="button-opponent-score-minus"
                       >
-                        <Minus className="h-5 w-5" />
+                        <Minus className="h-4 w-4" />
                       </Button>
-                      <p className="text-5xl font-display font-black tabular-nums min-w-[4rem]" data-testid="text-opponent-score">
+                      <p className="text-4xl sm:text-5xl font-display font-black tabular-nums" data-testid="text-opponent-score">
                         {effectiveGame.opponentScore}
                       </p>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-12 w-12 rounded-xl bg-white/10 dark:bg-white/5 hover:bg-white/20 active:scale-95 transition-all"
+                        className="h-9 w-9 sm:h-11 sm:w-11 rounded-lg bg-white/10 dark:bg-white/5 hover:bg-white/20 active:scale-95 transition-all shrink-0"
                         onClick={() => handleScoreUpdate("opponent", 1)}
                         data-testid="button-opponent-score-plus"
                       >
-                        <Plus className="h-5 w-5" />
+                        <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                 </div>
                 
                 {/* Game Controls */}
-                <div className="flex justify-center gap-3 px-4 pb-4">
+                <div className="flex flex-wrap justify-center gap-2 px-3 pb-4">
                   <Button
                     variant={effectiveGame.status === "active" ? "outline" : "default"}
-                    size="lg"
-                    className="h-11 px-6 rounded-xl font-semibold active:scale-95 transition-all"
+                    size="default"
+                    className="h-10 px-4 rounded-xl font-semibold active:scale-95 transition-all text-sm"
                     onClick={toggleGamePause}
                     data-testid="button-toggle-pause"
                   >
                     {effectiveGame.status === "active" ? (
-                      <><Pause className="h-4 w-4 mr-2" /> Pause</>
+                      <><Pause className="h-4 w-4 mr-1.5" /> Pause</>
                     ) : effectiveGame.status === "setup" || !effectiveGame.startedAt ? (
-                      <><Play className="h-4 w-4 mr-2" /> Start</>
+                      <><Play className="h-4 w-4 mr-1.5" /> Start</>
                     ) : (
-                      <><Play className="h-4 w-4 mr-2" /> Resume</>
+                      <><Play className="h-4 w-4 mr-1.5" /> Resume</>
                     )}
                   </Button>
                   {effectiveGame.currentPeriod < effectiveGame.totalPeriods && (
                     <Button 
                       variant="outline" 
-                      size="lg" 
-                      className="h-11 px-5 rounded-xl font-semibold active:scale-95 transition-all" 
+                      size="default" 
+                      className="h-10 px-3 rounded-xl font-semibold active:scale-95 transition-all text-sm" 
                       onClick={nextPeriod} 
                       data-testid="button-next-period"
                     >
@@ -988,8 +988,8 @@ export default function StatTrackerPage() {
                   )}
                   <Button 
                     variant="destructive" 
-                    size="lg" 
-                    className="h-11 px-5 rounded-xl font-semibold active:scale-95 transition-all" 
+                    size="default" 
+                    className="h-10 px-3 rounded-xl font-semibold active:scale-95 transition-all text-sm" 
                     onClick={() => setShowEndGameConfirm(true)} 
                     data-testid="button-end-game"
                   >
@@ -1060,12 +1060,12 @@ export default function StatTrackerPage() {
                               <X className="h-4 w-4" />
                             </Button>
                           </div>
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {filteredPlayers.map(player => (
                               <Button
                                 key={player.id}
                                 variant={recordedPlayerId === player.athleteId ? "default" : "outline"}
-                                className={`h-14 px-2 rounded-xl transition-all duration-200 flex flex-col items-center justify-center ${
+                                className={`h-14 px-2 rounded-xl transition-all duration-200 flex flex-col items-center justify-center min-w-0 ${
                                   recordedPlayerId === player.athleteId 
                                     ? "bg-green-500 text-white scale-105 shadow-lg" 
                                     : "bg-white/10 dark:bg-white/5 border-white/20 hover:bg-primary hover:text-primary-foreground active:scale-95"
@@ -1080,7 +1080,7 @@ export default function StatTrackerPage() {
                                     <span className="font-mono text-sm font-bold">
                                       #{player.jerseyNumber || "--"}
                                     </span>
-                                    <span className="text-xs font-medium truncate max-w-full">
+                                    <span className="text-xs font-medium truncate w-full text-center">
                                       {player.athlete.firstName}
                                     </span>
                                   </>
@@ -1088,7 +1088,7 @@ export default function StatTrackerPage() {
                               </Button>
                             ))}
                             {filteredPlayers.length === 0 && (
-                              <span className="col-span-3 text-center text-sm text-muted-foreground py-3">No eligible players</span>
+                              <span className="col-span-2 sm:col-span-3 text-center text-sm text-muted-foreground py-3">No eligible players</span>
                             )}
                           </div>
                         </div>
