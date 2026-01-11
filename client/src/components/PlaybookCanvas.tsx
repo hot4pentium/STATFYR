@@ -825,12 +825,12 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         </AlertDialog>
       </div>
 
-      <div className="relative w-full overflow-hidden rounded-lg border border-white/10 mt-20" style={{ height: canvasSize.height || 500 }}>
+      <div className="relative w-full overflow-hidden rounded-lg border border-white/10 mt-20 flex items-center justify-center" style={{ height: canvasSize.height || 500 }}>
         <canvas
           ref={canvasRef}
           width={canvasSize.width || 400}
           height={canvasSize.height || 500}
-          className="touch-none cursor-crosshair w-full h-full"
+          className="touch-none cursor-crosshair max-w-full max-h-full"
           onMouseDown={handleStart}
           onMouseMove={handleMove}
           onMouseUp={handleEnd}
