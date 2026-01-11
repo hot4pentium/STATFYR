@@ -324,7 +324,16 @@ export default function SupporterDashboard() {
                   </>
                 ) : (
                   <>
-                    <p className="text-xs text-orange-500 font-bold uppercase tracking-wider">{currentTeam?.name}</p>
+                    <div className="flex items-center gap-2">
+                      {currentTeam?.badgeId && (
+                        <img 
+                          src={currentTeam.badgeId} 
+                          alt={`${currentTeam.name} badge`} 
+                          className="h-8 w-8 object-contain"
+                        />
+                      )}
+                      <p className="text-xs text-orange-500 font-bold uppercase tracking-wider">{currentTeam?.name}</p>
+                    </div>
                     <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
                       Supporter Dashboard
                     </h1>
