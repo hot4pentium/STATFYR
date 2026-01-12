@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import type { User, Team } from "./api";
-import { syncFirebaseUser, getUserTeams } from "./api";
+import { syncFirebaseUser, getUserTeams, getUser } from "./api";
 import { onFirebaseAuthStateChanged, signOutFirebase, checkRedirectResult } from "./firebase";
 
 interface UserContextType {
@@ -22,12 +22,35 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+const USER_SCHEMA_VERSION = 2; // Increment when User schema changes (added athleteCode in v2)
+
+function getCachedUser(): User | null {
+  const stored = localStorage.getItem("user");
+  const storedVersion = localStorage.getItem("user_schema_version");
+  
+  if (!stored) return null;
+  
+  const cachedUser = JSON.parse(stored);
+  const version = storedVersion ? parseInt(storedVersion, 10) : 1;
+  
+  // If schema version is outdated, invalidate cache for athletes
+  // Athletes should have athleteCode, so force a refetch
+  if (version < USER_SCHEMA_VERSION) {
+    if (cachedUser.role === 'athlete' && !cachedUser.athleteCode) {
+      console.log('[UserContext] Stale user cache detected (missing athleteCode), will refetch');
+      // Keep the cached user for now but mark for refresh by setting a flag
+      cachedUser._needsRefresh = true;
+    }
+    // Update the stored version
+    localStorage.setItem("user_schema_version", String(USER_SCHEMA_VERSION));
+  }
+  
+  return cachedUser;
+}
+
 export function UserProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUserState] = useState<User | null>(() => {
-    const stored = localStorage.getItem("user");
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [user, setUserState] = useState<User | null>(() => getCachedUser());
 
   const [currentTeam, setCurrentTeamState] = useState<Team | null>(() => {
     const stored = localStorage.getItem("currentTeam");
@@ -205,6 +228,35 @@ export function UserProvider({ children }: { children: ReactNode }) {
       clearTimeout(timeout);
     };
   }, []);
+  
+  // Effect to handle stale cache refresh for users that need updated fields
+  useEffect(() => {
+    const refreshStaleUser = async () => {
+      if (user && (user as any)._needsRefresh) {
+        console.log('[UserContext] Refreshing stale user data for:', user.id);
+        try {
+          const freshUser = await getUser(user.id);
+          if (freshUser) {
+            // Remove the temporary flag and update state
+            delete (freshUser as any)._needsRefresh;
+            setUserState(freshUser);
+            localStorage.setItem("user", JSON.stringify(freshUser));
+            localStorage.setItem("user_schema_version", String(USER_SCHEMA_VERSION));
+            console.log('[UserContext] User refreshed with athleteCode:', freshUser.athleteCode);
+          }
+        } catch (error) {
+          console.error('[UserContext] Failed to refresh stale user:', error);
+          // Remove the flag to avoid infinite loops
+          const cleanedUser = { ...user };
+          delete (cleanedUser as any)._needsRefresh;
+          setUserState(cleanedUser);
+          localStorage.setItem("user", JSON.stringify(cleanedUser));
+        }
+      }
+    };
+    
+    refreshStaleUser();
+  }, [user?.id]);
 
   const setImpersonating = (impersonating: boolean) => {
     setIsImpersonating(impersonating);
