@@ -3,13 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation, useSearch } from "wouter";
-import { Shield, ArrowLeft, CheckCircle, Users, User, UserPlus, LogOut } from "lucide-react";
+import { Shield, ArrowLeft, CheckCircle, Users, User, UserPlus, LogOut, Check, X, Crown, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
 import { joinTeamByCode } from "@/lib/api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 type OnboardingStep = "choice" | "team-code" | "athlete-code" | "manage-independently" | "success";
 
@@ -37,6 +38,7 @@ export default function SupporterOnboarding() {
   const [athletePosition, setAthletePosition] = useState("");
   const [athleteNumber, setAthleteNumber] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(searchString);
@@ -223,6 +225,82 @@ export default function SupporterOnboarding() {
           <span className="font-semibold">Manage my athlete</span>
           <span className="text-xs text-muted-foreground">Track stats without a team/coach</span>
         </Button>
+
+        <Collapsible open={showComparison} onOpenChange={setShowComparison}>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full text-sm text-muted-foreground hover:text-foreground gap-2">
+              {showComparison ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              Compare options & pricing
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-4">
+            <div className="rounded-lg border border-border/50 bg-card/30 overflow-hidden">
+              <div className="grid grid-cols-4 text-xs">
+                <div className="p-2 font-medium border-b border-border/50 bg-muted/30">Feature</div>
+                <div className="p-2 text-center border-b border-l border-border/50 bg-muted/30">
+                  <Users className="h-3.5 w-3.5 mx-auto mb-1 text-primary" />
+                  <span className="font-medium">Team</span>
+                </div>
+                <div className="p-2 text-center border-b border-l border-border/50 bg-muted/30">
+                  <User className="h-3.5 w-3.5 mx-auto mb-1 text-primary" />
+                  <span className="font-medium">Athlete</span>
+                </div>
+                <div className="p-2 text-center border-b border-l border-border/50 bg-muted/30">
+                  <UserPlus className="h-3.5 w-3.5 mx-auto mb-1 text-primary" />
+                  <span className="font-medium">Manage</span>
+                </div>
+                
+                <div className="p-2 border-b border-border/30 text-muted-foreground">View schedule</div>
+                <div className="p-2 text-center border-b border-l border-border/30"><Check className="h-4 w-4 mx-auto text-green-500" /></div>
+                <div className="p-2 text-center border-b border-l border-border/30"><Check className="h-4 w-4 mx-auto text-green-500" /></div>
+                <div className="p-2 text-center border-b border-l border-border/30"><Check className="h-4 w-4 mx-auto text-green-500" /></div>
+                
+                <div className="p-2 border-b border-border/30 text-muted-foreground">View roster</div>
+                <div className="p-2 text-center border-b border-l border-border/30"><Check className="h-4 w-4 mx-auto text-green-500" /></div>
+                <div className="p-2 text-center border-b border-l border-border/30"><X className="h-4 w-4 mx-auto text-muted-foreground/50" /></div>
+                <div className="p-2 text-center border-b border-l border-border/30"><X className="h-4 w-4 mx-auto text-muted-foreground/50" /></div>
+                
+                <div className="p-2 border-b border-border/30 text-muted-foreground">Game Day Live</div>
+                <div className="p-2 text-center border-b border-l border-border/30"><Check className="h-4 w-4 mx-auto text-green-500" /></div>
+                <div className="p-2 text-center border-b border-l border-border/30"><X className="h-4 w-4 mx-auto text-muted-foreground/50" /></div>
+                <div className="p-2 text-center border-b border-l border-border/30"><X className="h-4 w-4 mx-auto text-muted-foreground/50" /></div>
+                
+                <div className="p-2 border-b border-border/30 text-muted-foreground">Team chat</div>
+                <div className="p-2 text-center border-b border-l border-border/30"><Check className="h-4 w-4 mx-auto text-green-500" /></div>
+                <div className="p-2 text-center border-b border-l border-border/30"><X className="h-4 w-4 mx-auto text-muted-foreground/50" /></div>
+                <div className="p-2 text-center border-b border-l border-border/30"><X className="h-4 w-4 mx-auto text-muted-foreground/50" /></div>
+                
+                <div className="p-2 border-b border-border/30 text-muted-foreground">Track stats</div>
+                <div className="p-2 text-center border-b border-l border-border/30"><Crown className="h-4 w-4 mx-auto text-yellow-500" /></div>
+                <div className="p-2 text-center border-b border-l border-border/30"><Crown className="h-4 w-4 mx-auto text-yellow-500" /></div>
+                <div className="p-2 text-center border-b border-l border-border/30"><Crown className="h-4 w-4 mx-auto text-yellow-500" /></div>
+                
+                <div className="p-2 border-b border-border/30 text-muted-foreground">Upload highlights</div>
+                <div className="p-2 text-center border-b border-l border-border/30"><Crown className="h-4 w-4 mx-auto text-yellow-500" /></div>
+                <div className="p-2 text-center border-b border-l border-border/30"><Crown className="h-4 w-4 mx-auto text-yellow-500" /></div>
+                <div className="p-2 text-center border-b border-l border-border/30"><Crown className="h-4 w-4 mx-auto text-yellow-500" /></div>
+                
+                <div className="p-2 text-muted-foreground">Cross-team follow</div>
+                <div className="p-2 text-center border-l border-border/30"><Crown className="h-4 w-4 mx-auto text-yellow-500" /></div>
+                <div className="p-2 text-center border-l border-border/30"><Crown className="h-4 w-4 mx-auto text-yellow-500" /></div>
+                <div className="p-2 text-center border-l border-border/30"><Crown className="h-4 w-4 mx-auto text-yellow-500" /></div>
+              </div>
+              
+              <div className="p-3 bg-muted/20 border-t border-border/50">
+                <div className="flex items-center gap-2 text-xs mb-2">
+                  <Check className="h-3.5 w-3.5 text-green-500" />
+                  <span className="text-muted-foreground">Free</span>
+                  <span className="mx-2 text-border">|</span>
+                  <Crown className="h-3.5 w-3.5 text-yellow-500" />
+                  <span className="text-muted-foreground">Supporter Pro ($5.99/mo)</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground/70">
+                  All options are free to start. Upgrade anytime to unlock premium features.
+                </p>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </CardContent>
     </>
   );
