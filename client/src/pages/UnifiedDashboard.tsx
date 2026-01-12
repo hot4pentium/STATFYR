@@ -2220,6 +2220,22 @@ export default function UnifiedDashboard() {
                   {roleConfig[userRole].title}
                 </h1>
                 <p className="text-slate-600 dark:text-white/80 text-sm landscape:text-base">Welcome, {userRole === "coach" ? "Coach" : isStaff ? "Staff" : getUserDisplayName()}!</p>
+                {userRole === "athlete" && user?.athleteCode && (
+                  <div className="mt-2 flex items-center gap-2 landscape:justify-center">
+                    <span className="text-xs text-muted-foreground">Your share code:</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(user.athleteCode || "");
+                        toast.success("Code copied!");
+                      }}
+                      className="flex items-center gap-1 px-2 py-1 bg-primary/10 rounded text-xs font-mono font-bold text-primary hover:bg-primary/20 transition-colors"
+                      data-testid="button-copy-athlete-code"
+                    >
+                      {user.athleteCode}
+                      <Copy className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
