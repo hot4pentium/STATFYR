@@ -119,6 +119,21 @@ export default function AthleteDashboard() {
     }
   }, [searchString]);
 
+  const { updateUser } = useUser();
+
+  useEffect(() => {
+    if (user?.id && !user.athleteCode) {
+      fetch(`/api/users/${user.id}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(freshUser => {
+          if (freshUser?.athleteCode) {
+            updateUser({ ...user, athleteCode: freshUser.athleteCode });
+          }
+        })
+        .catch(console.error);
+    }
+  }, [user?.id, user?.athleteCode]);
+
   const { data: teamMembers = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "members"],
     queryFn: () => currentTeam ? getTeamMembers(currentTeam.id) : Promise.resolve([]),
