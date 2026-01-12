@@ -558,10 +558,10 @@ export default function AthleteDashboard() {
                   Athlete Dashboard
                 </h1>
                 <p className="text-sm sm:text-base text-muted-foreground mt-0.5 sm:mt-1 truncate">Welcome back, {user?.name?.split(' ')[0] || user?.username}!</p>
-                {athleteCode && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-muted-foreground">Code:</span>
-                    <span className="text-sm font-mono font-bold text-primary">{athleteCode}</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-muted-foreground">Code:</span>
+                  <span className="text-sm font-mono font-bold text-primary">{athleteCode || "Loading..."}</span>
+                  {athleteCode && (
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(athleteCode);
@@ -574,8 +574,8 @@ export default function AthleteDashboard() {
                     >
                       {copiedAthleteCode ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
                 <div className="mt-1 sm:mt-2 flex flex-wrap items-center gap-1 sm:gap-2">
                   <p className="text-xs sm:text-sm text-foreground font-semibold truncate">{user?.name || user?.username}</p>
                   <span className="text-muted-foreground hidden sm:inline">•</span>
