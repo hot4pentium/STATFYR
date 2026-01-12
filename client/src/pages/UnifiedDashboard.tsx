@@ -2274,10 +2274,10 @@ export default function UnifiedDashboard() {
         </div>
 
         {/* Angled Slab Divider */}
-        <div className="relative h-6 overflow-hidden mb-6">
+        <div className="relative h-4 -mb-2 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-orange-500/40 via-orange-400/20 to-transparent" />
           <div 
-            className="absolute inset-0 origin-top-left -skew-y-2"
+            className="absolute inset-0 origin-top-left -skew-y-1"
             style={{ backgroundColor: 'hsl(var(--background))' }}
           />
         </div>
