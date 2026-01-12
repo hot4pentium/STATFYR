@@ -551,10 +551,31 @@ export default function AthleteDashboard() {
 
               {/* Dashboard Title & Info */}
               <div className="flex-1 text-left min-w-0">
+                <p className="text-xs sm:text-sm font-display font-bold text-orange-500 uppercase tracking-wider mb-0.5">
+                  {currentTeam?.name || "No Team"}
+                </p>
                 <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold text-primary uppercase tracking-wide">
                   Athlete Dashboard
                 </h1>
                 <p className="text-sm sm:text-base text-muted-foreground mt-0.5 sm:mt-1 truncate">Welcome back, {user?.name?.split(' ')[0] || user?.username}!</p>
+                {athleteCode && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-muted-foreground">Code:</span>
+                    <span className="text-sm font-mono font-bold text-primary">{athleteCode}</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(athleteCode);
+                        setCopiedAthleteCode(true);
+                        toast.success("Code copied!");
+                        setTimeout(() => setCopiedAthleteCode(false), 2000);
+                      }}
+                      className="p-0.5 hover:bg-muted rounded"
+                      data-testid="button-copy-athlete-code-hero"
+                    >
+                      {copiedAthleteCode ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                    </button>
+                  </div>
+                )}
                 <div className="mt-1 sm:mt-2 flex flex-wrap items-center gap-1 sm:gap-2">
                   <p className="text-xs sm:text-sm text-foreground font-semibold truncate">{user?.name || user?.username}</p>
                   <span className="text-muted-foreground hidden sm:inline">•</span>
@@ -572,39 +593,6 @@ export default function AthleteDashboard() {
                     <span className="text-[10px] sm:text-xs font-bold text-yellow-500">{currentTeam?.ties || 0}T</span>
                   </div>
                 </div>
-                {athleteCode && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded border border-muted-foreground/20">
-                      <span className="text-xs text-muted-foreground">Athlete Code:</span>
-                      <span className="text-sm font-mono font-bold tracking-wider">{athleteCode}</span>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(athleteCode);
-                          setCopiedAthleteCode(true);
-                          toast.success("Code copied!");
-                          setTimeout(() => setCopiedAthleteCode(false), 2000);
-                        }}
-                        className="ml-1 p-0.5 hover:bg-muted rounded"
-                        data-testid="button-copy-athlete-code"
-                      >
-                        {copiedAthleteCode ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
-                      </button>
-                    </div>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="p-1 hover:bg-muted rounded" data-testid="button-athlete-code-info">
-                          <Info className="h-4 w-4 text-muted-foreground" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-64 text-sm">
-                        <p className="font-medium mb-1">Share this code!</p>
-                        <p className="text-muted-foreground text-xs">
-                          Supporters can use this code to follow your stats, highlights, and HYPE posts.
-                        </p>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                )}
               </div>
             </div>
           </div>
