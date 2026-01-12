@@ -345,9 +345,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    // Generate athlete code for athletes
+    let athleteCode: string | null = null;
+    if (insertUser.role === 'athlete') {
+      const generateCode = () => {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let code = '';
+        for (let i = 0; i < 8; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+      };
+      
+      athleteCode = generateCode();
+      let attempts = 0;
+      while (attempts < 10) {
+        const existing = await db.select().from(users).where(eq(users.athleteCode, athleteCode)).limit(1);
+        if (existing.length === 0) break;
+        athleteCode = generateCode();
+        attempts++;
+      }
+    }
+    
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values({ ...insertUser, athleteCode })
       .returning();
     return user;
   }

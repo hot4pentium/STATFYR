@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2, Bell, Share2, Flame, ExternalLink, Copy, MessageSquare, Lock, Plus, Upload } from "lucide-react";
+import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2, Bell, Share2, Flame, ExternalLink, Copy, MessageSquare, Lock, Plus, Upload, Info, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
@@ -70,6 +71,7 @@ export default function AthleteDashboard() {
   const [hypeCardTab, setHypeCardTab] = useState<HypeCardTab>("events");
   const [isFyring, setIsFyring] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [copiedAthleteCode, setCopiedAthleteCode] = useState(false);
   const [joinTeamCode, setJoinTeamCode] = useState("");
   const [isJoiningTeam, setIsJoiningTeam] = useState(false);
   const queryClient = useQueryClient();
@@ -553,6 +555,39 @@ export default function AthleteDashboard() {
                     <span className="text-[10px] sm:text-xs font-bold text-yellow-500">{currentTeam?.ties || 0}T</span>
                   </div>
                 </div>
+                {user?.athleteCode && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded border border-muted-foreground/20">
+                      <span className="text-xs text-muted-foreground">Athlete Code:</span>
+                      <span className="text-sm font-mono font-bold tracking-wider">{user.athleteCode}</span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(user.athleteCode!);
+                          setCopiedAthleteCode(true);
+                          toast.success("Code copied!");
+                          setTimeout(() => setCopiedAthleteCode(false), 2000);
+                        }}
+                        className="ml-1 p-0.5 hover:bg-muted rounded"
+                        data-testid="button-copy-athlete-code"
+                      >
+                        {copiedAthleteCode ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                      </button>
+                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="p-1 hover:bg-muted rounded" data-testid="button-athlete-code-info">
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64 text-sm">
+                        <p className="font-medium mb-1">Share this code!</p>
+                        <p className="text-muted-foreground text-xs">
+                          Supporters can use this code to follow your stats, highlights, and HYPE posts.
+                        </p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                )}
               </div>
             </div>
           </div>

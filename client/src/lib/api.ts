@@ -15,6 +15,7 @@ export interface User {
   lastAccessedAt?: string | null;
   mustChangePassword?: boolean;
   isSuperAdmin?: boolean;
+  athleteCode?: string | null;
 }
 
 export interface Team {
