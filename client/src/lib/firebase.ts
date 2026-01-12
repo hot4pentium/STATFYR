@@ -189,8 +189,20 @@ export async function checkRedirectResult(): Promise<{ user: FirebaseUser | null
   redirectResultPromise = (async () => {
     try {
       console.log('[Firebase] Checking redirect result...');
-      const result = await getRedirectResult(auth!);
-      if (result) {
+      // Add timeout to prevent hanging on native apps where redirects don't work
+      const timeoutPromise = new Promise<null>((resolve) => {
+        setTimeout(() => {
+          console.log('[Firebase] Redirect check timed out');
+          resolve(null);
+        }, 2000);
+      });
+      
+      const result = await Promise.race([
+        getRedirectResult(auth!),
+        timeoutPromise
+      ]);
+      
+      if (result && 'user' in result) {
         console.log('[Firebase] Redirect result found:', result.user?.email);
         return { user: result.user };
       }

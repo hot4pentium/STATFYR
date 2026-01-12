@@ -13,18 +13,18 @@ function hideSplashScreen() {
 
 window.hideSplashScreen = hideSplashScreen;
 
-const splashTimeout = setTimeout(() => {
+// Failsafe: remove splash screen after 3 seconds no matter what
+// This ensures the app is never stuck on splash screen
+setTimeout(() => {
   console.warn('[Main] Failsafe timeout: removing splash screen');
   hideSplashScreen();
-}, 5000);
+}, 3000);
 
 try {
   createRoot(document.getElementById("root")!).render(<App />);
-  clearTimeout(splashTimeout);
 } catch (error) {
   console.error('[Main] React bootstrap failed:', error);
   hideSplashScreen();
-  clearTimeout(splashTimeout);
   throw error;
 }
 
