@@ -704,7 +704,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createManagedAthlete(data: InsertManagedAthlete): Promise<ManagedAthlete> {
-    const [managed] = await db.insert(managedAthletes).values(data).returning();
+    // Generate a unique 8-character share code
+    const generateCode = () => {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No I, O, 0, 1 to avoid confusion
+      let code = '';
+      for (let i = 0; i < 8; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    };
+    
+    let shareCode = generateCode();
+    let attempts = 0;
+    while (attempts < 10) {
+      const existing = await db.select().from(managedAthletes).where(eq(managedAthletes.shareCode, shareCode)).limit(1);
+      if (existing.length === 0) break;
+      shareCode = generateCode();
+      attempts++;
+    }
+    
+    const [managed] = await db.insert(managedAthletes).values({ ...data, shareCode }).returning();
     return managed;
   }
 
