@@ -2274,11 +2274,14 @@ export default function UnifiedDashboard() {
         </div>
 
         {/* Angled Slab Divider */}
-        <div className="relative h-4 -mb-2 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/40 via-orange-400/20 to-transparent" />
-          <div 
-            className="absolute inset-0 origin-top-left -skew-y-1"
-            style={{ backgroundColor: 'hsl(var(--background))' }}
+        <div className="relative h-10 mb-6 overflow-hidden pointer-events-none" aria-hidden="true">
+          <div
+            className="absolute inset-0 bg-[hsl(var(--background))]"
+            style={{ clipPath: "polygon(0 0, 100% 0, 100% 85%, 0 100%)" }}
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-orange-500/40 via-orange-400/25 to-transparent"
+            style={{ clipPath: "polygon(0 0, 100% 0, 100% 70%, 0 100%)" }}
           />
         </div>
 
