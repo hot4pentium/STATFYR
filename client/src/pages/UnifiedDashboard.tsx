@@ -2274,13 +2274,13 @@ export default function UnifiedDashboard() {
         </div>
 
         {/* Angled Slab Divider - contained within fixed height */}
-        <div className="h-8 bg-gradient-to-r from-orange-500/30 via-orange-400/15 to-transparent" 
-             style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 60%)" }} />
+        <div className="h-6 bg-gradient-to-r from-orange-500/30 via-orange-400/15 to-transparent" 
+             style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 40%)" }} />
 
         {/* Main Content - switches based on supporter view mode */}
         {userRole === "supporter" && supporterViewMode === "athlete" && selectedManagedAthlete ? (
           /* Athlete Profile View for Supporters - matches coach layout */
-          (<div className="px-4 pt-6 pb-8">
+          (<div className="relative z-20 bg-background px-4 pt-6 pb-8">
             {/* Two-column layout on landscape - matching coach dashboard */}
             <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
               {/* Left Column - Cards (slides left when content selected on mobile) */}
@@ -2376,7 +2376,7 @@ export default function UnifiedDashboard() {
           </div>)
         ) : (
           /* Normal Dashboard View - Quick Access Section */
-          (<div className="relative z-10 px-4 pt-10 pb-8 overflow-hidden">
+          (<div className="relative z-20 bg-background px-4 pt-6 pb-8">
             {/* Two-column layout on landscape, sliding panels on portrait */}
             <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
               {/* Left Column - Cards (slides left when content selected on mobile) */}
