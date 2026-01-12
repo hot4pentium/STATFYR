@@ -2273,22 +2273,14 @@ export default function UnifiedDashboard() {
           </div>
         </div>
 
-        {/* Angled Slab Divider */}
-        <div className="relative h-10 mb-6 overflow-hidden pointer-events-none" aria-hidden="true">
-          <div
-            className="absolute inset-0 bg-[hsl(var(--background))]"
-            style={{ clipPath: "polygon(0 0, 100% 0, 100% 85%, 0 100%)" }}
-          />
-          <div
-            className="absolute inset-0 bg-gradient-to-r from-orange-500/40 via-orange-400/25 to-transparent"
-            style={{ clipPath: "polygon(0 0, 100% 0, 100% 70%, 0 100%)" }}
-          />
-        </div>
+        {/* Angled Slab Divider - contained within fixed height */}
+        <div className="h-8 bg-gradient-to-r from-orange-500/30 via-orange-400/15 to-transparent" 
+             style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 60%)" }} />
 
         {/* Main Content - switches based on supporter view mode */}
         {userRole === "supporter" && supporterViewMode === "athlete" && selectedManagedAthlete ? (
           /* Athlete Profile View for Supporters - matches coach layout */
-          (<div className="relative z-10 px-4 pt-10 pb-8 overflow-hidden">
+          (<div className="px-4 pt-6 pb-8">
             {/* Two-column layout on landscape - matching coach dashboard */}
             <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
               {/* Left Column - Cards (slides left when content selected on mobile) */}
