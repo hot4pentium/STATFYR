@@ -146,6 +146,7 @@ export const managedAthletes = pgTable("managed_athletes", {
   number: text("number"),
   isOwner: boolean("is_owner").notNull().default(false),
   profileImageUrl: text("profile_image_url"),
+  shareCode: varchar("share_code", { length: 8 }).unique(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
