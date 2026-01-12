@@ -2274,7 +2274,7 @@ export default function UnifiedDashboard() {
         </div>
 
         {/* Angled Slab Divider */}
-        <div className="relative h-6 overflow-hidden">
+        <div className="relative h-6 overflow-hidden mb-6">
           <div className="absolute inset-0 bg-gradient-to-r from-orange-500/40 via-orange-400/20 to-transparent" />
           <div 
             className="absolute inset-0 origin-top-left -skew-y-2"
