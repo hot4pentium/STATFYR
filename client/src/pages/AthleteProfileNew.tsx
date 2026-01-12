@@ -112,8 +112,8 @@ export default function AthleteProfileNew() {
     }
   }, [user, currentTeam, setLocation]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setLocation("/");
   };
 

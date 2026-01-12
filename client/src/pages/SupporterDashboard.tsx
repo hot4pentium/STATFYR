@@ -150,8 +150,8 @@ export default function SupporterDashboard() {
   // Get the currently selected athlete (for profile switching)
   const selectedAthlete = managedAthletes[selectedAthleteIndex] || managedAthletes[0];
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setLocation("/");
   };
 

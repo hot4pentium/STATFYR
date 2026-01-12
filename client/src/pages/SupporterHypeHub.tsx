@@ -63,8 +63,8 @@ export default function SupporterHypeHub() {
     return teamEvents.filter((e: Event) => new Date(e.date) >= now).slice(0, 5);
   }, [teamEvents]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setLocation("/");
   };
 

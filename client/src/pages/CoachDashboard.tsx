@@ -464,8 +464,8 @@ export default function CoachDashboard() {
     }
   }, [user, currentTeam, coachTeams, setCurrentTeam, setLocation]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setLocation("/");
   };
 

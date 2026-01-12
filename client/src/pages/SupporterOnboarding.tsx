@@ -493,8 +493,8 @@ export default function SupporterOnboarding() {
                 variant="ghost" 
                 size="sm" 
                 className="text-muted-foreground hover:text-destructive gap-2"
-                onClick={() => {
-                  logout();
+                onClick={async () => {
+                  await logout();
                   setLocation("/");
                 }}
                 data-testid="button-logout"

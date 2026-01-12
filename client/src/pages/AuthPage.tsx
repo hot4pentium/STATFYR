@@ -242,8 +242,8 @@ export default function AuthPage() {
             variant="ghost" 
             size="sm" 
             className="text-muted-foreground hover:text-destructive gap-2"
-            onClick={() => {
-              logout();
+            onClick={async () => {
+              await logout();
               window.location.reload();
             }}
             data-testid="button-logout"

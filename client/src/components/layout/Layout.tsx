@@ -29,8 +29,8 @@ export function Layout({ children }: LayoutProps) {
     }
   }, []);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setLocation("/");
   };
 

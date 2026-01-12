@@ -297,8 +297,8 @@ export default function AthleteDashboard() {
     }
   }, [user, isLoading, setLocation]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setLocation("/");
   };
 
