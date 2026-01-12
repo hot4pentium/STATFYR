@@ -456,6 +456,21 @@ export default function AthleteDashboard() {
                   Scan QR Code
                 </Button>
               </div>
+              <div className="text-center pt-4 border-t border-white/10">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    await logout();
+                    setLocation("/");
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                  data-testid="button-return-to-login"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Return to Login
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
