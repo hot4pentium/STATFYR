@@ -287,6 +287,8 @@ export default function AthleteDashboard() {
   });
 
   const currentMembership = teamMembers.find((m: TeamMember) => m.userId === user?.id);
+  
+  const athleteCode = user?.athleteCode || (currentMembership?.user as any)?.athleteCode;
   const athletes = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "athlete"), [teamMembers]);
   const coaches = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "coach" || m.role === "staff"), [teamMembers]);
 
@@ -570,14 +572,14 @@ export default function AthleteDashboard() {
                     <span className="text-[10px] sm:text-xs font-bold text-yellow-500">{currentTeam?.ties || 0}T</span>
                   </div>
                 </div>
-                {user?.athleteCode && (
+                {athleteCode && (
                   <div className="flex items-center gap-2 mt-2">
                     <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded border border-muted-foreground/20">
                       <span className="text-xs text-muted-foreground">Athlete Code:</span>
-                      <span className="text-sm font-mono font-bold tracking-wider">{user.athleteCode}</span>
+                      <span className="text-sm font-mono font-bold tracking-wider">{athleteCode}</span>
                       <button
                         onClick={() => {
-                          navigator.clipboard.writeText(user.athleteCode!);
+                          navigator.clipboard.writeText(athleteCode);
                           setCopiedAthleteCode(true);
                           toast.success("Code copied!");
                           setTimeout(() => setCopiedAthleteCode(false), 2000);
