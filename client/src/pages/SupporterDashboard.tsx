@@ -5,7 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, Settings, LogOut, Clock, Video, Trophy, BookOpen, AlertCircle, Sun, Moon, Bell, Lock, ArrowLeft, Flame, Star, Heart, Share2, X, ChevronDown } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, Settings, LogOut, Clock, Video, Trophy, BookOpen, AlertCircle, Sun, Moon, Bell, Lock, ArrowLeft, Flame, Star, Heart, Share2, X, ChevronDown, Info, Copy, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
@@ -61,6 +62,7 @@ export default function SupporterDashboard() {
   const [activeSection, setActiveSection] = useState<SectionType>(null);
   const [demoModal, setDemoModal] = useState<"hype-hub" | "hype-card" | null>(null);
   const [selectedAthleteIndex, setSelectedAthleteIndex] = useState(0);
+  const [copiedCode, setCopiedCode] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -363,6 +365,39 @@ export default function SupporterDashboard() {
                     <p className="text-sm text-muted-foreground mt-1">
                       {selectedAthlete?.sport} {selectedAthlete?.position ? `• ${selectedAthlete.position}` : ""} {selectedAthlete?.number ? `• #${selectedAthlete.number}` : ""}
                     </p>
+                    {selectedAthlete?.shareCode && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded border border-muted-foreground/20">
+                          <span className="text-xs text-muted-foreground">Athlete Code:</span>
+                          <span className="text-sm font-mono font-bold tracking-wider">{selectedAthlete.shareCode}</span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(selectedAthlete.shareCode);
+                              setCopiedCode(true);
+                              toast.success("Code copied!");
+                              setTimeout(() => setCopiedCode(false), 2000);
+                            }}
+                            className="ml-1 p-0.5 hover:bg-muted rounded"
+                            data-testid="button-copy-athlete-code"
+                          >
+                            {copiedCode ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                          </button>
+                        </div>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="p-1 hover:bg-muted rounded" data-testid="button-athlete-code-info">
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 text-sm">
+                            <p className="font-medium mb-1">Share this code!</p>
+                            <p className="text-muted-foreground text-xs">
+                              Other supporters can use this code to follow {selectedAthlete?.athleteName}'s stats, highlights, and HYPE posts.
+                            </p>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    )}
                     <Button 
                       variant="outline" 
                       size="sm" 
