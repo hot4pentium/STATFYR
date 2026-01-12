@@ -32,9 +32,9 @@ export default function EventsPage() {
   return (
     <Layout>
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex items-center gap-3 md:gap-4">
+        <div className="flex items-center gap-3 md:gap-4 sticky top-0 z-20 bg-background/95 backdrop-blur-sm py-2 -mx-4 px-4 md:-mx-8 md:px-8">
           <Link href="/dashboard">
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
