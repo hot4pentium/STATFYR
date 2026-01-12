@@ -250,6 +250,17 @@ export default function SupporterDashboard() {
                   I Have a Team Code
                 </Button>
               </div>
+              <div className="pt-4 border-t border-border/50">
+                <Button 
+                  variant="ghost" 
+                  className="w-full text-muted-foreground hover:text-destructive"
+                  onClick={handleLogout}
+                  data-testid="button-get-started-logout"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Log Out
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
