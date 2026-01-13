@@ -303,7 +303,7 @@ html.dark[data-badge-theme="legend"] .dashboard-bg {
 /* Bronze Texture - Custom Image Background */
 html.dark[data-badge-theme="bronze"] .theme-texture {
   opacity: 1;
-  background-image: url('/attached_assets/bronze_1768271084297.png');
+  background-image: url('/themes/bronze-bg.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
