@@ -13,8 +13,8 @@ import { toast } from "sonner";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTheme } from "next-themes";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, type TeamMember, type Event, type HighlightVideo, type Play } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, getTeamPlays, getSupporterBadges, getAllBadges, getActiveTheme, type TeamMember, type Event, type HighlightVideo, type Play, type SupporterBadge, type BadgeDefinition } from "@/lib/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
 import { useEntitlements } from "@/lib/entitlementsContext";
 import { useAppBadge } from "@/hooks/useAppBadge";
@@ -63,8 +63,10 @@ export default function SupporterDashboard() {
   const [demoModal, setDemoModal] = useState<"hype-hub" | "hype-card" | null>(null);
   const [selectedAthleteIndex, setSelectedAthleteIndex] = useState(0);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [themeDialogBadge, setThemeDialogBadge] = useState<{ themeId: string; name: string; emoji: string } | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setMounted(true);
@@ -151,6 +153,53 @@ export default function SupporterDashboard() {
 
   // Get the currently selected athlete (for profile switching)
   const selectedAthlete = managedAthletes[selectedAthleteIndex] || managedAthletes[0];
+
+  // Badge/Theme queries
+  const { data: earnedBadges = [] } = useQuery({
+    queryKey: ["supporter-badges", user?.id, currentTeam?.id, "2024-2025"],
+    queryFn: () => getSupporterBadges(user!.id, currentTeam!.id, "2024-2025"),
+    enabled: !!user?.id && !!currentTeam?.id,
+  });
+
+  const { data: allBadges = [] } = useQuery({
+    queryKey: ["all-badges"],
+    queryFn: getAllBadges,
+    enabled: !!user?.id,
+  });
+
+  const { data: activeTheme } = useQuery({
+    queryKey: ["active-theme", user?.id],
+    queryFn: () => getActiveTheme(user!.id),
+    enabled: !!user?.id,
+  });
+
+  // Compute which badges have been earned and have themes
+  const earnedBadgeThemes = useMemo(() => {
+    if (!allBadges.length || !earnedBadges.length) return [];
+    const earnedBadgeIds = earnedBadges.map((eb: SupporterBadge) => eb.badgeId);
+    return allBadges.filter((b: BadgeDefinition) => 
+      earnedBadgeIds.includes(b.id) && b.themeId
+    );
+  }, [allBadges, earnedBadges]);
+
+  // Theme activation mutation
+  const activateThemeMutation = useMutation({
+    mutationFn: async (themeId: string) => {
+      const res = await fetch(`/api/supporters/${user!.id}/themes/${themeId}/activate`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error("Failed to activate theme");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["active-theme"] });
+      toast.success("Theme applied! Refresh to see changes.");
+      setThemeDialogBadge(null);
+    },
+    onError: () => {
+      toast.error("Failed to apply theme");
+    },
+  });
 
   const handleLogout = async () => {
     await logout();
@@ -466,6 +515,25 @@ export default function SupporterDashboard() {
                   </>
                 )}
               </div>
+
+              {/* Earned Badges - Bottom Right of Hero */}
+              {earnedBadgeThemes.length > 0 && (
+                <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                  {earnedBadgeThemes.map((badge: BadgeDefinition) => (
+                    <button
+                      key={badge.id}
+                      onClick={() => setThemeDialogBadge({ themeId: badge.themeId!, name: badge.name, emoji: badge.iconEmoji })}
+                      className={`text-xl hover:scale-110 transition-transform cursor-pointer ${
+                        activeTheme?.themeId === badge.themeId ? 'ring-2 ring-primary rounded-full p-0.5' : ''
+                      }`}
+                      title={`${badge.name} Badge - Tap to apply theme`}
+                      data-testid={`badge-${badge.id}`}
+                    >
+                      {badge.iconEmoji}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -949,6 +1017,44 @@ export default function SupporterDashboard() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Theme Switch Dialog */}
+      <Dialog open={themeDialogBadge !== null} onOpenChange={(open) => !open && setThemeDialogBadge(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span className="text-2xl">{themeDialogBadge?.emoji}</span>
+              {themeDialogBadge?.name} Badge
+            </DialogTitle>
+            <DialogDescription>
+              {activeTheme?.themeId === themeDialogBadge?.themeId 
+                ? "This theme is currently active. Would you like to switch to the basic theme?"
+                : "Would you like to apply this badge's custom theme to your dashboard?"
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 pt-2">
+            {activeTheme?.themeId === themeDialogBadge?.themeId ? (
+              <Button 
+                onClick={() => activateThemeMutation.mutate("basic")}
+                disabled={activateThemeMutation.isPending}
+              >
+                Switch to Basic Theme
+              </Button>
+            ) : (
+              <Button 
+                onClick={() => themeDialogBadge && activateThemeMutation.mutate(themeDialogBadge.themeId)}
+                disabled={activateThemeMutation.isPending}
+              >
+                Apply {themeDialogBadge?.name} Theme
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => setThemeDialogBadge(null)}>
+              Cancel
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>
