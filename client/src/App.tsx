@@ -46,6 +46,7 @@ import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import SubscriptionPage from "@/pages/SubscriptionPage";
 import PlayEditorPage from "@/pages/PlayEditorPage";
+import ThemeGallery from "@/pages/ThemeGallery";
 
 function Router() {
   // Handle Replit internal iframe paths - treat them as root
@@ -83,6 +84,7 @@ function Router() {
       <Route path="/supporter/hub" component={SupporterHypeHub} />
       <Route path="/supporter/game/:gameId" component={SupporterGameLive} />
       <Route path="/supporter/live/:sessionId" component={SupporterSessionLive} />
+      <Route path="/supporter/themes" component={ThemeGallery} />
       <Route path="/share/athlete/:id" component={ShareableHypeCard} />
       <Route path="/share/athlete/:id/post/:postId" component={ShareableHypeCard} />
       <Route path="/hype/:id" component={ShareableHypeCard} />
