@@ -189,6 +189,54 @@ html:not(.dark) {
     background-attachment: fixed;
   }
   
+  /* Badge Theme: Bronze */
+  html.dark[data-badge-theme="bronze"] body {
+    background-color: hsl(25 30% 12%);
+    background-image: 
+      radial-gradient(ellipse at top, rgba(205, 127, 50, 0.20) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(184, 115, 51, 0.15) 0%, transparent 40%),
+      linear-gradient(rgba(205, 127, 50, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(205, 127, 50, 0.06) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    background-attachment: fixed;
+  }
+  
+  /* Badge Theme: Silver */
+  html.dark[data-badge-theme="silver"] body {
+    background-color: hsl(220 15% 14%);
+    background-image: 
+      radial-gradient(ellipse at top, rgba(192, 192, 192, 0.20) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(169, 169, 169, 0.15) 0%, transparent 40%),
+      linear-gradient(rgba(192, 192, 192, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(192, 192, 192, 0.06) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    background-attachment: fixed;
+  }
+  
+  /* Badge Theme: Gold */
+  html.dark[data-badge-theme="gold"] body {
+    background-color: hsl(40 30% 10%);
+    background-image: 
+      radial-gradient(ellipse at top, rgba(255, 215, 0, 0.22) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(218, 165, 32, 0.18) 0%, transparent 40%),
+      linear-gradient(rgba(255, 215, 0, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 215, 0, 0.06) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    background-attachment: fixed;
+  }
+  
+  /* Badge Theme: Legend */
+  html.dark[data-badge-theme="legend"] body {
+    background-color: hsl(270 40% 10%);
+    background-image: 
+      radial-gradient(ellipse at top, rgba(147, 51, 234, 0.25) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(168, 85, 247, 0.20) 0%, transparent 40%),
+      linear-gradient(rgba(147, 51, 234, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(147, 51, 234, 0.08) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    background-attachment: fixed;
+  }
+  
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight uppercase;
   }

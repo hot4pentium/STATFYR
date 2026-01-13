@@ -5,6 +5,7 @@ import { useEntitlements, type EntitlementKey } from "@/lib/entitlementsContext"
 import { useTheme } from "next-themes";
 import { usePWA } from "@/lib/pwaContext";
 import { useNotifications } from "@/lib/notificationContext";
+import { useBadgeTheme } from "@/hooks/useBadgeTheme";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -137,6 +138,7 @@ export default function UnifiedDashboard() {
   const { notificationsEnabled, hasUnread, enableNotifications, clearUnread } = useNotifications();
   const { setTheme, resolvedTheme } = useTheme();
   const queryClient = useQueryClient();
+  useBadgeTheme();
 
   const [mounted, setMounted] = useState(false);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);

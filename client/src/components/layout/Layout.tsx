@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useUser } from "@/lib/userContext";
 import { usePWA } from "@/lib/pwaContext";
+import { useBadgeTheme } from "@/hooks/useBadgeTheme";
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
 interface LayoutProps {
@@ -17,6 +18,7 @@ export function Layout({ children }: LayoutProps) {
   const [, setLocation] = useLocation();
   const { user, currentTeam, logout } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
+  useBadgeTheme();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "dark";
