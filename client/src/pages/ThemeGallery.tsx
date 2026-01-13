@@ -79,7 +79,7 @@ export default function ThemeGallery() {
 
   const applyThemeMutation = useMutation({
     mutationFn: async (themeId: string) => {
-      const res = await fetch(`/api/supporters/${user?.id}/theme/${themeId}`, {
+      const res = await fetch(`/api/supporters/${user?.id}/themes/${themeId}/activate`, {
         method: "POST",
         credentials: "include",
       });
