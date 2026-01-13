@@ -364,13 +364,6 @@ html.dark[data-badge-theme="legend"] .theme-texture {
 
 /* Badge Theme Variable Overrides - Bronze */
 html.dark[data-badge-theme="bronze"] {
-  --primary: 30 70% 45%;
-  --primary-foreground: 30 10% 98%;
-  --accent: 25 60% 50%;
-  --accent-foreground: 25 10% 10%;
-  --card: 25 20% 14%;
-  --border: 30 30% 25%;
-  --ring: 30 70% 50%;
   --background: 0 0% 0% / 0;
 }
 
@@ -380,35 +373,29 @@ html.dark[data-badge-theme="bronze"] body {
 
 /* Badge Theme Variable Overrides - Silver */
 html.dark[data-badge-theme="silver"] {
-  --primary: 220 15% 65%;
-  --primary-foreground: 220 10% 10%;
-  --accent: 215 20% 70%;
-  --accent-foreground: 215 15% 10%;
-  --card: 220 12% 16%;
-  --border: 220 15% 30%;
-  --ring: 220 20% 65%;
+  --background: 0 0% 0% / 0;
+}
+
+html.dark[data-badge-theme="silver"] body {
+  background: transparent !important;
 }
 
 /* Badge Theme Variable Overrides - Gold */
 html.dark[data-badge-theme="gold"] {
-  --primary: 45 90% 50%;
-  --primary-foreground: 45 10% 10%;
-  --accent: 40 85% 55%;
-  --accent-foreground: 40 10% 10%;
-  --card: 40 25% 12%;
-  --border: 45 40% 30%;
-  --ring: 45 90% 55%;
+  --background: 0 0% 0% / 0;
+}
+
+html.dark[data-badge-theme="gold"] body {
+  background: transparent !important;
 }
 
 /* Badge Theme Variable Overrides - Legend */
 html.dark[data-badge-theme="legend"] {
-  --primary: 270 70% 60%;
-  --primary-foreground: 270 10% 98%;
-  --accent: 280 75% 65%;
-  --accent-foreground: 280 10% 10%;
-  --card: 270 30% 14%;
-  --border: 270 40% 30%;
-  --ring: 270 70% 60%;
+  --background: 0 0% 0% / 0;
+}
+
+html.dark[data-badge-theme="legend"] body {
+  background: transparent !important;
 }
 
 /* Light mode card shadows */
