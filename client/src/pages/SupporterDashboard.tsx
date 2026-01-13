@@ -173,6 +173,18 @@ export default function SupporterDashboard() {
     enabled: !!user?.id,
   });
 
+  // Apply theme to HTML element when active theme changes
+  useEffect(() => {
+    if (activeTheme?.themeId && activeTheme.themeId !== "basic") {
+      document.documentElement.setAttribute("data-badge-theme", activeTheme.themeId);
+    } else {
+      document.documentElement.removeAttribute("data-badge-theme");
+    }
+    return () => {
+      document.documentElement.removeAttribute("data-badge-theme");
+    };
+  }, [activeTheme?.themeId]);
+
   // Compute which badges have been earned and have themes
   const earnedBadgeThemes = useMemo(() => {
     if (!allBadges.length || !earnedBadges.length) return [];
@@ -193,7 +205,7 @@ export default function SupporterDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["active-theme"] });
-      toast.success("Theme applied! Refresh to see changes.");
+      toast.success("Theme applied!");
       setThemeDialogBadge(null);
     },
     onError: () => {
