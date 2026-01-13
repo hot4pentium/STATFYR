@@ -32,6 +32,7 @@ const THEME_STYLES: Record<string, {
     cardBg: "bg-gradient-to-br from-slate-700/40 to-gray-600/30",
     textColor: "text-slate-200",
     borderColor: "border-slate-400/50",
+    bgImage: "/themes/silver-bg.png",
   },
   gold: {
     gradient: "from-yellow-500 via-amber-400 to-yellow-600",
