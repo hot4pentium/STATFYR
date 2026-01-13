@@ -1573,10 +1573,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async setActiveTheme(supporterId: string, themeId: string): Promise<ThemeUnlock | undefined> {
+    // First deactivate all themes for this supporter
     await db
       .update(themeUnlocks)
       .set({ isActive: false })
       .where(eq(themeUnlocks.supporterId, supporterId));
+    
+    // If "basic" theme, just return - all themes are now deactivated (back to default)
+    if (themeId === 'basic') {
+      return { id: 'basic', supporterId, themeId: 'basic', isActive: true, unlockedAt: new Date() } as ThemeUnlock;
+    }
     
     const [theme] = await db
       .update(themeUnlocks)

@@ -81,10 +81,10 @@ import {
   getTeamAggregateStats, getAdvancedTeamStats, getLiveSessionByEvent, createLiveSessionForEvent,
   startLiveSession, endLiveSession, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount,
   getManagedAthletes, getSupporterBadges, getAllBadges, getSupporterTapTotal, getActiveLiveSessions,
-  getUserTeams, joinTeamByCode, getTeamEngagementStats, getTopTappers,
+  getUserTeams, joinTeamByCode, getTeamEngagementStats, getTopTappers, getActiveTheme,
   type Team, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup,
   type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession, type ManagedAthlete,
-  type TopTapper
+  type TopTapper, type SupporterBadge, type BadgeDefinition
 } from "@/lib/api";
 import { SPORT_POSITIONS } from "@/lib/sportConstants";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend, CartesianGrid } from "recharts";
@@ -174,6 +174,7 @@ export default function UnifiedDashboard() {
   const [eventSessions, setEventSessions] = useState<Record<string, LiveEngagementSession | null>>({});
   const [loadingSessionForEvent, setLoadingSessionForEvent] = useState<string | null>(null);
   const [confirmStartEvent, setConfirmStartEvent] = useState<Event | null>(null);
+  const [themeDialogBadge, setThemeDialogBadge] = useState<{ themeId: string; name: string; emoji: string } | null>(null);
   
   // Create member state
   const [isCreateMemberOpen, setIsCreateMemberOpen] = useState(false);
@@ -322,6 +323,53 @@ export default function UnifiedDashboard() {
     queryFn: () => user ? getManagedAthletes(user.id) : Promise.resolve([]),
     enabled: !!user && userRole === "supporter",
   });
+
+  // Badge queries for supporters
+  const { data: allBadges = [] } = useQuery({
+    queryKey: ["/api/badges"],
+    queryFn: getAllBadges,
+    enabled: userRole === "supporter",
+  });
+
+  const { data: earnedBadges = [] } = useQuery({
+    queryKey: ["supporter-badges", user?.id, currentTeam?.id, "2024-2025"],
+    queryFn: () => getSupporterBadges(user!.id, currentTeam!.id, "2024-2025"),
+    enabled: !!user?.id && !!currentTeam?.id && userRole === "supporter",
+  });
+
+  const { data: activeTheme } = useQuery<{ themeId: string } | null>({
+    queryKey: ["supporter-theme", user?.id],
+    queryFn: () => getActiveTheme(user!.id),
+    enabled: !!user?.id && userRole === "supporter",
+  });
+
+  const applyThemeMutation = useMutation({
+    mutationFn: async (themeId: string) => {
+      const res = await fetch(`/api/supporters/${user?.id}/themes/${themeId}/activate`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to apply theme");
+      return res.json();
+    },
+    onSuccess: (_, themeId) => {
+      queryClient.invalidateQueries({ queryKey: ["supporter-theme", user?.id] });
+      toast.success(`${themeId === 'basic' ? 'Default' : themeId.charAt(0).toUpperCase() + themeId.slice(1)} theme applied!`);
+      setThemeDialogBadge(null);
+    },
+    onError: () => {
+      toast.error("Failed to apply theme");
+    },
+  });
+
+  // Get earned badge theme IDs for banner display
+  const earnedBadgeThemes = useMemo(() => {
+    if (!earnedBadges || !allBadges) return [];
+    const earnedBadgeIds = new Set(earnedBadges.map((b: SupporterBadge) => b.badgeId));
+    return allBadges
+      .filter((b: BadgeDefinition) => earnedBadgeIds.has(b.id))
+      .sort((a: BadgeDefinition, b: BadgeDefinition) => a.tier - b.tier);
+  }, [earnedBadges, allBadges]);
 
   // Fetch user's teams for athletes and supporters
   const { data: userTeams = [] } = useQuery({
@@ -2239,6 +2287,25 @@ export default function UnifiedDashboard() {
                   </div>
                 )}
               </div>
+
+              {/* Earned Badges - Supporters Only - Bottom Right of Profile Section */}
+              {userRole === "supporter" && earnedBadgeThemes.length > 0 && (
+                <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                  {earnedBadgeThemes.map((badge: BadgeDefinition) => (
+                    <button
+                      key={badge.id}
+                      onClick={() => setThemeDialogBadge({ themeId: badge.themeId, name: badge.name, emoji: badge.iconEmoji })}
+                      className={`text-xl hover:scale-110 transition-transform cursor-pointer ${
+                        activeTheme?.themeId === badge.themeId ? 'ring-2 ring-primary rounded-full p-0.5' : ''
+                      }`}
+                      title={`${badge.name} Badge - Tap to apply theme`}
+                      data-testid={`badge-${badge.themeId}`}
+                    >
+                      {badge.iconEmoji}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* View Selector - Supporters Only */}
@@ -3240,6 +3307,39 @@ export default function UnifiedDashboard() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Theme Switch Dialog */}
+        <AlertDialog open={!!themeDialogBadge} onOpenChange={(open) => !open && setThemeDialogBadge(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <span className="text-2xl">{themeDialogBadge?.emoji}</span>
+                Switch to {themeDialogBadge?.name} Theme?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Apply the {themeDialogBadge?.name} theme to your dashboard. You can switch between themes anytime or go back to the default.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              {activeTheme?.themeId && activeTheme.themeId !== 'basic' && (
+                <Button
+                  variant="outline"
+                  onClick={() => applyThemeMutation.mutate('basic')}
+                  disabled={applyThemeMutation.isPending}
+                >
+                  Use Default
+                </Button>
+              )}
+              <AlertDialogAction
+                onClick={() => themeDialogBadge && applyThemeMutation.mutate(themeDialogBadge.themeId)}
+                disabled={applyThemeMutation.isPending || activeTheme?.themeId === themeDialogBadge?.themeId}
+              >
+                {activeTheme?.themeId === themeDialogBadge?.themeId ? 'Already Active' : 'Apply Theme'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </>
   );
