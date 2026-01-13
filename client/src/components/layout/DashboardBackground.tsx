@@ -1,7 +1,7 @@
 export function DashboardBackground() {
   return (
     <>
-      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-black dark:via-zinc-900 dark:to-black" />
+      <div className="fixed inset-0 z-0 pointer-events-none dashboard-bg" />
       {/* Noise texture overlay - light mode only */}
       <div 
         className="fixed inset-0 z-[1] pointer-events-none opacity-[0.35] dark:opacity-0"
