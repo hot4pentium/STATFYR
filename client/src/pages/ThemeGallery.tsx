@@ -16,6 +16,7 @@ const THEME_STYLES: Record<string, {
   cardBg: string;
   textColor: string;
   borderColor: string;
+  bgImage?: string;
 }> = {
   bronze: {
     gradient: "from-amber-700 via-orange-600 to-yellow-700",
@@ -23,6 +24,7 @@ const THEME_STYLES: Record<string, {
     cardBg: "bg-gradient-to-br from-amber-900/40 to-orange-800/30",
     textColor: "text-amber-200",
     borderColor: "border-amber-500/50",
+    bgImage: "/themes/bronze-bg.png",
   },
   silver: {
     gradient: "from-slate-400 via-gray-300 to-slate-500",
@@ -187,9 +189,16 @@ export default function ThemeGallery() {
                   } ${isActive ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}`}
                   data-testid={`theme-card-${badge.themeId}`}
                 >
-                  <div className={`h-24 bg-gradient-to-r ${styles.gradient} relative`}>
+                  <div 
+                    className={`h-24 relative ${!styles.bgImage ? `bg-gradient-to-r ${styles.gradient}` : ''}`}
+                    style={styles.bgImage ? {
+                      backgroundImage: `url(${styles.bgImage})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    } : undefined}
+                  >
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-4xl">{badge.iconEmoji}</span>
+                      <span className="text-4xl drop-shadow-lg">{badge.iconEmoji}</span>
                     </div>
                     {!unlocked && (
                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
