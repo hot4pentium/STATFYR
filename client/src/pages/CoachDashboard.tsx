@@ -1,7 +1,7 @@
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Bell } from "lucide-react";
+import { Users, CalendarClock, ChevronRight, BarChart3, ClipboardList, MessageSquare, Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Bell, Info, History, PlayCircle, StopCircle } from "lucide-react";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -107,6 +107,14 @@ export default function CoachDashboard() {
   const [lineupBench, setLineupBench] = useState<string[]>([]);
   const [eventSessions, setEventSessions] = useState<Record<string, LiveEngagementSession | null>>({});
   const [loadingSessionForEvent, setLoadingSessionForEvent] = useState<string | null>(null);
+
+  // Season management state
+  const [isEndSeasonDialogOpen, setIsEndSeasonDialogOpen] = useState(false);
+  const [isStartSeasonDialogOpen, setIsStartSeasonDialogOpen] = useState(false);
+  const [newSeasonName, setNewSeasonName] = useState("");
+  const [selectedMvpId, setSelectedMvpId] = useState<string>("");
+  const [isEndingSeasonLoading, setIsEndingSeasonLoading] = useState(false);
+  const [isStartingSeasonLoading, setIsStartingSeasonLoading] = useState(false);
 
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -414,6 +422,59 @@ export default function CoachDashboard() {
       snacksAthleteId: (event as any).snacksAthleteId || ""
     });
     setIsEventModalOpen(true);
+  };
+
+  // Season management handlers
+  const handleEndSeason = async () => {
+    if (!currentTeam?.id) return;
+    
+    setIsEndingSeasonLoading(true);
+    try {
+      const response = await fetch(`/api/teams/${currentTeam.id}/end-season`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mvpUserId: selectedMvpId || undefined }),
+      });
+      
+      if (!response.ok) throw new Error("Failed to end season");
+      
+      toast.success("Season ended successfully! Data has been archived.");
+      setIsEndSeasonDialogOpen(false);
+      setSelectedMvpId("");
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id, "events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id] });
+    } catch (error) {
+      toast.error("Failed to end season");
+    } finally {
+      setIsEndingSeasonLoading(false);
+    }
+  };
+
+  const handleStartSeason = async () => {
+    if (!currentTeam?.id || !newSeasonName.trim()) {
+      toast.error("Please enter a season name");
+      return;
+    }
+    
+    setIsStartingSeasonLoading(true);
+    try {
+      const response = await fetch(`/api/teams/${currentTeam.id}/start-season`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ season: newSeasonName.trim() }),
+      });
+      
+      if (!response.ok) throw new Error("Failed to start season");
+      
+      toast.success(`Season "${newSeasonName}" started!`);
+      setIsStartSeasonDialogOpen(false);
+      setNewSeasonName("");
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id] });
+    } catch (error) {
+      toast.error("Failed to start season");
+    } finally {
+      setIsStartingSeasonLoading(false);
+    }
   };
 
   const handleEventSubmit = () => {
@@ -729,25 +790,83 @@ export default function CoachDashboard() {
 
         return (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-muted-foreground">
-                {selectedDate ? (
-                  <span>Showing events for {format(selectedDate, "MMMM d, yyyy")}</span>
-                ) : (
-                  <span>{teamEvents.length} total events</span>
-                )}
-              </div>
-              <div className="flex gap-2">
-                {selectedDate && (
-                  <Button variant="outline" size="sm" onClick={() => setSelectedDate(undefined)} data-testid="button-clear-date">
-                    Clear Filter
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-muted-foreground">
+                  {selectedDate ? (
+                    <span>Showing events for {format(selectedDate, "MMMM d, yyyy")}</span>
+                  ) : (
+                    <span>{teamEvents.length} total events</span>
+                  )}
+                  {currentTeam?.season && (
+                    <span className="ml-2 px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-bold">
+                      {currentTeam.season}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  {selectedDate && (
+                    <Button variant="outline" size="sm" onClick={() => setSelectedDate(undefined)} data-testid="button-clear-date">
+                      Clear Filter
+                    </Button>
+                  )}
+                  <Button onClick={openAddEvent} className="gap-2" data-testid="button-add-event">
+                    <Plus className="h-4 w-4" />
+                    Add Event
                   </Button>
-                )}
-                <Button onClick={openAddEvent} className="gap-2" data-testid="button-add-event">
-                  <Plus className="h-4 w-4" />
-                  Add Event
-                </Button>
+                </div>
               </div>
+              
+              {/* Season Management Bar */}
+              <Card className="bg-background/40 border-white/10">
+                <CardContent className="p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground">Season:</span>
+                      {currentTeam?.season ? (
+                        <span className="text-sm font-bold text-primary">{currentTeam.season}</span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground italic">No active season</span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      {!currentTeam?.season || (currentTeam as any)?.seasonStatus === 'ended' ? (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="gap-1.5 border-green-500/50 text-green-500 hover:bg-green-500/10"
+                          onClick={() => {
+                            const year = new Date().getFullYear();
+                            setNewSeasonName(`${year}-${year + 1}`);
+                            setIsStartSeasonDialogOpen(true);
+                          }}
+                          data-testid="button-start-season"
+                        >
+                          <PlayCircle className="h-4 w-4" />
+                          Start Season
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="gap-1.5 border-red-500/50 text-red-500 hover:bg-red-500/10"
+                          onClick={() => setIsEndSeasonDialogOpen(true)}
+                          data-testid="button-end-season"
+                        >
+                          <StopCircle className="h-4 w-4" />
+                          End Season
+                        </Button>
+                      )}
+                      <Link href={`/team/${currentTeam?.id}/season-history`}>
+                        <Button variant="ghost" size="sm" className="gap-1.5" data-testid="button-season-history">
+                          <History className="h-4 w-4" />
+                          History
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
             
             {/* Next Game Card */}
@@ -2380,6 +2499,153 @@ export default function CoachDashboard() {
               data-testid="button-save-lineup"
             >
               {saveLineupMutation.isPending ? "Saving..." : "Save Lineup"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* End Season Confirmation Dialog */}
+      <Dialog open={isEndSeasonDialogOpen} onOpenChange={setIsEndSeasonDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-500">
+              <StopCircle className="h-5 w-5" />
+              End Season
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+              <p className="text-sm font-medium text-amber-500 mb-2">⚠️ Are you sure you want to end the current season?</p>
+              <p className="text-xs text-muted-foreground">This action cannot be undone.</p>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-start gap-2">
+                <Check className="h-4 w-4 text-green-500 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium">What will be saved:</p>
+                  <ul className="text-xs text-muted-foreground list-disc list-inside">
+                    <li>Final team record (W-L-T)</li>
+                    <li>Player stats and top performers</li>
+                    <li>Supporter engagement (total taps, top tapper, badges)</li>
+                    <li>All events/games</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-red-500 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium">What will reset:</p>
+                  <ul className="text-xs text-muted-foreground list-disc list-inside">
+                    <li>Team record will reset to 0-0-0</li>
+                    <li>Tap totals reset for all supporters</li>
+                    <li>Calendar will be cleared</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-2">
+                <Info className="h-4 w-4 text-primary mt-0.5" />
+                <p className="text-xs text-muted-foreground">
+                  When you create your next event, you'll be prompted to name the new season.
+                </p>
+              </div>
+            </div>
+            
+            {/* Optional MVP Selection */}
+            <div className="border-t border-white/10 pt-4">
+              <Label className="text-sm font-medium">Select Season MVP (Optional)</Label>
+              <Select value={selectedMvpId} onValueChange={setSelectedMvpId}>
+                <SelectTrigger className="mt-2" data-testid="select-mvp">
+                  <SelectValue placeholder="Choose MVP..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No MVP</SelectItem>
+                  {teamMembers
+                    .filter((m: TeamMember) => m.role === 'athlete')
+                    .map((m: TeamMember) => (
+                      <SelectItem key={m.userId} value={m.userId}>
+                        #{m.jerseyNumber || "--"} {m.user.firstName || m.user.name} ({m.position || "Player"})
+                      </SelectItem>
+                    ))
+                  }
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsEndSeasonDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleEndSeason}
+              disabled={isEndingSeasonLoading}
+              data-testid="button-confirm-end-season"
+            >
+              {isEndingSeasonLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Ending Season...
+                </>
+              ) : (
+                "End Season"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Start Season Dialog */}
+      <Dialog open={isStartSeasonDialogOpen} onOpenChange={setIsStartSeasonDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-500">
+              <PlayCircle className="h-5 w-5" />
+              Start New Season
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+              <p className="text-sm text-muted-foreground">
+                Starting a new season will prepare your team for new events and reset tracking for the upcoming season.
+              </p>
+            </div>
+            
+            <div>
+              <Label htmlFor="season-name" className="text-sm font-medium">Season Name</Label>
+              <Input
+                id="season-name"
+                value={newSeasonName}
+                onChange={(e) => setNewSeasonName(e.target.value)}
+                placeholder="e.g., 2025-2026"
+                className="mt-2"
+                data-testid="input-season-name"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Typically formatted as "YYYY-YYYY" (e.g., "2025-2026")
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsStartSeasonDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-green-600 hover:bg-green-700"
+              onClick={handleStartSeason}
+              disabled={isStartingSeasonLoading || !newSeasonName.trim()}
+              data-testid="button-confirm-start-season"
+            >
+              {isStartingSeasonLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Starting...
+                </>
+              ) : (
+                "Start Season"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

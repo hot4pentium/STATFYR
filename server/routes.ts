@@ -1,8 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { withRetry } from "./db";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema, insertAthleteFollowerSchema, insertHypePostSchema, insertHypeSchema } from "@shared/schema";
+import { withRetry, db } from "./db";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema, insertAthleteFollowerSchema, insertHypePostSchema, insertHypeSchema, teams } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
 import { spawn } from "child_process";
@@ -509,6 +510,85 @@ export async function registerRoutes(
       res.json(team);
     } catch (error) {
       res.status(500).json({ error: "Failed to update team" });
+    }
+  });
+
+  // Season Management Routes
+  app.get("/api/teams/:teamId/seasons", async (req, res) => {
+    try {
+      const archives = await storage.getSeasonArchives(req.params.teamId);
+      res.json(archives);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get season archives" });
+    }
+  });
+
+  app.get("/api/teams/:teamId/seasons/:seasonId", async (req, res) => {
+    try {
+      const archive = await storage.getSeasonArchive(req.params.seasonId);
+      if (!archive) {
+        return res.status(404).json({ error: "Season archive not found" });
+      }
+      res.json(archive);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get season archive" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/end-season", async (req, res) => {
+    try {
+      const { mvpUserId } = req.body;
+      const archive = await storage.endSeason(req.params.teamId, mvpUserId);
+      res.json(archive);
+    } catch (error) {
+      console.error('End season error:', error);
+      res.status(500).json({ error: "Failed to end season" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/start-season", async (req, res) => {
+    try {
+      const { season } = req.body;
+      if (!season) {
+        return res.status(400).json({ error: "Season name is required" });
+      }
+
+      // Update team with new season and set status to active
+      const [updatedTeam] = await db
+        .update(teams)
+        .set({ 
+          season,
+          seasonStatus: 'active'
+        })
+        .where(eq(teams.id, req.params.teamId))
+        .returning();
+
+      if (!updatedTeam) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      res.json(updatedTeam);
+    } catch (error) {
+      console.error('Start season error:', error);
+      res.status(500).json({ error: "Failed to start season" });
+    }
+  });
+
+  app.get("/api/teams/:teamId/athletes-for-mvp", async (req, res) => {
+    try {
+      const members = await storage.getTeamMembers(req.params.teamId);
+      const athletes = members
+        .filter(m => m.role === 'athlete')
+        .map(m => ({
+          id: m.user.id,
+          name: m.user.firstName 
+            ? `${m.user.firstName} ${m.user.lastName || ''}`.trim()
+            : m.user.name,
+          position: m.position,
+          jerseyNumber: m.jerseyNumber,
+        }));
+      res.json(athletes);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get athletes" });
     }
   });
 
@@ -3034,7 +3114,63 @@ export async function registerRoutes(
 
       const newBadges = [];
       
+      // Check for Legend badge - returning supporter with 1500+ previous season taps who earns Bronze
+      const legendBadge = allBadges.find(b => b.name === 'Legend');
+      const bronzeBadge = allBadges.find(b => b.name === 'Bronze');
+      
+      // Check if supporter earned Bronze this season (100 taps)
+      const earnedBronzeThisSeason = tapTotal.totalTaps >= 100;
+      
+      // Check if supporter had 1500+ taps in any previous season (from archived data)
+      let hadGoldTapsInPreviousSeason = false;
+      if (legendBadge && bronzeBadge && earnedBronzeThisSeason && !existingBadgeIds.has(legendBadge.id)) {
+        // Get all season archives for this team
+        const previousSeasonArchives = await storage.getSeasonArchives(teamId);
+        
+        for (const archive of previousSeasonArchives) {
+          if (archive.season !== season) {
+            // Check the archived supporterTapTotals for this supporter
+            // Gracefully handle archives that predate this column or have null values
+            const archivedTapTotals = archive.supporterTapTotals as Array<{ supporterId: string; name: string; taps: number }> | null;
+            if (archivedTapTotals && Array.isArray(archivedTapTotals)) {
+              const supporterRecord = archivedTapTotals.find(t => t && t.supporterId === supporterId);
+              if (supporterRecord && typeof supporterRecord.taps === 'number' && supporterRecord.taps >= 1500) {
+                hadGoldTapsInPreviousSeason = true;
+                break;
+              }
+            }
+          }
+        }
+        
+        // Award Legend badge if returning supporter with 1500+ previous taps
+        if (hadGoldTapsInPreviousSeason) {
+          const supporterBadge = await storage.createSupporterBadge({
+            supporterId,
+            badgeId: legendBadge.id,
+            teamId,
+            season,
+          });
+          
+          const existingThemes = await storage.getSupporterThemes(supporterId);
+          const hasTheme = existingThemes.some(t => t.themeId === legendBadge.themeId);
+          if (!hasTheme) {
+            await storage.createThemeUnlock({
+              supporterId,
+              themeId: legendBadge.themeId,
+              isActive: false,
+            });
+          }
+          
+          newBadges.push({ ...supporterBadge, badge: legendBadge });
+          existingBadgeIds.add(legendBadge.id);
+        }
+      }
+      
+      // Award regular badges based on tap threshold (skip Legend since it has tapThreshold=0)
       for (const badge of allBadges) {
+        // Skip Legend badge (handled specially above) - it has tapThreshold = 0
+        if (badge.name === 'Legend') continue;
+        
         if (tapTotal.totalTaps >= badge.tapThreshold && !existingBadgeIds.has(badge.id)) {
           const supporterBadge = await storage.createSupporterBadge({
             supporterId,

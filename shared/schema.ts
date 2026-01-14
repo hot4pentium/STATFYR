@@ -812,6 +812,8 @@ export const seasonArchives = pgTable("season_archives", {
   totalBadgesEarned: integer("total_badges_earned").notNull().default(0),
   // Archived events - stored as JSON array
   archivedEvents: jsonb("archived_events"),
+  // Per-supporter tap totals - stored as JSON array [{supporterId, name, taps}]
+  supporterTapTotals: jsonb("supporter_tap_totals"),
   // Metadata
   endedAt: timestamp("ended_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),

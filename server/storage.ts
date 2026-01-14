@@ -5,7 +5,7 @@ import {
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
   liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
   impersonationSessions, hypes, athleteHypeTotals, directMessages, messageReads, notificationPreferences,
-  supporterAthleteLinks, supporterStats, subscriptions, adminMessages,
+  supporterAthleteLinks, supporterStats, subscriptions, adminMessages, seasonArchives,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -45,6 +45,7 @@ import {
   type SupporterStat, type InsertSupporterStat,
   type AdminMessage, type InsertAdminMessage,
   type AdminMessageReceipt, type InsertAdminMessageReceipt,
+  type SeasonArchive, type InsertSeasonArchive,
   adminMessageReceipts,
   chatPresence
 } from "@shared/schema";
@@ -317,6 +318,12 @@ export interface IStorage {
   getAdminConversation(recipientId: string): Promise<(AdminMessage & { sender: User })[]>;
   markAdminMessageRead(userId: string, messageId: string): Promise<void>;
   getAllUsersForBroadcast(): Promise<{ id: string; email: string; firstName: string; lastName: string }[]>;
+  
+  // Season Archive methods
+  getSeasonArchives(teamId: string): Promise<SeasonArchive[]>;
+  getSeasonArchive(id: string): Promise<SeasonArchive | undefined>;
+  createSeasonArchive(data: InsertSeasonArchive): Promise<SeasonArchive>;
+  endSeason(teamId: string, mvpUserId?: string): Promise<SeasonArchive>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2811,6 +2818,206 @@ export class DatabaseStorage implements IStorage {
       firstName: u.firstName || '',
       lastName: u.lastName || '',
     }));
+  }
+
+  // Season Archive methods
+  async getSeasonArchives(teamId: string): Promise<SeasonArchive[]> {
+    return await db
+      .select()
+      .from(seasonArchives)
+      .where(eq(seasonArchives.teamId, teamId))
+      .orderBy(desc(seasonArchives.endedAt));
+  }
+
+  async getSeasonArchive(id: string): Promise<SeasonArchive | undefined> {
+    const [archive] = await db
+      .select()
+      .from(seasonArchives)
+      .where(eq(seasonArchives.id, id));
+    return archive || undefined;
+  }
+
+  async createSeasonArchive(data: InsertSeasonArchive): Promise<SeasonArchive> {
+    const [archive] = await db
+      .insert(seasonArchives)
+      .values(data)
+      .returning();
+    return archive;
+  }
+
+  async endSeason(teamId: string, mvpUserId?: string): Promise<SeasonArchive> {
+    // Get current team data
+    const team = await this.getTeam(teamId);
+    if (!team) throw new Error('Team not found');
+
+    const season = team.season || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
+
+    // Get all events for archiving
+    const teamEvents = await this.getTeamEvents(teamId);
+    const archivedEvents = teamEvents.map(e => ({
+      id: e.id,
+      title: e.title,
+      type: e.type,
+      date: e.date,
+      opponent: e.opponent,
+      location: e.location,
+    }));
+
+    // Get total taps for the season
+    const tapTotals = await db
+      .select()
+      .from(liveTapTotals)
+      .where(and(
+        eq(liveTapTotals.teamId, teamId),
+        eq(liveTapTotals.season, season)
+      ));
+
+    const totalTaps = tapTotals.reduce((sum, t) => sum + t.totalTaps, 0);
+
+    // Find top tapper
+    let topTapperId: string | undefined;
+    let topTapperName: string | undefined;
+    let topTapperTaps = 0;
+
+    if (tapTotals.length > 0) {
+      const topTapper = tapTotals.reduce((max, t) => t.totalTaps > max.totalTaps ? t : max);
+      topTapperId = topTapper.supporterId;
+      topTapperTaps = topTapper.totalTaps;
+      const topTapperUser = await this.getUser(topTapper.supporterId);
+      topTapperName = topTapperUser?.firstName 
+        ? `${topTapperUser.firstName} ${topTapperUser.lastName || ''}`.trim()
+        : topTapperUser?.name || 'Unknown';
+    }
+
+    // Get total badges earned this season
+    const badges = await db
+      .select()
+      .from(supporterBadges)
+      .where(and(
+        eq(supporterBadges.teamId, teamId),
+        eq(supporterBadges.season, season)
+      ));
+    const totalBadgesEarned = badges.length;
+
+    // Get top performers from game stats
+    const teamGames = await this.getTeamGames(teamId);
+    const completedGameIds = teamGames.filter(g => g.status === 'completed').map(g => g.id);
+    
+    let topPerformers: { userId: string; name: string; statName: string; value: number }[] = [];
+    if (completedGameIds.length > 0) {
+      // Get aggregated stats per player with stat config names
+      const statsResult = await db
+        .select({
+          athleteId: gameStats.athleteId,
+          statName: statConfigurations.name,
+          total: sql<number>`SUM(${gameStats.value})`,
+        })
+        .from(gameStats)
+        .innerJoin(statConfigurations, eq(gameStats.statConfigId, statConfigurations.id))
+        .where(and(
+          sql`${gameStats.gameId} IN (${sql.join(completedGameIds.map(id => sql`${id}`), sql`, `)})`,
+          sql`${gameStats.athleteId} IS NOT NULL`,
+          eq(gameStats.isDeleted, false)
+        ))
+        .groupBy(gameStats.athleteId, statConfigurations.name)
+        .orderBy(desc(sql`SUM(${gameStats.value})`))
+        .limit(10);
+
+      // Get top 3 unique players
+      const seenUsers = new Set<string>();
+      for (const stat of statsResult) {
+        if (seenUsers.size >= 3) break;
+        if (stat.athleteId && !seenUsers.has(stat.athleteId)) {
+          seenUsers.add(stat.athleteId);
+          const player = await this.getUser(stat.athleteId);
+          topPerformers.push({
+            userId: stat.athleteId,
+            name: player?.firstName 
+              ? `${player.firstName} ${player.lastName || ''}`.trim()
+              : player?.name || 'Unknown',
+            statName: stat.statName,
+            value: Number(stat.total),
+          });
+        }
+      }
+    }
+
+    // Get MVP name if selected
+    let mvpName: string | undefined;
+    if (mvpUserId) {
+      const mvpUser = await this.getUser(mvpUserId);
+      mvpName = mvpUser?.firstName 
+        ? `${mvpUser.firstName} ${mvpUser.lastName || ''}`.trim()
+        : mvpUser?.name || 'Unknown';
+    }
+
+    // Build per-supporter tap totals array for archive
+    const supporterTapTotals: { supporterId: string; name: string; taps: number }[] = [];
+    for (const tapRecord of tapTotals) {
+      const supporter = await this.getUser(tapRecord.supporterId);
+      supporterTapTotals.push({
+        supporterId: tapRecord.supporterId,
+        name: supporter?.firstName 
+          ? `${supporter.firstName} ${supporter.lastName || ''}`.trim()
+          : supporter?.name || 'Unknown',
+        taps: tapRecord.totalTaps,
+      });
+    }
+
+    // Create the archive
+    const archive = await this.createSeasonArchive({
+      teamId,
+      season,
+      wins: team.wins,
+      losses: team.losses,
+      ties: team.ties,
+      totalGames: teamGames.filter(g => g.status === 'completed').length,
+      topPerformers,
+      mvpUserId: mvpUserId || null,
+      mvpName: mvpName || null,
+      totalTaps,
+      topTapperId: topTapperId || null,
+      topTapperName: topTapperName || null,
+      topTapperTaps,
+      totalBadgesEarned,
+      archivedEvents,
+      supporterTapTotals,
+      endedAt: new Date(),
+    });
+
+    // Reset team record
+    await db
+      .update(teams)
+      .set({ 
+        wins: 0, 
+        losses: 0, 
+        ties: 0, 
+        seasonStatus: 'ended',
+        season: null 
+      })
+      .where(eq(teams.id, teamId));
+
+    // Delete old events (they're now archived)
+    for (const event of teamEvents) {
+      await db.delete(events).where(eq(events.id, event.id));
+    }
+
+    // Clear live tap totals for this season (data is now archived)
+    await db
+      .delete(liveTapTotals)
+      .where(and(
+        eq(liveTapTotals.teamId, teamId),
+        eq(liveTapTotals.season, season)
+      ));
+
+    // Note: We DO NOT clear supporter badges for past seasons
+    // Badges are tied to a specific season and should be preserved
+    // The Legend badge logic checks for 1500+ taps in archived seasons
+    // and Bronze (100 taps) in the CURRENT season (via current liveTapTotals)
+    // Since we cleared liveTapTotals, new season starts fresh at 0 taps
+    // Supporters will earn badges fresh in the new season
+
+    return archive;
   }
 }
 

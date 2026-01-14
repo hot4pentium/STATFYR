@@ -47,6 +47,7 @@ import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import SubscriptionPage from "@/pages/SubscriptionPage";
 import PlayEditorPage from "@/pages/PlayEditorPage";
 import ThemeGallery from "@/pages/ThemeGallery";
+import SeasonHistoryPage from "@/pages/SeasonHistoryPage";
 
 function Router() {
   // Handle Replit internal iframe paths - treat them as root
@@ -101,6 +102,7 @@ function Router() {
       <Route path="/subscription" component={SubscriptionPage} />
       <Route path="/subscription/success" component={SubscriptionPage} />
       <Route path="/subscription/cancel" component={SubscriptionPage} />
+      <Route path="/team/:teamId/season-history" component={SeasonHistoryPage} />
       <Route path="/test" component={TestPage} />
       <Route component={NotFound} />
     </Switch>
