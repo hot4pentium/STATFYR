@@ -946,12 +946,12 @@ export default function SupporterDashboard() {
 
               {selectedCard === "game-day-live" && (
                 <div className="space-y-4">
-                  <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30">
+                  <Card className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-primary/30">
                     <CardContent className="p-6 text-center space-y-4">
                       <div className="h-16 w-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
                         <Flame className="h-8 w-8 text-primary" />
                       </div>
-                      <h3 className="text-xl font-bold">Game Day Live</h3>
+                      <h3 className="text-xl font-bold text-foreground">Game Day Live</h3>
                       <p className="text-muted-foreground">
                         Send shoutouts and cheers to athletes during live games! When a game is in progress, you'll be able to tap to send real-time encouragement.
                       </p>
