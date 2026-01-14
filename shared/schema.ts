@@ -20,6 +20,7 @@ export const teams = pgTable("teams", {
   sport: text("sport").notNull().default("Football"),
   division: text("division"),
   season: text("season"),
+  seasonStatus: text("season_status").notNull().default("active"), // 'active', 'ended', 'not_started'
   badgeId: text("badge_id"),
   teamColor: text("team_color"),
   coachId: varchar("coach_id").references(() => users.id),
@@ -788,6 +789,49 @@ export const themeUnlocksRelations = relations(themeUnlocks, ({ one }) => ({
   }),
 }));
 
+// Season Archives - stores end-of-season snapshots
+export const seasonArchives = pgTable("season_archives", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  season: text("season").notNull(), // e.g., "2024-2025"
+  // Team performance
+  wins: integer("wins").notNull().default(0),
+  losses: integer("losses").notNull().default(0),
+  ties: integer("ties").notNull().default(0),
+  totalGames: integer("total_games").notNull().default(0),
+  // Top performers - stored as JSON array [{userId, name, statName, value}]
+  topPerformers: jsonb("top_performers"),
+  // Season MVP (optional - coach can pick)
+  mvpUserId: varchar("mvp_user_id").references(() => users.id),
+  mvpName: text("mvp_name"),
+  // Supporter engagement
+  totalTaps: integer("total_taps").notNull().default(0),
+  topTapperId: varchar("top_tapper_id").references(() => users.id),
+  topTapperName: text("top_tapper_name"),
+  topTapperTaps: integer("top_tapper_taps").notNull().default(0),
+  totalBadgesEarned: integer("total_badges_earned").notNull().default(0),
+  // Archived events - stored as JSON array
+  archivedEvents: jsonb("archived_events"),
+  // Metadata
+  endedAt: timestamp("ended_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const seasonArchivesRelations = relations(seasonArchives, ({ one }) => ({
+  team: one(teams, {
+    fields: [seasonArchives.teamId],
+    references: [teams.id],
+  }),
+  mvp: one(users, {
+    fields: [seasonArchives.mvpUserId],
+    references: [users.id],
+  }),
+  topTapper: one(users, {
+    fields: [seasonArchives.topTapperId],
+    references: [users.id],
+  }),
+}));
+
 // Shoutouts schemas
 export const insertShoutoutSchema = createInsertSchema(shoutouts).omit({
   id: true,
@@ -837,6 +881,15 @@ export const insertThemeUnlockSchema = createInsertSchema(themeUnlocks).omit({
 
 export type InsertThemeUnlock = z.infer<typeof insertThemeUnlockSchema>;
 export type ThemeUnlock = typeof themeUnlocks.$inferSelect;
+
+// Season Archive schemas
+export const insertSeasonArchiveSchema = createInsertSchema(seasonArchives).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertSeasonArchive = z.infer<typeof insertSeasonArchiveSchema>;
+export type SeasonArchive = typeof seasonArchives.$inferSelect;
 
 // Live Engagement Session schemas
 export const insertLiveEngagementSessionSchema = createInsertSchema(liveEngagementSessions).omit({
