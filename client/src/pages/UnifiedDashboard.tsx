@@ -71,8 +71,9 @@ import {
   Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Bell,
   ArrowLeft, MapPin, Clock, Utensils, Coffee, MoreVertical, UserCog, UserMinus, 
   Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User, Calendar,
-  List, Grid, Lock, Crown
+  List, Grid, Lock, Crown, PlayCircle, StopCircle, History
 } from "lucide-react";
+import { Link } from "wouter";
 
 import {
   getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent,
@@ -181,6 +182,13 @@ export default function UnifiedDashboard() {
   const [createMemberForm, setCreateMemberForm] = useState({ firstName: "", lastName: "", email: "", role: "athlete" });
   const [createdMemberInfo, setCreatedMemberInfo] = useState<{ name: string; tempPassword: string } | null>(null);
   const [isCreatingMember, setIsCreatingMember] = useState(false);
+  
+  // Season management state
+  const [isStartSeasonDialogOpen, setIsStartSeasonDialogOpen] = useState(false);
+  const [isEndSeasonDialogOpen, setIsEndSeasonDialogOpen] = useState(false);
+  const [newSeasonName, setNewSeasonName] = useState("");
+  const [selectedMvpId, setSelectedMvpId] = useState<string>("");
+  const [isSeasonLoading, setIsSeasonLoading] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -668,6 +676,54 @@ export default function UnifiedDashboard() {
     setIsCreateMemberOpen(false);
   };
 
+  // Season management handlers
+  const handleStartSeason = async () => {
+    if (!currentTeam?.id || !newSeasonName.trim()) {
+      toast.error("Please enter a season name");
+      return;
+    }
+    setIsSeasonLoading(true);
+    try {
+      const response = await fetch(`/api/teams/${currentTeam.id}/start-season`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ season: newSeasonName.trim() }),
+      });
+      if (!response.ok) throw new Error("Failed to start season");
+      toast.success(`Season "${newSeasonName}" started!`);
+      setIsStartSeasonDialogOpen(false);
+      setNewSeasonName("");
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id, "events"] });
+    } catch (error) {
+      toast.error("Failed to start season");
+    } finally {
+      setIsSeasonLoading(false);
+    }
+  };
+
+  const handleEndSeason = async () => {
+    if (!currentTeam?.id) return;
+    setIsSeasonLoading(true);
+    try {
+      const response = await fetch(`/api/teams/${currentTeam.id}/end-season`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mvpId: selectedMvpId || null }),
+      });
+      if (!response.ok) throw new Error("Failed to end season");
+      toast.success("Season ended! Data has been archived.");
+      setIsEndSeasonDialogOpen(false);
+      setSelectedMvpId("");
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id, "events"] });
+    } catch (error) {
+      toast.error("Failed to end season");
+    } finally {
+      setIsSeasonLoading(false);
+    }
+  };
+
   const resetEventForm = () => {
     setEventForm({ type: "Practice", date: "", hour: "09", minute: "00", ampm: "AM", location: "", details: "", opponent: "", drinksAthleteId: "", snacksAthleteId: "" });
     setEditingEvent(null);
@@ -1081,6 +1137,59 @@ export default function UnifiedDashboard() {
         )}
         {selectedCard === "schedule" && (
           <div className="space-y-4">
+            {/* Season Management Bar - Coaches Only */}
+            {(userRole === "coach" || isStaff) && (
+              <Card className="bg-background/40 border-white/10">
+                <CardContent className="p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground">Season:</span>
+                      {(currentTeam as any)?.season && (currentTeam as any)?.seasonStatus === "active" ? (
+                        <span className="text-sm font-bold text-primary">{(currentTeam as any).season}</span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground italic">No active season</span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      {!(currentTeam as any)?.season || (currentTeam as any)?.seasonStatus !== "active" ? (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="gap-1.5 border-green-500/50 text-green-500 hover:bg-green-500/10"
+                          onClick={() => {
+                            const year = new Date().getFullYear();
+                            setNewSeasonName(`${year}-${year + 1}`);
+                            setIsStartSeasonDialogOpen(true);
+                          }}
+                          data-testid="button-start-season"
+                        >
+                          <PlayCircle className="h-4 w-4" />
+                          Start Season
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="gap-1.5 border-red-500/50 text-red-500 hover:bg-red-500/10"
+                          onClick={() => setIsEndSeasonDialogOpen(true)}
+                          data-testid="button-end-season"
+                        >
+                          <StopCircle className="h-4 w-4" />
+                          End Season
+                        </Button>
+                      )}
+                      <Link href={`/team/${currentTeam?.id}/season-history`}>
+                        <Button variant="ghost" size="sm" className="gap-1.5" data-testid="button-season-history">
+                          <History className="h-4 w-4" />
+                          History
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
                 Upcoming Events
@@ -3340,6 +3449,100 @@ export default function UnifiedDashboard() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Start Season Dialog */}
+        <Dialog open={isStartSeasonDialogOpen} onOpenChange={setIsStartSeasonDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-green-500">
+                <PlayCircle className="h-5 w-5" />
+                Start New Season
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Starting a new season will allow you to track events and stats for this period. You can end the season later to archive all data.
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="season-name">Season Name</Label>
+                <Input
+                  id="season-name"
+                  placeholder="e.g., 2026-2027, Spring 2026"
+                  value={newSeasonName}
+                  onChange={(e) => setNewSeasonName(e.target.value)}
+                  data-testid="input-season-name"
+                />
+              </div>
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setIsStartSeasonDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                className="bg-green-600 hover:bg-green-700"
+                onClick={handleStartSeason}
+                disabled={isSeasonLoading || !newSeasonName.trim()}
+                data-testid="button-confirm-start-season"
+              >
+                {isSeasonLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Start Season"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* End Season Dialog */}
+        <Dialog open={isEndSeasonDialogOpen} onOpenChange={setIsEndSeasonDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-red-500">
+                <StopCircle className="h-5 w-5" />
+                End Season
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Are you sure you want to end the current season? All stats and events will be archived for historical reference.
+              </p>
+              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">
+                <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">What gets archived:</p>
+                <ul className="text-xs text-amber-600 dark:text-amber-400 mt-1 space-y-0.5 list-disc pl-4">
+                  <li>Team record (W-L-T)</li>
+                  <li>All game statistics</li>
+                  <li>Top performers</li>
+                  <li>Supporter engagement data</li>
+                </ul>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mvp-select">Select Season MVP (Optional)</Label>
+                <Select value={selectedMvpId} onValueChange={setSelectedMvpId}>
+                  <SelectTrigger id="mvp-select">
+                    <SelectValue placeholder="Choose MVP..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teamMembers.filter((m: TeamMember) => m.role === "athlete").map((athlete: TeamMember) => (
+                      <SelectItem key={athlete.userId} value={athlete.userId}>
+                        {athlete.user.firstName} {athlete.user.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setIsEndSeasonDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={handleEndSeason}
+                disabled={isSeasonLoading}
+                data-testid="button-confirm-end-season"
+              >
+                {isSeasonLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "End Season"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </>
   );
