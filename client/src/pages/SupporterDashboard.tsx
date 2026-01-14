@@ -1050,32 +1050,26 @@ export default function SupporterDashboard() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2 pt-2">
-            {activeTheme?.themeId === themeDialogBadge?.themeId ? (
-              <Button variant="outline" onClick={() => setThemeDialogBadge(null)}>
-                Close
+            {activeTheme?.themeId !== themeDialogBadge?.themeId && (
+              <Button 
+                onClick={() => themeDialogBadge && activateThemeMutation.mutate(themeDialogBadge.themeId)}
+                disabled={activateThemeMutation.isPending}
+              >
+                Apply {themeDialogBadge?.name} Theme
               </Button>
-            ) : (
-              <>
-                <Button 
-                  onClick={() => themeDialogBadge && activateThemeMutation.mutate(themeDialogBadge.themeId)}
-                  disabled={activateThemeMutation.isPending}
-                >
-                  Apply {themeDialogBadge?.name} Theme
-                </Button>
-                {themeDialogBadge?.themeId !== "basic" && activeTheme?.themeId && activeTheme.themeId !== "basic" && (
-                  <Button 
-                    variant="secondary"
-                    onClick={() => activateThemeMutation.mutate("basic")}
-                    disabled={activateThemeMutation.isPending}
-                  >
-                    Switch to Basic Theme
-                  </Button>
-                )}
-                <Button variant="outline" onClick={() => setThemeDialogBadge(null)}>
-                  Cancel
-                </Button>
-              </>
             )}
+            {themeDialogBadge?.themeId !== "basic" && activeTheme?.themeId && activeTheme.themeId !== "basic" && (
+              <Button 
+                variant="secondary"
+                onClick={() => activateThemeMutation.mutate("basic")}
+                disabled={activateThemeMutation.isPending}
+              >
+                Switch to Basic Theme
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => setThemeDialogBadge(null)}>
+              {activeTheme?.themeId === themeDialogBadge?.themeId ? "Close" : "Cancel"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
