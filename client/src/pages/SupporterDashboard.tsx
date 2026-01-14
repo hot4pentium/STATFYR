@@ -530,13 +530,13 @@ export default function SupporterDashboard() {
 
               {/* Earned Badges - Bottom Right of Hero */}
               {earnedBadgeThemes.length > 0 && (
-                <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                <div className="absolute bottom-3 right-3 flex items-center gap-2">
                   {earnedBadgeThemes.map((badge: BadgeDefinition) => (
                     <button
                       key={badge.id}
                       onClick={() => setThemeDialogBadge({ themeId: badge.themeId!, name: badge.name, emoji: badge.iconEmoji })}
-                      className={`text-xl hover:scale-110 transition-transform cursor-pointer ${
-                        activeTheme?.themeId === badge.themeId ? 'ring-2 ring-primary rounded-full p-0.5' : ''
+                      className={`text-3xl hover:scale-110 transition-transform cursor-pointer ${
+                        activeTheme?.themeId === badge.themeId ? 'ring-2 ring-primary rounded-full p-1' : ''
                       }`}
                       title={`${badge.name} Badge - Tap to apply theme`}
                       data-testid={`badge-${badge.id}`}
