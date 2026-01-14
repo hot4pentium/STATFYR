@@ -1,5 +1,5 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -264,7 +264,10 @@ export const supporterSeasonArchives = pgTable("supporter_season_archives", {
   // Metadata
   endedAt: timestamp("ended_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("supporter_season_archives_supporter_id_idx").on(table.supporterId),
+  index("supporter_season_archives_managed_athlete_id_idx").on(table.managedAthleteId),
+]);
 
 export const supporterSeasonArchivesRelations = relations(supporterSeasonArchives, ({ one }) => ({
   supporter: one(users, {
@@ -852,7 +855,9 @@ export const seasonArchives = pgTable("season_archives", {
   // Metadata
   endedAt: timestamp("ended_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("season_archives_team_id_idx").on(table.teamId),
+]);
 
 export const seasonArchivesRelations = relations(seasonArchives, ({ one }) => ({
   team: one(teams, {

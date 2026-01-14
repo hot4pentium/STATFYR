@@ -20,36 +20,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
 import { useEntitlements } from "@/lib/entitlementsContext";
 import { useAppBadge } from "@/hooks/useAppBadge";
-import { format } from "date-fns";
-
-const parseTextDate = (dateStr: string): Date | null => {
-  if (!dateStr) return null;
-  const parts = dateStr.trim().split(" ");
-  if (parts.length < 2) return null;
-  const datePart = parts[0];
-  const timePart = parts[1];
-  const ampm = parts[2];
-  const dateParts = datePart.split("-").map(Number);
-  if (dateParts.length < 3) return null;
-  const [year, month, day] = dateParts;
-  const timeParts = timePart.split(":").map(Number);
-  let hour = timeParts[0] || 0;
-  const minute = timeParts[1] || 0;
-  if (ampm === "PM" && hour !== 12) hour += 12;
-  if (ampm === "AM" && hour === 12) hour = 0;
-  return new Date(year, month - 1, day, hour, minute);
-};
-
-const formatTextDate = (dateStr: string, formatType: "date" | "time" | "full" = "full"): string => {
-  const parsed = parseTextDate(dateStr);
-  if (!parsed) return dateStr;
-  if (formatType === "date") return format(parsed, "EEEE, MMM d, yyyy");
-  if (formatType === "time") {
-    const parts = dateStr.split(" ");
-    return parts.length >= 3 ? `${parts[1]} ${parts[2]}` : "";
-  }
-  return format(parsed, "EEEE, MMM d, yyyy") + " at " + (dateStr.split(" ").slice(1).join(" "));
-};
+import { parseTextDate, formatTextDate } from "@/lib/dateUtils";
 
 type SectionType = "schedule" | "roster" | "stats" | "highlights" | "playbook" | "chat" | "athlete-profile" | "game-day-live" | null;
 
