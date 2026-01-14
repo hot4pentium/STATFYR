@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link, useLocation, useSearch } from "wouter";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTheme } from "next-themes";
@@ -26,13 +26,13 @@ type SectionType = "schedule" | "roster" | "stats" | "highlights" | "playbook" |
 
 export default function SupporterDashboard() {
   const [, setLocation] = useLocation();
-  const searchString = useSearch();
   const { user, currentTeam, logout, isLoading } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
   const { entitlements } = useEntitlements();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [activeSection, setActiveSection] = useState<SectionType>(null);
+  const [selectedCard, setSelectedCard] = useState<SectionType>(null);
+  const [isLandscape, setIsLandscape] = useState(false);
   const [demoModal, setDemoModal] = useState<"hype-hub" | "hype-card" | null>(null);
   const [selectedAthleteIndex, setSelectedAthleteIndex] = useState(0);
   const [copiedCode, setCopiedCode] = useState(false);
@@ -49,10 +49,17 @@ export default function SupporterDashboard() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(searchString);
-    const section = params.get("section") as SectionType;
-    setActiveSection(section);
-  }, [searchString]);
+    const checkLandscape = () => {
+      setIsLandscape(window.matchMedia("(orientation: landscape)").matches && window.innerWidth > 600);
+    };
+    checkLandscape();
+    window.addEventListener("resize", checkLandscape);
+    window.addEventListener("orientationchange", checkLandscape);
+    return () => {
+      window.removeEventListener("resize", checkLandscape);
+      window.removeEventListener("orientationchange", checkLandscape);
+    };
+  }, []);
 
   const { data: teamMembers = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "members"],
@@ -69,13 +76,13 @@ export default function SupporterDashboard() {
   const { data: teamHighlights = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "highlights", "all"],
     queryFn: () => currentTeam ? getAllTeamHighlights(currentTeam.id) : Promise.resolve([]),
-    enabled: !!currentTeam && activeSection === "highlights",
+    enabled: !!currentTeam && selectedCard === "highlights",
   });
 
   const { data: teamPlays = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "plays"],
     queryFn: () => currentTeam ? getTeamPlays(currentTeam.id) : Promise.resolve([]),
-    enabled: !!currentTeam && activeSection === "playbook",
+    enabled: !!currentTeam && selectedCard === "playbook",
   });
 
   const { data: conversationsData } = useQuery({
@@ -268,7 +275,8 @@ export default function SupporterDashboard() {
       setLocation("/chat");
       return;
     }
-    setLocation(`/supporter/dashboard?section=${cardId}`);
+    setSelectedCard(selectedCard === cardId ? null : cardId as SectionType);
+    setTimeout(() => contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
   };
 
   // Different nav cards for independent vs team mode
@@ -682,53 +690,69 @@ export default function SupporterDashboard() {
             </Card>
           </div>
 
-          <div>
-            <h2 className="text-xl font-display font-bold uppercase tracking-wide text-primary mb-4">Quick Access</h2>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {navCards.map((card) => (
-                <Card 
-                  key={card.id}
-                  onClick={() => handleCardClick(card.id, card.locked)}
-                  className={`relative bg-slate-200 dark:bg-card/80 backdrop-blur-sm border-slate-300 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer group shadow-lg shadow-black/10 dark:shadow-none ${
-                    activeSection === card.id ? "border-primary ring-2 ring-primary/20" : ""
-                  } ${card.locked ? "opacity-75" : ""}`}
-                  data-testid={`card-nav-${card.id}`}
-                >
-                  {card.locked && (
-                    <div className="absolute top-2 right-2 z-10">
-                      <Lock className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  )}
-                  <CardContent className="p-3 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4">
-                    <div className={`p-2 rounded-lg border transition-colors ${
-                      activeSection === card.id ? "bg-primary/20 border-primary/40" : "bg-primary/10 border-primary/20 group-hover:bg-primary/20"
-                    }`}>
-                      <card.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                    </div>
-                    <div className="text-center sm:text-left">
-                      <h3 className="font-bold text-sm sm:text-base">{card.name}</h3>
-                      <p className="hidden sm:block text-xs text-muted-foreground">{card.description}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          {activeSection && (
-            <div ref={contentRef} className="animate-in fade-in slide-in-from-bottom-4">
-              <div className="flex items-center gap-3 mb-4">
-                <Button variant="ghost" size="sm" onClick={() => setLocation("/supporter/dashboard")} className="gap-2" data-testid="button-back">
-                  <ArrowLeft className="h-4 w-4" />
-                  Back
-                </Button>
-                <h2 className="text-xl font-display font-bold uppercase tracking-wide text-primary">
-                  {navCards.find(c => c.id === activeSection)?.name}
-                </h2>
+          {/* Two-column layout on landscape, sliding panels on portrait */}
+          <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
+            {/* Left Column - Cards (slides left when content selected on mobile) */}
+            <div 
+              className={`landscape:w-1/3 landscape:shrink-0 transition-all duration-500 ease-out ${
+                selectedCard ? 'portrait:-translate-x-full portrait:absolute portrait:opacity-0' : 'portrait:translate-x-0'
+              }`}
+            >
+              <h2 className="text-xl font-display font-bold uppercase tracking-wide text-primary mb-4">Quick Access</h2>
+              <div className="grid grid-cols-2 gap-3 landscape:gap-4">
+                {navCards.map((card) => (
+                  <Card 
+                    key={card.id}
+                    onClick={() => handleCardClick(card.id, card.locked)}
+                    className={`relative bg-slate-200 dark:bg-card/80 backdrop-blur-sm border-slate-300 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer group shadow-lg shadow-black/10 dark:shadow-none hover:scale-[1.02] ${
+                      selectedCard === card.id ? "border-primary ring-2 ring-primary/20" : ""
+                    } ${card.locked ? "opacity-75" : ""}`}
+                    data-testid={`card-nav-${card.id}`}
+                  >
+                    {card.locked && (
+                      <div className="absolute top-2 right-2 z-10">
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                    <CardContent className="p-3 landscape:p-5 flex flex-col landscape:flex-row items-center landscape:items-start gap-2 landscape:gap-4">
+                      <div className={`p-2 rounded-lg border transition-colors ${
+                        selectedCard === card.id ? "bg-primary/20 border-primary/40" : "bg-primary/10 border-primary/20 group-hover:bg-primary/20"
+                      }`}>
+                        <card.icon className="h-5 w-5 landscape:h-6 landscape:w-6 text-primary" />
+                      </div>
+                      <div className="text-center landscape:text-left">
+                        <h3 className="font-bold text-sm landscape:text-base">{card.name}</h3>
+                        <p className="hidden landscape:block text-xs text-muted-foreground">{card.description}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
+            </div>
+
+            {/* Right Column - Content Area (slides up on mobile) */}
+            <div 
+              ref={contentRef}
+              className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-300 ease-out ${
+                selectedCard 
+                  ? 'portrait:mt-4 portrait:animate-in portrait:fade-in portrait:slide-in-from-bottom-4' 
+                  : 'portrait:hidden landscape:opacity-50'
+              }`}
+            >
+              {selectedCard ? (
+                <>
+                  <div className="flex items-center gap-3 mb-4">
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedCard(null)} className="gap-2" data-testid="button-back">
+                      <ArrowLeft className="h-4 w-4" />
+                      Back
+                    </Button>
+                    <h2 className="text-xl font-display font-bold uppercase tracking-wide text-primary">
+                      {navCards.find(c => c.id === selectedCard)?.name}
+                    </h2>
+                  </div>
 
               {/* Athlete Profile Section - Independent Mode Only */}
-              {activeSection === "athlete-profile" && isIndependentMode && selectedAthlete && (
+              {selectedCard === "athlete-profile" && isIndependentMode && selectedAthlete && (
                 <Card className="bg-white/80 dark:bg-slate-900/80">
                   <CardContent className="p-6 space-y-4">
                     <div className="flex items-center gap-4">
@@ -767,7 +791,7 @@ export default function SupporterDashboard() {
                 </Card>
               )}
 
-              {activeSection === "schedule" && (
+              {selectedCard === "schedule" && (
                 <div className="space-y-4">
                   {(isIndependentMode ? [] : teamEvents).length === 0 ? (
                     <Card className="p-8 text-center">
@@ -809,7 +833,7 @@ export default function SupporterDashboard() {
                 </div>
               )}
 
-              {activeSection === "roster" && (
+              {selectedCard === "roster" && (
                 <div className="space-y-6">
                   {coaches.length > 0 && (
                     <div>
@@ -851,7 +875,7 @@ export default function SupporterDashboard() {
                 </div>
               )}
 
-              {activeSection === "playbook" && (
+              {selectedCard === "playbook" && (
                 <div className="space-y-4">
                   {teamPlays.length === 0 ? (
                     <Card className="p-8 text-center">
@@ -881,7 +905,7 @@ export default function SupporterDashboard() {
                 </div>
               )}
 
-              {activeSection === "stats" && (
+              {selectedCard === "stats" && (
                 <Card className="p-8 text-center">
                   <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                   <p className="text-lg font-bold">Team Stats</p>
@@ -889,7 +913,7 @@ export default function SupporterDashboard() {
                 </Card>
               )}
 
-              {activeSection === "highlights" && (
+              {selectedCard === "highlights" && (
                 <div className="space-y-4">
                   {teamHighlights.length === 0 ? (
                     <Card className="p-8 text-center">
@@ -920,7 +944,7 @@ export default function SupporterDashboard() {
                 </div>
               )}
 
-              {activeSection === "game-day-live" && (
+              {selectedCard === "game-day-live" && (
                 <div className="space-y-4">
                   <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30">
                     <CardContent className="p-6 text-center space-y-4">
@@ -940,8 +964,14 @@ export default function SupporterDashboard() {
                   </Card>
                 </div>
               )}
+                </>
+              ) : (
+                <div className="hidden landscape:flex items-center justify-center h-full text-muted-foreground">
+                  <p>Select a card to view details</p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </main>
 
         <Link href="/chat">

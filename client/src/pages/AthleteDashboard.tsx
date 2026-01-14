@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2, Bell, Share2, Flame, ExternalLink, Copy, MessageSquare, Lock, Plus, Upload, Info, Check } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
-import { Link, useLocation, useSearch } from "wouter";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTheme } from "next-themes";
@@ -29,14 +29,14 @@ type HypeCardTab = "events" | "stats" | "highlights" | "shoutouts";
 
 export default function AthleteDashboard() {
   const [, setLocation] = useLocation();
-  const searchString = useSearch();
   const { user, currentTeam, logout, setCurrentTeam, isLoading } = useUser();
   const { updateAvailable, applyUpdate } = usePWA();
   const { entitlements, tier } = useEntitlements();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [activeSection, setActiveSection] = useState<SectionType>("schedule");
+  const [selectedCard, setSelectedCard] = useState<SectionType>(null);
+  const [isLandscape, setIsLandscape] = useState(false);
   const [hypeCardFlipped, setHypeCardFlipped] = useState(false);
   const [hypeCardTab, setHypeCardTab] = useState<HypeCardTab>("events");
   const [isFyring, setIsFyring] = useState(false);
@@ -49,45 +49,17 @@ export default function AthleteDashboard() {
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(searchString);
-    const section = params.get("section") as SectionType;
-    const prevSection = activeSection;
-    setActiveSection(section);
-    
-    // Scroll to content when opening a section
-    if (section && !prevSection) {
-      setTimeout(() => {
-        contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
-    }
-    // Scroll to hero when closing a section (slower scroll)
-    if (!section && prevSection) {
-      setTimeout(() => {
-        const heroElement = heroRef.current;
-        if (heroElement) {
-          const targetPosition = heroElement.getBoundingClientRect().top + window.scrollY - 80;
-          const startPosition = window.scrollY;
-          const distance = targetPosition - startPosition;
-          const duration = 1500; // slower scroll duration in ms
-          let startTime: number | null = null;
-          
-          const easeInOutQuad = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-          
-          const animateScroll = (currentTime: number) => {
-            if (startTime === null) startTime = currentTime;
-            const timeElapsed = currentTime - startTime;
-            const progress = Math.min(timeElapsed / duration, 1);
-            window.scrollTo(0, startPosition + distance * easeInOutQuad(progress));
-            if (timeElapsed < duration) {
-              requestAnimationFrame(animateScroll);
-            }
-          };
-          
-          requestAnimationFrame(animateScroll);
-        }
-      }, 100);
-    }
-  }, [searchString]);
+    const checkLandscape = () => {
+      setIsLandscape(window.matchMedia("(orientation: landscape)").matches && window.innerWidth > 600);
+    };
+    checkLandscape();
+    window.addEventListener("resize", checkLandscape);
+    window.addEventListener("orientationchange", checkLandscape);
+    return () => {
+      window.removeEventListener("resize", checkLandscape);
+      window.removeEventListener("orientationchange", checkLandscape);
+    };
+  }, []);
 
   const { updateUser } = useUser();
 
@@ -114,7 +86,7 @@ export default function AthleteDashboard() {
   const { data: teamEvents = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "events"],
     queryFn: () => currentTeam ? getTeamEvents(currentTeam.id) : Promise.resolve([]),
-    enabled: !!currentTeam && (activeSection === "schedule" || activeSection === "hype-card" || activeSection === null),
+    enabled: !!currentTeam && (selectedCard === "schedule" || selectedCard === "hype-card" || selectedCard === null),
   });
 
   const upcomingEvents = useMemo(() => {
@@ -125,21 +97,21 @@ export default function AthleteDashboard() {
   const { data: teamHighlights = [], refetch: refetchHighlights } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "highlights", "all"],
     queryFn: () => currentTeam ? getAllTeamHighlights(currentTeam.id) : Promise.resolve([]),
-    enabled: !!currentTeam && (activeSection === "highlights" || activeSection === "hype-card"),
-    refetchInterval: activeSection === "highlights" ? 5000 : false,
+    enabled: !!currentTeam && (selectedCard === "highlights" || selectedCard === "hype-card"),
+    refetchInterval: selectedCard === "highlights" ? 5000 : false,
   });
 
   const { data: athleteShoutouts = [] } = useQuery({
     queryKey: ["/api/athletes", user?.id, "shoutouts"],
     queryFn: () => user ? getAthleteShoutouts(user.id, 20) : Promise.resolve([]),
-    enabled: !!user && (activeSection === "hype-card" || hypeCardTab === "shoutouts"),
+    enabled: !!user && (selectedCard === "hype-card" || hypeCardTab === "shoutouts"),
     refetchInterval: 3000,
   });
 
   const { data: shoutoutCount = 0 } = useQuery({
     queryKey: ["/api/athletes", user?.id, "shoutouts", "count"],
     queryFn: () => user ? getAthleteShoutoutCount(user.id) : Promise.resolve(0),
-    enabled: !!user && activeSection === "hype-card",
+    enabled: !!user && selectedCard === "hype-card",
     refetchInterval: 30000,
   });
 
@@ -151,7 +123,7 @@ export default function AthleteDashboard() {
       if (!res.ok) return { count: 0 };
       return res.json();
     },
-    enabled: !!user && activeSection === "hype-card",
+    enabled: !!user && selectedCard === "hype-card",
     refetchInterval: 30000,
   });
 
@@ -241,19 +213,19 @@ export default function AthleteDashboard() {
   const { data: teamPlays = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "plays"],
     queryFn: () => currentTeam ? getTeamPlays(currentTeam.id) : Promise.resolve([]),
-    enabled: !!currentTeam && activeSection === "playbook",
+    enabled: !!currentTeam && selectedCard === "playbook",
   });
 
   const { data: aggregateStats } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "stats", "aggregate"],
     queryFn: () => currentTeam ? getTeamAggregateStats(currentTeam.id) : Promise.resolve({ games: 0, wins: 0, losses: 0, ties: 0, pointsFor: 0, pointsAgainst: 0, statTotals: {} }),
-    enabled: !!currentTeam && activeSection === "stats",
+    enabled: !!currentTeam && selectedCard === "stats",
   });
 
   const { data: myStats } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "athletes", user?.id, "stats"],
     queryFn: () => currentTeam && user ? getAthleteStats(currentTeam.id, user.id) : Promise.resolve({ gamesPlayed: 0, stats: {}, gameHistory: [], hotStreak: false, streakLength: 0 }),
-    enabled: !!currentTeam && !!user && (activeSection === "stats" || activeSection === "hype-card"),
+    enabled: !!currentTeam && !!user && (selectedCard === "stats" || selectedCard === "hype-card"),
   });
 
   const currentMembership = teamMembers.find((m: TeamMember) => m.userId === user?.id);
@@ -326,11 +298,8 @@ export default function AthleteDashboard() {
   ];
 
   const handleCardClick = (cardId: string) => {
-    if (activeSection === cardId) {
-      setLocation("/athlete/dashboard");
-    } else {
-      setLocation(`/athlete/dashboard?section=${cardId}`);
-    }
+    setSelectedCard(selectedCard === cardId ? null : cardId as SectionType);
+    setTimeout(() => contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
   };
 
   const athleteWelcomeModal: WelcomeModal = {
@@ -627,62 +596,76 @@ export default function AthleteDashboard() {
             </Card>
           </div>
 
-          {/* Quick Access Section */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="text-xl font-display font-bold uppercase tracking-wide text-primary">Quick Access</h2>
-            </div>
-
-            {/* Navigation Cards Grid */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {navCards.map((card) => (
-                <Card 
-                  key={card.id}
-                  onClick={() => handleCardClick(card.id)}
-                  className={`bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-orange-500/20 hover:border-orange-400 dark:hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-200 cursor-pointer group ${
-                    activeSection === card.id ? "border-orange-500 ring-2 ring-orange-500/20 dark:border-orange-500/50 dark:ring-orange-500/20" : ""
-                  }`}
-                  data-testid={`card-nav-${card.id}`}
-                >
-                  <CardContent className="p-3 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4">
-                    <div className={`p-2 sm:p-2.5 rounded-lg border transition-colors ${
-                      activeSection === card.id 
-                        ? "bg-orange-500/20 border-orange-500/40" 
-                        : "bg-orange-500/10 border-orange-500/20 group-hover:bg-orange-500/20"
-                    }`}>
-                      <card.icon className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
-                    </div>
-                    <div className="flex-1 min-w-0 text-center sm:text-left">
-                      <h3 className="font-bold text-foreground text-sm sm:text-lg">{card.name}</h3>
-                      <p className="hidden sm:block text-sm text-muted-foreground mt-0.5">{card.description}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          {/* Section Content */}
-          {activeSection && (
-            <div ref={contentRef} className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setLocation("/athlete/dashboard")}
-                  className="gap-2"
-                  data-testid="button-back-to-dashboard"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back
-                </Button>
-                <h2 className="text-xl font-display font-bold uppercase tracking-wide text-primary">
-                  {navCards.find(c => c.id === activeSection)?.name}
-                </h2>
+          {/* Two-column layout on landscape, sliding panels on portrait */}
+          <div className="flex flex-col landscape:flex-row landscape:gap-6 relative mb-6">
+            {/* Left Column - Cards (slides left when content selected on mobile) */}
+            <div 
+              className={`landscape:w-1/3 landscape:shrink-0 transition-all duration-500 ease-out ${
+                selectedCard ? 'portrait:-translate-x-full portrait:absolute portrait:opacity-0' : 'portrait:translate-x-0'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl font-display font-bold uppercase tracking-wide text-primary">Quick Access</h2>
               </div>
 
+              {/* Navigation Cards Grid */}
+              <div className="grid grid-cols-2 gap-3 landscape:gap-4">
+                {navCards.map((card) => (
+                  <Card 
+                    key={card.id}
+                    onClick={() => handleCardClick(card.id)}
+                    className={`bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-orange-500/20 hover:border-orange-400 dark:hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-200 cursor-pointer group hover:scale-[1.02] ${
+                      selectedCard === card.id ? "border-orange-500 ring-2 ring-orange-500/20 dark:border-orange-500/50 dark:ring-orange-500/20" : ""
+                    }`}
+                    data-testid={`card-nav-${card.id}`}
+                  >
+                    <CardContent className="p-3 landscape:p-5 flex flex-col landscape:flex-row items-center landscape:items-start gap-2 landscape:gap-4">
+                      <div className={`p-2 landscape:p-2.5 rounded-lg border transition-colors ${
+                        selectedCard === card.id 
+                          ? "bg-orange-500/20 border-orange-500/40" 
+                          : "bg-orange-500/10 border-orange-500/20 group-hover:bg-orange-500/20"
+                      }`}>
+                        <card.icon className="h-5 w-5 landscape:h-6 landscape:w-6 text-orange-500" />
+                      </div>
+                      <div className="flex-1 min-w-0 text-center landscape:text-left">
+                        <h3 className="font-bold text-foreground text-sm landscape:text-lg">{card.name}</h3>
+                        <p className="hidden landscape:block text-sm text-muted-foreground mt-0.5">{card.description}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Column - Content Area (slides up on mobile) */}
+            <div 
+              ref={contentRef}
+              className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-300 ease-out ${
+                selectedCard 
+                  ? 'portrait:mt-4 portrait:animate-in portrait:fade-in portrait:slide-in-from-bottom-4' 
+                  : 'portrait:hidden landscape:opacity-50'
+              }`}
+            >
+              {selectedCard ? (
+                <>
+                  <div className="flex items-center gap-3 mb-4">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setSelectedCard(null)}
+                      className="gap-2"
+                      data-testid="button-back-to-dashboard"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Back
+                    </Button>
+                    <h2 className="text-xl font-display font-bold uppercase tracking-wide text-primary">
+                      {navCards.find(c => c.id === selectedCard)?.name}
+                    </h2>
+                  </div>
+
               {/* Schedule Section */}
-              {activeSection === "schedule" && (
+              {selectedCard === "schedule" && (
                 <div className="space-y-4">
                   {teamEvents.length === 0 ? (
                     <Card className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-orange-500/20 p-8 text-center">
@@ -731,7 +714,7 @@ export default function AthleteDashboard() {
               )}
 
               {/* Roster Section */}
-              {activeSection === "roster" && (
+              {selectedCard === "roster" && (
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-lg font-semibold mb-3">Coaches & Staff</h3>
@@ -772,7 +755,7 @@ export default function AthleteDashboard() {
               )}
 
               {/* Stats Section */}
-              {activeSection === "stats" && (
+              {selectedCard === "stats" && (
                 <div className="space-y-6">
                   {myStats && (
                     <Card className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-orange-500/20">
@@ -832,7 +815,7 @@ export default function AthleteDashboard() {
               )}
 
               {/* Highlights Section */}
-              {activeSection === "highlights" && (
+              {selectedCard === "highlights" && (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold">Team Highlights</h3>
@@ -924,7 +907,7 @@ export default function AthleteDashboard() {
               )}
 
               {/* Playbook Section */}
-              {activeSection === "playbook" && (
+              {selectedCard === "playbook" && (
                 <div className="space-y-4">
                   {teamPlays.length === 0 ? (
                     <Card className="bg-white/80 dark:bg-slate-900/80 border-orange-200 dark:border-orange-500/20 p-8 text-center">
@@ -961,7 +944,7 @@ export default function AthleteDashboard() {
               )}
 
               {/* Hype Card Section */}
-              {activeSection === "hype-card" && (
+              {selectedCard === "hype-card" && (
                 <div className="flex justify-center">
                   <div className="w-80 perspective-1000">
                     <div 
@@ -1157,8 +1140,14 @@ export default function AthleteDashboard() {
                   </div>
                 </div>
               )}
+                </>
+              ) : (
+                <div className="hidden landscape:flex items-center justify-center h-full text-muted-foreground">
+                  <p>Select a card to view details</p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </main>
       </div>
 
