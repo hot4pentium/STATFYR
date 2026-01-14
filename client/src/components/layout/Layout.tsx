@@ -39,7 +39,7 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background flex relative">
       <DashboardBackground />
-      <main className="flex-1 h-screen overflow-hidden flex flex-col">
+      <main className="flex-1 h-screen overflow-hidden flex flex-col relative z-10">
         <header className="h-16 border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-10 px-4 md:px-8 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img src={logoImage} alt="STATFYR" className="h-8 w-8" />
