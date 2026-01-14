@@ -330,17 +330,16 @@ html.dark[data-badge-theme="gold"] .theme-texture {
   background-attachment: fixed, fixed;
 }
 
-/* Legend Texture - Nebula/Cosmic Effect */
+/* Legend Texture - Custom Image Background */
 html.dark[data-badge-theme="legend"] .theme-texture {
-  opacity: 0.25;
-  background-image: 
-    radial-gradient(ellipse at 30% 20%, rgba(147, 51, 234, 0.5) 0%, transparent 40%),
-    radial-gradient(ellipse at 70% 80%, rgba(168, 85, 247, 0.4) 0%, transparent 35%),
-    radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 20% 70%, rgba(192, 132, 252, 0.25) 0%, transparent 20%),
-    radial-gradient(circle at 80% 30%, rgba(167, 139, 250, 0.3) 0%, transparent 25%);
-  background-size: 100% 100%;
-  animation: nebulaPulse 8s ease-in-out infinite alternate;
+  opacity: 1;
+  background: 
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%),
+    url('/themes/legend-bg.png');
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: fixed, fixed;
 }
 
 @keyframes nebulaPulse {
