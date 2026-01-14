@@ -531,17 +531,6 @@ export default function SupporterDashboard() {
               {/* Earned Badges - Bottom Right of Hero */}
               {earnedBadgeThemes.length > 0 && (
                 <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                  {/* Basic theme option */}
-                  <button
-                    onClick={() => setThemeDialogBadge({ themeId: "basic", name: "Basic", emoji: "⚪" })}
-                    className={`text-3xl hover:scale-110 transition-transform cursor-pointer ${
-                      !activeTheme?.themeId || activeTheme.themeId === "basic" ? 'ring-2 ring-primary rounded-full p-1' : ''
-                    }`}
-                    title="Basic Theme - Default look"
-                    data-testid="button-theme-basic"
-                  >
-                    ⚪
-                  </button>
                   {earnedBadgeThemes.map((badge: BadgeDefinition) => (
                     <button
                       key={badge.id}
@@ -1073,6 +1062,15 @@ export default function SupporterDashboard() {
                 >
                   Apply {themeDialogBadge?.name} Theme
                 </Button>
+                {themeDialogBadge?.themeId !== "basic" && activeTheme?.themeId && activeTheme.themeId !== "basic" && (
+                  <Button 
+                    variant="secondary"
+                    onClick={() => activateThemeMutation.mutate("basic")}
+                    disabled={activateThemeMutation.isPending}
+                  >
+                    Switch to Basic Theme
+                  </Button>
+                )}
                 <Button variant="outline" onClick={() => setThemeDialogBadge(null)}>
                   Cancel
                 </Button>
