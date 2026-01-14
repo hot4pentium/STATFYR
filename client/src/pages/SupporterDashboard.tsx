@@ -233,7 +233,7 @@ export default function SupporterDashboard() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["managed-athletes"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/supporter/managed-athletes"] });
       toast.success("Season started!");
       setShowStartSeasonDialog(false);
       setNewSeasonName("");
@@ -253,7 +253,7 @@ export default function SupporterDashboard() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["managed-athletes"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/supporter/managed-athletes"] });
       queryClient.invalidateQueries({ queryKey: ["supporter-season-archives"] });
       toast.success("Season ended and archived!");
       setShowEndSeasonDialog(false);

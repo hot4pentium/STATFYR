@@ -693,8 +693,10 @@ export default function UnifiedDashboard() {
       toast.success(`Season "${newSeasonName}" started!`);
       setIsStartSeasonDialogOpen(false);
       setNewSeasonName("");
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id, "events"] });
+      // Invalidate all relevant queries to refresh season data
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/coach", user?.id, "teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user", user?.id, "teams"] });
     } catch (error) {
       toast.error("Failed to start season");
     } finally {
@@ -715,8 +717,10 @@ export default function UnifiedDashboard() {
       toast.success("Season ended! Data has been archived.");
       setIsEndSeasonDialogOpen(false);
       setSelectedMvpId("");
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", currentTeam.id, "events"] });
+      // Invalidate all relevant queries to refresh season data
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/coach", user?.id, "teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user", user?.id, "teams"] });
     } catch (error) {
       toast.error("Failed to end season");
     } finally {
@@ -2440,7 +2444,7 @@ export default function UnifiedDashboard() {
                     <div className="h-px bg-border my-1" />
                     {managedAthletes.map((ma: ManagedAthlete) => (
                       <SelectItem key={ma.id} value={ma.id} data-testid={`athlete-option-${ma.id}`}>
-                        {ma.athlete.firstName} {ma.athlete.lastName}
+                        {ma.athlete?.firstName} {ma.athlete?.lastName}
                         {ma.team && <span className="text-muted-foreground ml-2">({ma.team.name})</span>}
                       </SelectItem>
                     ))}
@@ -2472,11 +2476,11 @@ export default function UnifiedDashboard() {
                   <CardContent className="p-4 landscape:p-5">
                     <div className="flex items-center gap-4">
                       <div className="h-14 w-14 landscape:h-16 landscape:w-16 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-xl landscape:text-2xl font-bold text-white">
-                        {selectedManagedAthlete.athlete.firstName?.[0]}{selectedManagedAthlete.athlete.lastName?.[0]}
+                        {selectedManagedAthlete.athlete?.firstName?.[0]}{selectedManagedAthlete.athlete?.lastName?.[0]}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-bold truncate">
-                          {selectedManagedAthlete.athlete.firstName} {selectedManagedAthlete.athlete.lastName}
+                          {selectedManagedAthlete.athlete?.firstName} {selectedManagedAthlete.athlete?.lastName}
                         </h3>
                         <p className="text-sm text-muted-foreground">Athlete</p>
                         {selectedManagedAthlete.team && (
