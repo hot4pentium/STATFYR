@@ -318,19 +318,16 @@ html.dark[data-badge-theme="silver"] .theme-texture {
   background-attachment: fixed, fixed;
 }
 
-/* Gold Texture - Sparkle/Shimmer Pattern */
+/* Gold Texture - Custom Image Background */
 html.dark[data-badge-theme="gold"] .theme-texture {
-  opacity: 0.18;
-  background-image: 
-    radial-gradient(circle at 20% 30%, rgba(255, 215, 0, 0.4) 0%, transparent 8%),
-    radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.3) 0%, transparent 6%),
-    radial-gradient(circle at 40% 70%, rgba(218, 165, 32, 0.35) 0%, transparent 7%),
-    radial-gradient(circle at 70% 80%, rgba(255, 215, 0, 0.25) 0%, transparent 5%),
-    radial-gradient(circle at 10% 90%, rgba(255, 215, 0, 0.3) 0%, transparent 6%),
-    radial-gradient(circle at 90% 50%, rgba(218, 165, 32, 0.35) 0%, transparent 8%),
-    radial-gradient(circle at 50% 10%, rgba(255, 215, 0, 0.25) 0%, transparent 5%),
-    radial-gradient(circle at 30% 50%, rgba(255, 215, 0, 0.2) 0%, transparent 4%);
-  background-size: 100% 100%;
+  opacity: 1;
+  background: 
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%),
+    url('/themes/gold-bg.png');
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: fixed, fixed;
 }
 
 /* Legend Texture - Nebula/Cosmic Effect */
