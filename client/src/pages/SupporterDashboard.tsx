@@ -531,6 +531,17 @@ export default function SupporterDashboard() {
               {/* Earned Badges - Bottom Right of Hero */}
               {earnedBadgeThemes.length > 0 && (
                 <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                  {/* Basic theme option */}
+                  <button
+                    onClick={() => setThemeDialogBadge({ themeId: "basic", name: "Basic", emoji: "⚪" })}
+                    className={`text-3xl hover:scale-110 transition-transform cursor-pointer ${
+                      !activeTheme?.themeId || activeTheme.themeId === "basic" ? 'ring-2 ring-primary rounded-full p-1' : ''
+                    }`}
+                    title="Basic Theme - Default look"
+                    data-testid="button-theme-basic"
+                  >
+                    ⚪
+                  </button>
                   {earnedBadgeThemes.map((badge: BadgeDefinition) => (
                     <button
                       key={badge.id}
@@ -1038,34 +1049,35 @@ export default function SupporterDashboard() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <span className="text-2xl">{themeDialogBadge?.emoji}</span>
-              {themeDialogBadge?.name} Badge
+              {themeDialogBadge?.themeId === "basic" ? "Basic Theme" : `${themeDialogBadge?.name} Badge`}
             </DialogTitle>
             <DialogDescription>
-              {activeTheme?.themeId === themeDialogBadge?.themeId 
-                ? "This theme is currently active. Would you like to switch to the basic theme?"
-                : "Would you like to apply this badge's custom theme to your dashboard?"
+              {themeDialogBadge?.themeId === "basic"
+                ? "Switch to the default look with no custom background."
+                : activeTheme?.themeId === themeDialogBadge?.themeId 
+                  ? "This theme is currently active."
+                  : "Would you like to apply this badge's custom theme to your dashboard?"
               }
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2 pt-2">
             {activeTheme?.themeId === themeDialogBadge?.themeId ? (
-              <Button 
-                onClick={() => activateThemeMutation.mutate("basic")}
-                disabled={activateThemeMutation.isPending}
-              >
-                Switch to Basic Theme
+              <Button variant="outline" onClick={() => setThemeDialogBadge(null)}>
+                Close
               </Button>
             ) : (
-              <Button 
-                onClick={() => themeDialogBadge && activateThemeMutation.mutate(themeDialogBadge.themeId)}
-                disabled={activateThemeMutation.isPending}
-              >
-                Apply {themeDialogBadge?.name} Theme
-              </Button>
+              <>
+                <Button 
+                  onClick={() => themeDialogBadge && activateThemeMutation.mutate(themeDialogBadge.themeId)}
+                  disabled={activateThemeMutation.isPending}
+                >
+                  Apply {themeDialogBadge?.name} Theme
+                </Button>
+                <Button variant="outline" onClick={() => setThemeDialogBadge(null)}>
+                  Cancel
+                </Button>
+              </>
             )}
-            <Button variant="outline" onClick={() => setThemeDialogBadge(null)}>
-              Cancel
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
