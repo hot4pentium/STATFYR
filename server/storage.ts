@@ -1,6 +1,6 @@
 import { 
   users, teams, teamMembers, events, highlightVideos, plays, managedAthletes, supporterEvents,
-  supporterStatSessions, supporterStatEntries,
+  supporterStatSessions, supporterStatEntries, supporterSeasonArchives,
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
   liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
@@ -46,6 +46,7 @@ import {
   type AdminMessage, type InsertAdminMessage,
   type AdminMessageReceipt, type InsertAdminMessageReceipt,
   type SeasonArchive, type InsertSeasonArchive,
+  type SupporterSeasonArchive, type InsertSupporterSeasonArchive,
   adminMessageReceipts,
   chatPresence
 } from "@shared/schema";
@@ -324,6 +325,12 @@ export interface IStorage {
   getSeasonArchive(id: string): Promise<SeasonArchive | undefined>;
   createSeasonArchive(data: InsertSeasonArchive): Promise<SeasonArchive>;
   endSeason(teamId: string, mvpUserId?: string): Promise<SeasonArchive>;
+  
+  // Supporter Season Archive methods
+  getSupporterSeasonArchives(managedAthleteId: string): Promise<SupporterSeasonArchive[]>;
+  getSupporterSeasonArchive(id: string): Promise<SupporterSeasonArchive | undefined>;
+  createSupporterSeasonArchive(data: InsertSupporterSeasonArchive): Promise<SupporterSeasonArchive>;
+  endSupporterSeason(supporterId: string, managedAthleteId: string): Promise<SupporterSeasonArchive>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3016,6 +3023,146 @@ export class DatabaseStorage implements IStorage {
     // and Bronze (100 taps) in the CURRENT season (via current liveTapTotals)
     // Since we cleared liveTapTotals, new season starts fresh at 0 taps
     // Supporters will earn badges fresh in the new season
+
+    return archive;
+  }
+
+  // Supporter Season Archive methods
+  async getSupporterSeasonArchives(managedAthleteId: string): Promise<SupporterSeasonArchive[]> {
+    return await db
+      .select()
+      .from(supporterSeasonArchives)
+      .where(eq(supporterSeasonArchives.managedAthleteId, managedAthleteId))
+      .orderBy(desc(supporterSeasonArchives.endedAt));
+  }
+
+  async getSupporterSeasonArchive(id: string): Promise<SupporterSeasonArchive | undefined> {
+    const [archive] = await db
+      .select()
+      .from(supporterSeasonArchives)
+      .where(eq(supporterSeasonArchives.id, id));
+    return archive || undefined;
+  }
+
+  async createSupporterSeasonArchive(data: InsertSupporterSeasonArchive): Promise<SupporterSeasonArchive> {
+    const [archive] = await db
+      .insert(supporterSeasonArchives)
+      .values(data)
+      .returning();
+    return archive;
+  }
+
+  async endSupporterSeason(supporterId: string, managedAthleteId: string): Promise<SupporterSeasonArchive> {
+    // Get managed athlete info
+    const [managedAthlete] = await db
+      .select()
+      .from(managedAthletes)
+      .where(eq(managedAthletes.id, managedAthleteId));
+    
+    if (!managedAthlete) throw new Error('Managed athlete not found');
+    if (!managedAthlete.season) throw new Error('No active season to end');
+    
+    const season = managedAthlete.season;
+
+    // Get all completed stat sessions for this athlete
+    const sessions = await db
+      .select()
+      .from(supporterStatSessions)
+      .where(and(
+        eq(supporterStatSessions.managedAthleteId, managedAthleteId),
+        eq(supporterStatSessions.status, 'completed')
+      ));
+
+    // Calculate wins/losses based on scores
+    let wins = 0;
+    let losses = 0;
+    for (const session of sessions) {
+      if (session.athleteScore > session.opponentScore) wins++;
+      else if (session.athleteScore < session.opponentScore) losses++;
+    }
+
+    // Get all stat entries for these sessions
+    const sessionIds = sessions.map(s => s.id);
+    let statTotals: Record<string, number> = {};
+    let gameStatsArray: any[] = [];
+
+    if (sessionIds.length > 0) {
+      const allEntries = await db
+        .select()
+        .from(supporterStatEntries)
+        .where(sql`${supporterStatEntries.sessionId} IN (${sql.join(sessionIds.map(id => sql`${id}`), sql`, `)})`);
+
+      // Aggregate stat totals
+      for (const entry of allEntries) {
+        statTotals[entry.statName] = (statTotals[entry.statName] || 0) + entry.value;
+      }
+
+      // Build per-game stats
+      for (const session of sessions) {
+        const sessionEntries = allEntries.filter(e => e.sessionId === session.id);
+        const stats: Record<string, number> = {};
+        for (const entry of sessionEntries) {
+          stats[entry.statName] = (stats[entry.statName] || 0) + entry.value;
+        }
+        gameStatsArray.push({
+          sessionId: session.id,
+          opponent: session.opponentName,
+          date: session.startedAt,
+          athleteScore: session.athleteScore,
+          opponentScore: session.opponentScore,
+          stats,
+        });
+      }
+    }
+
+    // Get events for archiving
+    const athleteEvents = await db
+      .select()
+      .from(supporterEvents)
+      .where(eq(supporterEvents.managedAthleteId, managedAthleteId));
+
+    const archivedEvents = athleteEvents.map(e => ({
+      id: e.id,
+      title: e.title,
+      eventType: e.eventType,
+      startTime: e.startTime,
+      opponentName: e.opponentName,
+      location: e.location,
+    }));
+
+    // Create the archive
+    const archive = await this.createSupporterSeasonArchive({
+      supporterId,
+      managedAthleteId,
+      season,
+      totalGames: sessions.length,
+      wins,
+      losses,
+      statTotals,
+      gameStats: gameStatsArray,
+      archivedEvents,
+      endedAt: new Date(),
+    });
+
+    // Delete old stat sessions and entries (they're now archived)
+    for (const sessionId of sessionIds) {
+      await db.delete(supporterStatEntries).where(eq(supporterStatEntries.sessionId, sessionId));
+      await db.delete(supporterStatSessions).where(eq(supporterStatSessions.id, sessionId));
+    }
+
+    // Delete old events (they're now archived)
+    for (const event of athleteEvents) {
+      await db.delete(supporterEvents).where(eq(supporterEvents.id, event.id));
+    }
+
+    // Update managed athlete season status to ended
+    await db
+      .update(managedAthletes)
+      .set({ 
+        seasonStatus: 'ended',
+        season: null 
+      })
+      .where(eq(managedAthletes.id, managedAthleteId));
 
     return archive;
   }

@@ -5437,6 +5437,108 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== Supporter Season Management ====================
+
+  // Get season archives for a managed athlete
+  app.get("/api/supporter/managed-athletes/:id/season-archives", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { id: managedAthleteId } = req.params;
+      
+      const managed = await storage.getManagedAthleteById(managedAthleteId);
+      if (!managed) {
+        return res.status(404).json({ error: "Managed athlete not found" });
+      }
+      if (managed.supporterId !== userId) {
+        return res.status(403).json({ error: "Not your managed athlete" });
+      }
+
+      const archives = await storage.getSupporterSeasonArchives(managedAthleteId);
+      res.json({ archives });
+    } catch (error) {
+      console.error("Failed to get supporter season archives:", error);
+      res.status(500).json({ error: "Failed to get season archives" });
+    }
+  });
+
+  // Start a new season for a managed athlete
+  app.post("/api/supporter/managed-athletes/:id/start-season", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { id: managedAthleteId } = req.params;
+      const { season } = req.body;
+      
+      if (!season) {
+        return res.status(400).json({ error: "Season name is required" });
+      }
+
+      const managed = await storage.getManagedAthleteById(managedAthleteId);
+      if (!managed) {
+        return res.status(404).json({ error: "Managed athlete not found" });
+      }
+      if (managed.supporterId !== userId) {
+        return res.status(403).json({ error: "Not your managed athlete" });
+      }
+
+      // Update managed athlete with new season
+      const updated = await storage.updateManagedAthlete(managedAthleteId, {
+        season,
+        seasonStatus: 'active',
+      });
+
+      res.json({ managedAthlete: updated });
+    } catch (error) {
+      console.error("Failed to start supporter season:", error);
+      res.status(500).json({ error: "Failed to start season" });
+    }
+  });
+
+  // End the current season for a managed athlete
+  app.post("/api/supporter/managed-athletes/:id/end-season", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { id: managedAthleteId } = req.params;
+
+      const managed = await storage.getManagedAthleteById(managedAthleteId);
+      if (!managed) {
+        return res.status(404).json({ error: "Managed athlete not found" });
+      }
+      if (managed.supporterId !== userId) {
+        return res.status(403).json({ error: "Not your managed athlete" });
+      }
+      if (!managed.season) {
+        return res.status(400).json({ error: "No active season to end" });
+      }
+
+      const archive = await storage.endSupporterSeason(userId, managedAthleteId);
+      res.json({ archive });
+    } catch (error) {
+      console.error("Failed to end supporter season:", error);
+      res.status(500).json({ error: "Failed to end season" });
+    }
+  });
+
   // ==================== Athlete Code Endpoints ====================
 
   // Get athlete's personal code

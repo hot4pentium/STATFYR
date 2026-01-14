@@ -148,6 +148,9 @@ export const managedAthletes = pgTable("managed_athletes", {
   isOwner: boolean("is_owner").notNull().default(false),
   profileImageUrl: text("profile_image_url"),
   shareCode: varchar("share_code", { length: 8 }).unique(),
+  // Season management
+  season: text("season"), // e.g., "2024-2025"
+  seasonStatus: text("season_status").default("none"), // 'none', 'active', 'ended'
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -239,6 +242,38 @@ export const supporterStatEntriesRelations = relations(supporterStatEntries, ({ 
   session: one(supporterStatSessions, {
     fields: [supporterStatEntries.sessionId],
     references: [supporterStatSessions.id],
+  }),
+}));
+
+// Supporter Season Archives - stores end-of-season snapshots for managed athletes
+export const supporterSeasonArchives = pgTable("supporter_season_archives", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  supporterId: varchar("supporter_id").notNull().references(() => users.id),
+  managedAthleteId: varchar("managed_athlete_id").notNull().references(() => managedAthletes.id),
+  season: text("season").notNull(), // e.g., "2024-2025"
+  // Performance summary
+  totalGames: integer("total_games").notNull().default(0),
+  wins: integer("wins").notNull().default(0),
+  losses: integer("losses").notNull().default(0),
+  // Stat totals - stored as JSON object {statName: total}
+  statTotals: jsonb("stat_totals"),
+  // Per-game stats - stored as JSON array [{sessionId, opponent, date, score, stats}]
+  gameStats: jsonb("game_stats"),
+  // Archived events - stored as JSON array
+  archivedEvents: jsonb("archived_events"),
+  // Metadata
+  endedAt: timestamp("ended_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const supporterSeasonArchivesRelations = relations(supporterSeasonArchives, ({ one }) => ({
+  supporter: one(users, {
+    fields: [supporterSeasonArchives.supporterId],
+    references: [users.id],
+  }),
+  managedAthlete: one(managedAthletes, {
+    fields: [supporterSeasonArchives.managedAthleteId],
+    references: [managedAthletes.id],
   }),
 }));
 
@@ -892,6 +927,15 @@ export const insertSeasonArchiveSchema = createInsertSchema(seasonArchives).omit
 
 export type InsertSeasonArchive = z.infer<typeof insertSeasonArchiveSchema>;
 export type SeasonArchive = typeof seasonArchives.$inferSelect;
+
+// Supporter Season Archive schemas
+export const insertSupporterSeasonArchiveSchema = createInsertSchema(supporterSeasonArchives).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertSupporterSeasonArchive = z.infer<typeof insertSupporterSeasonArchiveSchema>;
+export type SupporterSeasonArchive = typeof supporterSeasonArchives.$inferSelect;
 
 // Live Engagement Session schemas
 export const insertLiveEngagementSessionSchema = createInsertSchema(liveEngagementSessions).omit({

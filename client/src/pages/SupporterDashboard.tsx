@@ -3,11 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, Settings, LogOut, Clock, Video, Trophy, BookOpen, AlertCircle, Sun, Moon, Bell, Lock, ArrowLeft, Flame, Star, Heart, Share2, X, ChevronDown, Info, Copy, Check } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, BarChart3, MessageSquare, Settings, LogOut, Clock, Video, Trophy, BookOpen, AlertCircle, Sun, Moon, Bell, Lock, ArrowLeft, Flame, Star, Heart, Share2, X, ChevronDown, Info, Copy, Check, History, Play as PlayIcon, StopCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Link, useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -64,6 +66,9 @@ export default function SupporterDashboard() {
   const [selectedAthleteIndex, setSelectedAthleteIndex] = useState(0);
   const [copiedCode, setCopiedCode] = useState(false);
   const [themeDialogBadge, setThemeDialogBadge] = useState<{ themeId: string; name: string; emoji: string } | null>(null);
+  const [showStartSeasonDialog, setShowStartSeasonDialog] = useState(false);
+  const [showEndSeasonDialog, setShowEndSeasonDialog] = useState(false);
+  const [newSeasonName, setNewSeasonName] = useState("");
   const heroRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -211,6 +216,66 @@ export default function SupporterDashboard() {
     onError: () => {
       toast.error("Failed to apply theme");
     },
+  });
+
+  // Supporter Season Management Mutations
+  const startSeasonMutation = useMutation({
+    mutationFn: async ({ athleteId, seasonName }: { athleteId: number; seasonName: string }) => {
+      const res = await fetch(`/api/supporter/managed-athletes/${athleteId}/start-season`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "x-user-id": user?.id || "",
+        },
+        body: JSON.stringify({ season: seasonName }),
+      });
+      if (!res.ok) throw new Error("Failed to start season");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["managed-athletes"] });
+      toast.success("Season started!");
+      setShowStartSeasonDialog(false);
+      setNewSeasonName("");
+    },
+    onError: () => {
+      toast.error("Failed to start season");
+    },
+  });
+
+  const endSeasonMutation = useMutation({
+    mutationFn: async (athleteId: number) => {
+      const res = await fetch(`/api/supporter/managed-athletes/${athleteId}/end-season`, {
+        method: "POST",
+        headers: { "x-user-id": user?.id || "" },
+      });
+      if (!res.ok) throw new Error("Failed to end season");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["managed-athletes"] });
+      queryClient.invalidateQueries({ queryKey: ["supporter-season-archives"] });
+      toast.success("Season ended and archived!");
+      setShowEndSeasonDialog(false);
+    },
+    onError: () => {
+      toast.error("Failed to end season");
+    },
+  });
+
+  // Fetch season archives for the selected athlete
+  const { data: seasonArchives = [] } = useQuery({
+    queryKey: ["supporter-season-archives", selectedAthlete?.id],
+    queryFn: async () => {
+      if (!selectedAthlete?.id) return [];
+      const res = await fetch(`/api/supporter/managed-athletes/${selectedAthlete.id}/season-archives`, {
+        headers: { "x-user-id": user?.id || "" },
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.archives || [];
+    },
+    enabled: !!selectedAthlete?.id && isIndependentMode,
   });
 
   const handleLogout = async () => {
@@ -468,6 +533,51 @@ export default function SupporterDashboard() {
                     >
                       Join a Team
                     </Button>
+                    
+                    {/* Season Management for Independent Mode */}
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {selectedAthlete?.seasonStatus === "active" ? (
+                        <>
+                          <Badge variant="outline" className="text-green-500 border-green-500/50 text-xs">
+                            <PlayIcon className="h-3 w-3 mr-1" />
+                            {selectedAthlete.season || "Active Season"}
+                          </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs text-red-500 border-red-500/50 hover:bg-red-500/10"
+                            onClick={() => setShowEndSeasonDialog(true)}
+                            data-testid="button-end-season"
+                          >
+                            <StopCircle className="h-3 w-3 mr-1" />
+                            End Season
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs text-green-500 border-green-500/50 hover:bg-green-500/10"
+                          onClick={() => setShowStartSeasonDialog(true)}
+                          data-testid="button-start-season"
+                        >
+                          <PlayIcon className="h-3 w-3 mr-1" />
+                          Start New Season
+                        </Button>
+                      )}
+                      {seasonArchives.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-muted-foreground"
+                          onClick={() => setLocation(`/supporter/season-history/${selectedAthlete?.id}`)}
+                          data-testid="button-view-season-history"
+                        >
+                          <History className="h-3 w-3 mr-1" />
+                          View History ({seasonArchives.length})
+                        </Button>
+                      )}
+                    </div>
                   </>
                 ) : (
                   <>
@@ -1071,6 +1181,87 @@ export default function SupporterDashboard() {
               {activeTheme?.themeId === themeDialogBadge?.themeId ? "Close" : "Cancel"}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Start Season Dialog */}
+      <Dialog open={showStartSeasonDialog} onOpenChange={setShowStartSeasonDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PlayIcon className="h-5 w-5 text-green-500" />
+              Start New Season
+            </DialogTitle>
+            <DialogDescription>
+              Start tracking a new season for {selectedAthlete?.athleteName}. All stats and events will be associated with this season.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="season-name">Season Name</Label>
+              <Input
+                id="season-name"
+                placeholder="e.g., Spring 2026, Fall League"
+                value={newSeasonName}
+                onChange={(e) => setNewSeasonName(e.target.value)}
+                data-testid="input-season-name"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 pt-4">
+            <Button variant="outline" onClick={() => setShowStartSeasonDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => selectedAthlete && startSeasonMutation.mutate({ 
+                athleteId: selectedAthlete.id, 
+                seasonName: newSeasonName || `Season ${new Date().getFullYear()}` 
+              })}
+              disabled={startSeasonMutation.isPending}
+              className="bg-green-500 hover:bg-green-600"
+              data-testid="button-confirm-start-season"
+            >
+              {startSeasonMutation.isPending ? "Starting..." : "Start Season"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* End Season Dialog */}
+      <Dialog open={showEndSeasonDialog} onOpenChange={setShowEndSeasonDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <StopCircle className="h-5 w-5 text-red-500" />
+              End Season
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to end the current season? All stats and events will be archived and you can view them in Season History.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 mt-2">
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              <strong>What gets archived:</strong>
+            </p>
+            <ul className="text-xs text-amber-600 dark:text-amber-400 mt-1 space-y-0.5 list-disc pl-4">
+              <li>All game statistics</li>
+              <li>Events and practices</li>
+              <li>Performance records</li>
+            </ul>
+          </div>
+          <DialogFooter className="gap-2 pt-4">
+            <Button variant="outline" onClick={() => setShowEndSeasonDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => selectedAthlete && endSeasonMutation.mutate(selectedAthlete.id)}
+              disabled={endSeasonMutation.isPending}
+              data-testid="button-confirm-end-season"
+            >
+              {endSeasonMutation.isPending ? "Ending..." : "End Season"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

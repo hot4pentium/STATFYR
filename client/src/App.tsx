@@ -48,6 +48,7 @@ import SubscriptionPage from "@/pages/SubscriptionPage";
 import PlayEditorPage from "@/pages/PlayEditorPage";
 import ThemeGallery from "@/pages/ThemeGallery";
 import SeasonHistoryPage from "@/pages/SeasonHistoryPage";
+import SupporterSeasonHistoryPage from "@/pages/SupporterSeasonHistoryPage";
 
 function Router() {
   // Handle Replit internal iframe paths - treat them as root
@@ -86,6 +87,8 @@ function Router() {
       <Route path="/supporter/game/:gameId" component={SupporterGameLive} />
       <Route path="/supporter/live/:sessionId" component={SupporterSessionLive} />
       <Route path="/supporter/themes" component={ThemeGallery} />
+      <Route path="/supporter/hype-portal" component={SupporterHypeHub} />
+      <Route path="/supporter/hype-card" component={AthleteHypeCardPage} />
       <Route path="/share/athlete/:id" component={ShareableHypeCard} />
       <Route path="/share/athlete/:id/post/:postId" component={ShareableHypeCard} />
       <Route path="/hype/:id" component={ShareableHypeCard} />
@@ -103,6 +106,7 @@ function Router() {
       <Route path="/subscription/success" component={SubscriptionPage} />
       <Route path="/subscription/cancel" component={SubscriptionPage} />
       <Route path="/team/:teamId/season-history" component={SeasonHistoryPage} />
+      <Route path="/supporter/season-history/:athleteId" component={SupporterSeasonHistoryPage} />
       <Route path="/test" component={TestPage} />
       <Route component={NotFound} />
     </Switch>
