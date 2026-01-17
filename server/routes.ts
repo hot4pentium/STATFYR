@@ -1105,9 +1105,15 @@ export async function registerRoutes(
   // Play Outcomes routes
   app.post("/api/play-outcomes", async (req, res) => {
     try {
-      const { playId, gameId, teamId, recordedById, outcome, notes } = req.body;
+      // Get authenticated user from session
+      if (!req.user?.id) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      const userId = req.user.id;
       
-      if (!playId || !teamId || !recordedById || !outcome) {
+      const { playId, gameId, outcome, notes } = req.body;
+      
+      if (!playId || !outcome) {
         return res.status(400).json({ error: "Missing required fields" });
       }
       
@@ -1116,8 +1122,14 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Invalid outcome value" });
       }
       
-      // Validate user is coach or staff
-      const membership = await storage.getTeamMembership(teamId, recordedById);
+      // Get the play to validate it exists and get its teamId
+      const play = await storage.getPlay(playId);
+      if (!play) {
+        return res.status(404).json({ error: "Play not found" });
+      }
+      
+      // Validate user is coach or staff of the play's team
+      const membership = await storage.getTeamMembership(play.teamId, userId);
       if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
         return res.status(403).json({ error: "Only coaches and staff can record play outcomes" });
       }
@@ -1125,8 +1137,8 @@ export async function registerRoutes(
       const playOutcome = await storage.createPlayOutcome({
         playId,
         gameId: gameId || null,
-        teamId,
-        recordedById,
+        teamId: play.teamId,
+        recordedById: userId,
         outcome,
         notes: notes || null,
       });
@@ -1173,6 +1185,42 @@ export async function registerRoutes(
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to get play stats" });
+    }
+  });
+
+  app.get("/api/teams/:teamId/play-stats", async (req, res) => {
+    try {
+      const teamPlays = await storage.getTeamPlays(req.params.teamId);
+      const outcomes = await storage.getTeamPlayOutcomes(req.params.teamId);
+      
+      const playStats: Record<string, {
+        total: number;
+        success: number;
+        needsWork: number;
+        unsuccessful: number;
+        successRate: number | null;
+      }> = {};
+      
+      for (const play of teamPlays) {
+        const playOutcomes = outcomes.filter(o => o.playId === play.id);
+        const total = playOutcomes.length;
+        const success = playOutcomes.filter(o => o.outcome === 'success').length;
+        const needsWork = playOutcomes.filter(o => o.outcome === 'needs_work').length;
+        const unsuccessful = playOutcomes.filter(o => o.outcome === 'unsuccessful').length;
+        
+        playStats[play.id] = {
+          total,
+          success,
+          needsWork,
+          unsuccessful,
+          successRate: total > 0 ? Math.round((success / total) * 100) : null,
+        };
+      }
+      
+      res.json(playStats);
+    } catch (error) {
+      console.error("Error getting team play stats:", error);
+      res.status(500).json({ error: "Failed to get team play stats" });
     }
   });
 

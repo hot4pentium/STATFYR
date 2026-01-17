@@ -321,6 +321,64 @@ export async function deletePlay(playId: string, userId: string): Promise<void> 
   await apiRequest("DELETE", `/api/plays/${playId}`, { userId });
 }
 
+// ================== Play Outcomes API ==================
+
+export interface PlayOutcome {
+  id: string;
+  playId: string;
+  gameId?: string | null;
+  teamId: string;
+  recordedById: string;
+  outcome: 'success' | 'needs_work' | 'unsuccessful';
+  notes?: string | null;
+  recordedAt: string;
+}
+
+export async function createPlayOutcome(data: {
+  playId: string;
+  gameId?: string | null;
+  outcome: 'success' | 'needs_work' | 'unsuccessful';
+  notes?: string;
+}): Promise<PlayOutcome> {
+  const res = await apiRequest("POST", `/api/play-outcomes`, data);
+  return res.json();
+}
+
+export async function getPlayOutcomes(playId: string): Promise<PlayOutcome[]> {
+  const res = await fetch(`/api/plays/${playId}/outcomes`);
+  if (!res.ok) throw new Error("Failed to get play outcomes");
+  return res.json();
+}
+
+export async function getPlayOutcomeStats(playId: string): Promise<{
+  playId: string;
+  total: number;
+  success: number;
+  needs_work: number;
+  unsuccessful: number;
+  successRate: number;
+}> {
+  const res = await fetch(`/api/plays/${playId}/stats`);
+  if (!res.ok) throw new Error("Failed to get play outcome stats");
+  return res.json();
+}
+
+export interface TeamPlayStats {
+  [playId: string]: {
+    total: number;
+    success: number;
+    needsWork: number;
+    unsuccessful: number;
+    successRate: number | null;
+  };
+}
+
+export async function getTeamPlayStats(teamId: string): Promise<TeamPlayStats> {
+  const res = await fetch(`/api/teams/${teamId}/play-stats`);
+  if (!res.ok) throw new Error("Failed to get team play stats");
+  return res.json();
+}
+
 export interface ManagedAthlete {
   id: string;
   supporterId: string;

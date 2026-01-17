@@ -47,10 +47,10 @@ import {
   getTeamAggregateStats, getAdvancedTeamStats, getLiveSessionByEvent, createLiveSessionForEvent,
   startLiveSession, endLiveSession, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount,
   getManagedAthletes, getSupporterBadges, getAllBadges, getSupporterTapTotal, getActiveLiveSessions,
-  getUserTeams, joinTeamByCode, getTeamEngagementStats, getTopTappers, getActiveTheme,
+  getUserTeams, joinTeamByCode, getTeamEngagementStats, getTopTappers, getActiveTheme, getTeamPlayStats,
   type Team, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup,
   type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession, type ManagedAthlete,
-  type TopTapper, type SupporterBadge, type BadgeDefinition
+  type TopTapper, type SupporterBadge, type BadgeDefinition, type TeamPlayStats
 } from "@/lib/api";
 import { SPORT_POSITIONS } from "@/lib/sportConstants";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend, CartesianGrid } from "recharts";
@@ -231,6 +231,12 @@ export default function UnifiedDashboard() {
   const { data: teamPlays = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "plays"],
     queryFn: () => currentTeam ? getTeamPlays(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam && (selectedCard === "playmaker" || selectedCard === "playbook"),
+  });
+
+  const { data: playStats = {} as TeamPlayStats } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "play-stats"],
+    queryFn: () => currentTeam ? getTeamPlayStats(currentTeam.id) : Promise.resolve({}),
     enabled: !!currentTeam && (selectedCard === "playmaker" || selectedCard === "playbook"),
   });
 
@@ -932,41 +938,58 @@ export default function UnifiedDashboard() {
     </Card>
   );
 
-  const renderPlayCard = (play: Play) => (
-    <Card 
-      key={play.id} 
-      className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all cursor-pointer"
-      onClick={() => setExpandedPlay(play)}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          {play.thumbnailData ? (
-            <div className="h-16 w-24 rounded-lg overflow-hidden bg-black/20 shrink-0">
-              <img src={play.thumbnailData} alt={play.name} className="w-full h-full object-cover" />
-            </div>
-          ) : (
-            <div className="h-16 w-24 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center shrink-0">
-              <BookOpen className="h-6 w-6 text-orange-500" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="font-bold truncate">{play.name}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline" className="text-xs">{play.category}</Badge>
-              {play.status && (
-                <Badge className={play.status === "Successful" ? "bg-green-600" : play.status === "Not Successful" ? "bg-red-600" : "bg-yellow-600"}>
-                  {play.status}
-                </Badge>
+  const renderPlayCard = (play: Play) => {
+    const stats = (playStats as TeamPlayStats)[play.id];
+    const successRate = stats?.successRate;
+    const totalRuns = stats?.total || 0;
+    
+    return (
+      <Card 
+        key={play.id} 
+        className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all cursor-pointer"
+        onClick={() => setExpandedPlay(play)}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            {play.thumbnailData ? (
+              <div className="h-16 w-24 rounded-lg overflow-hidden bg-black/20 shrink-0">
+                <img src={play.thumbnailData} alt={play.name} className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="h-16 w-24 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center shrink-0">
+                <BookOpen className="h-6 w-6 text-orange-500" />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="font-bold truncate">{play.name}</p>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <Badge variant="outline" className="text-xs">{play.category}</Badge>
+                {totalRuns > 0 && successRate !== null && (
+                  <Badge 
+                    className={`text-xs ${
+                      successRate >= 70 ? "bg-green-600" : 
+                      successRate >= 40 ? "bg-yellow-600" : 
+                      "bg-red-600"
+                    }`}
+                  >
+                    {successRate}% ({totalRuns} runs)
+                  </Badge>
+                )}
+                {play.status && totalRuns === 0 && (
+                  <Badge className={play.status === "Successful" ? "bg-green-600" : play.status === "Not Successful" ? "bg-red-600" : "bg-yellow-600"}>
+                    {play.status}
+                  </Badge>
+                )}
+              </div>
+              {play.description && (
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{play.description}</p>
               )}
             </div>
-            {play.description && (
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{play.description}</p>
-            )}
           </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
+  };
 
   const renderHighlightCard = (highlight: HighlightVideo) => {
     const hasVideo = highlight.publicUrl && highlight.status === "completed";

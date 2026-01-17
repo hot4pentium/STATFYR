@@ -33,9 +33,9 @@ import {
   getGameStats, recordGameStat, deleteGameStat,
   getGameRoster, addToGameRoster, updateGameRoster, bulkCreateGameRoster,
   getTeamEvents, getTeamMembers, updateTeamMember, getStartingLineup,
-  getAdvancedTeamStats, getAthleteStats,
+  getAdvancedTeamStats, getAthleteStats, getTeamPlays, createPlayOutcome,
   type Game, type StatConfig, type GameStat, type GameRoster, type Event, type TeamMember,
-  type AdvancedTeamStats, type AthleteStats
+  type AdvancedTeamStats, type AthleteStats, type Play as PlayType
 } from "@/lib/api";
 import { SPORT_STATS, SPORT_POSITIONS } from "@/lib/sportConstants";
 
@@ -73,6 +73,8 @@ export default function StatTrackerPage() {
   const [benchOpen, setBenchOpen] = useState(false);
   const [summaryTab, setSummaryTab] = useState<"game" | "season" | "progression">("game");
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
+  const [selectedPlay, setSelectedPlay] = useState<PlayType | null>(null);
+  const [showPlaySelector, setShowPlaySelector] = useState(false);
 
   const { data: events = [] } = useQuery({
     queryKey: ["team-events", selectedTeam?.id],
@@ -121,6 +123,40 @@ export default function StatTrackerPage() {
     queryFn: () => selectedTeam && selectedAthleteId ? getAthleteStats(selectedTeam.id, selectedAthleteId) : null,
     enabled: !!selectedTeam && !!selectedAthleteId && summaryTab === "progression" && !isDemo
   });
+
+  const { data: teamPlays = [] } = useQuery({
+    queryKey: ["team-plays", selectedTeam?.id],
+    queryFn: () => selectedTeam ? getTeamPlays(selectedTeam.id) : [],
+    enabled: !!selectedTeam && viewMode === "tracking"
+  });
+
+  const recordPlayOutcomeMutation = useMutation({
+    mutationFn: createPlayOutcome,
+    onSuccess: () => {
+      toast({
+        title: "Play recorded",
+        description: "Play outcome has been saved",
+      });
+      setSelectedPlay(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to record play outcome",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleRecordPlayOutcome = (outcome: 'success' | 'needs_work' | 'unsuccessful') => {
+    if (!selectedPlay) return;
+    
+    recordPlayOutcomeMutation.mutate({
+      playId: selectedPlay.id,
+      gameId: currentGameId || undefined,
+      outcome,
+    });
+  };
 
   // In demo mode, use demo data instead of API data
   const effectiveGame = isDemo ? demoMode.game : currentGame;
@@ -1093,6 +1129,88 @@ export default function StatTrackerPage() {
                 })()}
               </div>
             </div>
+
+            {/* Play Tracking Section */}
+            {teamPlays.length > 0 && (
+              <div className="bg-white/5 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/10 p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Activity className="h-5 w-5 text-primary" />
+                  <h3 className="text-base font-semibold">Track Plays</h3>
+                </div>
+                
+                {!selectedPlay ? (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground mb-3">Tap a play to record its outcome</p>
+                    <ScrollArea className="h-[160px]">
+                      <div className="grid grid-cols-2 gap-2">
+                        {teamPlays.map((play: PlayType) => (
+                          <Button
+                            key={play.id}
+                            variant="outline"
+                            className="h-14 flex flex-col items-center justify-center rounded-xl bg-white/5 dark:bg-white/5 border-white/10 hover:bg-white/10 active:scale-95 transition-all"
+                            onClick={() => setSelectedPlay(play)}
+                            data-testid={`button-play-${play.id}`}
+                          >
+                            <span className="text-sm font-medium truncate w-full text-center px-1">{play.name}</span>
+                            <span className="text-[10px] text-muted-foreground capitalize">{play.category}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-primary/10 rounded-xl border border-primary/20">
+                      <div>
+                        <p className="font-semibold">{selectedPlay.name}</p>
+                        <p className="text-xs text-muted-foreground capitalize">{selectedPlay.category}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-lg"
+                        onClick={() => setSelectedPlay(null)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground text-center">How did the play go?</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        variant="outline"
+                        className="h-16 flex flex-col gap-1 rounded-xl bg-green-500/10 border-green-500/30 hover:bg-green-500/20 text-green-500 active:scale-95 transition-all"
+                        onClick={() => handleRecordPlayOutcome('success')}
+                        disabled={recordPlayOutcomeMutation.isPending}
+                        data-testid="button-outcome-success"
+                      >
+                        <Check className="h-5 w-5" />
+                        <span className="text-xs font-medium">Success</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-16 flex flex-col gap-1 rounded-xl bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20 text-yellow-500 active:scale-95 transition-all"
+                        onClick={() => handleRecordPlayOutcome('needs_work')}
+                        disabled={recordPlayOutcomeMutation.isPending}
+                        data-testid="button-outcome-needs-work"
+                      >
+                        <TrendingUp className="h-5 w-5" />
+                        <span className="text-xs font-medium">Needs Work</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-16 flex flex-col gap-1 rounded-xl bg-red-500/10 border-red-500/30 hover:bg-red-500/20 text-red-500 active:scale-95 transition-all"
+                        onClick={() => handleRecordPlayOutcome('unsuccessful')}
+                        disabled={recordPlayOutcomeMutation.isPending}
+                        data-testid="button-outcome-unsuccessful"
+                      >
+                        <X className="h-5 w-5" />
+                        <span className="text-xs font-medium">Failed</span>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Recent Activity */}
             <div className="bg-white/5 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/10 p-4">
