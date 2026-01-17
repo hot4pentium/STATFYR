@@ -76,6 +76,7 @@ export default function StatTrackerPage() {
   const [selectedPlay, setSelectedPlay] = useState<PlayType | null>(null);
   const [showPlaySelector, setShowPlaySelector] = useState(false);
   const [playNotes, setPlayNotes] = useState("");
+  const [pendingOutcome, setPendingOutcome] = useState<'success' | 'needs_work' | 'unsuccessful' | null>(null);
 
   const { data: events = [] } = useQuery({
     queryKey: ["team-events", selectedTeam?.id],
@@ -140,6 +141,7 @@ export default function StatTrackerPage() {
       });
       setSelectedPlay(null);
       setPlayNotes("");
+      setPendingOutcome(null);
     },
     onError: () => {
       toast({
@@ -150,13 +152,17 @@ export default function StatTrackerPage() {
     }
   });
 
-  const handleRecordPlayOutcome = (outcome: 'success' | 'needs_work' | 'unsuccessful') => {
-    if (!selectedPlay || !user) return;
+  const handleSelectOutcome = (outcome: 'success' | 'needs_work' | 'unsuccessful') => {
+    setPendingOutcome(outcome);
+  };
+
+  const handleConfirmPlayOutcome = () => {
+    if (!selectedPlay || !user || !pendingOutcome) return;
     
     recordPlayOutcomeMutation.mutate({
       playId: selectedPlay.id,
       gameId: currentGameId || undefined,
-      outcome,
+      outcome: pendingOutcome,
       notes: playNotes.trim() || undefined,
       userId: user.id,
     });
@@ -1173,51 +1179,82 @@ export default function StatTrackerPage() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 rounded-lg"
-                        onClick={() => { setSelectedPlay(null); setPlayNotes(""); }}
+                        onClick={() => { setSelectedPlay(null); setPlayNotes(""); setPendingOutcome(null); }}
                       >
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground text-center">How did the play go?</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      <Button
-                        variant="outline"
-                        className="h-16 flex flex-col gap-1 rounded-xl bg-green-500/10 border-green-500/30 hover:bg-green-500/20 text-green-500 active:scale-95 transition-all"
-                        onClick={() => handleRecordPlayOutcome('success')}
-                        disabled={recordPlayOutcomeMutation.isPending}
-                        data-testid="button-outcome-success"
-                      >
-                        <Check className="h-5 w-5" />
-                        <span className="text-xs font-medium">Success</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-16 flex flex-col gap-1 rounded-xl bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20 text-yellow-500 active:scale-95 transition-all"
-                        onClick={() => handleRecordPlayOutcome('needs_work')}
-                        disabled={recordPlayOutcomeMutation.isPending}
-                        data-testid="button-outcome-needs-work"
-                      >
-                        <TrendingUp className="h-5 w-5" />
-                        <span className="text-xs font-medium">Needs Work</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-16 flex flex-col gap-1 rounded-xl bg-red-500/10 border-red-500/30 hover:bg-red-500/20 text-red-500 active:scale-95 transition-all"
-                        onClick={() => handleRecordPlayOutcome('unsuccessful')}
-                        disabled={recordPlayOutcomeMutation.isPending}
-                        data-testid="button-outcome-unsuccessful"
-                      >
-                        <X className="h-5 w-5" />
-                        <span className="text-xs font-medium">Failed</span>
-                      </Button>
-                    </div>
-                    <textarea
-                      value={playNotes}
-                      onChange={(e) => setPlayNotes(e.target.value)}
-                      placeholder="Add notes (optional)..."
-                      className="w-full h-16 p-3 text-sm rounded-xl bg-white/5 dark:bg-white/5 border border-white/10 placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      data-testid="input-play-notes"
-                    />
+                    {!pendingOutcome ? (
+                      <>
+                        <p className="text-sm text-muted-foreground text-center">How did the play go?</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          <Button
+                            variant="outline"
+                            className="h-16 flex flex-col gap-1 rounded-xl bg-green-500/10 border-green-500/30 hover:bg-green-500/20 text-green-500 active:scale-95 transition-all"
+                            onClick={() => handleSelectOutcome('success')}
+                            data-testid="button-outcome-success"
+                          >
+                            <Check className="h-5 w-5" />
+                            <span className="text-xs font-medium">Success</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="h-16 flex flex-col gap-1 rounded-xl bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20 text-yellow-500 active:scale-95 transition-all"
+                            onClick={() => handleSelectOutcome('needs_work')}
+                            data-testid="button-outcome-needs-work"
+                          >
+                            <TrendingUp className="h-5 w-5" />
+                            <span className="text-xs font-medium">Needs Work</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="h-16 flex flex-col gap-1 rounded-xl bg-red-500/10 border-red-500/30 hover:bg-red-500/20 text-red-500 active:scale-95 transition-all"
+                            onClick={() => handleSelectOutcome('unsuccessful')}
+                            data-testid="button-outcome-unsuccessful"
+                          >
+                            <X className="h-5 w-5" />
+                            <span className="text-xs font-medium">Failed</span>
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className={`flex items-center justify-center gap-2 p-2 rounded-xl ${
+                          pendingOutcome === 'success' ? 'bg-green-500/20 text-green-500' :
+                          pendingOutcome === 'needs_work' ? 'bg-yellow-500/20 text-yellow-500' :
+                          'bg-red-500/20 text-red-500'
+                        }`}>
+                          {pendingOutcome === 'success' && <Check className="h-4 w-4" />}
+                          {pendingOutcome === 'needs_work' && <TrendingUp className="h-4 w-4" />}
+                          {pendingOutcome === 'unsuccessful' && <X className="h-4 w-4" />}
+                          <span className="text-sm font-medium capitalize">{pendingOutcome.replace('_', ' ')}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 ml-2"
+                            onClick={() => setPendingOutcome(null)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <textarea
+                          value={playNotes}
+                          onChange={(e) => setPlayNotes(e.target.value)}
+                          placeholder="Add notes (optional)..."
+                          className="w-full h-16 p-3 text-sm rounded-xl bg-white/5 dark:bg-white/5 border border-white/10 placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          data-testid="input-play-notes"
+                          autoFocus
+                        />
+                        <Button
+                          className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 active:scale-[0.98] transition-all"
+                          onClick={handleConfirmPlayOutcome}
+                          disabled={recordPlayOutcomeMutation.isPending}
+                          data-testid="button-save-play-outcome"
+                        >
+                          {recordPlayOutcomeMutation.isPending ? "Saving..." : "Save"}
+                        </Button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
