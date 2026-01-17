@@ -2971,6 +2971,10 @@ export default function UnifiedDashboard() {
             <DialogFooter>
               <Button variant="outline" onClick={() => { setIsEventModalOpen(false); resetEventForm(); }}>Cancel</Button>
               <Button onClick={() => {
+                if (!eventForm.date) {
+                  toast.error("Please select a date for the event");
+                  return;
+                }
                 // Format date as text string for storage (e.g., "2026-01-02 05:00 PM")
                 const dateText = `${eventForm.date} ${eventForm.hour}:${eventForm.minute} ${eventForm.ampm}`;
                 const eventData = {
