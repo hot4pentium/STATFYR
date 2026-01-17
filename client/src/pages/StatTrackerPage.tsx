@@ -75,6 +75,7 @@ export default function StatTrackerPage() {
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
   const [selectedPlay, setSelectedPlay] = useState<PlayType | null>(null);
   const [showPlaySelector, setShowPlaySelector] = useState(false);
+  const [playNotes, setPlayNotes] = useState("");
 
   const { data: events = [] } = useQuery({
     queryKey: ["team-events", selectedTeam?.id],
@@ -138,6 +139,7 @@ export default function StatTrackerPage() {
         description: "Play outcome has been saved",
       });
       setSelectedPlay(null);
+      setPlayNotes("");
     },
     onError: () => {
       toast({
@@ -155,6 +157,7 @@ export default function StatTrackerPage() {
       playId: selectedPlay.id,
       gameId: currentGameId || undefined,
       outcome,
+      notes: playNotes.trim() || undefined,
     });
   };
 
@@ -1169,7 +1172,7 @@ export default function StatTrackerPage() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 rounded-lg"
-                        onClick={() => setSelectedPlay(null)}
+                        onClick={() => { setSelectedPlay(null); setPlayNotes(""); }}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1207,6 +1210,13 @@ export default function StatTrackerPage() {
                         <span className="text-xs font-medium">Failed</span>
                       </Button>
                     </div>
+                    <textarea
+                      value={playNotes}
+                      onChange={(e) => setPlayNotes(e.target.value)}
+                      placeholder="Add notes (optional)..."
+                      className="w-full h-16 p-3 text-sm rounded-xl bg-white/5 dark:bg-white/5 border border-white/10 placeholder:text-muted-foreground/50 resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      data-testid="input-play-notes"
+                    />
                   </div>
                 )}
               </div>
