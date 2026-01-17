@@ -130,7 +130,7 @@ function App() {
                 <TooltipProvider>
                   <ImpersonationBanner />
                   <Toaster />
-                  <SonnerToaster position="top-center" richColors />
+                  <SonnerToaster position="top-center" richColors duration={2300} />
                   <Router />
                 </TooltipProvider>
               </NotificationProvider>
