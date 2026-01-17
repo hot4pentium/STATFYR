@@ -1,5 +1,5 @@
 import { 
-  users, teams, teamMembers, events, highlightVideos, plays, managedAthletes, supporterEvents,
+  users, teams, teamMembers, events, highlightVideos, plays, playOutcomes, managedAthletes, supporterEvents,
   supporterStatSessions, supporterStatEntries, supporterSeasonArchives,
   games, statConfigurations, gameStats, gameRosters, startingLineups, startingLineupPlayers,
   shoutouts, liveTapEvents, liveTapTotals, badgeDefinitions, supporterBadges, themeUnlocks,
@@ -12,6 +12,7 @@ import {
   type Event, type InsertEvent, type UpdateEvent,
   type HighlightVideo, type InsertHighlightVideo, type UpdateHighlightVideo,
   type Play, type InsertPlay, type UpdatePlay,
+  type PlayOutcome, type InsertPlayOutcome,
   type ManagedAthlete, type InsertManagedAthlete,
   type SupporterEvent, type InsertSupporterEvent, type UpdateSupporterEvent,
   type SupporterStatSession, type InsertSupporterStatSession, type UpdateSupporterStatSession,
@@ -116,6 +117,11 @@ export interface IStorage {
   createPlay(data: InsertPlay): Promise<Play>;
   updatePlay(id: string, data: UpdatePlay): Promise<Play | undefined>;
   deletePlay(id: string): Promise<void>;
+  
+  // Play Outcomes methods
+  createPlayOutcome(data: InsertPlayOutcome): Promise<PlayOutcome>;
+  getPlayOutcomes(playId: string): Promise<PlayOutcome[]>;
+  getTeamPlayOutcomes(teamId: string): Promise<PlayOutcome[]>;
   
   getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete?: User; team?: Team })[]>;
   getManagedAthleteById(id: string): Promise<ManagedAthlete | undefined>;
@@ -705,6 +711,19 @@ export class DatabaseStorage implements IStorage {
 
   async deletePlay(id: string): Promise<void> {
     await db.delete(plays).where(eq(plays.id, id));
+  }
+
+  async createPlayOutcome(data: InsertPlayOutcome): Promise<PlayOutcome> {
+    const [outcome] = await db.insert(playOutcomes).values(data).returning();
+    return outcome;
+  }
+
+  async getPlayOutcomes(playId: string): Promise<PlayOutcome[]> {
+    return db.select().from(playOutcomes).where(eq(playOutcomes.playId, playId)).orderBy(desc(playOutcomes.recordedAt));
+  }
+
+  async getTeamPlayOutcomes(teamId: string): Promise<PlayOutcome[]> {
+    return db.select().from(playOutcomes).where(eq(playOutcomes.teamId, teamId)).orderBy(desc(playOutcomes.recordedAt));
   }
 
   async getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete?: User; team?: Team })[]> {

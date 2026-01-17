@@ -1102,6 +1102,80 @@ export async function registerRoutes(
     }
   });
 
+  // Play Outcomes routes
+  app.post("/api/play-outcomes", async (req, res) => {
+    try {
+      const { playId, gameId, teamId, recordedById, outcome, notes } = req.body;
+      
+      if (!playId || !teamId || !recordedById || !outcome) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      // Validate outcome value
+      if (!['success', 'needs_work', 'unsuccessful'].includes(outcome)) {
+        return res.status(400).json({ error: "Invalid outcome value" });
+      }
+      
+      // Validate user is coach or staff
+      const membership = await storage.getTeamMembership(teamId, recordedById);
+      if (!membership || (membership.role !== "coach" && membership.role !== "staff")) {
+        return res.status(403).json({ error: "Only coaches and staff can record play outcomes" });
+      }
+      
+      const playOutcome = await storage.createPlayOutcome({
+        playId,
+        gameId: gameId || null,
+        teamId,
+        recordedById,
+        outcome,
+        notes: notes || null,
+      });
+      
+      res.json(playOutcome);
+    } catch (error) {
+      console.error("Error recording play outcome:", error);
+      res.status(500).json({ error: "Failed to record play outcome" });
+    }
+  });
+
+  app.get("/api/teams/:teamId/play-outcomes", async (req, res) => {
+    try {
+      const outcomes = await storage.getTeamPlayOutcomes(req.params.teamId);
+      res.json(outcomes);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get play outcomes" });
+    }
+  });
+
+  app.get("/api/plays/:playId/outcomes", async (req, res) => {
+    try {
+      const outcomes = await storage.getPlayOutcomes(req.params.playId);
+      res.json(outcomes);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get play outcomes" });
+    }
+  });
+
+  app.get("/api/plays/:playId/stats", async (req, res) => {
+    try {
+      const outcomes = await storage.getPlayOutcomes(req.params.playId);
+      const total = outcomes.length;
+      const success = outcomes.filter(o => o.outcome === 'success').length;
+      const needsWork = outcomes.filter(o => o.outcome === 'needs_work').length;
+      const unsuccessful = outcomes.filter(o => o.outcome === 'unsuccessful').length;
+      
+      res.json({
+        total,
+        success,
+        needsWork,
+        unsuccessful,
+        successRate: total > 0 ? Math.round((success / total) * 100) : null,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get play stats" });
+    }
+  });
+
   // Register object storage routes
   registerObjectStorageRoutes(app);
 

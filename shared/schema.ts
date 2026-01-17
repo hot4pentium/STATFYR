@@ -126,13 +126,44 @@ export const plays = pgTable("plays", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const playsRelations = relations(plays, ({ one }) => ({
+export const playsRelations = relations(plays, ({ one, many }) => ({
   team: one(teams, {
     fields: [plays.teamId],
     references: [teams.id],
   }),
   createdBy: one(users, {
     fields: [plays.createdById],
+    references: [users.id],
+  }),
+  outcomes: many(playOutcomes),
+}));
+
+export const playOutcomes = pgTable("play_outcomes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  playId: varchar("play_id").notNull().references(() => plays.id),
+  gameId: varchar("game_id").references(() => games.id),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  recordedById: varchar("recorded_by_id").notNull().references(() => users.id),
+  outcome: text("outcome").notNull(), // 'success', 'needs_work', 'unsuccessful'
+  notes: text("notes"),
+  recordedAt: timestamp("recorded_at").defaultNow(),
+});
+
+export const playOutcomesRelations = relations(playOutcomes, ({ one }) => ({
+  play: one(plays, {
+    fields: [playOutcomes.playId],
+    references: [plays.id],
+  }),
+  game: one(games, {
+    fields: [playOutcomes.gameId],
+    references: [games.id],
+  }),
+  team: one(teams, {
+    fields: [playOutcomes.teamId],
+    references: [teams.id],
+  }),
+  recordedBy: one(users, {
+    fields: [playOutcomes.recordedById],
     references: [users.id],
   }),
 }));
@@ -522,6 +553,14 @@ export type HighlightVideo = typeof highlightVideos.$inferSelect;
 export type InsertPlay = z.infer<typeof insertPlaySchema>;
 export type UpdatePlay = z.infer<typeof updatePlaySchema>;
 export type Play = typeof plays.$inferSelect;
+
+export const insertPlayOutcomeSchema = createInsertSchema(playOutcomes).omit({
+  id: true,
+  recordedAt: true,
+});
+
+export type InsertPlayOutcome = z.infer<typeof insertPlayOutcomeSchema>;
+export type PlayOutcome = typeof playOutcomes.$inferSelect;
 
 export const insertManagedAthleteSchema = createInsertSchema(managedAthletes).omit({
   id: true,
