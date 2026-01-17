@@ -151,13 +151,14 @@ export default function StatTrackerPage() {
   });
 
   const handleRecordPlayOutcome = (outcome: 'success' | 'needs_work' | 'unsuccessful') => {
-    if (!selectedPlay) return;
+    if (!selectedPlay || !user) return;
     
     recordPlayOutcomeMutation.mutate({
       playId: selectedPlay.id,
       gameId: currentGameId || undefined,
       outcome,
       notes: playNotes.trim() || undefined,
+      userId: user.id,
     });
   };
 

@@ -1105,13 +1105,11 @@ export async function registerRoutes(
   // Play Outcomes routes
   app.post("/api/play-outcomes", async (req, res) => {
     try {
-      // Get authenticated user from session
-      if (!req.user?.id) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-      const userId = req.user.id;
+      const { playId, gameId, outcome, notes, userId } = req.body;
       
-      const { playId, gameId, outcome, notes } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
       
       if (!playId || !outcome) {
         return res.status(400).json({ error: "Missing required fields" });

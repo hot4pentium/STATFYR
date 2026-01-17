@@ -339,6 +339,7 @@ export async function createPlayOutcome(data: {
   gameId?: string | null;
   outcome: 'success' | 'needs_work' | 'unsuccessful';
   notes?: string;
+  userId: string;
 }): Promise<PlayOutcome> {
   const res = await apiRequest("POST", `/api/play-outcomes`, data);
   return res.json();
