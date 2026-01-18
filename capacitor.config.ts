@@ -1,0 +1,56 @@
+import type { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.statfyr.app',
+  appName: 'STATFYR',
+  webDir: 'dist/public',
+  server: {
+    androidScheme: 'https',
+    iosScheme: 'https',
+  },
+  plugins: {
+    App: {
+      iosScheme: 'statfyr',
+    },
+    Camera: {
+      permissions: true,
+    },
+    Haptics: {},
+    Share: {},
+    Preferences: {},
+    Badge: {},
+    KeepAwake: {},
+    NativeBiometric: {
+      useFallback: true,
+      fallbackTitle: 'Use Passcode',
+      maxAttempts: 3,
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert'],
+    },
+    SplashScreen: {
+      launchShowDuration: 2000,
+      launchAutoHide: true,
+      backgroundColor: '#0a0a0f',
+      androidSplashResourceName: 'splash',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false,
+      iosSpinnerStyle: 'small',
+      spinnerColor: '#F97316',
+    },
+  },
+  ios: {
+    contentInset: 'automatic',
+    preferredContentMode: 'mobile',
+    limitsNavigationsToAppBoundDomains: true,
+    backgroundColor: '#0a0a0f',
+  },
+  android: {
+    backgroundColor: '#0a0a0f',
+    allowMixedContent: false,
+    captureInput: true,
+    webContentsDebuggingEnabled: false,
+  },
+};
+
+export default config;

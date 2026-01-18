@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#0a0a0f"/>
+  <defs>
+    <linearGradient id="flame" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#FB923C"/>
+    </linearGradient>
+  </defs>
+  <path d="M512 200 C512 200 350 400 350 550 C350 650 420 750 512 750 C604 750 674 650 674 550 C674 400 512 200 512 200 Z M512 650 C470 650 440 620 440 580 C440 520 512 450 512 450 C512 450 584 520 584 580 C584 620 554 650 512 650 Z" fill="url(#flame)"/>
+  <text x="512" y="900" font-family="Arial, sans-serif" font-size="140" font-weight="bold" fill="white" text-anchor="middle">STATFYR</text>
+</svg>
