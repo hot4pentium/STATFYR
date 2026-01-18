@@ -425,9 +425,12 @@ export interface ManagedAthlete {
 }
 
 export async function getManagedAthletes(supporterId: string): Promise<ManagedAthlete[]> {
-  const res = await fetch(`/api/users/${supporterId}/managed-athletes`);
+  const res = await fetch(`/api/supporter/managed-athletes`, {
+    headers: { "x-user-id": supporterId },
+  });
   if (!res.ok) throw new Error("Failed to get managed athletes");
-  return res.json();
+  const data = await res.json();
+  return data.managedAthletes || [];
 }
 
 export async function createManagedAthlete(supporterId: string, data: {
