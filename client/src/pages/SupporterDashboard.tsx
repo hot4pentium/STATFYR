@@ -110,6 +110,26 @@ export default function SupporterDashboard() {
   const athletes = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "athlete"), [teamMembers]);
   const coaches = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "coach" || m.role === "staff"), [teamMembers]);
 
+  // Check if this supporter has been promoted to staff on this team
+  const currentMembership = useMemo(() => {
+    if (!user || !currentTeam || !teamMembers.length) return null;
+    return teamMembers.find((m: TeamMember) => m.userId === user.id);
+  }, [user, currentTeam, teamMembers]);
+
+  const isStaff = currentMembership?.role === "staff";
+
+  // Redirect staff members to UnifiedDashboard for full access
+  useEffect(() => {
+    if (isStaff && currentTeam) {
+      toast.success("You've been promoted to Staff! Redirecting to your new dashboard...", {
+        duration: 3000,
+      });
+      setTimeout(() => {
+        setLocation("/dashboard");
+      }, 1000);
+    }
+  }, [isStaff, currentTeam, setLocation]);
+
   useEffect(() => {
     if (!isLoading && !user) {
       setLocation("/auth");
