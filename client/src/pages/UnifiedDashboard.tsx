@@ -2439,7 +2439,7 @@ export default function UnifiedDashboard() {
         {/* Main Content - switches based on supporter view mode */}
         {userRole === "supporter" && supporterViewMode === "athlete" && selectedManagedAthlete ? (
           /* Athlete Profile View for Supporters - matches coach layout */
-          (<div className="relative z-20 bg-background px-4 pt-6 pb-8">
+          (<div className="relative z-20 px-4 pt-6 pb-8">
             {/* Two-column layout on landscape - matching coach dashboard */}
             <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
               {/* Left Column - Cards (slides left when content selected on mobile) */}
@@ -2535,7 +2535,7 @@ export default function UnifiedDashboard() {
           </div>)
         ) : (
           /* Normal Dashboard View - Quick Access Section */
-          (<div className="relative z-20 bg-background px-4 pt-6 pb-8">
+          (<div className="relative z-20 px-4 pt-6 pb-8">
             {/* Two-column layout on landscape, sliding panels on portrait */}
             <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
               {/* Left Column - Cards (slides left when content selected on mobile) */}
