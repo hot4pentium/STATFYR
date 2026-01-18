@@ -77,7 +77,6 @@ const quickAccessCards: QuickAccessCard[] = [
   { id: "stattracker", name: "StatTracker", description: "Live game stat tracking.", icon: Activity, color: "text-orange-500", roles: ["coach"] },
   { id: "highlights", name: "Highlights", description: "Team video highlights.", icon: Video, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
   { id: "teamengagement", name: "Team Engagement", description: "See team's total taps & shoutouts.", icon: Heart, color: "text-orange-500", roles: ["supporter"] },
-  { id: "chat", name: "Team Chat", description: "Message your team.", icon: MessageSquare, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
 ];
 
 const roleConfig: Record<UserRole, { title: string; tagline: string }> = {
@@ -95,7 +94,6 @@ const cardEntitlementMap: Record<string, EntitlementKey | null> = {
   stattracker: "canUseStatTracker",
   highlights: null,
   teamengagement: null,
-  chat: null,
 };
 
 export default function UnifiedDashboard() {
@@ -3594,6 +3592,21 @@ export default function UnifiedDashboard() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Floating Chat Button - Always visible on all dashboard views */}
+      <Link href="/chat">
+        <button
+          className={`fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 flex items-center justify-center transition-transform hover:scale-105 z-50 ${hasUnread ? 'animate-pulse ring-4 ring-green-500/50 shadow-green-500/50 shadow-xl' : ''}`}
+          data-testid="button-floating-chat"
+        >
+          <MessageSquare className="h-6 w-6" />
+          {hasUnread && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold pointer-events-none">
+              !
+            </span>
+          )}
+        </button>
+      </Link>
     </>
   );
 }
