@@ -183,6 +183,13 @@ export default function StatTrackerPage() {
     });
   };
 
+  // Determine the correct subscription tier name based on user role
+  const isSupporter = user?.role === "supporter";
+  const subscriptionName = isSupporter ? "Supporter Pro" : "Coach Pro";
+  const paywallDescription = isSupporter 
+    ? "StatTracker is a premium feature. Upgrade to Supporter Pro to track your athlete's game statistics."
+    : "StatTracker is a premium feature. Upgrade to Coach Pro to track live game statistics for your athletes.";
+
   if (!entitlementsLoading && !entitlements.canUseStatTracker && !isDemo) {
     return (
       <Layout>
@@ -191,7 +198,7 @@ export default function StatTrackerPage() {
             <Lock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <h2 className="text-xl font-bold mb-2">Premium Feature</h2>
             <p className="text-muted-foreground mb-6">
-              StatTracker is a premium feature. Upgrade to Coach Pro to track live game statistics for your athletes.
+              {paywallDescription}
             </p>
             <Button 
               onClick={() => navigate("/subscription")}
@@ -199,7 +206,7 @@ export default function StatTrackerPage() {
               data-testid="button-upgrade-stattracker"
             >
               <Crown className="w-4 h-4" />
-              Upgrade to Coach Pro
+              Upgrade to {subscriptionName}
             </Button>
             <Button 
               variant="outline" 
