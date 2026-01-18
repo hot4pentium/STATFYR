@@ -1250,7 +1250,7 @@ export async function registerRoutes(
         needsWork: number;
         unsuccessful: number;
         successRate: number | null;
-        notes: string[];
+        notes: Array<{ text: string; outcome: string; recordedAt: string }>;
       }> = {};
       
       for (const outcome of outcomes) {
@@ -1273,7 +1273,13 @@ export async function registerRoutes(
         else if (outcome.outcome === 'needs_work') playStats[playId].needsWork++;
         else if (outcome.outcome === 'unsuccessful') playStats[playId].unsuccessful++;
         
-        if (outcome.notes) playStats[playId].notes.push(outcome.notes);
+        if (outcome.notes) {
+          playStats[playId].notes.push({
+            text: outcome.notes,
+            outcome: outcome.outcome,
+            recordedAt: outcome.recordedAt?.toISOString() || new Date().toISOString(),
+          });
+        }
       }
       
       // Calculate success rates

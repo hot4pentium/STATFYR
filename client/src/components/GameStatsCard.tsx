@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Check, AlertTriangle, X, BookOpen, Loader2 } from "lucide-react";
+import { ChevronDown, Check, AlertTriangle, X, BookOpen, Loader2, Clock, MessageSquare } from "lucide-react";
+import { format } from "date-fns";
 import { getGamePlayOutcomes, type GamePlayOutcomes } from "@/lib/api";
 
 interface GameData {
@@ -91,39 +92,68 @@ export function GameStatsCard({ game, gameId, isExpanded, onToggle }: GameStatsC
                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                   </div>
                 ) : hasPlayData ? (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {Object.entries(playOutcomes.playStats).map(([playId, stats]) => (
-                      <div key={playId} className="flex items-center justify-between p-2 bg-background/50 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-orange-500" />
-                          <span className="font-medium text-sm">{stats.playName}</span>
-                          <Badge variant="outline" className="text-xs">{stats.playType}</Badge>
+                      <div key={playId} className="bg-background/50 rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between p-2">
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="h-4 w-4 text-orange-500" />
+                            <span className="font-medium text-sm">{stats.playName}</span>
+                            <Badge variant="outline" className="text-xs">{stats.playType}</Badge>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 text-xs">
+                              <Check className="h-3 w-3 text-green-500" />
+                              <span className="text-green-400">{stats.success}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-xs">
+                              <AlertTriangle className="h-3 w-3 text-yellow-500" />
+                              <span className="text-yellow-400">{stats.needsWork}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-xs">
+                              <X className="h-3 w-3 text-red-500" />
+                              <span className="text-red-400">{stats.unsuccessful}</span>
+                            </div>
+                            {stats.successRate !== null && (
+                              <Badge 
+                                className={`text-xs ml-2 ${
+                                  stats.successRate >= 70 ? "bg-green-600" : 
+                                  stats.successRate >= 40 ? "bg-yellow-600" : 
+                                  "bg-red-600"
+                                }`}
+                              >
+                                {stats.successRate}%
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1 text-xs">
-                            <Check className="h-3 w-3 text-green-500" />
-                            <span className="text-green-400">{stats.success}</span>
+                        {stats.notes.length > 0 && (
+                          <div className="border-t border-white/5 p-2 space-y-1.5">
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                              <MessageSquare className="h-3 w-3" />
+                              <span>Notes ({stats.notes.length})</span>
+                            </div>
+                            {stats.notes.map((note, idx) => (
+                              <div key={idx} className="flex items-start gap-2 text-xs pl-1">
+                                <span className={`mt-0.5 ${
+                                  note.outcome === 'success' ? 'text-green-500' :
+                                  note.outcome === 'needs_work' ? 'text-yellow-500' : 'text-red-500'
+                                }`}>
+                                  {note.outcome === 'success' ? <Check className="h-3 w-3" /> :
+                                   note.outcome === 'needs_work' ? <AlertTriangle className="h-3 w-3" /> :
+                                   <X className="h-3 w-3" />}
+                                </span>
+                                <div className="flex-1">
+                                  <p className="text-foreground">{note.text}</p>
+                                  <div className="flex items-center gap-1 text-muted-foreground mt-0.5">
+                                    <Clock className="h-2.5 w-2.5" />
+                                    <span>{format(new Date(note.recordedAt), "h:mm a")}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          <div className="flex items-center gap-1 text-xs">
-                            <AlertTriangle className="h-3 w-3 text-yellow-500" />
-                            <span className="text-yellow-400">{stats.needsWork}</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-xs">
-                            <X className="h-3 w-3 text-red-500" />
-                            <span className="text-red-400">{stats.unsuccessful}</span>
-                          </div>
-                          {stats.successRate !== null && (
-                            <Badge 
-                              className={`text-xs ml-2 ${
-                                stats.successRate >= 70 ? "bg-green-600" : 
-                                stats.successRate >= 40 ? "bg-yellow-600" : 
-                                "bg-red-600"
-                              }`}
-                            >
-                              {stats.successRate}%
-                            </Badge>
-                          )}
-                        </div>
+                        )}
                       </div>
                     ))}
                     {playOutcomes.totalOutcomes > 0 && (

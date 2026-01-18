@@ -380,6 +380,12 @@ export async function getTeamPlayStats(teamId: string): Promise<TeamPlayStats> {
   return res.json();
 }
 
+export interface PlayNote {
+  text: string;
+  outcome: string;
+  recordedAt: string;
+}
+
 export interface GamePlayStats {
   playName: string;
   playType: string;
@@ -388,7 +394,7 @@ export interface GamePlayStats {
   needsWork: number;
   unsuccessful: number;
   successRate: number | null;
-  notes: string[];
+  notes: PlayNote[];
 }
 
 export interface GamePlayOutcomes {
