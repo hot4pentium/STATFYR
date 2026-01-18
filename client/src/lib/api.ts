@@ -380,6 +380,28 @@ export async function getTeamPlayStats(teamId: string): Promise<TeamPlayStats> {
   return res.json();
 }
 
+export interface GamePlayStats {
+  playName: string;
+  playType: string;
+  total: number;
+  success: number;
+  needsWork: number;
+  unsuccessful: number;
+  successRate: number | null;
+  notes: string[];
+}
+
+export interface GamePlayOutcomes {
+  totalOutcomes: number;
+  playStats: Record<string, GamePlayStats>;
+}
+
+export async function getGamePlayOutcomes(gameId: string, userId: string): Promise<GamePlayOutcomes> {
+  const res = await fetch(`/api/games/${gameId}/play-outcomes?userId=${userId}`);
+  if (!res.ok) throw new Error("Failed to get game play outcomes");
+  return res.json();
+}
+
 export interface ManagedAthlete {
   id: string;
   supporterId: string;

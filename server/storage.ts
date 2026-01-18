@@ -122,6 +122,7 @@ export interface IStorage {
   createPlayOutcome(data: InsertPlayOutcome): Promise<PlayOutcome>;
   getPlayOutcomes(playId: string): Promise<PlayOutcome[]>;
   getTeamPlayOutcomes(teamId: string): Promise<PlayOutcome[]>;
+  getPlayOutcomesByGame(gameId: string): Promise<(PlayOutcome & { play?: Play })[]>;
   
   getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete?: User; team?: Team })[]>;
   getManagedAthleteById(id: string): Promise<ManagedAthlete | undefined>;
@@ -724,6 +725,21 @@ export class DatabaseStorage implements IStorage {
 
   async getTeamPlayOutcomes(teamId: string): Promise<PlayOutcome[]> {
     return db.select().from(playOutcomes).where(eq(playOutcomes.teamId, teamId)).orderBy(desc(playOutcomes.recordedAt));
+  }
+
+  async getPlayOutcomesByGame(gameId: string): Promise<(PlayOutcome & { play?: Play })[]> {
+    const outcomes = await db
+      .select()
+      .from(playOutcomes)
+      .where(eq(playOutcomes.gameId, gameId))
+      .orderBy(desc(playOutcomes.recordedAt));
+    
+    const result: (PlayOutcome & { play?: Play })[] = [];
+    for (const outcome of outcomes) {
+      const play = await this.getPlay(outcome.playId);
+      result.push({ ...outcome, play });
+    }
+    return result;
   }
 
   async getManagedAthletes(supporterId: string): Promise<(ManagedAthlete & { athlete?: User; team?: Team })[]> {

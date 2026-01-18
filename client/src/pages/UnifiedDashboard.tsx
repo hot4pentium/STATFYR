@@ -28,6 +28,7 @@ import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/O
 import { VideoUploader } from "@/components/VideoUploader";
 import { PlaybookCanvas } from "@/components/PlaybookCanvas";
 import { TeamBadge } from "@/components/TeamBadge";
+import { GameStatsCard } from "@/components/GameStatsCard";
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
 import {
@@ -48,9 +49,10 @@ import {
   startLiveSession, endLiveSession, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount,
   getManagedAthletes, getSupporterBadges, getAllBadges, getSupporterTapTotal, getActiveLiveSessions,
   getUserTeams, joinTeamByCode, getTeamEngagementStats, getTopTappers, getActiveTheme, getTeamPlayStats,
+  getGamePlayOutcomes,
   type Team, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup,
   type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession, type ManagedAthlete,
-  type TopTapper, type SupporterBadge, type BadgeDefinition, type TeamPlayStats
+  type TopTapper, type SupporterBadge, type BadgeDefinition, type TeamPlayStats, type GamePlayOutcomes
 } from "@/lib/api";
 import { SPORT_POSITIONS } from "@/lib/sportConstants";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend, CartesianGrid } from "recharts";
@@ -116,6 +118,7 @@ export default function UnifiedDashboard() {
   const [statsTab, setStatsTab] = useState<"season" | "athletes" | "games">("season");
   const [athleteViewMode, setAthleteViewMode] = useState<"chart" | "table" | "cards">("chart");
   const [expandedPlay, setExpandedPlay] = useState<Play | null>(null);
+  const [expandedGameId, setExpandedGameId] = useState<string | null>(null);
   
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -1697,33 +1700,19 @@ export default function UnifiedDashboard() {
                   <TabsContent value="games" className="space-y-4">
                     {advancedStats?.gameHistory && advancedStats.gameHistory.length > 0 ? (
                       <div className="space-y-3">
-                        {advancedStats.gameHistory.map((game: any, idx: number) => (
-                          <Card key={game.id || idx} className="bg-card/80 backdrop-blur-sm border-white/10">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <span className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${
-                                    game.result === 'W' ? 'bg-green-500/20 text-green-400' :
-                                    game.result === 'L' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'
-                                  }`}>
-                                    {game.result}
-                                  </span>
-                                  <div>
-                                    <div className="font-semibold">vs {game.opponent}</div>
-                                    <div className="text-xs text-muted-foreground">{game.date}</div>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-xl font-bold">
-                                    <span className="text-primary">{game.teamScore}</span>
-                                    <span className="text-muted-foreground mx-1">-</span>
-                                    <span className="text-muted-foreground">{game.opponentScore}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                        {advancedStats.gameHistory.map((game: any, idx: number) => {
+                          const gameId = game.id || `game-${idx}`;
+                          const isExpanded = expandedGameId === gameId;
+                          return (
+                            <GameStatsCard 
+                              key={gameId}
+                              game={game}
+                              gameId={gameId}
+                              isExpanded={isExpanded}
+                              onToggle={() => setExpandedGameId(isExpanded ? null : gameId)}
+                            />
+                          );
+                        })}
                       </div>
                     ) : (
                       <Card className="bg-card/80 backdrop-blur-sm border-white/10">

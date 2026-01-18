@@ -1222,6 +1222,76 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/games/:gameId/play-outcomes", async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+      
+      const game = await storage.getGame(req.params.gameId);
+      if (!game) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+      
+      const membership = await storage.getTeamMembership(game.teamId, userId);
+      if (!membership) {
+        return res.status(403).json({ error: "Not a team member" });
+      }
+      
+      const outcomes = await storage.getPlayOutcomesByGame(req.params.gameId);
+      
+      // Group by play and calculate stats
+      const playStats: Record<string, {
+        playName: string;
+        playType: string;
+        total: number;
+        success: number;
+        needsWork: number;
+        unsuccessful: number;
+        successRate: number | null;
+        notes: string[];
+      }> = {};
+      
+      for (const outcome of outcomes) {
+        const playId = outcome.playId;
+        if (!playStats[playId]) {
+          playStats[playId] = {
+            playName: outcome.play?.name || 'Unknown Play',
+            playType: outcome.play?.category || 'other',
+            total: 0,
+            success: 0,
+            needsWork: 0,
+            unsuccessful: 0,
+            successRate: null,
+            notes: [],
+          };
+        }
+        
+        playStats[playId].total++;
+        if (outcome.outcome === 'success') playStats[playId].success++;
+        else if (outcome.outcome === 'needs_work') playStats[playId].needsWork++;
+        else if (outcome.outcome === 'unsuccessful') playStats[playId].unsuccessful++;
+        
+        if (outcome.notes) playStats[playId].notes.push(outcome.notes);
+      }
+      
+      // Calculate success rates
+      for (const playId in playStats) {
+        const stats = playStats[playId];
+        stats.successRate = stats.total > 0 ? Math.round((stats.success / stats.total) * 100) : null;
+      }
+      
+      res.json({
+        totalOutcomes: outcomes.length,
+        playStats,
+      });
+    } catch (error) {
+      console.error("Error getting game play outcomes:", error);
+      res.status(500).json({ error: "Failed to get game play outcomes" });
+    }
+  });
+
   // Register object storage routes
   registerObjectStorageRoutes(app);
 
