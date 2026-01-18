@@ -77,6 +77,7 @@ const quickAccessCards: QuickAccessCard[] = [
   { id: "stattracker", name: "StatTracker", description: "Live game stat tracking.", icon: Activity, color: "text-orange-500", roles: ["coach"] },
   { id: "highlights", name: "Highlights", description: "Team video highlights.", icon: Video, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
   { id: "teamengagement", name: "Team Engagement", description: "See team's total taps & shoutouts.", icon: Heart, color: "text-orange-500", roles: ["supporter"] },
+  { id: "gamedaylive", name: "Game Day Live", description: "Live engagement during games.", icon: Zap, color: "text-orange-500", roles: ["supporter"] },
 ];
 
 const roleConfig: Record<UserRole, { title: string; tagline: string }> = {
@@ -94,6 +95,7 @@ const cardEntitlementMap: Record<string, EntitlementKey | null> = {
   stattracker: "canUseStatTracker",
   highlights: null,
   teamengagement: null,
+  gamedaylive: null,
 };
 
 export default function UnifiedDashboard() {
@@ -206,15 +208,28 @@ export default function UnifiedDashboard() {
     return userRole;
   }, [isStaff, userRole]);
 
+  // Check if the selected managed athlete is independent (no team)
+  const isIndependentAthlete = useMemo(() => {
+    if (userRole !== "supporter" || supporterViewMode !== "athlete") return false;
+    const athlete = managedAthletes.find((ma: ManagedAthlete) => String(ma.id) === selectedManagedAthleteId);
+    return athlete ? !athlete.team : false;
+  }, [userRole, supporterViewMode, managedAthletes, selectedManagedAthleteId]);
+
   const visibleCards = useMemo(() => {
     // When supporter is viewing a managed athlete's profile, show athlete-appropriate cards
-    // but exclude coach-only tools like playmaker and stattracker
     if (userRole === "supporter" && supporterViewMode === "athlete") {
+      // For independent athletes (no team), show limited feature set:
+      // Calendar, Highlights, Game Day Live, and simplified StatTracker
+      if (isIndependentAthlete) {
+        const independentCardIds = ["schedule", "highlights", "gamedaylive", "stattracker"];
+        return quickAccessCards.filter(card => independentCardIds.includes(card.id));
+      }
+      // For team-connected athletes, show full athlete view
       const allowedCardIds = ["roster", "schedule", "playbook", "stats", "highlights"];
       return quickAccessCards.filter(card => allowedCardIds.includes(card.id));
     }
     return quickAccessCards.filter(card => card.roles.includes(effectiveRole));
-  }, [effectiveRole, userRole, supporterViewMode]);
+  }, [effectiveRole, userRole, supporterViewMode, isIndependentAthlete]);
 
   const { data: teamEvents = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "events"],
@@ -480,7 +495,7 @@ export default function UnifiedDashboard() {
   // Get the currently selected managed athlete
   const selectedManagedAthlete = useMemo(() => {
     if (!selectedManagedAthleteId) return null;
-    return managedAthletes.find((ma: ManagedAthlete) => ma.id === selectedManagedAthleteId) || null;
+    return managedAthletes.find((ma: ManagedAthlete) => String(ma.id) === selectedManagedAthleteId) || null;
   }, [managedAthletes, selectedManagedAthleteId]);
 
   // Initialize athlete's team context from their teams
@@ -1931,26 +1946,34 @@ export default function UnifiedDashboard() {
                     <Activity className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-display font-bold uppercase">StatTracker</h3>
-                    <p className="text-sm text-muted-foreground">Live game stat tracking</p>
+                    <h3 className="text-xl font-display font-bold uppercase">
+                      {isIndependentAthlete ? "Quick Stats" : "StatTracker"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {isIndependentAthlete 
+                        ? `Track stats for ${selectedManagedAthlete?.athleteName || 'your athlete'}` 
+                        : "Live game stat tracking"}
+                    </p>
                   </div>
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  Track individual player stats or team stats in real-time during games. 
-                  Set up rosters, configure stat types, and record every play.
+                  {isIndependentAthlete 
+                    ? "Record individual stats during games. Keep track of your athlete's performance over time."
+                    : "Track individual player stats or team stats in real-time during games. Set up rosters, configure stat types, and record every play."}
                 </p>
                 <Button 
                   className="w-full gap-2" 
-                  onClick={() => setLocation("/stat-tracker")}
+                  onClick={() => setLocation(isIndependentAthlete && selectedManagedAthleteId ? `/supporter-stat-tracker?athleteId=${selectedManagedAthleteId}` : "/stat-tracker")}
+                  disabled={isIndependentAthlete && !selectedManagedAthleteId}
                 >
                   <Activity className="h-4 w-4" />
-                  Open Full StatTracker
+                  {isIndependentAthlete ? "Track Stats" : "Open Full StatTracker"}
                   <ChevronRight className="h-4 w-4 ml-auto" />
                 </Button>
               </CardContent>
             </Card>
             
-            {aggregateStats && (
+            {!isIndependentAthlete && aggregateStats && (
               <div className="grid grid-cols-2 gap-3">
                 <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                   <CardContent className="p-4 text-center">
@@ -1970,6 +1993,34 @@ export default function UnifiedDashboard() {
                 </Card>
               </div>
             )}
+          </div>
+        )}
+        {selectedCard === "gamedaylive" && (
+          <div className="space-y-4">
+            <Card className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/40">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
+                    <Zap className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-display font-bold uppercase">Game Day Live</h3>
+                    <p className="text-sm text-muted-foreground">Live engagement during games</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground mb-4">
+                  Engage with live game sessions, send shoutouts, and cheer on your athlete during games.
+                </p>
+                <Button 
+                  className="w-full gap-2" 
+                  onClick={() => setLocation("/supporter-live")}
+                >
+                  <Zap className="h-4 w-4" />
+                  Join Live Sessions
+                  <ChevronRight className="h-4 w-4 ml-auto" />
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         )}
         {selectedCard === "chat" && (
