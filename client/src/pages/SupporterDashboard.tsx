@@ -292,7 +292,6 @@ export default function SupporterDashboard() {
     { id: "stats", name: "Stats", icon: BarChart3, description: "View statistics recorded with StatTracker.", locked: false },
     { id: "highlights", name: "Highlights", icon: Video, description: "Team video highlights.", locked: !entitlements?.canViewHighlights },
     { id: "game-day-live", name: "Game Day Live", icon: Flame, description: "Cheer during live games!", locked: false },
-    { id: "chat", name: "Team Chat", icon: MessageSquare, description: "Message your team.", locked: false },
   ];
 
   const welcomeModal: WelcomeModal = isIndependentMode ? {
