@@ -2565,16 +2565,35 @@ export default function UnifiedDashboard() {
                 <Card className="bg-card/60 backdrop-blur-sm border-white/10 mb-4 landscape:mb-5">
                   <CardContent className="p-4 landscape:p-5">
                     <div className="flex items-center gap-4">
-                      <div className="h-14 w-14 landscape:h-16 landscape:w-16 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-xl landscape:text-2xl font-bold text-white">
-                        {selectedManagedAthlete.athlete?.firstName?.[0]}{selectedManagedAthlete.athlete?.lastName?.[0]}
-                      </div>
+                      {/* Avatar with fallback to initials */}
+                      {(selectedManagedAthlete.athlete?.avatar || selectedManagedAthlete.profileImageUrl) ? (
+                        <Avatar className="h-14 w-14 landscape:h-16 landscape:w-16 rounded-xl">
+                          <AvatarImage 
+                            src={selectedManagedAthlete.athlete?.avatar || selectedManagedAthlete.profileImageUrl || undefined} 
+                            alt={selectedManagedAthlete.athleteName || 'Athlete'}
+                            className="rounded-xl object-cover"
+                          />
+                          <AvatarFallback className="rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-xl landscape:text-2xl font-bold text-white">
+                            {selectedManagedAthlete.athlete?.firstName?.[0] || selectedManagedAthlete.athleteName?.[0] || 'A'}
+                            {selectedManagedAthlete.athlete?.lastName?.[0] || ''}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <div className="h-14 w-14 landscape:h-16 landscape:w-16 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-xl landscape:text-2xl font-bold text-white">
+                          {selectedManagedAthlete.athlete?.firstName?.[0] || selectedManagedAthlete.athleteName?.[0] || 'A'}
+                          {selectedManagedAthlete.athlete?.lastName?.[0] || ''}
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-bold truncate">
-                          {selectedManagedAthlete.athlete?.firstName} {selectedManagedAthlete.athlete?.lastName}
+                          {selectedManagedAthlete.athlete?.firstName || selectedManagedAthlete.athleteName?.split(' ')[0]} {selectedManagedAthlete.athlete?.lastName || selectedManagedAthlete.athleteName?.split(' ').slice(1).join(' ') || ''}
                         </h3>
                         <p className="text-sm text-muted-foreground">Athlete</p>
                         {selectedManagedAthlete.team && (
                           <Badge variant="outline" className="text-xs mt-1">{selectedManagedAthlete.team.name}</Badge>
+                        )}
+                        {!selectedManagedAthlete.team && selectedManagedAthlete.sport && (
+                          <Badge variant="outline" className="text-xs mt-1">{selectedManagedAthlete.sport}</Badge>
                         )}
                       </div>
                     </div>
