@@ -2479,9 +2479,10 @@ export default function UnifiedDashboard() {
                     </SelectItem>
                     <div className="h-px bg-border my-1" />
                     {managedAthletes.map((ma: ManagedAthlete) => (
-                      <SelectItem key={ma.id} value={ma.id} data-testid={`athlete-option-${ma.id}`}>
-                        {ma.athlete?.firstName} {ma.athlete?.lastName}
+                      <SelectItem key={ma.id} value={String(ma.id)} data-testid={`athlete-option-${ma.id}`}>
+                        {ma.athlete?.firstName ? `${ma.athlete.firstName} ${ma.athlete.lastName || ''}` : ma.athleteName || 'Athlete'}
                         {ma.team && <span className="text-muted-foreground ml-2">({ma.team.name})</span>}
+                        {!ma.team && ma.sport && <span className="text-muted-foreground ml-2">({ma.sport})</span>}
                       </SelectItem>
                     ))}
                   </SelectContent>
