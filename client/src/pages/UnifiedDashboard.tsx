@@ -208,28 +208,7 @@ export default function UnifiedDashboard() {
     return userRole;
   }, [isStaff, userRole]);
 
-  // Check if the selected managed athlete is independent (no team)
-  const isIndependentAthlete = useMemo(() => {
-    if (userRole !== "supporter" || supporterViewMode !== "athlete") return false;
-    const athlete = managedAthletes.find((ma: ManagedAthlete) => String(ma.id) === selectedManagedAthleteId);
-    return athlete ? !athlete.team : false;
-  }, [userRole, supporterViewMode, managedAthletes, selectedManagedAthleteId]);
-
-  const visibleCards = useMemo(() => {
-    // When supporter is viewing a managed athlete's profile, show athlete-appropriate cards
-    if (userRole === "supporter" && supporterViewMode === "athlete") {
-      // For independent athletes (no team), show limited feature set:
-      // Calendar, Highlights, Game Day Live, and simplified StatTracker
-      if (isIndependentAthlete) {
-        const independentCardIds = ["schedule", "highlights", "gamedaylive", "stattracker"];
-        return quickAccessCards.filter(card => independentCardIds.includes(card.id));
-      }
-      // For team-connected athletes, show full athlete view
-      const allowedCardIds = ["roster", "schedule", "playbook", "stats", "highlights"];
-      return quickAccessCards.filter(card => allowedCardIds.includes(card.id));
-    }
-    return quickAccessCards.filter(card => card.roles.includes(effectiveRole));
-  }, [effectiveRole, userRole, supporterViewMode, isIndependentAthlete]);
+  // Note: isIndependentAthlete and visibleCards are defined after managedAthletes query below
 
   const { data: teamEvents = [] } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "events"],
@@ -318,6 +297,29 @@ export default function UnifiedDashboard() {
     queryFn: () => user ? getManagedAthletes(user.id) : Promise.resolve([]),
     enabled: !!user && userRole === "supporter",
   });
+
+  // Check if the selected managed athlete is independent (no team)
+  const isIndependentAthlete = useMemo(() => {
+    if (userRole !== "supporter" || supporterViewMode !== "athlete") return false;
+    const athlete = managedAthletes.find((ma: ManagedAthlete) => String(ma.id) === selectedManagedAthleteId);
+    return athlete ? !athlete.team : false;
+  }, [userRole, supporterViewMode, managedAthletes, selectedManagedAthleteId]);
+
+  const visibleCards = useMemo(() => {
+    // When supporter is viewing a managed athlete's profile, show athlete-appropriate cards
+    if (userRole === "supporter" && supporterViewMode === "athlete") {
+      // For independent athletes (no team), show limited feature set:
+      // Calendar, Highlights, Game Day Live, and simplified StatTracker
+      if (isIndependentAthlete) {
+        const independentCardIds = ["schedule", "highlights", "gamedaylive", "stattracker"];
+        return quickAccessCards.filter(card => independentCardIds.includes(card.id));
+      }
+      // For team-connected athletes, show full athlete view
+      const allowedCardIds = ["roster", "schedule", "playbook", "stats", "highlights"];
+      return quickAccessCards.filter(card => allowedCardIds.includes(card.id));
+    }
+    return quickAccessCards.filter(card => card.roles.includes(effectiveRole));
+  }, [effectiveRole, userRole, supporterViewMode, isIndependentAthlete]);
 
   // Badge queries for supporters
   const { data: allBadges = [] } = useQuery({
