@@ -375,10 +375,28 @@ export default function UnifiedDashboard() {
 
   const upcomingEvents = useMemo(() => {
     const now = new Date();
+    now.setHours(0, 0, 0, 0);
     return teamEvents.filter((e: Event) => {
       const d = parseTextDate(e.date);
       return d && d >= now;
-    }).slice(0, 5);
+    }).sort((a: Event, b: Event) => {
+      const da = parseTextDate(a.date);
+      const db = parseTextDate(b.date);
+      return (da?.getTime() || 0) - (db?.getTime() || 0);
+    });
+  }, [teamEvents]);
+  
+  const pastEvents = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return teamEvents.filter((e: Event) => {
+      const d = parseTextDate(e.date);
+      return d && d < now;
+    }).sort((a: Event, b: Event) => {
+      const da = parseTextDate(a.date);
+      const db = parseTextDate(b.date);
+      return (db?.getTime() || 0) - (da?.getTime() || 0);
+    });
   }, [teamEvents]);
 
   // Get the next upcoming game for Game Day Live
@@ -1257,6 +1275,49 @@ export default function UnifiedDashboard() {
               <p className="text-sm text-muted-foreground py-4 text-center">
                 No upcoming events
               </p>
+            )}
+            
+            {/* Past Events Section */}
+            {pastEvents.length > 0 && (
+              <>
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mt-6">
+                  Past Events
+                </h3>
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+                  {pastEvents.map((event) => (
+                    <Card 
+                      key={event.id} 
+                      className="bg-card/40 backdrop-blur-sm border-white/5 transition-all min-w-[240px] max-w-[280px] flex-shrink-0 snap-start opacity-70"
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant={event.type === "Game" ? "secondary" : "outline"} className="text-xs">
+                            {event.type}
+                          </Badge>
+                          {event.type === "Game" && <Trophy className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                        <p className="font-semibold text-sm truncate">{event.title}</p>
+                        <p className="text-xs text-muted-foreground">{formatTextDate(event.date)}</p>
+                        {event.location && (
+                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 truncate">
+                            <MapPin className="h-3 w-3" /> {event.location}
+                          </p>
+                        )}
+                        {(userRole === "coach" || isStaff) && (
+                          <div className="flex gap-1 mt-2">
+                            <Button size="sm" variant="ghost" className="h-6 px-2" onClick={() => { setEditingEvent(event); populateEventForm(event); setIsEventModalOpen(true); }}>
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-6 px-2 text-destructive" onClick={() => setDeleteConfirmEvent(event)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
