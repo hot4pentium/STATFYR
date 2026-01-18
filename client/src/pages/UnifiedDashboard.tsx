@@ -3111,8 +3111,8 @@ export default function UnifiedDashboard() {
                 </p>
               </div>
 
-              {/* Only show jersey/position for athletes - not for supporters */}
-              {memberEditForm.role !== "supporter" && (
+              {/* Only show jersey/position for athletes - not for supporters or staff */}
+              {memberEditForm.role !== "supporter" && memberEditForm.role !== "staff" && (
                 <>
                   <div>
                     <Label>Jersey Number</Label>
