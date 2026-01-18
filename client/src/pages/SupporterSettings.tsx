@@ -767,20 +767,11 @@ export default function SupporterSettings() {
                           className="w-full bg-background/50 border border-white/10 focus:border-primary/50 h-11 rounded-md px-3 text-sm"
                         >
                           <option value="">Select a sport</option>
-                          <option value="Soccer">Soccer</option>
-                          <option value="Football">Football</option>
-                          <option value="Basketball">Basketball</option>
                           <option value="Baseball">Baseball</option>
+                          <option value="Basketball">Basketball</option>
+                          <option value="Football">Football</option>
+                          <option value="Soccer">Soccer</option>
                           <option value="Volleyball">Volleyball</option>
-                          <option value="Hockey">Hockey</option>
-                          <option value="Lacrosse">Lacrosse</option>
-                          <option value="Softball">Softball</option>
-                          <option value="Tennis">Tennis</option>
-                          <option value="Swimming">Swimming</option>
-                          <option value="Track and Field">Track and Field</option>
-                          <option value="Wrestling">Wrestling</option>
-                          <option value="Gymnastics">Gymnastics</option>
-                          <option value="Other">Other</option>
                         </select>
                       </div>
 
