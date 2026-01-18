@@ -2542,7 +2542,7 @@ export default function UnifiedDashboard() {
                   <h2 className="text-xl landscape:text-2xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
                 </div>
                 {/* Cards Grid */}
-                <div className="grid grid-cols-2 gap-3 landscape:gap-4">
+                <div className="grid grid-cols-2 landscape:grid-cols-1 xl:grid-cols-2 gap-3 landscape:gap-3">
                   {visibleCards.map((card) => {
                     const locked = isCardLocked(card.id);
                     return (
@@ -2552,22 +2552,24 @@ export default function UnifiedDashboard() {
                         onClick={() => handleCardClick(card.id)}
                         data-testid={`card-${card.id}`}
                       >
-                        <CardContent className="p-4 landscape:p-5">
-                          <div className="flex items-start gap-3">
-                            {locked ? (
-                              <div className="relative">
-                                <card.icon className={`h-6 w-6 landscape:h-7 landscape:w-7 text-muted-foreground shrink-0`} />
-                                <Lock className="h-3 w-3 absolute -bottom-1 -right-1 text-yellow-500" />
-                              </div>
-                            ) : (
-                              <card.icon className={`h-6 w-6 landscape:h-7 landscape:w-7 ${card.color} shrink-0`} />
-                            )}
-                            <div className="min-w-0">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="shrink-0 h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                              {locked ? (
+                                <div className="relative">
+                                  <card.icon className="h-5 w-5 text-muted-foreground" />
+                                  <Lock className="h-3 w-3 absolute -bottom-1 -right-1 text-yellow-500" />
+                                </div>
+                              ) : (
+                                <card.icon className={`h-5 w-5 ${card.color}`} />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <p className="font-semibold landscape:text-base">{card.name}</p>
+                                <p className="font-bold text-sm uppercase tracking-wide">{card.name}</p>
                                 {locked && <Crown className="h-3 w-3 text-yellow-500" />}
                               </div>
-                              <p className="text-xs landscape:text-sm text-muted-foreground line-clamp-2">{card.description}</p>
+                              <p className="text-xs text-muted-foreground">{card.description}</p>
                             </div>
                           </div>
                         </CardContent>
@@ -2860,7 +2862,7 @@ export default function UnifiedDashboard() {
                   )}
                 </div>
                 {/* Cards Grid */}
-                <div className="grid grid-cols-2 gap-3 landscape:gap-4">
+                <div className="grid grid-cols-2 landscape:grid-cols-1 xl:grid-cols-2 gap-3 landscape:gap-3">
                   {visibleCards.map((card) => {
                     const locked = isCardLocked(card.id);
                     return (
@@ -2870,22 +2872,24 @@ export default function UnifiedDashboard() {
                         onClick={() => handleCardClick(card.id)}
                         data-testid={`card-${card.id}`}
                       >
-                        <CardContent className="p-4 landscape:p-5">
-                          <div className="flex items-start gap-3">
-                            {locked ? (
-                              <div className="relative">
-                                <card.icon className={`h-6 w-6 landscape:h-7 landscape:w-7 text-muted-foreground shrink-0`} />
-                                <Lock className="h-3 w-3 absolute -bottom-1 -right-1 text-yellow-500" />
-                              </div>
-                            ) : (
-                              <card.icon className={`h-6 w-6 landscape:h-7 landscape:w-7 ${card.color} shrink-0`} />
-                            )}
-                            <div className="min-w-0">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="shrink-0 h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                              {locked ? (
+                                <div className="relative">
+                                  <card.icon className="h-5 w-5 text-muted-foreground" />
+                                  <Lock className="h-3 w-3 absolute -bottom-1 -right-1 text-yellow-500" />
+                                </div>
+                              ) : (
+                                <card.icon className={`h-5 w-5 ${card.color}`} />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <p className="font-semibold landscape:text-base">{card.name}</p>
+                                <p className="font-bold text-sm uppercase tracking-wide">{card.name}</p>
                                 {locked && <Crown className="h-3 w-3 text-yellow-500" />}
                               </div>
-                              <p className="text-xs landscape:text-sm text-muted-foreground line-clamp-2">{card.description}</p>
+                              <p className="text-xs text-muted-foreground">{card.description}</p>
                             </div>
                           </div>
                         </CardContent>
