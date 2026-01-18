@@ -38,7 +38,7 @@ export function GameStatsCard({ game, gameId, isExpanded, onToggle }: GameStatsC
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
-      <Card className="bg-card/80 backdrop-blur-sm border-white/10 overflow-hidden">
+      <Card className="bg-card/60 backdrop-blur-sm border-white/10 overflow-hidden">
         <CollapsibleTrigger asChild>
           <CardContent className="p-4 cursor-pointer hover:bg-white/5 transition-colors">
             <div className="flex items-center justify-between">

@@ -818,7 +818,7 @@ export default function UnifiedDashboard() {
       onClick={() => member.role === 'athlete' && setLocation(`/share/athlete/${member.userId}`)}
       data-testid={`roster-card-${member.id}`}
     >
-      <Card className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all overflow-hidden relative">
+      <Card className="bg-card/60 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all overflow-hidden relative">
         {currentTeam?.badgeId && (
           <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-45 pointer-events-none">
             <TeamBadge badgeId={currentTeam.badgeId} size="lg" teamColor={currentTeam.teamColor} />
@@ -873,7 +873,7 @@ export default function UnifiedDashboard() {
   );
 
   const renderEventCard = (event: Event) => (
-    <Card key={event.id} className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all">
+    <Card key={event.id} className="bg-card/60 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all">
       <CardContent className="p-4 flex items-center gap-3">
         <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex flex-col items-center justify-center shrink-0">
           <span className="text-xs text-muted-foreground uppercase">{formatTextDate(event.date, "month")}</span>
@@ -949,7 +949,7 @@ export default function UnifiedDashboard() {
     return (
       <Card 
         key={play.id} 
-        className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all cursor-pointer"
+        className="bg-card/60 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all cursor-pointer"
         onClick={() => setExpandedPlay(play)}
       >
         <CardContent className="p-4">
@@ -1075,7 +1075,7 @@ export default function UnifiedDashboard() {
         {selectedCard === "roster" && (
           <div className="space-y-4">
             {(userRole === "coach" || isStaff) && currentTeam?.code && (
-              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+              <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                 <CardContent className="p-4">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
@@ -1120,7 +1120,7 @@ export default function UnifiedDashboard() {
             <div className="space-y-3">
               {(rosterTab === "all" ? teamMembers : rosterTab === "athletes" ? athletes : rosterTab === "coach" ? coaches : supporters).map(renderMemberCard)}
               {teamMembers.length === 0 && (
-                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                   <CardContent className="p-6 text-center text-muted-foreground">
                     <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
                     <p>No team members yet</p>
@@ -1203,7 +1203,7 @@ export default function UnifiedDashboard() {
               }).map((event) => (
                 <Card 
                   key={event.id} 
-                  className="bg-card/80 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all min-w-[240px] max-w-[280px] flex-shrink-0 snap-start"
+                  className="bg-card/60 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all min-w-[240px] max-w-[280px] flex-shrink-0 snap-start"
                 >
                   <CardContent className="p-3">
                     <div className="flex items-center gap-2 mb-2">
@@ -1263,7 +1263,7 @@ export default function UnifiedDashboard() {
         {(selectedCard === "playmaker" || selectedCard === "playbook") && (
           <div className="space-y-4">
             {(userRole === "coach" || isStaff) && selectedCard === "playmaker" && (
-              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+              <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                 <CardHeader>
                   <CardTitle className="text-lg">Create New Play</CardTitle>
                 </CardHeader>
@@ -1283,7 +1283,7 @@ export default function UnifiedDashboard() {
               {(playbookTab === "Offense" ? offensePlays : playbookTab === "Defense" ? defensePlays : specialPlays).map(renderPlayCard)}
             </div>
             {teamPlays.length === 0 && (
-              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+              <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                 <CardContent className="p-6 text-center text-muted-foreground">
                   <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
                   <p>No plays in the playbook yet</p>
@@ -1296,7 +1296,7 @@ export default function UnifiedDashboard() {
           <div className="space-y-4">
             {userRole === "athlete" && myStats && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                   <CardContent className="p-4 text-center">
                     <p className="text-3xl font-display font-bold text-primary">{myStats.gamesPlayed}</p>
                     <p className="text-xs text-muted-foreground">Games Played</p>
@@ -1306,7 +1306,7 @@ export default function UnifiedDashboard() {
                   const statValue = typeof value === "object" && value !== null && "total" in value 
                     ? (value as { total: number }).total : value;
                   return (
-                    <Card key={key} className="bg-card/80 backdrop-blur-sm border-white/10">
+                    <Card key={key} className="bg-card/60 backdrop-blur-sm border-white/10">
                       <CardContent className="p-4 text-center">
                         <p className="text-3xl font-display font-bold">{String(statValue)}</p>
                         <p className="text-xs text-muted-foreground capitalize">{key.replace(/_/g, " ")}</p>
@@ -1319,25 +1319,25 @@ export default function UnifiedDashboard() {
             {(userRole === "coach" || userRole === "supporter" || isStaff) && (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                  <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                     <CardContent className="p-4 text-center">
                       <p className="text-3xl font-display font-bold text-primary">{aggregateStats?.games || 0}</p>
                       <p className="text-xs text-muted-foreground">Games</p>
                     </CardContent>
                   </Card>
-                  <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                  <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                     <CardContent className="p-4 text-center">
                       <p className="text-3xl font-display font-bold text-green-500">{aggregateStats?.wins || 0}</p>
                       <p className="text-xs text-muted-foreground">Wins</p>
                     </CardContent>
                   </Card>
-                  <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                  <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                     <CardContent className="p-4 text-center">
                       <p className="text-3xl font-display font-bold text-red-500">{aggregateStats?.losses || 0}</p>
                       <p className="text-xs text-muted-foreground">Losses</p>
                     </CardContent>
                   </Card>
-                  <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                  <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                     <CardContent className="p-4 text-center">
                       <p className="text-3xl font-display font-bold">
                         {(aggregateStats?.games || 0) > 0 ? Math.round(((aggregateStats?.wins || 0) / (aggregateStats?.games || 1)) * 100) : 0}%
@@ -1360,7 +1360,7 @@ export default function UnifiedDashboard() {
                   <TabsContent value="season" className="space-y-4">
                     {advancedStats?.gameHistory && advancedStats.gameHistory.length > 0 ? (
                       <>
-                        <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                        <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                           <CardHeader>
                             <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
                               <TrendingUp className="h-4 w-4 text-green-500" />
@@ -1391,7 +1391,7 @@ export default function UnifiedDashboard() {
                           </CardContent>
                         </Card>
 
-                        <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                        <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                           <CardHeader>
                             <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
                               <Trophy className="h-4 w-4 text-yellow-500" />
@@ -1418,7 +1418,7 @@ export default function UnifiedDashboard() {
                           </CardContent>
                         </Card>
 
-                        <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                        <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                           <CardHeader>
                             <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
                               <BarChart3 className="h-4 w-4 text-blue-500" />
@@ -1451,7 +1451,7 @@ export default function UnifiedDashboard() {
                         </Card>
                       </>
                     ) : (
-                      <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                      <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                         <CardContent className="p-8 text-center">
                           <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                           <p className="text-muted-foreground">No stats recorded yet.</p>
@@ -1463,7 +1463,7 @@ export default function UnifiedDashboard() {
 
                   <TabsContent value="athletes" className="space-y-4">
                     {userRole === "supporter" && !entitlements.canViewIndividualStats ? (
-                      <Card className="bg-card/80 backdrop-blur-sm border-dashed border-2 border-yellow-500/30">
+                      <Card className="bg-card/60 backdrop-blur-sm border-dashed border-2 border-yellow-500/30">
                         <CardContent className="p-8 text-center">
                           <div className="flex items-center justify-center gap-2 mb-3">
                             <Lock className="h-6 w-6 text-yellow-500" />
@@ -1551,7 +1551,7 @@ export default function UnifiedDashboard() {
                               </div>
 
                               {athleteViewMode === 'chart' && (
-                                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                                <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                                   <CardContent className="pt-4">
                                     <div className="h-56">
                                       <ResponsiveContainer width="100%" height="100%">
@@ -1575,7 +1575,7 @@ export default function UnifiedDashboard() {
                               )}
 
                               {athleteViewMode === 'table' && (
-                                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                                <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                                   <CardContent className="p-0">
                                     <div className="overflow-x-auto">
                                       <table className="w-full text-sm">
@@ -1630,7 +1630,7 @@ export default function UnifiedDashboard() {
                               {athleteViewMode === 'cards' && (
                                 <div className="grid gap-3 md:grid-cols-2">
                                   {advancedStats.athletePerformance.map((athlete: any, idx: number) => (
-                                    <Card key={athlete.athleteId} className="bg-card/80 backdrop-blur-sm border-white/10">
+                                    <Card key={athlete.athleteId} className="bg-card/60 backdrop-blur-sm border-white/10">
                                       <CardContent className="p-4">
                                         <div className="flex items-center gap-3 mb-3">
                                           <div className="h-12 w-12 rounded-full flex items-center justify-center font-bold text-lg" style={{ backgroundColor: `${colors[idx % colors.length]}30`, color: colors[idx % colors.length] }}>
@@ -1670,7 +1670,7 @@ export default function UnifiedDashboard() {
                         })()}
 
                         {userRole === "supporter" && (
-                          <Card className="bg-card/80 backdrop-blur-sm border-white/10 mt-6">
+                          <Card className="bg-card/60 backdrop-blur-sm border-white/10 mt-6">
                             <CardHeader className="pb-2">
                               <CardTitle className="font-display uppercase tracking-wide text-sm flex items-center gap-2">
                                 <Activity className="h-4 w-4 text-primary" />
@@ -1685,7 +1685,7 @@ export default function UnifiedDashboard() {
                         )}
                       </>
                     ) : (
-                      <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                      <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                         <CardContent className="p-8 text-center">
                           <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                           <p className="text-muted-foreground">No athlete stats yet.</p>
@@ -1715,7 +1715,7 @@ export default function UnifiedDashboard() {
                         })}
                       </div>
                     ) : (
-                      <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                      <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                         <CardContent className="p-8 text-center">
                           <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                           <p className="text-muted-foreground">No games recorded yet.</p>
@@ -1733,7 +1733,7 @@ export default function UnifiedDashboard() {
             {currentTeam && user && (userRole === "coach" || isStaff || entitlements.canUploadHighlights) ? (
               <VideoUploader teamId={currentTeam.id} userId={user.id} onUploadComplete={() => refetchHighlights()} />
             ) : (
-              <Card className="bg-card/80 backdrop-blur-sm border-dashed border-2 border-yellow-500/30">
+              <Card className="bg-card/60 backdrop-blur-sm border-dashed border-2 border-yellow-500/30">
                 <CardContent className="p-6 text-center">
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <Lock className="h-5 w-5 text-yellow-500" />
@@ -1756,7 +1756,7 @@ export default function UnifiedDashboard() {
               {teamHighlights.map(renderHighlightCard)}
             </div>
             {teamHighlights.length === 0 && (
-              <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+              <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                 <CardContent className="p-6 text-center text-muted-foreground">
                   <Video className="h-12 w-12 mx-auto mb-3 opacity-50" />
                   <p>No highlights yet</p>
@@ -1803,7 +1803,7 @@ export default function UnifiedDashboard() {
             </div>
 
             {/* Top Tappers Leaderboard */}
-            <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+            <Card className="bg-card/60 backdrop-blur-sm border-white/10">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-4">
                   <Award className="h-5 w-5 text-yellow-500" />
@@ -1856,7 +1856,7 @@ export default function UnifiedDashboard() {
               </CardContent>
             </Card>
             
-            <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+            <Card className="bg-card/60 backdrop-blur-sm border-white/10">
               <CardContent className="p-4 text-center text-muted-foreground">
                 <p className="text-sm">Join Game Day Live sessions to climb the leaderboard!</p>
               </CardContent>
@@ -1893,13 +1893,13 @@ export default function UnifiedDashboard() {
             
             {aggregateStats && (
               <div className="grid grid-cols-2 gap-3">
-                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                   <CardContent className="p-4 text-center">
                     <p className="text-2xl font-display font-bold text-primary">{aggregateStats.games}</p>
                     <p className="text-xs text-muted-foreground">Games Tracked</p>
                   </CardContent>
                 </Card>
-                <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                   <CardContent className="p-4 text-center">
                     <p className="text-2xl font-display font-bold">
                       <span className="text-green-500">{aggregateStats.wins}</span>
@@ -2449,7 +2449,7 @@ export default function UnifiedDashboard() {
                 }`}
               >
                 {/* Athlete HYPE Card Preview */}
-                <Card className="bg-card/80 backdrop-blur-sm border-white/10 mb-4 landscape:mb-5">
+                <Card className="bg-card/60 backdrop-blur-sm border-white/10 mb-4 landscape:mb-5">
                   <CardContent className="p-4 landscape:p-5">
                     <div className="flex items-center gap-4">
                       <div className="h-14 w-14 landscape:h-16 landscape:w-16 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-xl landscape:text-2xl font-bold text-white">
@@ -2487,7 +2487,7 @@ export default function UnifiedDashboard() {
                     return (
                       <Card
                         key={card.id}
-                        className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""} ${locked ? "opacity-75" : ""}`}
+                        className={`bg-card/60 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""} ${locked ? "opacity-75" : ""}`}
                         onClick={() => handleCardClick(card.id)}
                         data-testid={`card-${card.id}`}
                       >
@@ -2805,7 +2805,7 @@ export default function UnifiedDashboard() {
                     return (
                       <Card
                         key={card.id}
-                        className={`bg-card/80 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""} ${locked ? "opacity-75" : ""}`}
+                        className={`bg-card/60 backdrop-blur-sm border-white/10 cursor-pointer transition-all hover:border-primary/50 hover:scale-[1.02] ${selectedCard === card.id ? "border-primary ring-1 ring-primary" : ""} ${locked ? "opacity-75" : ""}`}
                         onClick={() => handleCardClick(card.id)}
                         data-testid={`card-${card.id}`}
                       >
@@ -3279,7 +3279,7 @@ export default function UnifiedDashboard() {
                   </div>
 
                   {/* Stats Overview */}
-                  <Card className="bg-card/80 backdrop-blur-sm border-white/10 mb-4">
+                  <Card className="bg-card/60 backdrop-blur-sm border-white/10 mb-4">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-around mb-4">
                         <div className="text-center">
@@ -3318,7 +3318,7 @@ export default function UnifiedDashboard() {
 
                   {/* Progression Chart */}
                   {selectedAthleteHypeStats?.gameHistory && selectedAthleteHypeStats.gameHistory.length > 1 && (
-                    <Card className="bg-card/80 backdrop-blur-sm border-white/10 mb-4">
+                    <Card className="bg-card/60 backdrop-blur-sm border-white/10 mb-4">
                       <CardHeader className="pb-2">
                         <CardTitle className="font-display uppercase tracking-wide text-xs flex items-center gap-2">
                           <TrendingUp className="h-3 w-3 text-green-500" />
@@ -3359,7 +3359,7 @@ export default function UnifiedDashboard() {
 
                   {/* Recent Games */}
                   {selectedAthleteHypeStats?.gameHistory && selectedAthleteHypeStats.gameHistory.length > 0 && (
-                    <Card className="bg-card/80 backdrop-blur-sm border-white/10">
+                    <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                       <CardHeader className="pb-2">
                         <CardTitle className="font-display uppercase tracking-wide text-xs flex items-center gap-2">
                           <BarChart3 className="h-3 w-3 text-blue-500" />
