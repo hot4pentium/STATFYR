@@ -14,14 +14,13 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 type OnboardingStep = "choice" | "team-code" | "athlete-code" | "manage-independently" | "success";
 
-const SPORTS = ["Football", "Basketball", "Baseball", "Soccer", "Volleyball", "Other"];
+const SPORTS = ["Baseball", "Basketball", "Football", "Soccer", "Volleyball"];
 const POSITIONS: Record<string, string[]> = {
-  Football: ["QB", "RB", "WR", "TE", "OL", "DL", "LB", "CB", "S", "K", "P"],
-  Basketball: ["PG", "SG", "SF", "PF", "C"],
   Baseball: ["P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH"],
+  Basketball: ["PG", "SG", "SF", "PF", "C"],
+  Football: ["QB", "RB", "WR", "TE", "OL", "DL", "LB", "CB", "S", "K", "P"],
   Soccer: ["GK", "CB", "LB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST"],
   Volleyball: ["Setter", "Outside Hitter", "Middle Blocker", "Opposite", "Libero"],
-  Other: ["Player"],
 };
 
 export default function SupporterOnboarding() {
