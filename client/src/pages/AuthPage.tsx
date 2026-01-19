@@ -3,10 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation, useSearch } from "wouter";
-import { User, Users, Clipboard, ArrowLeft, Eye, EyeOff, LogOut } from "lucide-react";
+import { Eye, EyeOff, LogOut } from "lucide-react";
 import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
-import { registerUser, loginUser, getUserTeams } from "@/lib/api";
+import { loginUser, getUserTeams } from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 
@@ -17,11 +17,7 @@ export default function AuthPage() {
   const { setTheme, resolvedTheme } = useTheme();
   const previousTheme = useRef<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
-  const [authMode, setAuthMode] = useState<"select" | "signup" | "login">("select");
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
-  const [showSignupPassword, setShowSignupPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Force dark mode on auth pages, restore user preference when leaving
   useEffect(() => {
@@ -37,15 +33,8 @@ export default function AuthPage() {
 
   const searchParams = new URLSearchParams(searchString);
   const redirectTo = searchParams.get("redirect");
-  const preselectedRole = searchParams.get("role");
 
-  useEffect(() => {
-    if (preselectedRole && (preselectedRole === "athlete" || preselectedRole === "supporter")) {
-      setSelectedRole(preselectedRole);
-      setAuthMode("signup");
-    }
-  }, [preselectedRole]);
-  
+    
   // If user is already logged in (from userContext), redirect them to their dashboard
   useEffect(() => {
     console.log('[AuthPage] Redirect check - isUserLoading:', isUserLoading, 'user:', user?.email, 'role:', user?.role);
@@ -59,43 +48,11 @@ export default function AuthPage() {
     }
   }, [user, isUserLoading, redirectTo, setLocation]);
   
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const validateSignupForm = () => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
-    }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
-    }
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords don't match";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const validateLoginForm = () => {
     const newErrors: Record<string, string> = {};
@@ -107,48 +64,6 @@ export default function AuthPage() {
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedRole || !validateSignupForm()) return;
-
-    setLoading(true);
-    try {
-      const username = `${selectedRole}_${Date.now()}`;
-      const user = await registerUser({
-        username,
-        password: formData.password,
-        role: selectedRole,
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        email: formData.email.trim(),
-        name: `${formData.firstName.trim()} ${formData.lastName.trim()}`
-      });
-      setUser(user);
-      
-      if (redirectTo) {
-        setLocation(redirectTo);
-      } else if (selectedRole === 'coach') {
-        setLocation("/coach/onboarding");
-      } else if (selectedRole === 'athlete') {
-        setLocation("/athlete/onboarding");
-      } else {
-        setLocation("/supporter/onboarding");
-      }
-    } catch (error: any) {
-      console.error("Registration failed:", error);
-      const message = error?.message || "Registration failed. Please try again.";
-      if (message.includes("Email already exists")) {
-        setErrors({ email: "This email is already registered. Try signing in instead." });
-      } else if (message.includes("Username already exists")) {
-        setErrors({ submit: "Registration failed. Please try again." });
-      } else {
-        setErrors({ submit: message });
-      }
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -193,36 +108,8 @@ export default function AuthPage() {
     }
   };
 
-  const handleBack = () => {
-    if (authMode === "signup" && selectedRole) {
-      setSelectedRole(null);
-    } else {
-      setAuthMode("select");
-      setSelectedRole(null);
-    }
-    setFormData({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "" });
-    setLoginData({ email: "", password: "" });
-    setErrors({});
-  };
-
-  const getRoleInfo = (role: string) => {
-    switch (role) {
-      case 'coach':
-        return { icon: Clipboard, title: "Coach", description: "Manage roster, tactics & stats" };
-      case 'athlete':
-        return { icon: User, title: "Athlete", description: "View schedule & performance" };
-      case 'supporter':
-        return { icon: Users, title: "Supporter", description: "Follow team updates" };
-      default:
-        return { icon: User, title: "", description: "" };
-    }
-  };
-
-  const selectRoleForSignup = (role: string) => {
-    setSelectedRole(role);
-    setAuthMode("signup");
-  };
-
+  
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
       <div 
@@ -264,110 +151,8 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {authMode === "select" && (
-          <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
+        <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
             <CardHeader>
-              <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">Get Started</CardTitle>
-              <CardDescription className="text-center">New or returning user?</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
-                <Button 
-                  size="lg" 
-                  className="w-full h-14 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
-                  onClick={() => setAuthMode("login")}
-                  data-testid="button-login-option"
-                >
-                  Sign In
-                </Button>
-                <p className="text-center text-sm text-muted-foreground">
-                  Already have an account? Sign in above
-                </p>
-              </div>
-              
-              <div 
-                className="relative rounded-xl p-5 border border-white/10 shadow-lg shadow-black/30"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-                  backgroundImage: `
-                    linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%),
-                    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")
-                  `
-                }}
-              >
-                <div className="text-center mb-4">
-                  <span className="inline-block px-4 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                    New here?
-                  </span>
-                </div>
-                <p className="text-center text-sm text-muted-foreground mb-4">
-                  Choose your role to get started
-                </p>
-                <div className="space-y-3">
-                  <Button 
-                    size="lg" 
-                    variant="outline"
-                    className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
-                    onClick={() => selectRoleForSignup('coach')}
-                    disabled={loading}
-                    data-testid="button-coach"
-                  >
-                    <Clipboard className="mr-4 h-6 w-6" />
-                    <div className="flex flex-col items-start">
-                      <span className="font-bold">Coach</span>
-                      <span className="text-xs font-normal opacity-80">Manage roster, tactics & stats</span>
-                    </div>
-                  </Button>
-
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
-                    onClick={() => selectRoleForSignup('athlete')}
-                    disabled={loading}
-                    data-testid="button-athlete"
-                  >
-                    <User className="mr-4 h-6 w-6" />
-                    <div className="flex flex-col items-start">
-                      <span className="font-bold">Athlete</span>
-                      <span className="text-xs font-normal opacity-80">View schedule & performance</span>
-                    </div>
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="w-full h-16 text-lg justify-start px-6 border-white/10 hover:bg-white/5"
-                    onClick={() => selectRoleForSignup('supporter')}
-                    disabled={loading}
-                    data-testid="button-supporter"
-                  >
-                    <Users className="mr-4 h-6 w-6" />
-                    <div className="flex flex-col items-start">
-                      <span className="font-bold">Supporter</span>
-                      <span className="text-xs font-normal opacity-80">Follow team updates</span>
-                    </div>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {authMode === "login" && (
-          <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleBack}
-                  className="h-8 w-8"
-                  data-testid="button-back"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </div>
               <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">Welcome Back</CardTitle>
               <CardDescription className="text-center">Sign in with your account</CardDescription>
             </CardHeader>
@@ -475,219 +260,52 @@ export default function AuthPage() {
                   </Button>
                 </div>
                 
-                <p className="text-center text-sm text-muted-foreground">
-                  Don't have an account?{" "}
-                  <button 
-                    type="button"
-                    onClick={() => setAuthMode("select")}
-                    className="text-primary hover:underline"
-                    data-testid="link-signup"
-                  >
-                    Sign up
-                  </button>
-                </p>
-              </form>
-            </CardContent>
-          </Card>
-        )}
-
-        {authMode === "signup" && selectedRole && (
-          <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
-            <CardHeader>
-              <div className="flex items-center justify-center gap-2 mb-2">
-                {(() => {
-                  const info = getRoleInfo(selectedRole);
-                  return <info.icon className="h-5 w-5 text-primary" />;
-                })()}
-                <span className="font-bold text-primary">{getRoleInfo(selectedRole).title}</span>
-              </div>
-              <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">Create Account</CardTitle>
-              <CardDescription className="text-center">Sign up with your email</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      placeholder="John"
-                      value={formData.firstName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                      className={errors.firstName ? "border-red-500" : ""}
-                      data-testid="input-first-name"
-                    />
-                    {errors.firstName && (
-                      <p className="text-xs text-red-500">{errors.firstName}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      placeholder="Smith"
-                      value={formData.lastName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                      className={errors.lastName ? "border-red-500" : ""}
-                      data-testid="input-last-name"
-                    />
-                    {errors.lastName && (
-                      <p className="text-xs text-red-500">{errors.lastName}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="john@example.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    className={errors.email ? "border-red-500" : ""}
-                    data-testid="input-email"
-                  />
-                  {errors.email && (
-                    <p className="text-xs text-red-500">
-                      {errors.email.includes("already registered") ? (
-                        <>
-                          This email is already registered.{" "}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLoginData(prev => ({ ...prev, email: formData.email }));
-                              setAuthMode("login");
-                              setErrors({});
-                            }}
-                            className="text-primary hover:underline font-medium"
-                            data-testid="link-signin-from-error"
-                          >
-                            Sign in instead
-                          </button>
-                        </>
-                      ) : (
-                        errors.email
-                      )}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showSignupPassword ? "text" : "password"}
-                      placeholder="Create a password (min 6 characters)"
-                      value={formData.password}
-                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                      className={errors.password ? "border-red-500 pr-10" : "pr-10"}
-                      data-testid="input-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowSignupPassword(!showSignupPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      data-testid="toggle-signup-password"
-                    >
-                      {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  {errors.password && (
-                    <p className="text-xs text-red-500">{errors.password}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm your password"
-                      value={formData.confirmPassword}
-                      onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      className={errors.confirmPassword ? "border-red-500 pr-10" : "pr-10"}
-                      data-testid="input-confirm-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      data-testid="toggle-confirm-password"
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  {errors.confirmPassword && (
-                    <p className="text-xs text-red-500">{errors.confirmPassword}</p>
-                  )}
-                </div>
-                {errors.submit && (
-                  <p className="text-sm text-red-500 text-center">{errors.submit}</p>
-                )}
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                  disabled={loading}
-                  data-testid="button-submit"
+                <div 
+                  className="relative rounded-xl p-4 border border-white/10 shadow-lg shadow-black/30 mt-4"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+                  }}
                 >
-                  {loading ? "Creating Account..." : "Create Account"}
-                </Button>
-                
-                <div className="relative my-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-border/50" />
+                  <div className="text-center mb-3">
+                    <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                      New to STATFYR?
+                    </span>
                   </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="bg-card px-2 text-muted-foreground">or sign up with</span>
+                  <p className="text-center text-sm text-muted-foreground mb-3">
+                    Download the app to create your account
+                  </p>
+                  <div className="flex justify-center gap-3">
+                    <a 
+                      href="https://apps.apple.com/app/statfyr" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="transition-transform hover:scale-105"
+                      data-testid="link-app-store"
+                    >
+                      <img 
+                        src="/app-store-badge.svg" 
+                        alt="Download on App Store" 
+                        className="h-10"
+                      />
+                    </a>
+                    <a 
+                      href="https://play.google.com/store/apps/details?id=com.statfyr.app" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="transition-transform hover:scale-105"
+                      data-testid="link-play-store"
+                    >
+                      <img 
+                        src="/google-play-badge.png" 
+                        alt="Get it on Google Play" 
+                        className="h-10"
+                      />
+                    </a>
                   </div>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full gap-2"
-                    onClick={() => window.location.href = '/api/login'}
-                    data-testid="button-google-signup"
-                  >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                      <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    Google
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full gap-2"
-                    onClick={() => window.location.href = '/api/login'}
-                    data-testid="button-apple-signup"
-                  >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                    </svg>
-                    Apple
-                  </Button>
-                </div>
-                
-                <p className="text-center text-sm text-muted-foreground">
-                  Already have an account?{" "}
-                  <button 
-                    type="button"
-                    onClick={() => setAuthMode("login")}
-                    className="text-primary hover:underline"
-                    data-testid="link-login"
-                  >
-                    Sign in
-                  </button>
-                </p>
               </form>
             </CardContent>
           </Card>
-        )}
       </div>
     </div>
   );
