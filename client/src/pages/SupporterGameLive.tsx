@@ -27,7 +27,7 @@ import {
   type Event,
   type LiveEngagementSession
 } from "@/lib/api";
-import { enableKeepAwake, disableKeepAwake } from "@/lib/capacitor";
+import { enableKeepAwake, disableKeepAwake, getNetworkStatus, addNetworkListener } from "@/lib/capacitor";
 
 const SHOUTOUT_OPTIONS = [
   { emoji: "🔥", label: "On Fire!", icon: Flame, color: "bg-orange-500" },
@@ -51,25 +51,24 @@ export default function SupporterGameLive() {
   const [selectedAthlete, setSelectedAthlete] = useState<GameRoster | null>(null);
   const [newBadge, setNewBadge] = useState<BadgeDefinition | null>(null);
   const [showHypeCheck, setShowHypeCheck] = useState(false);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isOnline, setIsOnline] = useState(true);
   const [queryFailed, setQueryFailed] = useState(false);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const tapCountRef = useRef<number>(0);
   const badgeCheckRef = useRef<NodeJS.Timeout | null>(null);
   const previousTapCountRef = useRef<number | null>(null);
 
-  // Listen for online/offline events
+  // Use Capacitor Network plugin for native apps, browser events for web
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    getNetworkStatus().then(status => {
+      setIsOnline(status.connected);
+    });
     
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    const removeListener = addNetworkListener((status) => {
+      setIsOnline(status.connected);
+    });
     
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
+    return removeListener;
   }, []);
 
   const eventId = params?.gameId; // This is actually the event ID from the URL

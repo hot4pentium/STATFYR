@@ -6,9 +6,59 @@ import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
 import { KeepAwake } from "@capacitor-community/keep-awake";
 import { Badge } from "@capawesome/capacitor-badge";
 import { NativeBiometric, BiometryType } from "@capgo/capacitor-native-biometric";
+import { Network, ConnectionStatus } from "@capacitor/network";
 
 export const isNative = Capacitor.isNativePlatform();
 export const platform = Capacitor.getPlatform();
+
+export type NetworkConnectionType = "wifi" | "cellular" | "none" | "unknown";
+
+export interface NetworkStatus {
+  connected: boolean;
+  connectionType: NetworkConnectionType;
+}
+
+export async function getNetworkStatus(): Promise<NetworkStatus> {
+  if (isNative) {
+    try {
+      const status = await Network.getStatus();
+      return {
+        connected: status.connected,
+        connectionType: status.connectionType as NetworkConnectionType,
+      };
+    } catch (error) {
+      console.error("Failed to get network status:", error);
+      return { connected: navigator.onLine, connectionType: "unknown" };
+    }
+  }
+  return { connected: navigator.onLine, connectionType: "unknown" };
+}
+
+export function addNetworkListener(callback: (status: NetworkStatus) => void): () => void {
+  if (isNative) {
+    const handler = Network.addListener("networkStatusChange", (status: ConnectionStatus) => {
+      callback({
+        connected: status.connected,
+        connectionType: status.connectionType as NetworkConnectionType,
+      });
+    });
+    
+    return () => {
+      handler.then(h => h.remove());
+    };
+  } else {
+    const handleOnline = () => callback({ connected: true, connectionType: "unknown" });
+    const handleOffline = () => callback({ connected: false, connectionType: "none" });
+    
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }
+}
 
 export interface ShareHypeCardOptions {
   athleteName: string;
