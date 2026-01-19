@@ -2512,8 +2512,8 @@ export default function UnifiedDashboard() {
 
             {/* View Selector - Supporters Only */}
             {userRole === "supporter" && managedAthletes.length > 0 && (
-              <div className="mt-4 bg-[#5e5a5a00]">
-                <Label className="text-slate-500 dark:text-white/60 text-xs uppercase tracking-wide mb-2 block">
+              <div className="mt-4 p-3 rounded-lg bg-white/80 dark:bg-black/60 backdrop-blur-md border border-gray-200 dark:border-white/20 shadow-lg">
+                <Label className="text-gray-700 dark:text-white/80 text-xs uppercase tracking-wide mb-2 block font-semibold">
                   {supporterViewMode === "supporter" ? "My Dashboard" : "Viewing Athlete Profile"}
                 </Label>
                 <Select 
@@ -2728,36 +2728,36 @@ export default function UnifiedDashboard() {
                 {/* Permanent Game Day Live Card - All roles with access */}
                 {(effectiveRole === "coach" || userRole === "supporter" || isStaff) && (
                   <Card 
-                    className={`relative overflow-hidden border-2 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 mb-4 transition-all duration-500 ${
+                    className={`relative overflow-hidden border-2 bg-white/80 dark:bg-black/60 backdrop-blur-md shadow-lg mb-4 transition-all duration-500 ${
                       nextGame && eventSessions[nextGame.id]?.status === "live" 
                         ? "border-green-500 ring-2 ring-green-500/50 animate-pulse shadow-lg shadow-green-500/30" 
-                        : "border-primary/30"
+                        : "border-gray-200 dark:border-white/20"
                     }`} 
                     data-testid="game-day-live-card"
                   >
-                    <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+                    <div className="absolute inset-0 opacity-10 bg-gradient-to-r from-primary/20 via-accent/10 to-primary/20" />
                     <CardContent className="relative z-10 p-4">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <Radio className="h-4 w-4 text-primary" />
-                            <span className="text-xs uppercase tracking-wider text-primary font-bold">Game Day Live</span>
+                            <Radio className="h-4 w-4 text-orange-500" />
+                            <span className="text-xs uppercase tracking-wider text-orange-500 font-bold">Game Day Live</span>
                             {nextGame && eventSessions[nextGame.id]?.status === "live" && (
                               <Badge variant="destructive" className="animate-pulse text-xs">LIVE</Badge>
                             )}
                           </div>
                           {nextGame ? (
                             <>
-                              <h3 className="text-lg font-display font-bold">
+                              <h3 className="text-lg font-display font-bold text-gray-900 dark:text-white">
                                 {nextGame.opponent ? `vs ${nextGame.opponent}` : nextGame.title}
                               </h3>
-                              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                              <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600 dark:text-white/70">
                                 <div className="flex items-center gap-1">
-                                  <CalendarClock className="h-3 w-3 text-primary" />
+                                  <CalendarClock className="h-3 w-3 text-orange-500" />
                                   <span>{formatTextDate(nextGame.date, "date")}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3 text-primary" />
+                                  <Clock className="h-3 w-3 text-orange-500" />
                                   <span>{formatTextDate(nextGame.date, "time")}</span>
                                 </div>
                                 {/* Mobile: Show buttons inline with date */}
@@ -2817,10 +2817,10 @@ export default function UnifiedDashboard() {
                             </>
                           ) : (
                             <>
-                              <h3 className="text-base font-display font-bold text-muted-foreground">
+                              <h3 className="text-base font-display font-bold text-gray-600 dark:text-white/80">
                                 No upcoming games
                               </h3>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-gray-500 dark:text-white/60">
                                 Create a game event to enable live supporter engagement
                               </p>
                             </>
@@ -2844,7 +2844,7 @@ export default function UnifiedDashboard() {
                                   </Button>
                                 ) : (
                                   <div className="text-center">
-                                    <p className="text-xs text-muted-foreground">
+                                    <p className="text-xs text-gray-500 dark:text-white/60">
                                       Session not started yet
                                     </p>
                                   </div>
@@ -2890,7 +2890,7 @@ export default function UnifiedDashboard() {
                                       </Button>
                                     )}
                                   </div>
-                                  <span className="text-xs text-muted-foreground text-center">
+                                  <span className="text-xs text-gray-500 dark:text-white/60 text-center">
                                     {eventSessions[nextGame.id]?.status === "live" 
                                       ? "Session is live!" 
                                       : "Enable engagement"}
