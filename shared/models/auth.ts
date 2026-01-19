@@ -52,6 +52,14 @@ export const users = pgTable("users", {
   resetTokenExpiry: timestamp("reset_token_expiry"),
   // Athlete personal code for supporters to follow
   athleteCode: varchar("athlete_code", { length: 8 }).unique(),
+  // Extended profile fields for paid athletes (Athlete Pro)
+  height: text("height"), // e.g., "5'10" or "178cm"
+  weight: text("weight"), // e.g., "165 lbs" or "75kg"
+  bio: text("bio"), // personal bio/about me
+  gpa: text("gpa"), // academic GPA
+  graduationYear: integer("graduation_year"), // expected graduation year
+  teamAwards: text("team_awards").array(), // array of team awards
+  socialLinks: jsonb("social_links"), // {instagram, twitter, tiktok, youtube}
 });
 
 export type UpsertUser = typeof users.$inferInsert;
