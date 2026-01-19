@@ -10,6 +10,7 @@ import { PWAProvider } from "./lib/pwaContext";
 import { NotificationProvider } from "./lib/notificationContext";
 import { EntitlementsProvider } from "./lib/entitlementsContext";
 import { useEffect } from "react";
+import { setupKeyboard, addAppStateListener } from "@/lib/capacitor";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/AuthPage";
 import CoachDashboard from "@/pages/CoachDashboard";
@@ -118,6 +119,20 @@ function App() {
     if (window.hideSplashScreen) {
       window.hideSplashScreen();
     }
+    
+    setupKeyboard();
+    
+    const removeAppStateListener = addAppStateListener((state) => {
+      if (state === "active") {
+        document.body.classList.remove("app-background");
+      } else {
+        document.body.classList.add("app-background");
+      }
+    });
+    
+    return () => {
+      removeAppStateListener();
+    };
   }, []);
 
   return (

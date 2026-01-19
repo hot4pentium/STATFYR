@@ -7,6 +7,8 @@ import { KeepAwake } from "@capacitor-community/keep-awake";
 import { Badge } from "@capawesome/capacitor-badge";
 import { NativeBiometric, BiometryType } from "@capgo/capacitor-native-biometric";
 import { Network, ConnectionStatus } from "@capacitor/network";
+import { Keyboard, KeyboardStyle } from "@capacitor/keyboard";
+import { App, AppState } from "@capacitor/app";
 
 export const isNative = Capacitor.isNativePlatform();
 export const platform = Capacitor.getPlatform();
@@ -58,6 +60,153 @@ export function addNetworkListener(callback: (status: NetworkStatus) => void): (
       window.removeEventListener("offline", handleOffline);
     };
   }
+}
+
+export async function setupKeyboard(): Promise<void> {
+  if (!isNative) return;
+  
+  try {
+    await Keyboard.setAccessoryBarVisible({ isVisible: true });
+    await Keyboard.setScroll({ isDisabled: true });
+    
+    if (platform === "ios") {
+      await Keyboard.setStyle({ style: KeyboardStyle.Dark });
+    }
+    
+    Keyboard.addListener("keyboardWillShow", (info) => {
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && (activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA")) {
+        setTimeout(() => {
+          activeElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 50);
+        
+        document.documentElement.style.setProperty("--keyboard-height", `${info.keyboardHeight}px`);
+      }
+    });
+    
+    Keyboard.addListener("keyboardWillHide", () => {
+      document.documentElement.style.setProperty("--keyboard-height", "0px");
+    });
+  } catch (error) {
+    console.error("Failed to setup keyboard:", error);
+  }
+}
+
+export function addKeyboardListeners(callbacks: {
+  onShow?: (height: number) => void;
+  onHide?: () => void;
+  onWillShow?: (height: number) => void;
+  onWillHide?: () => void;
+}): () => void {
+  if (!isNative) {
+    return () => {};
+  }
+  
+  const listeners: Promise<{ remove: () => void }>[] = [];
+  
+  if (callbacks.onShow) {
+    listeners.push(
+      Keyboard.addListener("keyboardDidShow", (info) => {
+        callbacks.onShow?.(info.keyboardHeight);
+      })
+    );
+  }
+  
+  if (callbacks.onHide) {
+    listeners.push(
+      Keyboard.addListener("keyboardDidHide", () => {
+        callbacks.onHide?.();
+      })
+    );
+  }
+  
+  if (callbacks.onWillShow) {
+    listeners.push(
+      Keyboard.addListener("keyboardWillShow", (info) => {
+        callbacks.onWillShow?.(info.keyboardHeight);
+      })
+    );
+  }
+  
+  if (callbacks.onWillHide) {
+    listeners.push(
+      Keyboard.addListener("keyboardWillHide", () => {
+        callbacks.onWillHide?.();
+      })
+    );
+  }
+  
+  return () => {
+    listeners.forEach(listener => {
+      listener.then(l => l.remove());
+    });
+  };
+}
+
+export async function hideKeyboard(): Promise<void> {
+  if (!isNative) return;
+  try {
+    await Keyboard.hide();
+  } catch (error) {
+    console.error("Failed to hide keyboard:", error);
+  }
+}
+
+export type AppStateType = "active" | "inactive" | "background";
+
+export function addAppStateListener(callback: (state: AppStateType) => void): () => void {
+  if (!isNative) {
+    const handleVisibility = () => {
+      callback(document.visibilityState === "visible" ? "active" : "background");
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }
+  
+  const handler = App.addListener("appStateChange", (state: AppState) => {
+    callback(state.isActive ? "active" : "background");
+  });
+  
+  return () => {
+    handler.then(h => h.remove());
+  };
+}
+
+export function addAppUrlOpenListener(callback: (url: string) => void): () => void {
+  if (!isNative) return () => {};
+  
+  const handler = App.addListener("appUrlOpen", (data) => {
+    callback(data.url);
+  });
+  
+  return () => {
+    handler.then(h => h.remove());
+  };
+}
+
+export interface SafeAreaInsets {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
+export function getSafeAreaInsets(): SafeAreaInsets {
+  if (typeof window === "undefined" || !window.getComputedStyle) {
+    return { top: 0, bottom: 0, left: 0, right: 0 };
+  }
+  
+  const style = getComputedStyle(document.documentElement);
+  return {
+    top: parseInt(style.getPropertyValue("--sat") || "0", 10) || 
+         parseInt(style.getPropertyValue("env(safe-area-inset-top)") || "0", 10),
+    bottom: parseInt(style.getPropertyValue("--sab") || "0", 10) ||
+            parseInt(style.getPropertyValue("env(safe-area-inset-bottom)") || "0", 10),
+    left: parseInt(style.getPropertyValue("--sal") || "0", 10) ||
+          parseInt(style.getPropertyValue("env(safe-area-inset-left)") || "0", 10),
+    right: parseInt(style.getPropertyValue("--sar") || "0", 10) ||
+           parseInt(style.getPropertyValue("env(safe-area-inset-right)") || "0", 10),
+  };
 }
 
 export interface ShareHypeCardOptions {

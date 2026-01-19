@@ -5,6 +5,20 @@
 @custom-variant portrait (@media (orientation: portrait));
 @custom-variant landscape (@media (orientation: landscape));
 
+:root {
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+  --sar: env(safe-area-inset-right);
+}
+
+html {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
 @theme inline {
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Oswald', sans-serif;
