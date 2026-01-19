@@ -108,22 +108,22 @@ drawRoleSection('COACH', '$7.99/mo Pro', COACH_COLOR, [
   {
     name: 'Team Overview',
     freeDesc: 'View team name, roster count, upcoming events',
-    proDesc: 'Full analytics, season records, performance trends'
+    proDesc: 'Season win/loss records, team schedule display'
   },
   {
     name: 'Roster Management',
     freeDesc: 'Add/remove players, assign positions, invite via team code',
-    proDesc: 'Advanced role permissions, staff management'
+    proDesc: 'Assign roles (athlete, staff), manage team members'
   },
   {
     name: 'Events & Schedule',
-    freeDesc: 'Create games/practices, basic calendar view',
-    proDesc: 'Recurring events, notifications, reminders'
+    freeDesc: 'Create games/practices, calendar view',
+    proDesc: 'Push notifications for upcoming events'
   },
   {
     name: 'StatTracker',
     freeDesc: 'Live game stats, team mode tracking',
-    proDesc: 'Individual mode, advanced metrics, stat history export'
+    proDesc: 'Record stats per player during games'
   },
   {
     name: 'PlayMaker & Playbook',
@@ -133,13 +133,13 @@ drawRoleSection('COACH', '$7.99/mo Pro', COACH_COLOR, [
   },
   {
     name: 'Team Chat',
-    freeDesc: 'Basic team messaging',
-    proDesc: 'Announcements, file sharing, pinned messages'
+    freeDesc: 'Team messaging with text and images',
+    proDesc: 'Full chat functionality with all team members'
   },
   {
     name: 'Season Management',
     freeDesc: 'Start/end seasons, archive data',
-    proDesc: 'Season comparison, historical analytics, export reports'
+    proDesc: 'View archived season history'
   }
 ]);
 
@@ -153,40 +153,34 @@ if (y > 200) {
 drawRoleSection('ATHLETE', '$2.99/mo Pro', ATHLETE_COLOR, [
   {
     name: 'My Dashboard',
-    freeDesc: 'View upcoming events, team announcements',
-    proDesc: 'Performance insights, goal tracking, HYPE score display'
+    freeDesc: 'View upcoming events, team schedule',
+    proDesc: 'Full dashboard with stats and HYPE score'
   },
   {
     name: 'Profile Card',
     freeDesc: 'Name, position, jersey number, team',
-    proDesc: 'Height, weight, GPA, grad year, handedness, favorites'
+    proDesc: 'Extended profile fields (height, weight, social links)'
   },
   {
     name: 'HYPE Card',
     freeDesc: 'View your HYPE card (not shareable)',
-    proDesc: 'Shareable link, QR code, custom themes, social sharing'
+    proDesc: 'Shareable link, QR code, native share'
   },
   {
     name: 'Stats Display',
     freeDesc: 'View personal game stats recorded by coach',
-    proDesc: 'Career totals, averages, visual charts, stat comparisons'
+    proDesc: 'View stats with game-by-game breakdown'
   },
   {
     name: 'Video Highlights',
     freeDesc: '—',
-    proDesc: 'Upload game clips, organize by event, share on HYPE card',
-    proOnly: true
-  },
-  {
-    name: 'Achievement Badges',
-    freeDesc: '—',
-    proDesc: 'Earn and display badges for milestones and achievements',
+    proDesc: 'Upload game clips, display on HYPE card',
     proOnly: true
   },
   {
     name: 'Team Features',
     freeDesc: 'View playbook, calendar, chat with team',
-    proDesc: 'All free features plus priority notifications'
+    proDesc: 'Full access to all team features'
   }
 ]);
 
@@ -201,39 +195,39 @@ drawRoleSection('SUPPORTER', '$5.99/mo Pro', SUPPORTER_COLOR, [
   {
     name: 'Supporter Hub',
     freeDesc: 'View followed athletes, team schedule',
-    proDesc: 'Multi-athlete dashboard, cross-team following'
+    proDesc: 'Full dashboard with all followed athletes'
   },
   {
     name: 'Game Day Live',
-    freeDesc: 'Tap to cheer, view HYPE score, shoutouts',
-    proDesc: 'Unlimited taps, priority shoutouts, live notifications'
+    freeDesc: 'Tap to cheer, view HYPE score',
+    proDesc: 'Send shoutouts, live game engagement'
   },
   {
     name: 'Athlete HYPE Cards',
     freeDesc: 'View HYPE cards of followed athletes',
-    proDesc: 'View highlights, stats, share cards'
+    proDesc: 'View highlights and stats on cards'
   },
   {
     name: 'Manage Athletes',
     freeDesc: '—',
-    proDesc: 'Add independent athletes, track their stats, manage seasons',
+    proDesc: 'Add independent athletes, track their stats',
     proOnly: true
   },
   {
-    name: 'Badge Gallery & Themes',
-    freeDesc: 'View earned supporter badges',
-    proDesc: 'Unlock exclusive themes, display badges on profile'
+    name: 'Theme Gallery',
+    freeDesc: 'Default dashboard theme',
+    proDesc: 'Unlock and apply custom dashboard themes'
   },
   {
     name: 'Season History',
     freeDesc: '—',
-    proDesc: 'View archived seasons for managed athletes, compare years',
+    proDesc: 'View archived seasons for managed athletes',
     proOnly: true
   },
   {
     name: 'Notifications',
     freeDesc: 'Basic game reminders',
-    proDesc: 'HYPE posts, stat updates, custom alerts'
+    proDesc: 'Push notifications for HYPE posts and events'
   }
 ]);
 
