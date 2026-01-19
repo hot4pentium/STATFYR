@@ -6,7 +6,7 @@ import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Flame, Heart, Star, Zap, Trophy, ThumbsUp, Sparkles, Hand } from "lucide-react";
+import { ArrowLeft, Flame, Heart, Star, Zap, Trophy, ThumbsUp, Sparkles, Hand, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { 
   getGame,
@@ -51,10 +51,26 @@ export default function SupporterGameLive() {
   const [selectedAthlete, setSelectedAthlete] = useState<GameRoster | null>(null);
   const [newBadge, setNewBadge] = useState<BadgeDefinition | null>(null);
   const [showHypeCheck, setShowHypeCheck] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [queryFailed, setQueryFailed] = useState(false);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const tapCountRef = useRef<number>(0);
   const badgeCheckRef = useRef<NodeJS.Timeout | null>(null);
   const previousTapCountRef = useRef<number | null>(null);
+
+  // Listen for online/offline events
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const eventId = params?.gameId; // This is actually the event ID from the URL
 
@@ -93,25 +109,38 @@ export default function SupporterGameLive() {
   });
 
   // Use session-based tap count when we have a live session
-  const { data: tapCountData } = useQuery({
+  const { data: tapCountData, isError: tapQueryError, isSuccess: tapQuerySuccess } = useQuery({
     queryKey: ["/api/live-sessions", sessionId, "taps"],
     queryFn: () => sessionId ? getSessionTapCount(sessionId) : Promise.resolve({ count: 0 }),
     enabled: !!sessionId,
     refetchInterval: 20000,
+    retry: 1,
   });
+
+  // Track query failures for connectivity detection
+  useEffect(() => {
+    if (tapQueryError) {
+      setQueryFailed(true);
+    } else if (tapQuerySuccess) {
+      setQueryFailed(false);
+    }
+  }, [tapQueryError, tapQuerySuccess]);
+
+  // Computed connectivity status
+  const hasConnectivityIssue = !isOnline || queryFailed;
 
   useEffect(() => {
     if (tapCountData) {
       const newCount = tapCountData.count;
       const prevCount = previousTapCountRef.current;
-      if (prevCount !== null && newCount > prevCount) {
+      if (prevCount !== null && newCount > prevCount && !hasConnectivityIssue) {
         setShowHypeCheck(true);
         setTimeout(() => setShowHypeCheck(false), 2500);
       }
       previousTapCountRef.current = newCount;
       setGameTapCount(newCount);
     }
-  }, [tapCountData]);
+  }, [tapCountData, hasConnectivityIssue]);
 
   useEffect(() => {
     if (user && currentTeam) {
@@ -438,7 +467,21 @@ export default function SupporterGameLive() {
         </div>
       </div>
 
-      {showHypeCheck && (
+      {hasConnectivityIssue && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
+          <div className="bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 px-6 py-4 rounded-2xl text-center shadow-2xl border-2 border-white/20">
+            <div className="flex items-center gap-3">
+              <WifiOff className="h-6 w-6 text-white" />
+              <div>
+                <p className="text-white font-bold text-sm tracking-wide">Low Connectivity</p>
+                <p className="text-white/90 text-xs">Taps are being stored</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showHypeCheck && !hasConnectivityIssue && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
           <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 px-6 py-4 rounded-2xl text-center shadow-2xl border-2 border-white/30">
             <div className="flex items-center gap-3">
