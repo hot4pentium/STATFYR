@@ -3,198 +3,296 @@ import * as fs from 'fs';
 
 const doc = new jsPDF();
 
-// Title
-doc.setFontSize(24);
+// Header with branding
+doc.setFillColor(20, 20, 30);
+doc.rect(0, 0, 210, 40, 'F');
+
+doc.setFontSize(28);
 doc.setFont('helvetica', 'bold');
-doc.text('STATFYR Subscription Tiers', 105, 20, { align: 'center' });
+doc.setTextColor(255, 140, 50);
+doc.text('STATFYR', 105, 20, { align: 'center' });
 
-doc.setFontSize(10);
-doc.setFont('helvetica', 'normal');
-doc.text('Sports Stats & Team Management Platform', 105, 28, { align: 'center' });
-doc.text(`Generated: ${new Date().toLocaleDateString()}`, 105, 34, { align: 'center' });
+doc.setFontSize(12);
+doc.setTextColor(255, 255, 255);
+doc.text('Sports Stats & Team Management', 105, 30, { align: 'center' });
 
-let y = 48;
+// Tagline
+doc.setFontSize(14);
+doc.setTextColor(60, 60, 60);
+doc.setFont('helvetica', 'italic');
+doc.text('Empower Your Team. Elevate Every Athlete.', 105, 52, { align: 'center' });
 
-function drawTierBox(title: string, price: string, netRevenue: string, freeFeatures: string[], proFeatures: string[], color: [number, number, number]) {
+let y = 65;
+
+function drawTierCard(title: string, price: string, tagline: string, freeFeatures: string[], proFeatures: string[], color: [number, number, number], accentColor: [number, number, number]) {
   const startY = y;
-  const lineHeight = 5;
+  const lineHeight = 5.5;
   const maxFeatures = Math.max(freeFeatures.length, proFeatures.length);
-  const boxHeight = 32 + (maxFeatures * lineHeight);
+  const boxHeight = 38 + (maxFeatures * lineHeight);
   
-  // Box background
-  doc.setFillColor(color[0], color[1], color[2]);
-  doc.rect(15, startY, 180, boxHeight, 'F');
+  // Card shadow effect
+  doc.setFillColor(200, 200, 200);
+  doc.roundedRect(17, startY + 2, 180, boxHeight, 3, 3, 'F');
   
-  // Border
-  doc.setDrawColor(50, 50, 50);
-  doc.setLineWidth(0.5);
-  doc.rect(15, startY, 180, boxHeight, 'S');
+  // Card background
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(15, startY, 180, boxHeight, 3, 3, 'F');
   
-  // Title and price
-  doc.setFontSize(14);
+  // Accent bar on left
+  doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+  doc.rect(15, startY, 5, boxHeight, 'F');
+  
+  // Title
+  doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0);
-  doc.text(title, 25, startY + 10);
+  doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+  doc.text(title, 28, startY + 12);
   
-  doc.setFontSize(12);
-  doc.text(price, 175, startY + 10, { align: 'right' });
+  // Price badge
+  doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+  doc.roundedRect(150, startY + 4, 42, 14, 2, 2, 'F');
+  doc.setFontSize(11);
+  doc.setTextColor(255, 255, 255);
+  doc.text(price, 171, startY + 13, { align: 'center' });
   
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(80, 80, 80);
-  doc.text(`Net after 15% App Store: ${netRevenue}`, 175, startY + 16, { align: 'right' });
+  // Tagline
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(100, 100, 100);
+  doc.text(tagline, 28, startY + 20);
   
-  // Divider line
-  doc.setDrawColor(150, 150, 150);
-  doc.line(20, startY + 20, 190, startY + 20);
+  // Divider
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.3);
+  doc.line(28, startY + 25, 190, startY + 25);
   
   // Two columns
-  const col1X = 25;
-  const col2X = 110;
-  let featureY = startY + 28;
+  const col1X = 30;
+  const col2X = 112;
+  let featureY = startY + 33;
   
-  // Free features header
+  // Free column header
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(34, 139, 34);
-  doc.text('FREE', col1X, featureY);
+  doc.setTextColor(80, 80, 80);
+  doc.text('FREE TIER', col1X, featureY);
   
-  // Pro features header
-  doc.setTextColor(220, 120, 0);
+  // Pro column header
+  doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
   doc.text('PRO UNLOCKS', col2X, featureY);
   
-  // Free features list
+  // Free features
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.setTextColor(40, 40, 40);
+  doc.setTextColor(60, 60, 60);
   freeFeatures.forEach((feature, i) => {
-    doc.text(`• ${feature}`, col1X, featureY + 6 + (i * lineHeight));
+    doc.setTextColor(34, 139, 34);
+    doc.text('\u2713', col1X, featureY + 7 + (i * lineHeight));
+    doc.setTextColor(60, 60, 60);
+    doc.text(feature, col1X + 6, featureY + 7 + (i * lineHeight));
   });
   
-  // Pro features list
+  // Pro features
   proFeatures.forEach((feature, i) => {
-    doc.text(`• ${feature}`, col2X, featureY + 6 + (i * lineHeight));
+    doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+    doc.text('\u2605', col2X, featureY + 7 + (i * lineHeight));
+    doc.setTextColor(60, 60, 60);
+    doc.text(feature, col2X + 6, featureY + 7 + (i * lineHeight));
   });
   
-  y = startY + boxHeight + 8;
+  y = startY + boxHeight + 6;
 }
 
-// Athlete Pro
-drawTierBox(
+// Athlete Card
+drawTierCard(
   'ATHLETE',
-  '$2.99/month Pro',
-  '~$2.54/month',
+  '$2.99/mo',
+  'Showcase your skills. Build your legacy.',
   [
-    'Chat with team',
-    'View schedule/calendar',
+    'Team chat',
+    'View schedule & calendar',
     'View team playbook',
     'Basic HYPE card (view only)',
-    'View own stats'
+    'View personal stats'
   ],
   [
-    'Upload highlights',
+    'Upload video highlights',
     'Shareable HYPE card link',
-    'Enhanced profile (height, weight, etc.)',
+    'Enhanced profile (height, GPA, etc.)',
     'Achievement badges display',
     'Social links on profile'
   ],
-  [220, 235, 255] // Light blue
+  [220, 235, 255],
+  [50, 100, 200]
 );
 
-// Supporter Pro
-drawTierBox(
+// Supporter Card
+drawTierCard(
   'SUPPORTER',
-  '$5.99/month Pro',
-  '~$5.09/month',
+  '$5.99/mo',
+  'Cheer loud. Track proud.',
   [
-    'View highlights',
-    'View basic stats',
-    'View playbook',
-    'View schedule',
+    'View highlights & stats',
+    'View playbook & schedule',
     'Team chat',
-    'Game Day Live (join & cheer)',
-    'Manage 1 athlete'
+    'Game Day Live (join & cheer)'
   ],
   [
-    'Upload highlights',
-    'Stat tracking for athletes',
+    'Manage athletes (independent tracking)',
+    'Upload highlights for athletes',
     'Unlimited managed athletes',
     'Cross-team following',
     'All badge themes unlocked',
     'Season history archives'
   ],
-  [255, 235, 210] // Light orange
+  [255, 235, 210],
+  [220, 120, 20]
 );
 
-// Coach Pro
-drawTierBox(
+// Coach Card
+drawTierCard(
   'COACH',
-  '$7.99/month Pro',
-  '~$6.79/month',
+  '$7.99/mo',
+  'Lead your team to victory.',
   [
-    'View roster',
+    'Full roster management',
     'Add/remove team members',
-    'Manage team code',
-    'Schedule/calendar',
+    'Manage team invite code',
+    'Schedule & calendar',
     'Team chat'
   ],
   [
     'StatTracker (live game stats)',
-    'PlayMaker (create plays)',
-    'View playbook',
-    'Team analytics/reports',
+    'PlayMaker (design plays)',
+    'Team playbook access',
+    'Team analytics & reports',
     'Award badges to athletes',
-    'Championship badges'
+    'Championship recognition badges'
   ],
-  [210, 250, 210] // Light green
+  [210, 250, 210],
+  [40, 160, 80]
 );
 
-// Revenue Summary Table
-y += 5;
-doc.setDrawColor(0, 0, 0);
-doc.setLineWidth(0.3);
-doc.line(15, y, 195, y);
+// New page for revenue summary
+doc.addPage();
 
-y += 8;
-doc.setFontSize(11);
+// Header for page 2
+doc.setFillColor(20, 20, 30);
+doc.rect(0, 0, 210, 25, 'F');
+
+doc.setFontSize(18);
 doc.setFont('helvetica', 'bold');
-doc.setTextColor(0, 0, 0);
-doc.text('Revenue Summary (15% App Store Fee)', 15, y);
+doc.setTextColor(255, 140, 50);
+doc.text('STATFYR', 20, 17);
 
-y += 8;
-doc.setFontSize(9);
+doc.setFontSize(12);
+doc.setTextColor(255, 255, 255);
+doc.text('Revenue & Business Model', 105, 17, { align: 'center' });
 
-// Table header
-doc.setFillColor(240, 240, 240);
-doc.rect(15, y - 4, 180, 8, 'F');
+// Revenue section
+let ry = 40;
+doc.setFontSize(16);
 doc.setFont('helvetica', 'bold');
-doc.text('Tier', 25, y);
-doc.text('Price', 70, y);
-doc.text('App Store Cut', 110, y);
-doc.text('Net Revenue', 160, y);
+doc.setTextColor(40, 40, 40);
+doc.text('Revenue Summary', 20, ry);
 
-// Table rows
+doc.setFontSize(10);
+doc.setFont('helvetica', 'normal');
+doc.setTextColor(100, 100, 100);
+doc.text('All prices reflect 15% App Store fee consideration', 20, ry + 8);
+
+ry += 20;
+
+// Revenue table
 const tableData = [
-  ['Athlete Pro', '$2.99', '$0.45', '$2.54'],
-  ['Supporter Pro', '$5.99', '$0.90', '$5.09'],
-  ['Coach Pro', '$7.99', '$1.20', '$6.79']
+  { tier: 'Athlete Pro', price: '$2.99', fee: '$0.45', net: '$2.54', color: [50, 100, 200] },
+  { tier: 'Supporter Pro', price: '$5.99', fee: '$0.90', net: '$5.09', color: [220, 120, 20] },
+  { tier: 'Coach Pro', price: '$7.99', fee: '$1.20', net: '$6.79', color: [40, 160, 80] }
 ];
 
-doc.setFont('helvetica', 'normal');
+// Table header
+doc.setFillColor(240, 240, 245);
+doc.rect(20, ry, 170, 12, 'F');
+doc.setFontSize(10);
+doc.setFont('helvetica', 'bold');
+doc.setTextColor(60, 60, 60);
+doc.text('Subscription Tier', 30, ry + 8);
+doc.text('Price', 90, ry + 8);
+doc.text('App Store Fee', 120, ry + 8);
+doc.text('Net Revenue', 160, ry + 8);
+
+ry += 12;
+
 tableData.forEach((row, i) => {
-  const rowY = y + 8 + (i * 6);
-  doc.text(row[0], 25, rowY);
-  doc.text(row[1], 70, rowY);
-  doc.text(row[2], 110, rowY);
-  doc.text(row[3], 160, rowY);
+  const rowY = ry + (i * 12);
+  
+  // Alternating row background
+  if (i % 2 === 0) {
+    doc.setFillColor(250, 250, 252);
+    doc.rect(20, rowY, 170, 12, 'F');
+  }
+  
+  // Color indicator
+  doc.setFillColor(row.color[0] as number, row.color[1] as number, row.color[2] as number);
+  doc.circle(26, rowY + 6, 3, 'F');
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(40, 40, 40);
+  doc.text(row.tier, 34, rowY + 8);
+  doc.text(row.price, 90, rowY + 8);
+  doc.text(row.fee, 125, rowY + 8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(40, 160, 80);
+  doc.text(row.net, 163, rowY + 8);
 });
+
+ry += 50;
+
+// Key value propositions
+doc.setFontSize(14);
+doc.setFont('helvetica', 'bold');
+doc.setTextColor(40, 40, 40);
+doc.text('Why STATFYR?', 20, ry);
+
+ry += 12;
+
+const valueProps = [
+  { icon: '\u26A1', text: 'Real-time stat tracking during live games' },
+  { icon: '\u{1F3C6}', text: 'Badge & achievement system drives engagement' },
+  { icon: '\u{1F4F1}', text: 'Native iOS & Android apps via Capacitor' },
+  { icon: '\\u{1F465}', text: 'Role-based dashboards for coaches, athletes & supporters' },
+  { icon: '\u{1F4CA}', text: 'Season archives preserve team history' }
+];
+
+doc.setFontSize(10);
+valueProps.forEach((prop, i) => {
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(60, 60, 60);
+  doc.text(`•  ${prop.text}`, 25, ry + (i * 8));
+});
+
+ry += 55;
+
+// Target market
+doc.setFontSize(14);
+doc.setFont('helvetica', 'bold');
+doc.setTextColor(40, 40, 40);
+doc.text('Target Market', 20, ry);
+
+ry += 10;
+doc.setFontSize(10);
+doc.setFont('helvetica', 'normal');
+doc.setTextColor(60, 60, 60);
+doc.text('Youth & amateur sports teams, travel ball organizations, high school athletics,', 20, ry);
+doc.text('independent athletes, and engaged sports parents seeking to track and celebrate', 20, ry + 6);
+doc.text('their athletes\' journeys.', 20, ry + 12);
 
 // Footer
 doc.setFontSize(8);
-doc.setTextColor(100, 100, 100);
-doc.text('STATFYR v1.1.10 - Cross-platform iOS/Android via Capacitor', 105, 285, { align: 'center' });
+doc.setTextColor(150, 150, 150);
+doc.text('STATFYR v1.1.10  |  Cross-platform iOS/Android  |  ' + new Date().toLocaleDateString(), 105, 285, { align: 'center' });
 
-// Save the PDF
+// Save
 const pdfOutput = doc.output('arraybuffer');
 fs.writeFileSync('STATFYR_Pricing_Tiers.pdf', Buffer.from(pdfOutput));
 
