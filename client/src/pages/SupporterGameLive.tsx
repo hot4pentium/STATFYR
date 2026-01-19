@@ -50,9 +50,11 @@ export default function SupporterGameLive() {
   const [gameTapCount, setGameTapCount] = useState(0);
   const [selectedAthlete, setSelectedAthlete] = useState<GameRoster | null>(null);
   const [newBadge, setNewBadge] = useState<BadgeDefinition | null>(null);
+  const [showHypeCheck, setShowHypeCheck] = useState(false);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const tapCountRef = useRef<number>(0);
   const badgeCheckRef = useRef<NodeJS.Timeout | null>(null);
+  const previousTapCountRef = useRef<number | null>(null);
 
   const eventId = params?.gameId; // This is actually the event ID from the URL
 
@@ -61,7 +63,7 @@ export default function SupporterGameLive() {
     queryKey: ["/api/events", eventId],
     queryFn: () => eventId ? getEvent(eventId) : Promise.resolve(null),
     enabled: !!eventId,
-    refetchInterval: 5000,
+    refetchInterval: 20000,
   });
 
   // Then try to get the game associated with this event
@@ -69,7 +71,7 @@ export default function SupporterGameLive() {
     queryKey: ["/api/events", eventId, "game"],
     queryFn: () => eventId ? getGameByEvent(eventId) : Promise.resolve(null),
     enabled: !!eventId,
-    refetchInterval: 5000,
+    refetchInterval: 20000,
   });
 
   // Get the live session for this event
@@ -77,7 +79,7 @@ export default function SupporterGameLive() {
     queryKey: ["/api/events", eventId, "live-session"],
     queryFn: () => eventId ? getEventLiveSession(eventId) : Promise.resolve(null),
     enabled: !!eventId,
-    refetchInterval: 5000,
+    refetchInterval: 20000,
   });
 
   // Use game ID if we have one, otherwise use event ID for tap/roster APIs
@@ -95,12 +97,19 @@ export default function SupporterGameLive() {
     queryKey: ["/api/live-sessions", sessionId, "taps"],
     queryFn: () => sessionId ? getSessionTapCount(sessionId) : Promise.resolve({ count: 0 }),
     enabled: !!sessionId,
-    refetchInterval: 5000,
+    refetchInterval: 20000,
   });
 
   useEffect(() => {
     if (tapCountData) {
-      setGameTapCount(tapCountData.count);
+      const newCount = tapCountData.count;
+      const prevCount = previousTapCountRef.current;
+      if (prevCount !== null && newCount > prevCount) {
+        setShowHypeCheck(true);
+        setTimeout(() => setShowHypeCheck(false), 2500);
+      }
+      previousTapCountRef.current = newCount;
+      setGameTapCount(newCount);
     }
   }, [tapCountData]);
 
@@ -428,6 +437,21 @@ export default function SupporterGameLive() {
           </Card>
         </div>
       </div>
+
+      {showHypeCheck && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
+          <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 px-6 py-4 rounded-2xl text-center shadow-2xl border-2 border-white/30">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-6 w-6 text-white animate-pulse" />
+              <div>
+                <p className="text-white font-bold text-lg tracking-wide">HYPE CHECK!</p>
+                <p className="text-white/90 text-2xl font-bold">{gameTapCount.toLocaleString()} taps</p>
+              </div>
+              <Sparkles className="h-6 w-6 text-white animate-pulse" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {newBadge && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 animate-in fade-in duration-300">
