@@ -1,0 +1,21 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAM_ID.com.statfyr.app",
+        "paths": [
+          "/athlete/*",
+          "/team/*",
+          "/hype/*",
+          "/invite/*",
+          "/dashboard",
+          "/dashboard/*"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAM_ID.com.statfyr.app"]
+  }
+}

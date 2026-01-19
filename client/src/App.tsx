@@ -10,7 +10,7 @@ import { PWAProvider } from "./lib/pwaContext";
 import { NotificationProvider } from "./lib/notificationContext";
 import { EntitlementsProvider } from "./lib/entitlementsContext";
 import { useEffect } from "react";
-import { setupKeyboard, addAppStateListener } from "@/lib/capacitor";
+import { setupKeyboard, addAppStateListener, addAppUrlOpenListener } from "@/lib/capacitor";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/AuthPage";
 import CoachDashboard from "@/pages/CoachDashboard";
@@ -50,6 +50,7 @@ import PlayEditorPage from "@/pages/PlayEditorPage";
 import ThemeGallery from "@/pages/ThemeGallery";
 import SeasonHistoryPage from "@/pages/SeasonHistoryPage";
 import SupporterSeasonHistoryPage from "@/pages/SupporterSeasonHistoryPage";
+import LandingPage from "@/pages/LandingPage";
 
 function Router() {
   // Handle Replit internal iframe paths - treat them as root
@@ -59,7 +60,7 @@ function Router() {
   
   return (
     <Switch>
-      <Route path="/" component={AuthPage} />
+      <Route path="/" component={LandingPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
@@ -130,8 +131,28 @@ function App() {
       }
     });
     
+    const removeUrlOpenListener = addAppUrlOpenListener((url) => {
+      try {
+        const urlObj = new URL(url);
+        const path = urlObj.pathname;
+        
+        if (path.startsWith('/athlete/') || path.startsWith('/hype/')) {
+          window.location.href = path;
+        } else if (path.startsWith('/team/') || path.startsWith('/invite/')) {
+          window.location.href = '/join' + urlObj.search;
+        } else if (path.startsWith('/dashboard')) {
+          window.location.href = '/dashboard';
+        } else if (path) {
+          window.location.href = path;
+        }
+      } catch (error) {
+        console.error('Failed to handle deep link:', error);
+      }
+    });
+    
     return () => {
       removeAppStateListener();
+      removeUrlOpenListener();
     };
   }, []);
 
