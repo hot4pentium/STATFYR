@@ -906,7 +906,7 @@ export default function UnifiedDashboard() {
   );
 
   const renderEventCard = (event: Event) => (
-    <Card key={event.id} className="bg-card/60 backdrop-blur-sm border-white/10 hover:border-primary/30 transition-all">
+    <Card key={event.id} className="bg-white/80 dark:bg-black/60 backdrop-blur-md border-gray-200 dark:border-white/20 shadow-lg hover:border-primary/50 transition-all">
       <CardContent className="p-4 flex items-center gap-3">
         <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex flex-col items-center justify-center shrink-0">
           <span className="text-xs text-muted-foreground uppercase">{formatTextDate(event.date, "month")}</span>
@@ -1295,14 +1295,14 @@ export default function UnifiedDashboard() {
             {/* Past Events Section */}
             {pastEvents.length > 0 && (
               <>
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mt-6">
+                <h3 className="font-semibold text-sm text-gray-600 dark:text-white/70 uppercase tracking-wide mt-6">
                   Past Events
                 </h3>
                 <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
                   {pastEvents.map((event) => (
                     <Card 
                       key={event.id} 
-                      className="bg-card/40 backdrop-blur-sm border-white/5 transition-all min-w-[240px] max-w-[280px] flex-shrink-0 snap-start opacity-70"
+                      className="bg-white/70 dark:bg-black/50 backdrop-blur-md border-gray-200 dark:border-white/20 shadow-lg transition-all min-w-[240px] max-w-[280px] flex-shrink-0 snap-start"
                     >
                       <CardContent className="p-3">
                         <div className="flex items-center gap-2 mb-2">
@@ -1311,10 +1311,10 @@ export default function UnifiedDashboard() {
                           </Badge>
                           {event.type === "Game" && <Trophy className="h-3 w-3 text-muted-foreground" />}
                         </div>
-                        <p className="font-semibold text-sm truncate">{event.title}</p>
-                        <p className="text-xs text-muted-foreground">{formatTextDate(event.date)}</p>
+                        <p className="font-semibold text-sm truncate text-gray-900 dark:text-white">{event.title}</p>
+                        <p className="text-xs text-gray-600 dark:text-white/70">{formatTextDate(event.date)}</p>
                         {event.location && (
-                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 truncate">
+                          <p className="text-xs text-gray-500 dark:text-white/60 mt-1 flex items-center gap-1 truncate">
                             <MapPin className="h-3 w-3" /> {event.location}
                           </p>
                         )}
