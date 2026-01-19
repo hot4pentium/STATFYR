@@ -1,7 +1,8 @@
 import { useLocation } from "wouter";
 import { useUser } from "@/lib/userContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { 
   Flame, 
   Users, 
@@ -12,7 +13,9 @@ import {
   ChevronRight,
   Star,
   Shield,
-  Zap
+  Zap,
+  Check,
+  Crown
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -165,6 +168,174 @@ export default function LandingPage() {
               </Card>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section id="pricing" className="py-20 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Plans for Every Role</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Start free and upgrade in the app when you're ready for more.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="border-blue-500/30" data-testid="card-pricing-coach">
+              <CardHeader className="text-center pb-2">
+                <div className="w-12 h-12 bg-blue-500 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle>Coach</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="secondary">Free</Badge>
+                  </div>
+                  <ul className="space-y-1 text-sm text-muted-foreground">
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Create team & manage roster
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Schedule events
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Team chat
+                    </li>
+                  </ul>
+                </div>
+                <div className="border-t pt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge className="bg-blue-500">Pro $7.99/mo</Badge>
+                  </div>
+                  <ul className="space-y-1 text-sm">
+                    <li className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                      PlayMaker & Playbook
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                      Full StatTracker
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                      Season management
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                      Video highlights
+                    </li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-green-500/30" data-testid="card-pricing-athlete">
+              <CardHeader className="text-center pb-2">
+                <div className="w-12 h-12 bg-green-500 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle>Athlete</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="secondary">Free</Badge>
+                  </div>
+                  <ul className="space-y-1 text-sm text-muted-foreground">
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Join team with code
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      View your stats
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Access playbook
+                    </li>
+                  </ul>
+                </div>
+                <div className="border-t pt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge className="bg-green-500">Pro $2.99/mo</Badge>
+                  </div>
+                  <ul className="space-y-1 text-sm">
+                    <li className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                      Shareable HYPE Card
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                      Upload video highlights
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                      Extended profile
+                    </li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-purple-500/30" data-testid="card-pricing-supporter">
+              <CardHeader className="text-center pb-2">
+                <div className="w-12 h-12 bg-purple-500 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle>Supporter</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="secondary">Free</Badge>
+                  </div>
+                  <ul className="space-y-1 text-sm text-muted-foreground">
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Follow team athletes
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Game Day Live engagement
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Send shoutouts
+                    </li>
+                  </ul>
+                </div>
+                <div className="border-t pt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge className="bg-purple-500">Pro $5.99/mo</Badge>
+                  </div>
+                  <ul className="space-y-1 text-sm">
+                    <li className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                      Manage independent athletes
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                      Custom dashboard themes
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                      Season history access
+                    </li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <p className="text-center text-sm text-muted-foreground mt-8">
+            Subscriptions are managed through the App Store or Google Play after downloading.
+          </p>
         </div>
       </section>
 
