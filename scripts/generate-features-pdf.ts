@@ -113,7 +113,7 @@ drawRoleSection('COACH', '$7.99/mo Pro', COACH_COLOR, [
   {
     name: 'Roster Management',
     freeDesc: 'Add/remove players, assign positions, invite via team code',
-    proDesc: 'Bulk import, advanced role permissions, staff management'
+    proDesc: 'Advanced role permissions, staff management'
   },
   {
     name: 'Events & Schedule',
