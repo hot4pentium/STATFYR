@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2, Bell, Share2, Flame, ExternalLink, Copy, MessageSquare, Lock, Plus, Upload, Info, Check } from "lucide-react";
+import { Calendar as CalendarIcon, BarChart3, Settings, LogOut, Moon, Sun, Users, Video, BookOpen, Trophy, AlertCircle, ArrowLeft, MapPin, Clock, Trash2, Play as PlayIcon, Loader2, Bell, Share2, Flame, ExternalLink, Copy, MessageSquare, Lock, Plus, Upload, Info, Check, Crown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { Link, useLocation } from "wouter";
@@ -595,6 +595,104 @@ export default function AthleteDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Extended Profile Card - Pro Feature */}
+          <Card className={`mb-6 border-yellow-500/30 ${tier === 'athlete_pro' || tier === 'coach_pro' ? 'bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-yellow-500/10' : 'bg-card/50'}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-yellow-500" />
+                  <h3 className="font-display font-bold text-sm uppercase tracking-wide">Extended Profile</h3>
+                </div>
+                {tier === 'athlete_pro' || tier === 'coach_pro' ? (
+                  <Link href="/athlete/settings">
+                    <Button variant="ghost" size="sm" className="text-yellow-500 hover:text-yellow-400 h-7 text-xs" data-testid="button-edit-extended-profile">
+                      Edit
+                    </Button>
+                  </Link>
+                ) : (
+                  <Badge variant="secondary" className="text-xs">Pro Feature</Badge>
+                )}
+              </div>
+              
+              {tier === 'athlete_pro' || tier === 'coach_pro' ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {(user as any)?.height && (
+                    <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
+                      <p className="text-xs text-muted-foreground uppercase">Height</p>
+                      <p className="font-bold text-sm">{(user as any).height}</p>
+                    </div>
+                  )}
+                  {(user as any)?.weight && (
+                    <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
+                      <p className="text-xs text-muted-foreground uppercase">Weight</p>
+                      <p className="font-bold text-sm">{(user as any).weight}</p>
+                    </div>
+                  )}
+                  {(user as any)?.handedness && (
+                    <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
+                      <p className="text-xs text-muted-foreground uppercase">Handedness</p>
+                      <p className="font-bold text-sm capitalize">{(user as any).handedness === 'ambidextrous' ? 'Both' : (user as any).handedness}</p>
+                    </div>
+                  )}
+                  {(user as any)?.footedness && (
+                    <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
+                      <p className="text-xs text-muted-foreground uppercase">Footedness</p>
+                      <p className="font-bold text-sm capitalize">{(user as any).footedness}</p>
+                    </div>
+                  )}
+                  {(user as any)?.gpa && (
+                    <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
+                      <p className="text-xs text-muted-foreground uppercase">GPA</p>
+                      <p className="font-bold text-sm">{(user as any).gpa}</p>
+                    </div>
+                  )}
+                  {(user as any)?.graduationYear && (
+                    <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
+                      <p className="text-xs text-muted-foreground uppercase">Grad Year</p>
+                      <p className="font-bold text-sm">{(user as any).graduationYear}</p>
+                    </div>
+                  )}
+                  {(user as any)?.teamAwards?.length > 0 && (
+                    <div className="col-span-2 p-2 rounded-lg bg-background/50 border border-white/5">
+                      <p className="text-xs text-muted-foreground uppercase mb-1">Awards</p>
+                      <div className="flex flex-wrap gap-1">
+                        {(user as any).teamAwards.slice(0, 3).map((award: string, i: number) => (
+                          <Badge key={i} variant="outline" className="text-xs border-yellow-500/30 text-yellow-400">{award}</Badge>
+                        ))}
+                        {(user as any).teamAwards.length > 3 && (
+                          <Badge variant="outline" className="text-xs">+{(user as any).teamAwards.length - 3}</Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-sm text-muted-foreground mb-3">Unlock extended profile features with Athlete Pro</p>
+                  <Link href="/subscription">
+                    <Button variant="outline" size="sm" className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10" data-testid="button-upgrade-extended-profile">
+                      <Crown className="h-4 w-4 mr-2" />
+                      Upgrade to Pro
+                    </Button>
+                  </Link>
+                </div>
+              )}
+              
+              {(tier === 'athlete_pro' || tier === 'coach_pro') && 
+               !((user as any)?.height || (user as any)?.weight || (user as any)?.handedness || (user as any)?.footedness || (user as any)?.gpa) && (
+                <div className="text-center py-4">
+                  <p className="text-sm text-muted-foreground mb-3">No profile details yet. Add your info to enhance your HYPE Card!</p>
+                  <Link href="/athlete/settings">
+                    <Button variant="outline" size="sm" className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10" data-testid="button-add-profile-details">
+                      <Crown className="h-4 w-4 mr-2" />
+                      Add Details
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Two-column layout on landscape, sliding panels on portrait */}
           <div className="flex flex-col landscape:flex-row landscape:gap-6 relative mb-6">

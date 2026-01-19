@@ -60,6 +60,8 @@ export const users = pgTable("users", {
   graduationYear: integer("graduation_year"), // expected graduation year
   teamAwards: text("team_awards").array(), // array of team awards
   socialLinks: jsonb("social_links"), // {instagram, twitter, tiktok, youtube}
+  handedness: text("handedness"), // "left", "right", or "ambidextrous"
+  footedness: text("footedness"), // "left", "right", or "both"
 });
 
 export type UpsertUser = typeof users.$inferInsert;

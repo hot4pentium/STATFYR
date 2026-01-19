@@ -39,6 +39,8 @@ export default function AthleteSettings() {
   const [teamAwards, setTeamAwards] = useState<string[]>([]);
   const [newAward, setNewAward] = useState("");
   const [socialLinks, setSocialLinks] = useState<{instagram?: string; twitter?: string; youtube?: string; tiktok?: string}>({});
+  const [handedness, setHandedness] = useState("");
+  const [footedness, setFootedness] = useState("");
   const [isSavingExtended, setIsSavingExtended] = useState(false);
   const [showExtendedSaved, setShowExtendedSaved] = useState(false);
   
@@ -115,6 +117,8 @@ export default function AthleteSettings() {
       setGraduationYear((contextUser as any).graduationYear?.toString() || "");
       setTeamAwards((contextUser as any).teamAwards || []);
       setSocialLinks((contextUser as any).socialLinks || {});
+      setHandedness((contextUser as any).handedness || "");
+      setFootedness((contextUser as any).footedness || "");
     }
   }, [contextUser]);
 
@@ -219,6 +223,8 @@ export default function AthleteSettings() {
           graduationYear: graduationYear ? parseInt(graduationYear) : null,
           teamAwards: teamAwards.length > 0 ? teamAwards : null,
           socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : null,
+          handedness: handedness.trim() || null,
+          footedness: footedness.trim() || null,
         }),
       });
 
@@ -512,6 +518,49 @@ export default function AthleteSettings() {
                       className="bg-background/50 border-white/10 focus:border-primary/50 min-h-[100px]"
                       data-testid="input-bio"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium uppercase tracking-wider flex items-center gap-2">
+                        ✋ Handedness
+                      </Label>
+                      <div className="flex gap-2">
+                        {["left", "right", "ambidextrous"].map((option) => (
+                          <Button
+                            key={option}
+                            type="button"
+                            variant={handedness === option ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setHandedness(option)}
+                            className={`flex-1 capitalize ${handedness === option ? 'bg-primary text-primary-foreground' : 'border-white/10 hover:bg-white/5'}`}
+                            data-testid={`button-handedness-${option}`}
+                          >
+                            {option === "ambidextrous" ? "Both" : option}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium uppercase tracking-wider flex items-center gap-2">
+                        🦶 Footedness
+                      </Label>
+                      <div className="flex gap-2">
+                        {["left", "right", "both"].map((option) => (
+                          <Button
+                            key={option}
+                            type="button"
+                            variant={footedness === option ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setFootedness(option)}
+                            className={`flex-1 capitalize ${footedness === option ? 'bg-primary text-primary-foreground' : 'border-white/10 hover:bg-white/5'}`}
+                            data-testid={`button-footedness-${option}`}
+                          >
+                            {option}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
