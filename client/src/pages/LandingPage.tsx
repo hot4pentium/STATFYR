@@ -109,7 +109,7 @@ export default function LandingPage() {
             for team management, live stat tracking, and game day engagement.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+          <div className="flex flex-row gap-4 justify-center items-center mb-6">
             <a 
               href="https://apps.apple.com/app/statfyr" 
               target="_blank" 
