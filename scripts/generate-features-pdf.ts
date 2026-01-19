@@ -118,7 +118,7 @@ drawRoleSection('COACH', '$7.99/mo Pro', COACH_COLOR, [
   {
     name: 'Events & Schedule',
     freeDesc: 'Create games/practices, basic calendar view',
-    proDesc: 'Recurring events, notifications, opponent tracking'
+    proDesc: 'Recurring events, notifications, reminders'
   },
   {
     name: 'StatTracker',
