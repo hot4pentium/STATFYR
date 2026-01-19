@@ -296,7 +296,7 @@ export default function AuthPage() {
                       data-testid="link-play-store"
                     >
                       <img 
-                        src="/google-play-badge.png" 
+                        src="/google-play-badge.svg" 
                         alt="Get it on Google Play" 
                         className="h-10"
                       />
