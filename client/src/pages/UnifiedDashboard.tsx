@@ -2725,6 +2725,94 @@ export default function UnifiedDashboard() {
                   </div>
                 )}
 
+                {/* Extended Profile Card - Athlete Pro Feature */}
+                {userRole === "athlete" && (
+                  <Card className={`mb-4 border-yellow-500/30 ${tier === 'athlete_pro' || tier === 'coach_pro' ? 'bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-yellow-500/10' : 'bg-card/50'}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Crown className="h-5 w-5 text-yellow-500" />
+                          <h3 className="font-display font-bold text-sm uppercase tracking-wide">Extended Profile</h3>
+                        </div>
+                        {tier === 'athlete_pro' || tier === 'coach_pro' ? (
+                          <Link href="/athlete/settings">
+                            <Button variant="ghost" size="sm" className="text-yellow-500 hover:text-yellow-400 h-7 text-xs" data-testid="button-edit-extended-profile">
+                              Edit
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">Pro Feature</Badge>
+                        )}
+                      </div>
+                      
+                      {tier === 'athlete_pro' || tier === 'coach_pro' ? (
+                        <>
+                          {((user as any)?.height || (user as any)?.weight || (user as any)?.handedness || (user as any)?.footedness || (user as any)?.gpa) ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              {(user as any)?.height && (
+                                <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
+                                  <p className="text-[10px] text-muted-foreground uppercase">Height</p>
+                                  <p className="font-bold text-sm">{(user as any).height}</p>
+                                </div>
+                              )}
+                              {(user as any)?.weight && (
+                                <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
+                                  <p className="text-[10px] text-muted-foreground uppercase">Weight</p>
+                                  <p className="font-bold text-sm">{(user as any).weight}</p>
+                                </div>
+                              )}
+                              {(user as any)?.handedness && (
+                                <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
+                                  <p className="text-[10px] text-muted-foreground uppercase">Handedness</p>
+                                  <p className="font-bold text-sm capitalize">{(user as any).handedness === 'ambidextrous' ? 'Both' : (user as any).handedness}</p>
+                                </div>
+                              )}
+                              {(user as any)?.footedness && (
+                                <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
+                                  <p className="text-[10px] text-muted-foreground uppercase">Footedness</p>
+                                  <p className="font-bold text-sm capitalize">{(user as any).footedness}</p>
+                                </div>
+                              )}
+                              {(user as any)?.gpa && (
+                                <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
+                                  <p className="text-[10px] text-muted-foreground uppercase">GPA</p>
+                                  <p className="font-bold text-sm">{(user as any).gpa}</p>
+                                </div>
+                              )}
+                              {(user as any)?.graduationYear && (
+                                <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
+                                  <p className="text-[10px] text-muted-foreground uppercase">Grad Year</p>
+                                  <p className="font-bold text-sm">{(user as any).graduationYear}</p>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-center py-3">
+                              <p className="text-sm text-muted-foreground mb-2">Add your extended profile details</p>
+                              <Link href="/athlete/settings">
+                                <Button variant="outline" size="sm" className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10" data-testid="button-add-profile-details">
+                                  <Crown className="h-4 w-4 mr-2" />
+                                  Add Details
+                                </Button>
+                              </Link>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-center py-3">
+                          <p className="text-sm text-muted-foreground mb-2">Unlock extended profile with Athlete Pro</p>
+                          <Link href="/subscription">
+                            <Button variant="outline" size="sm" className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10" data-testid="button-upgrade-extended-profile">
+                              <Crown className="h-4 w-4 mr-2" />
+                              Upgrade to Pro
+                            </Button>
+                          </Link>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Permanent Game Day Live Card - All roles with access */}
                 {(effectiveRole === "coach" || userRole === "supporter" || isStaff) && (
                   <Card 
