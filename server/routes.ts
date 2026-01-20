@@ -2292,6 +2292,8 @@ export async function registerRoutes(
           bio: (athlete as any).bio || null,
           teamAwards: (athlete as any).teamAwards || null,
           socialLinks: (athlete as any).socialLinks || null,
+          favoritePlayer: (athlete as any).favoritePlayer || null,
+          favoriteTeam: (athlete as any).favoriteTeam || null,
         },
         membership: membershipWithTeam,
         stats,
