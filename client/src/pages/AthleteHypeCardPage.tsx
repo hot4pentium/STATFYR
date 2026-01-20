@@ -266,6 +266,9 @@ export default function AthleteHypeCardPage() {
                         {currentMembership?.position && `• ${currentMembership.position}`}
                       </p>
                       {/* Extended Profile Stats */}
+                      {(user as any)?.bio && (
+                        <p className="text-xs text-slate-300 mt-2 line-clamp-2">{(user as any).bio}</p>
+                      )}
                       {((user as any)?.height || (user as any)?.weight || (user as any)?.handedness || (user as any)?.footedness) && (
                         <div className="flex flex-wrap gap-2 mt-2">
                           {(user as any)?.height && (

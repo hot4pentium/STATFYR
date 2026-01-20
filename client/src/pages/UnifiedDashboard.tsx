@@ -2747,8 +2747,15 @@ export default function UnifiedDashboard() {
                       
                       {tier === 'athlete_pro' || tier === 'coach_pro' ? (
                         <>
-                          {((user as any)?.height || (user as any)?.weight || (user as any)?.handedness || (user as any)?.footedness || (user as any)?.gpa || (user as any)?.favoritePlayer || (user as any)?.favoriteTeam) ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {((user as any)?.height || (user as any)?.weight || (user as any)?.handedness || (user as any)?.footedness || (user as any)?.gpa || (user as any)?.favoritePlayer || (user as any)?.favoriteTeam || (user as any)?.bio) ? (
+                            <div className="space-y-2">
+                              {(user as any)?.bio && (
+                                <div className="p-2 rounded-lg bg-background/50 border border-white/5">
+                                  <p className="text-[10px] text-muted-foreground uppercase mb-1">Bio</p>
+                                  <p className="text-sm text-foreground/90">{(user as any).bio}</p>
+                                </div>
+                              )}
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                               {(user as any)?.height && (
                                 <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
                                   <p className="text-[10px] text-muted-foreground uppercase">Height</p>
@@ -2797,6 +2804,7 @@ export default function UnifiedDashboard() {
                                   <p className="font-bold text-sm">{(user as any).favoriteTeam}</p>
                                 </div>
                               )}
+                              </div>
                             </div>
                           ) : (
                             <div className="text-center py-3">

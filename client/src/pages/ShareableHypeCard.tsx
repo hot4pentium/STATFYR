@@ -1137,6 +1137,9 @@ export default function ShareableHypeCard(props: any) {
                       {membership?.position && `• ${membership.position}`}
                     </p>
                     {/* Extended Profile Stats */}
+                    {(athlete as any)?.bio && (
+                      <p className="text-xs text-slate-300 mt-2 line-clamp-2">{(athlete as any).bio}</p>
+                    )}
                     {((athlete as any)?.height || (athlete as any)?.weight || (athlete as any)?.handedness || (athlete as any)?.footedness) && (
                       <div className="flex flex-wrap gap-2 mt-2">
                         {(athlete as any)?.height && (
