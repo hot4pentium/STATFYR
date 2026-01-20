@@ -270,15 +270,13 @@ export default function AthleteHypeCardPage() {
                         <p className="text-xs text-slate-300 mt-2 line-clamp-2">{(user as any).bio}</p>
                       )}
                       {((user as any)?.height || (user as any)?.weight || (user as any)?.handedness || (user as any)?.footedness) && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {(user as any)?.height && (
-                            <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded">{(user as any).height}</span>
-                          )}
-                          {(user as any)?.weight && (
-                            <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded">{(user as any).weight}</span>
-                          )}
+                        <div className="flex items-center gap-2 mt-2 text-xs text-cyan-300">
+                          {(user as any)?.height && <span>{(user as any).height}</span>}
+                          {(user as any)?.height && ((user as any)?.weight || (user as any)?.handedness || (user as any)?.footedness) && <span className="text-slate-500">•</span>}
+                          {(user as any)?.weight && <span>{(user as any).weight}</span>}
+                          {(user as any)?.weight && ((user as any)?.handedness || (user as any)?.footedness) && <span className="text-slate-500">•</span>}
                           {((user as any)?.handedness || (user as any)?.footedness) && (
-                            <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded capitalize">
+                            <span className="capitalize">
                               {(user as any)?.handedness && ((user as any).handedness === 'ambidextrous' ? 'Both Hands' : `${(user as any).handedness}-handed`)}
                               {(user as any)?.handedness && (user as any)?.footedness && ' / '}
                               {(user as any)?.footedness && ((user as any).footedness === 'both' ? 'Both Feet' : `${(user as any).footedness}-footed`)}

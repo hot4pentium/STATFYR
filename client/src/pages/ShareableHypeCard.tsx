@@ -1141,15 +1141,13 @@ export default function ShareableHypeCard(props: any) {
                       <p className="text-xs text-slate-300 mt-2 line-clamp-2">{(athlete as any).bio}</p>
                     )}
                     {((athlete as any)?.height || (athlete as any)?.weight || (athlete as any)?.handedness || (athlete as any)?.footedness) && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {(athlete as any)?.height && (
-                          <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded">{(athlete as any).height}</span>
-                        )}
-                        {(athlete as any)?.weight && (
-                          <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded">{(athlete as any).weight}</span>
-                        )}
+                      <div className="flex items-center gap-2 mt-2 text-xs text-cyan-300">
+                        {(athlete as any)?.height && <span>{(athlete as any).height}</span>}
+                        {(athlete as any)?.height && ((athlete as any)?.weight || (athlete as any)?.handedness || (athlete as any)?.footedness) && <span className="text-slate-500">•</span>}
+                        {(athlete as any)?.weight && <span>{(athlete as any).weight}</span>}
+                        {(athlete as any)?.weight && ((athlete as any)?.handedness || (athlete as any)?.footedness) && <span className="text-slate-500">•</span>}
                         {((athlete as any)?.handedness || (athlete as any)?.footedness) && (
-                          <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded capitalize">
+                          <span className="capitalize">
                             {(athlete as any)?.handedness && ((athlete as any).handedness === 'ambidextrous' ? 'Both Hands' : `${(athlete as any).handedness}-handed`)}
                             {(athlete as any)?.handedness && (athlete as any)?.footedness && ' / '}
                             {(athlete as any)?.footedness && ((athlete as any).footedness === 'both' ? 'Both Feet' : `${(athlete as any).footedness}-footed`)}
