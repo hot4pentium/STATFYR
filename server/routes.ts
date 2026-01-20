@@ -1484,7 +1484,8 @@ export async function registerRoutes(
         }
 
         // Create athlete user account (no login credentials - managed by supporter)
-        const username = `managed_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        const username = `managed_${uniqueId}`;
         const athlete = await storage.createUser({
           username,
           password: "", // No password - can't log in directly
@@ -1492,7 +1493,7 @@ export async function registerRoutes(
           firstName,
           lastName,
           name: `${firstName} ${lastName}`,
-          email: "",
+          email: `managed_${uniqueId}@placeholder.local`, // Unique placeholder email
         });
 
         // Add athlete to team roster
