@@ -81,9 +81,9 @@ function Router() {
       <Route path="/athlete/dashboard" component={UnifiedDashboard} />
       <Route path="/athlete/profile" component={AthleteProfileNew} />
       <Route path="/coach/onboarding" component={CoachOnboarding} />
-      <Route path="/supporter" component={SupporterDashboard} />
+      <Route path="/supporter" component={UnifiedDashboard} />
       <Route path="/supporter/onboarding" component={SupporterOnboarding} />
-      <Route path="/supporter/dashboard" component={SupporterDashboard} />
+      <Route path="/supporter/dashboard" component={UnifiedDashboard} />
       <Route path="/supporter/settings" component={SupporterSettings} />
       <Route path="/supporter/hub" component={SupporterHypeHub} />
       <Route path="/supporter/game/:gameId" component={SupporterGameLive} />
