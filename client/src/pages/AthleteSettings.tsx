@@ -2,23 +2,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, Users, Plus, Camera, Crown, Ruler, Weight, Trophy, GraduationCap, Instagram, Twitter, Youtube, Sparkles } from "lucide-react";
+import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, Users, Plus, Camera } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
 import { joinTeamByCode, getUserTeams } from "@/lib/api";
-import { useEntitlements } from "@/lib/entitlementsContext";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNativeCamera } from "@/hooks/useNativeCamera";
 import { isNative } from "@/lib/capacitor";
 
 export default function AthleteSettings() {
   const { user: contextUser, updateUser } = useUser();
-  const { tier } = useEntitlements();
   const queryClient = useQueryClient();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -29,59 +25,6 @@ export default function AthleteSettings() {
   const [showSaved, setShowSaved] = useState(false);
   const [teamCode, setTeamCode] = useState("");
   const [isJoiningTeam, setIsJoiningTeam] = useState(false);
-  
-  // Extended profile fields (Athlete Pro)
-  const [height, setHeight] = useState("");
-  const [weight, setWeight] = useState("");
-  const [bio, setBio] = useState("");
-  const [gpa, setGpa] = useState("");
-  const [graduationYear, setGraduationYear] = useState("");
-  const [teamAwards, setTeamAwards] = useState<string[]>([]);
-  const [newAward, setNewAward] = useState("");
-  const [socialLinks, setSocialLinks] = useState<{instagram?: string; twitter?: string; youtube?: string; tiktok?: string}>({});
-  const [handedness, setHandedness] = useState("");
-  const [footedness, setFootedness] = useState("");
-  const [favoritePlayer, setFavoritePlayer] = useState("");
-  const [favoriteTeam, setFavoriteTeam] = useState("");
-  const [isSavingExtended, setIsSavingExtended] = useState(false);
-  const [showExtendedSaved, setShowExtendedSaved] = useState(false);
-  
-  const isAthletePro = tier === 'athlete_pro' || tier === 'coach_pro';
-
-  // Format height with feet and inches symbols (e.g., 5'10")
-  const formatHeight = (value: string) => {
-    // Remove all non-numeric characters except apostrophe and quote
-    const digits = value.replace(/[^0-9]/g, '');
-    if (!digits) return '';
-    if (digits.length === 1) return digits + "'";
-    if (digits.length >= 2) {
-      const feet = digits[0];
-      const inches = digits.slice(1, 3);
-      return `${feet}'${inches}"`;
-    }
-    return value;
-  };
-
-  const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // Allow raw input or formatted input
-    const digits = value.replace(/[^0-9]/g, '');
-    if (digits.length <= 3) {
-      setHeight(formatHeight(value));
-    }
-  };
-
-  // Format weight with lbs suffix
-  const handleWeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // Remove "lbs" and any non-numeric characters for processing
-    const digits = value.replace(/[^0-9]/g, '');
-    if (digits) {
-      setWeight(digits + " lbs");
-    } else {
-      setWeight('');
-    }
-  };
 
   const appVersion = "1.0.10";
 
@@ -146,18 +89,6 @@ export default function AthleteSettings() {
       setLastName(contextUser.lastName || "");
       setEmail(contextUser.email || "");
       setAvatarPreview(contextUser.avatar || null);
-      // Extended profile fields
-      setHeight((contextUser as any).height || "");
-      setWeight((contextUser as any).weight || "");
-      setBio((contextUser as any).bio || "");
-      setGpa((contextUser as any).gpa || "");
-      setGraduationYear((contextUser as any).graduationYear?.toString() || "");
-      setTeamAwards((contextUser as any).teamAwards || []);
-      setSocialLinks((contextUser as any).socialLinks || {});
-      setHandedness((contextUser as any).handedness || "");
-      setFootedness((contextUser as any).footedness || "");
-      setFavoritePlayer((contextUser as any).favoritePlayer || "");
-      setFavoriteTeam((contextUser as any).favoriteTeam || "");
     }
   }, [contextUser]);
 
@@ -244,56 +175,6 @@ export default function AthleteSettings() {
       };
       reader.readAsDataURL(file);
     }
-  };
-
-  const handleSaveExtendedProfile = async () => {
-    if (!contextUser) return;
-    
-    setIsSavingExtended(true);
-    try {
-      const response = await fetch(`/api/users/${contextUser.id}?requesterId=${contextUser.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          height: height.trim() || null,
-          weight: weight.trim() || null,
-          bio: bio.trim() || null,
-          gpa: gpa.trim() || null,
-          graduationYear: graduationYear ? parseInt(graduationYear) : null,
-          teamAwards: teamAwards.length > 0 ? teamAwards : null,
-          socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : null,
-          handedness: handedness.trim() || null,
-          footedness: footedness.trim() || null,
-          favoritePlayer: favoritePlayer.trim() || null,
-          favoriteTeam: favoriteTeam.trim() || null,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to save extended profile");
-
-      const updatedUser = await response.json();
-      updateUser({ ...contextUser, ...updatedUser });
-
-      setShowExtendedSaved(true);
-      setTimeout(() => setShowExtendedSaved(false), 2000);
-      toast.success("Extended profile saved!");
-    } catch (error) {
-      console.error("Extended profile save failed:", error);
-      toast.error("Failed to save extended profile.");
-    } finally {
-      setIsSavingExtended(false);
-    }
-  };
-
-  const handleAddAward = () => {
-    if (newAward.trim()) {
-      setTeamAwards([...teamAwards, newAward.trim()]);
-      setNewAward("");
-    }
-  };
-
-  const handleRemoveAward = (index: number) => {
-    setTeamAwards(teamAwards.filter((_, i) => i !== index));
   };
 
   return (
@@ -481,285 +362,6 @@ export default function AthleteSettings() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Extended Profile Section - Athlete Pro */}
-          <Card className={`bg-card/80 backdrop-blur-sm border-white/5 ${!isAthletePro ? 'opacity-75' : ''}`}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-display font-bold uppercase tracking-wide flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-yellow-500" />
-                  Extended Profile
-                </CardTitle>
-                {isAthletePro ? (
-                  <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    Pro Feature
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" className="text-muted-foreground">
-                    Upgrade to Pro
-                  </Badge>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                {isAthletePro 
-                  ? "Showcase additional details on your shareable HYPE Card" 
-                  : "Upgrade to Athlete Pro to unlock extended profile features"}
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {!isAthletePro ? (
-                <div className="text-center py-6">
-                  <Crown className="h-12 w-12 text-yellow-500/50 mx-auto mb-3" />
-                  <p className="text-muted-foreground mb-4">Extended profile is available with Athlete Pro</p>
-                  <Link href="/subscription">
-                    <Button variant="outline" className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10">
-                      <Crown className="h-4 w-4 mr-2" />
-                      Upgrade to Pro
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium uppercase tracking-wider flex items-center gap-2">
-                        <Ruler className="h-4 w-4 text-primary" />
-                        Height
-                      </Label>
-                      <Input
-                        value={height}
-                        onChange={handleHeightChange}
-                        placeholder="5'10&quot;"
-                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                        data-testid="input-height"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium uppercase tracking-wider flex items-center gap-2">
-                        <Weight className="h-4 w-4 text-primary" />
-                        Weight
-                      </Label>
-                      <Input
-                        value={weight}
-                        onChange={handleWeightChange}
-                        placeholder="165 lbs"
-                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                        data-testid="input-weight"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium uppercase tracking-wider">Bio / About Me</Label>
-                    <Textarea
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      placeholder="Tell supporters about yourself..."
-                      className="bg-background/50 border-white/10 focus:border-primary/50 min-h-[100px]"
-                      data-testid="input-bio"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium uppercase tracking-wider flex items-center gap-2">
-                        ✋ Handedness
-                      </Label>
-                      <div className="flex gap-2">
-                        {["left", "right", "ambidextrous"].map((option) => (
-                          <Button
-                            key={option}
-                            type="button"
-                            variant={handedness === option ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setHandedness(option)}
-                            className={`flex-1 capitalize ${handedness === option ? 'bg-primary text-primary-foreground' : 'border-white/10 hover:bg-white/5'}`}
-                            data-testid={`button-handedness-${option}`}
-                          >
-                            {option === "ambidextrous" ? "Both" : option}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium uppercase tracking-wider flex items-center gap-2">
-                        🦶 Footedness
-                      </Label>
-                      <div className="flex gap-2">
-                        {["left", "right", "both"].map((option) => (
-                          <Button
-                            key={option}
-                            type="button"
-                            variant={footedness === option ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setFootedness(option)}
-                            className={`flex-1 capitalize ${footedness === option ? 'bg-primary text-primary-foreground' : 'border-white/10 hover:bg-white/5'}`}
-                            data-testid={`button-footedness-${option}`}
-                          >
-                            {option}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium uppercase tracking-wider flex items-center gap-2">
-                        <GraduationCap className="h-4 w-4 text-primary" />
-                        GPA
-                      </Label>
-                      <Input
-                        value={gpa}
-                        onChange={(e) => setGpa(e.target.value)}
-                        placeholder="e.g., 3.8"
-                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                        data-testid="input-gpa"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium uppercase tracking-wider">Graduation Year</Label>
-                      <Input
-                        type="number"
-                        value={graduationYear}
-                        onChange={(e) => setGraduationYear(e.target.value)}
-                        placeholder="e.g., 2026"
-                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                        data-testid="input-graduation-year"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium uppercase tracking-wider">Favorite Player</Label>
-                      <Input
-                        value={favoritePlayer}
-                        onChange={(e) => setFavoritePlayer(e.target.value)}
-                        placeholder="e.g., LeBron James"
-                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                        data-testid="input-favorite-player"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium uppercase tracking-wider">Favorite Team</Label>
-                      <Input
-                        value={favoriteTeam}
-                        onChange={(e) => setFavoriteTeam(e.target.value)}
-                        placeholder="e.g., Lakers"
-                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                        data-testid="input-favorite-team"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 border-t border-white/10 pt-6">
-                    <Label className="text-sm font-medium uppercase tracking-wider flex items-center gap-2">
-                      <Trophy className="h-4 w-4 text-yellow-500" />
-                      Team Awards
-                    </Label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {teamAwards.map((award, index) => (
-                        <Badge 
-                          key={index} 
-                          className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 cursor-pointer hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30"
-                          onClick={() => handleRemoveAward(index)}
-                        >
-                          {award} ×
-                        </Badge>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <Input
-                        value={newAward}
-                        onChange={(e) => setNewAward(e.target.value)}
-                        placeholder="Add an award (e.g., MVP 2024)"
-                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                        onKeyDown={(e) => e.key === 'Enter' && handleAddAward()}
-                        data-testid="input-new-award"
-                      />
-                      <Button onClick={handleAddAward} variant="outline" className="border-white/10 hover:bg-white/5" data-testid="button-add-award">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 border-t border-white/10 pt-6">
-                    <Label className="text-sm font-medium uppercase tracking-wider">Social Links</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center gap-2">
-                        <Instagram className="h-5 w-5 text-pink-500 flex-shrink-0" />
-                        <Input
-                          value={socialLinks.instagram || ""}
-                          onChange={(e) => setSocialLinks({...socialLinks, instagram: e.target.value})}
-                          placeholder="Instagram username"
-                          className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                          data-testid="input-instagram"
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Twitter className="h-5 w-5 text-blue-400 flex-shrink-0" />
-                        <Input
-                          value={socialLinks.twitter || ""}
-                          onChange={(e) => setSocialLinks({...socialLinks, twitter: e.target.value})}
-                          placeholder="X/Twitter handle"
-                          className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                          data-testid="input-twitter"
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Youtube className="h-5 w-5 text-red-500 flex-shrink-0" />
-                        <Input
-                          value={socialLinks.youtube || ""}
-                          onChange={(e) => setSocialLinks({...socialLinks, youtube: e.target.value})}
-                          placeholder="YouTube channel"
-                          className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                          data-testid="input-youtube"
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <svg className="h-5 w-5 text-white flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/>
-                        </svg>
-                        <Input
-                          value={socialLinks.tiktok || ""}
-                          onChange={(e) => setSocialLinks({...socialLinks, tiktok: e.target.value})}
-                          placeholder="TikTok username"
-                          className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
-                          data-testid="input-tiktok"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button 
-                    onClick={handleSaveExtendedProfile} 
-                    disabled={isSavingExtended || showExtendedSaved}
-                    data-testid="button-save-extended"
-                    className={`w-full md:w-auto shadow-lg shadow-yellow-500/30 transition-all ${showExtendedSaved ? 'bg-green-600 hover:bg-green-600' : 'bg-yellow-600 hover:bg-yellow-700'}`}
-                  >
-                    {isSavingExtended ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : showExtendedSaved ? (
-                      <>
-                        <Check className="mr-2 h-4 w-4" />
-                        Saved!
-                      </>
-                    ) : (
-                      <>
-                        <Crown className="mr-2 h-4 w-4" />
-                        Save Extended Profile
-                      </>
-                    )}
-                  </Button>
-                </>
-              )}
-            </CardContent>
-          </Card>
 
           <Card className="bg-card/80 backdrop-blur-sm border-white/5">
             <CardHeader>

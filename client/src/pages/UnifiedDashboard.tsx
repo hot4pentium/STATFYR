@@ -29,6 +29,7 @@ import { VideoUploader } from "@/components/VideoUploader";
 import { PlaybookCanvas } from "@/components/PlaybookCanvas";
 import { TeamBadge } from "@/components/TeamBadge";
 import { GameStatsCard } from "@/components/GameStatsCard";
+import { ExtendedProfileEditDialog } from "@/components/ExtendedProfileEditDialog";
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
 import {
@@ -157,6 +158,9 @@ export default function UnifiedDashboard() {
   const [newSeasonName, setNewSeasonName] = useState("");
   const [selectedMvpId, setSelectedMvpId] = useState<string>("");
   const [isSeasonLoading, setIsSeasonLoading] = useState(false);
+  
+  // Extended profile dialog state
+  const [isExtendedProfileDialogOpen, setIsExtendedProfileDialogOpen] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -2735,11 +2739,15 @@ export default function UnifiedDashboard() {
                           <h3 className="font-display font-bold text-sm uppercase tracking-wide">Extended Profile</h3>
                         </div>
                         {tier === 'athlete_pro' || tier === 'coach_pro' ? (
-                          <Link href="/athlete/settings">
-                            <Button variant="ghost" size="sm" className="text-yellow-500 hover:text-yellow-400 h-7 text-xs" data-testid="button-edit-extended-profile">
-                              Edit
-                            </Button>
-                          </Link>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-yellow-500 hover:text-yellow-400 h-7 text-xs" 
+                            onClick={() => setIsExtendedProfileDialogOpen(true)}
+                            data-testid="button-edit-extended-profile"
+                          >
+                            Edit
+                          </Button>
                         ) : (
                           <Badge variant="secondary" className="text-xs">Pro Feature</Badge>
                         )}
@@ -3798,6 +3806,12 @@ export default function UnifiedDashboard() {
           )}
         </button>
       </Link>
+
+      {/* Extended Profile Edit Dialog */}
+      <ExtendedProfileEditDialog 
+        open={isExtendedProfileDialogOpen} 
+        onOpenChange={setIsExtendedProfileDialogOpen} 
+      />
     </>
   );
 }
