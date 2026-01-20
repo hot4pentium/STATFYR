@@ -2580,6 +2580,21 @@ export default function UnifiedDashboard() {
                         {!selectedManagedAthlete.team && selectedManagedAthlete.sport && (
                           <Badge variant="outline" className="text-xs mt-1">{selectedManagedAthlete.sport}</Badge>
                         )}
+                        {/* Extended Profile Stats - check both linked athlete and managed athlete record */}
+                        {(() => {
+                          const height = (selectedManagedAthlete.athlete as any)?.height || (selectedManagedAthlete as any)?.height;
+                          const weight = (selectedManagedAthlete.athlete as any)?.weight || (selectedManagedAthlete as any)?.weight;
+                          return (height || weight) ? (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {height && (
+                                <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">{height}</span>
+                              )}
+                              {weight && (
+                                <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">{weight}</span>
+                              )}
+                            </div>
+                          ) : null;
+                        })()}
                       </div>
                     </div>
                     <Button 

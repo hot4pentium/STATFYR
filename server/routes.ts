@@ -5147,7 +5147,7 @@ export async function registerRoutes(
       }
 
       const { id } = req.params;
-      const { athleteName, sport, position, number, profileImageUrl, nickname } = req.body;
+      const { athleteName, sport, position, number, profileImageUrl, nickname, height, weight, handedness, footedness, gpa, graduationYear } = req.body;
 
       const existing = await storage.getManagedAthleteById(id);
       if (!existing) {
@@ -5165,6 +5165,12 @@ export async function registerRoutes(
         number: string | null;
         profileImageUrl: string | null;
         nickname: string | null;
+        height: string | null;
+        weight: string | null;
+        handedness: string | null;
+        footedness: string | null;
+        gpa: string | null;
+        graduationYear: number | null;
       }> = {};
       
       if (athleteName !== undefined) updates.athleteName = athleteName;
@@ -5173,6 +5179,12 @@ export async function registerRoutes(
       if (number !== undefined) updates.number = number;
       if (profileImageUrl !== undefined) updates.profileImageUrl = profileImageUrl;
       if (nickname !== undefined) updates.nickname = nickname;
+      if (height !== undefined) updates.height = height;
+      if (weight !== undefined) updates.weight = weight;
+      if (handedness !== undefined) updates.handedness = handedness;
+      if (footedness !== undefined) updates.footedness = footedness;
+      if (gpa !== undefined) updates.gpa = gpa;
+      if (graduationYear !== undefined) updates.graduationYear = graduationYear;
 
       const updated = await storage.updateManagedAthlete(id, updates);
       res.json({ managedAthlete: updated });

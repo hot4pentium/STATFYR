@@ -44,6 +44,13 @@ export default function SupporterSettings() {
   const [editAvatarPreview, setEditAvatarPreview] = useState<string | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const editAvatarInputRef = useRef<HTMLInputElement>(null);
+  
+  const [editHeight, setEditHeight] = useState("");
+  const [editWeight, setEditWeight] = useState("");
+  const [editHandedness, setEditHandedness] = useState<string>("");
+  const [editFootedness, setEditFootedness] = useState<string>("");
+  const [editGpa, setEditGpa] = useState("");
+  const [editGraduationYear, setEditGraduationYear] = useState("");
 
   const appVersion = "1.0.10";
 
@@ -316,11 +323,23 @@ export default function SupporterSettings() {
       setEditFirstName(managed.athlete.firstName || "");
       setEditLastName(managed.athlete.lastName || "");
       setEditAvatarPreview(managed.athlete.avatar || null);
+      setEditHeight((managed.athlete as any).height || "");
+      setEditWeight((managed.athlete as any).weight || "");
+      setEditHandedness((managed.athlete as any).handedness || "");
+      setEditFootedness((managed.athlete as any).footedness || "");
+      setEditGpa((managed.athlete as any).gpa || "");
+      setEditGraduationYear((managed.athlete as any).graduationYear?.toString() || "");
     } else {
       const nameParts = (managed.athleteName || "").split(" ");
       setEditFirstName(nameParts[0] || "");
       setEditLastName(nameParts.slice(1).join(" ") || "");
       setEditAvatarPreview(managed.profileImageUrl || null);
+      setEditHeight((managed as any).height || "");
+      setEditWeight((managed as any).weight || "");
+      setEditHandedness((managed as any).handedness || "");
+      setEditFootedness((managed as any).footedness || "");
+      setEditGpa((managed as any).gpa || "");
+      setEditGraduationYear((managed as any).graduationYear?.toString() || "");
     }
   };
 
@@ -363,6 +382,12 @@ export default function SupporterSettings() {
             lastName: editLastName.trim(),
             name: `${editFirstName.trim()} ${editLastName.trim()}`,
             avatar: editAvatarPreview,
+            height: editHeight.trim() || null,
+            weight: editWeight.trim() || null,
+            handedness: editHandedness || null,
+            footedness: editFootedness || null,
+            gpa: editGpa.trim() || null,
+            graduationYear: editGraduationYear ? parseInt(editGraduationYear) : null,
           }),
         });
 
@@ -380,6 +405,12 @@ export default function SupporterSettings() {
           body: JSON.stringify({
             athleteName: `${editFirstName.trim()} ${editLastName.trim()}`,
             profileImageUrl: editAvatarPreview,
+            height: editHeight.trim() || null,
+            weight: editWeight.trim() || null,
+            handedness: editHandedness || null,
+            footedness: editFootedness || null,
+            gpa: editGpa.trim() || null,
+            graduationYear: editGraduationYear ? parseInt(editGraduationYear) : null,
           }),
         });
 
@@ -900,7 +931,7 @@ export default function SupporterSettings() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
               <div className="space-y-2">
                 <Label htmlFor="edit-first-name" className="text-sm font-medium">First Name</Label>
                 <Input
@@ -923,6 +954,104 @@ export default function SupporterSettings() {
                   className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
                 />
               </div>
+              
+              {/* Show extended profile for all managed athletes */}
+              {editingAthlete && (
+                <>
+                  <div className="pt-2 border-t border-white/10">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Extended Profile</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-height" className="text-sm font-medium">Height</Label>
+                      <Input
+                        id="edit-height"
+                        data-testid="input-edit-height"
+                        value={editHeight}
+                        onChange={(e) => setEditHeight(e.target.value)}
+                        placeholder="e.g., 5'10&quot;"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-weight" className="text-sm font-medium">Weight</Label>
+                      <Input
+                        id="edit-weight"
+                        data-testid="input-edit-weight"
+                        value={editWeight}
+                        onChange={(e) => setEditWeight(e.target.value)}
+                        placeholder="e.g., 165 lbs"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Handedness</Label>
+                    <div className="flex gap-2">
+                      {["left", "right", "ambidextrous"].map((option) => (
+                        <Button
+                          key={option}
+                          type="button"
+                          variant={editHandedness === option ? "default" : "outline"}
+                          size="sm"
+                          className="flex-1 capitalize"
+                          onClick={() => setEditHandedness(editHandedness === option ? "" : option)}
+                          data-testid={`button-handedness-${option}`}
+                        >
+                          {option === "ambidextrous" ? "Both" : option}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Footedness</Label>
+                    <div className="flex gap-2">
+                      {["left", "right", "both"].map((option) => (
+                        <Button
+                          key={option}
+                          type="button"
+                          variant={editFootedness === option ? "default" : "outline"}
+                          size="sm"
+                          className="flex-1 capitalize"
+                          onClick={() => setEditFootedness(editFootedness === option ? "" : option)}
+                          data-testid={`button-footedness-${option}`}
+                        >
+                          {option}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-gpa" className="text-sm font-medium">GPA</Label>
+                      <Input
+                        id="edit-gpa"
+                        data-testid="input-edit-gpa"
+                        value={editGpa}
+                        onChange={(e) => setEditGpa(e.target.value)}
+                        placeholder="e.g., 3.5"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-grad-year" className="text-sm font-medium">Grad Year</Label>
+                      <Input
+                        id="edit-grad-year"
+                        data-testid="input-edit-grad-year"
+                        type="number"
+                        value={editGraduationYear}
+                        onChange={(e) => setEditGraduationYear(e.target.value)}
+                        placeholder="e.g., 2026"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="flex gap-3 pt-2">

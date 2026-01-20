@@ -182,6 +182,13 @@ export const managedAthletes = pgTable("managed_athletes", {
   // Season management
   season: text("season"), // e.g., "2024-2025"
   seasonStatus: text("season_status").default("none"), // 'none', 'active', 'ended'
+  // Extended profile fields for independent managed athletes
+  height: text("height"),
+  weight: text("weight"),
+  handedness: text("handedness"), // 'left', 'right', 'ambidextrous'
+  footedness: text("footedness"), // 'left', 'right', 'both'
+  gpa: text("gpa"),
+  graduationYear: integer("graduation_year"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
