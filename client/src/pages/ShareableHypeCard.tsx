@@ -1148,11 +1148,12 @@ export default function ShareableHypeCard(props: any) {
                         {(athlete as any)?.weight && (
                           <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded">{(athlete as any).weight}</span>
                         )}
-                        {(athlete as any)?.handedness && (
-                          <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded capitalize">{(athlete as any).handedness === 'ambidextrous' ? 'Both Hands' : `${(athlete as any).handedness}-handed`}</span>
-                        )}
-                        {(athlete as any)?.footedness && (
-                          <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded capitalize">{(athlete as any).footedness === 'both' ? 'Both Feet' : `${(athlete as any).footedness}-footed`}</span>
+                        {((athlete as any)?.handedness || (athlete as any)?.footedness) && (
+                          <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded capitalize">
+                            {(athlete as any)?.handedness && ((athlete as any).handedness === 'ambidextrous' ? 'Both Hands' : `${(athlete as any).handedness}-handed`)}
+                            {(athlete as any)?.handedness && (athlete as any)?.footedness && ' / '}
+                            {(athlete as any)?.footedness && ((athlete as any).footedness === 'both' ? 'Both Feet' : `${(athlete as any).footedness}-footed`)}
+                          </span>
                         )}
                       </div>
                     )}

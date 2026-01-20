@@ -277,11 +277,12 @@ export default function AthleteHypeCardPage() {
                           {(user as any)?.weight && (
                             <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded">{(user as any).weight}</span>
                           )}
-                          {(user as any)?.handedness && (
-                            <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded capitalize">{(user as any).handedness === 'ambidextrous' ? 'Both Hands' : `${(user as any).handedness}-handed`}</span>
-                          )}
-                          {(user as any)?.footedness && (
-                            <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded capitalize">{(user as any).footedness === 'both' ? 'Both Feet' : `${(user as any).footedness}-footed`}</span>
+                          {((user as any)?.handedness || (user as any)?.footedness) && (
+                            <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded capitalize">
+                              {(user as any)?.handedness && ((user as any).handedness === 'ambidextrous' ? 'Both Hands' : `${(user as any).handedness}-handed`)}
+                              {(user as any)?.handedness && (user as any)?.footedness && ' / '}
+                              {(user as any)?.footedness && ((user as any).footedness === 'both' ? 'Both Feet' : `${(user as any).footedness}-footed`)}
+                            </span>
                           )}
                         </div>
                       )}
