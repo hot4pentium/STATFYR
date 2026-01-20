@@ -41,6 +41,8 @@ export default function AthleteSettings() {
   const [socialLinks, setSocialLinks] = useState<{instagram?: string; twitter?: string; youtube?: string; tiktok?: string}>({});
   const [handedness, setHandedness] = useState("");
   const [footedness, setFootedness] = useState("");
+  const [favoritePlayer, setFavoritePlayer] = useState("");
+  const [favoriteTeam, setFavoriteTeam] = useState("");
   const [isSavingExtended, setIsSavingExtended] = useState(false);
   const [showExtendedSaved, setShowExtendedSaved] = useState(false);
   
@@ -119,6 +121,8 @@ export default function AthleteSettings() {
       setSocialLinks((contextUser as any).socialLinks || {});
       setHandedness((contextUser as any).handedness || "");
       setFootedness((contextUser as any).footedness || "");
+      setFavoritePlayer((contextUser as any).favoritePlayer || "");
+      setFavoriteTeam((contextUser as any).favoriteTeam || "");
     }
   }, [contextUser]);
 
@@ -225,6 +229,8 @@ export default function AthleteSettings() {
           socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : null,
           handedness: handedness.trim() || null,
           footedness: footedness.trim() || null,
+          favoritePlayer: favoritePlayer.trim() || null,
+          favoriteTeam: favoriteTeam.trim() || null,
         }),
       });
 
@@ -586,6 +592,29 @@ export default function AthleteSettings() {
                         placeholder="e.g., 2026"
                         className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
                         data-testid="input-graduation-year"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium uppercase tracking-wider">Favorite Player</Label>
+                      <Input
+                        value={favoritePlayer}
+                        onChange={(e) => setFavoritePlayer(e.target.value)}
+                        placeholder="e.g., LeBron James"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                        data-testid="input-favorite-player"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium uppercase tracking-wider">Favorite Team</Label>
+                      <Input
+                        value={favoriteTeam}
+                        onChange={(e) => setFavoriteTeam(e.target.value)}
+                        placeholder="e.g., Lakers"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                        data-testid="input-favorite-team"
                       />
                     </div>
                   </div>
