@@ -62,6 +62,8 @@ export const users = pgTable("users", {
   socialLinks: jsonb("social_links"), // {instagram, twitter, tiktok, youtube}
   handedness: text("handedness"), // "left", "right", or "ambidextrous"
   footedness: text("footedness"), // "left", "right", or "both"
+  favoritePlayer: text("favorite_player"), // e.g., "LeBron James"
+  favoriteTeam: text("favorite_team"), // e.g., "Lakers"
 });
 
 export type UpsertUser = typeof users.$inferInsert;

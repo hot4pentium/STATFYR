@@ -487,6 +487,16 @@ export const insertUserSchema = createInsertSchema(users).pick({
   number: true,
   mustChangePassword: true,
   isSuperAdmin: true,
+  // Extended profile fields
+  height: true,
+  weight: true,
+  bio: true,
+  gpa: true,
+  graduationYear: true,
+  handedness: true,
+  footedness: true,
+  favoritePlayer: true,
+  favoriteTeam: true,
 });
 
 export const insertTeamSchema = createInsertSchema(teams).pick({
