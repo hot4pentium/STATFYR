@@ -657,57 +657,59 @@ export default function SupporterDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <Card 
-              onClick={() => {
-                if (!entitlements?.canUploadHighlights) {
-                  setDemoModal("hype-hub");
-                  return;
-                }
-                setLocation("/supporter/hype-portal");
-              }}
-              className={`relative bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 border-primary/40 hover:border-primary/60 transition-all cursor-pointer group ${!entitlements?.canUploadHighlights ? "opacity-75" : ""}`}
-              data-testid="card-hype-hub"
-            >
-              {!entitlements?.canUploadHighlights && (
-                <div className="absolute top-2 right-2 z-10">
-                  <Lock className="h-4 w-4 text-primary" />
-                </div>
-              )}
-              <CardContent className="p-3 sm:p-5 flex flex-col items-center gap-2">
-                <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-accent shadow-lg group-hover:scale-110 transition-transform">
-                  <Flame className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-                </div>
-                <h3 className="font-display font-bold text-sm sm:text-lg uppercase text-primary">HYPE Hub</h3>
-                <p className="hidden sm:block text-xs text-muted-foreground">Post updates & fire up followers</p>
-              </CardContent>
-            </Card>
+          {managedAthletes.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <Card 
+                onClick={() => {
+                  if (!entitlements?.canUploadHighlights) {
+                    setDemoModal("hype-hub");
+                    return;
+                  }
+                  setLocation("/supporter/hype-portal");
+                }}
+                className={`relative bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 border-primary/40 hover:border-primary/60 transition-all cursor-pointer group ${!entitlements?.canUploadHighlights ? "opacity-75" : ""}`}
+                data-testid="card-hype-hub"
+              >
+                {!entitlements?.canUploadHighlights && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <Lock className="h-4 w-4 text-primary" />
+                  </div>
+                )}
+                <CardContent className="p-3 sm:p-5 flex flex-col items-center gap-2">
+                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-accent shadow-lg group-hover:scale-110 transition-transform">
+                    <Flame className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+                  </div>
+                  <h3 className="font-display font-bold text-sm sm:text-lg uppercase text-primary">HYPE Hub</h3>
+                  <p className="hidden sm:block text-xs text-muted-foreground">Post updates & fire up followers</p>
+                </CardContent>
+              </Card>
 
-            <Card 
-              onClick={() => {
-                if (!entitlements?.canViewHighlights) {
-                  setDemoModal("hype-card");
-                  return;
-                }
-                setLocation("/supporter/hype-card");
-              }}
-              className={`relative bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-cyan-500/20 border-cyan-500/40 hover:border-cyan-500/60 transition-all cursor-pointer group ${!entitlements?.canViewHighlights ? "opacity-75" : ""}`}
-              data-testid="card-hype-card"
-            >
-              {!entitlements?.canViewHighlights && (
-                <div className="absolute top-2 right-2 z-10">
-                  <Lock className="h-4 w-4 text-cyan-500" />
-                </div>
-              )}
-              <CardContent className="p-3 sm:p-5 flex flex-col items-center gap-2">
-                <div className="p-2.5 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 shadow-lg group-hover:scale-110 transition-transform">
-                  <Trophy className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-                </div>
-                <h3 className="font-display font-bold text-sm sm:text-lg uppercase text-cyan-500">HYPE Card</h3>
-                <p className="hidden sm:block text-xs text-muted-foreground">View & share player card</p>
-              </CardContent>
-            </Card>
-          </div>
+              <Card 
+                onClick={() => {
+                  if (!entitlements?.canViewHighlights) {
+                    setDemoModal("hype-card");
+                    return;
+                  }
+                  setLocation("/supporter/hype-card");
+                }}
+                className={`relative bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-cyan-500/20 border-cyan-500/40 hover:border-cyan-500/60 transition-all cursor-pointer group ${!entitlements?.canViewHighlights ? "opacity-75" : ""}`}
+                data-testid="card-hype-card"
+              >
+                {!entitlements?.canViewHighlights && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <Lock className="h-4 w-4 text-cyan-500" />
+                  </div>
+                )}
+                <CardContent className="p-3 sm:p-5 flex flex-col items-center gap-2">
+                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 shadow-lg group-hover:scale-110 transition-transform">
+                    <Trophy className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+                  </div>
+                  <h3 className="font-display font-bold text-sm sm:text-lg uppercase text-cyan-500">HYPE Card</h3>
+                  <p className="hidden sm:block text-xs text-muted-foreground">View & share player card</p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Two-column layout on landscape, sliding panels on portrait */}
           <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
