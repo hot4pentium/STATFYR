@@ -48,6 +48,41 @@ export default function AthleteSettings() {
   
   const isAthletePro = tier === 'athlete_pro' || tier === 'coach_pro';
 
+  // Format height with feet and inches symbols (e.g., 5'10")
+  const formatHeight = (value: string) => {
+    // Remove all non-numeric characters except apostrophe and quote
+    const digits = value.replace(/[^0-9]/g, '');
+    if (!digits) return '';
+    if (digits.length === 1) return digits + "'";
+    if (digits.length >= 2) {
+      const feet = digits[0];
+      const inches = digits.slice(1, 3);
+      return `${feet}'${inches}"`;
+    }
+    return value;
+  };
+
+  const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow raw input or formatted input
+    const digits = value.replace(/[^0-9]/g, '');
+    if (digits.length <= 3) {
+      setHeight(formatHeight(value));
+    }
+  };
+
+  // Format weight with lbs suffix
+  const handleWeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Remove "lbs" and any non-numeric characters for processing
+    const digits = value.replace(/[^0-9]/g, '');
+    if (digits) {
+      setWeight(digits + " lbs");
+    } else {
+      setWeight('');
+    }
+  };
+
   const appVersion = "1.0.10";
 
   const handlePhotoSave = async (dataUrl: string) => {
@@ -494,8 +529,8 @@ export default function AthleteSettings() {
                       </Label>
                       <Input
                         value={height}
-                        onChange={(e) => setHeight(e.target.value)}
-                        placeholder="e.g., 5'10 or 178cm"
+                        onChange={handleHeightChange}
+                        placeholder="5'10&quot;"
                         className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
                         data-testid="input-height"
                       />
@@ -507,8 +542,8 @@ export default function AthleteSettings() {
                       </Label>
                       <Input
                         value={weight}
-                        onChange={(e) => setWeight(e.target.value)}
-                        placeholder="e.g., 165 lbs or 75kg"
+                        onChange={handleWeightChange}
+                        placeholder="165 lbs"
                         className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
                         data-testid="input-weight"
                       />

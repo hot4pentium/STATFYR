@@ -54,6 +54,37 @@ export default function SupporterSettings() {
   const [editFavoritePlayer, setEditFavoritePlayer] = useState("");
   const [editFavoriteTeam, setEditFavoriteTeam] = useState("");
 
+  // Format height with feet and inches symbols (e.g., 5'10")
+  const formatHeight = (value: string) => {
+    const digits = value.replace(/[^0-9]/g, '');
+    if (!digits) return '';
+    if (digits.length === 1) return digits + "'";
+    if (digits.length >= 2) {
+      const feet = digits[0];
+      const inches = digits.slice(1, 3);
+      return `${feet}'${inches}"`;
+    }
+    return value;
+  };
+
+  const handleEditHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const digits = value.replace(/[^0-9]/g, '');
+    if (digits.length <= 3) {
+      setEditHeight(formatHeight(value));
+    }
+  };
+
+  const handleEditWeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const digits = value.replace(/[^0-9]/g, '');
+    if (digits) {
+      setEditWeight(digits + " lbs");
+    } else {
+      setEditWeight('');
+    }
+  };
+
   const appVersion = "1.0.10";
 
   const handleProfilePhotoSave = async (dataUrl: string) => {
@@ -979,8 +1010,8 @@ export default function SupporterSettings() {
                         id="edit-height"
                         data-testid="input-edit-height"
                         value={editHeight}
-                        onChange={(e) => setEditHeight(e.target.value)}
-                        placeholder="e.g., 5'10&quot;"
+                        onChange={handleEditHeightChange}
+                        placeholder="5'10&quot;"
                         className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
                       />
                     </div>
@@ -990,8 +1021,8 @@ export default function SupporterSettings() {
                         id="edit-weight"
                         data-testid="input-edit-weight"
                         value={editWeight}
-                        onChange={(e) => setEditWeight(e.target.value)}
-                        placeholder="e.g., 165 lbs"
+                        onChange={handleEditWeightChange}
+                        placeholder="165 lbs"
                         className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
                       />
                     </div>
