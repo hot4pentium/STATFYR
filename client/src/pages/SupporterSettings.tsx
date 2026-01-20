@@ -51,6 +51,8 @@ export default function SupporterSettings() {
   const [editFootedness, setEditFootedness] = useState<string>("");
   const [editGpa, setEditGpa] = useState("");
   const [editGraduationYear, setEditGraduationYear] = useState("");
+  const [editFavoritePlayer, setEditFavoritePlayer] = useState("");
+  const [editFavoriteTeam, setEditFavoriteTeam] = useState("");
 
   const appVersion = "1.0.10";
 
@@ -329,6 +331,8 @@ export default function SupporterSettings() {
       setEditFootedness((managed.athlete as any).footedness || "");
       setEditGpa((managed.athlete as any).gpa || "");
       setEditGraduationYear((managed.athlete as any).graduationYear?.toString() || "");
+      setEditFavoritePlayer((managed.athlete as any).favoritePlayer || "");
+      setEditFavoriteTeam((managed.athlete as any).favoriteTeam || "");
     } else {
       const nameParts = (managed.athleteName || "").split(" ");
       setEditFirstName(nameParts[0] || "");
@@ -340,6 +344,8 @@ export default function SupporterSettings() {
       setEditFootedness((managed as any).footedness || "");
       setEditGpa((managed as any).gpa || "");
       setEditGraduationYear((managed as any).graduationYear?.toString() || "");
+      setEditFavoritePlayer((managed as any).favoritePlayer || "");
+      setEditFavoriteTeam((managed as any).favoriteTeam || "");
     }
   };
 
@@ -388,6 +394,8 @@ export default function SupporterSettings() {
             footedness: editFootedness || null,
             gpa: editGpa.trim() || null,
             graduationYear: editGraduationYear ? parseInt(editGraduationYear) : null,
+            favoritePlayer: editFavoritePlayer.trim() || null,
+            favoriteTeam: editFavoriteTeam.trim() || null,
           }),
         });
 
@@ -411,6 +419,8 @@ export default function SupporterSettings() {
             footedness: editFootedness || null,
             gpa: editGpa.trim() || null,
             graduationYear: editGraduationYear ? parseInt(editGraduationYear) : null,
+            favoritePlayer: editFavoritePlayer.trim() || null,
+            favoriteTeam: editFavoriteTeam.trim() || null,
           }),
         });
 
@@ -1046,6 +1056,31 @@ export default function SupporterSettings() {
                         value={editGraduationYear}
                         onChange={(e) => setEditGraduationYear(e.target.value)}
                         placeholder="e.g., 2026"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-favorite-player" className="text-sm font-medium">Favorite Player</Label>
+                      <Input
+                        id="edit-favorite-player"
+                        data-testid="input-edit-favorite-player"
+                        value={editFavoritePlayer}
+                        onChange={(e) => setEditFavoritePlayer(e.target.value)}
+                        placeholder="e.g., LeBron James"
+                        className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-favorite-team" className="text-sm font-medium">Favorite Team</Label>
+                      <Input
+                        id="edit-favorite-team"
+                        data-testid="input-edit-favorite-team"
+                        value={editFavoriteTeam}
+                        onChange={(e) => setEditFavoriteTeam(e.target.value)}
+                        placeholder="e.g., Lakers"
                         className="bg-background/50 border-white/10 focus:border-primary/50 h-11"
                       />
                     </div>

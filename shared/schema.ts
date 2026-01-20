@@ -189,6 +189,8 @@ export const managedAthletes = pgTable("managed_athletes", {
   footedness: text("footedness"), // 'left', 'right', 'both'
   gpa: text("gpa"),
   graduationYear: integer("graduation_year"),
+  favoritePlayer: text("favorite_player"),
+  favoriteTeam: text("favorite_team"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
