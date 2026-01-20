@@ -305,6 +305,13 @@ export default function AthleteHypeCardPage() {
                           )}
                         </div>
                       )}
+                      {(user as any)?.teamAwards && (user as any).teamAwards.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {(user as any).teamAwards.map((award: string, i: number) => (
+                            <span key={i} className="text-xs bg-yellow-500/30 text-yellow-300 px-1.5 py-0.5 rounded">{award}</span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <Badge className="bg-blue-500/80 text-white border-0">
                       {new Date().getFullYear()}

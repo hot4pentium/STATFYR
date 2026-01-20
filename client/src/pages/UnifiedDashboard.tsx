@@ -2755,6 +2755,16 @@ export default function UnifiedDashboard() {
                                   <p className="text-sm text-foreground/90">{(user as any).bio}</p>
                                 </div>
                               )}
+                              {(user as any)?.teamAwards && (user as any).teamAwards.length > 0 && (
+                                <div className="p-2 rounded-lg bg-background/50 border border-white/5">
+                                  <p className="text-[10px] text-muted-foreground uppercase mb-1">Team Awards</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {(user as any).teamAwards.map((award: string, i: number) => (
+                                      <span key={i} className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded">{award}</span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                               {(user as any)?.height && (
                                 <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
