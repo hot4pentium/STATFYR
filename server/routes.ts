@@ -5081,11 +5081,14 @@ export async function registerRoutes(
       const headerUserId = req.headers["x-user-id"] as string;
       const userId = oauthUser || headerUserId;
       
+      console.log("[managed-athletes] Request - oauthUser:", oauthUser, "headerUserId:", headerUserId, "userId:", userId);
+      
       if (!userId) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       const managedAthletes = await storage.getManagedAthletes(userId);
+      console.log("[managed-athletes] Found", managedAthletes.length, "managed athletes for user", userId);
       res.json({ managedAthletes });
     } catch (error) {
       console.error("Failed to get managed athletes:", error);
