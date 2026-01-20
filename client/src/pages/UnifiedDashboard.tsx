@@ -71,14 +71,13 @@ interface QuickAccessCard {
 
 const quickAccessCards: QuickAccessCard[] = [
   { id: "roster", name: "Roster", description: "Access and view player roster.", icon: Users, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
-  { id: "schedule", name: "Calendar", description: "View and manage team schedule.", icon: CalendarClock, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
+  { id: "schedule", name: "Calendar", description: "View team schedule.", icon: CalendarClock, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
   { id: "playmaker", name: "Playmaker", description: "Design and manage team plays.", icon: ClipboardList, color: "text-orange-500", roles: ["coach"] },
   { id: "playbook", name: "Playbook", description: "View team plays and formations.", icon: BookOpen, color: "text-orange-500", roles: ["athlete", "supporter"] },
   { id: "stats", name: "Stats", description: "View statistics recorded with StatTracker.", icon: BarChart3, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
   { id: "stattracker", name: "StatTracker", description: "Live game stat tracking.", icon: Activity, color: "text-orange-500", roles: ["coach"] },
   { id: "highlights", name: "Highlights", description: "Team video highlights.", icon: Video, color: "text-orange-500", roles: ["coach", "athlete", "supporter"] },
   { id: "teamengagement", name: "Team Engagement", description: "See team's total taps & shoutouts.", icon: Heart, color: "text-orange-500", roles: ["supporter"] },
-  { id: "gamedaylive", name: "Game Day Live", description: "Live engagement during games.", icon: Zap, color: "text-orange-500", roles: ["supporter"] },
 ];
 
 const roleConfig: Record<UserRole, { title: string; tagline: string }> = {
@@ -96,7 +95,6 @@ const cardEntitlementMap: Record<string, EntitlementKey | null> = {
   stattracker: "canUseStatTracker",
   highlights: null,
   teamengagement: null,
-  gamedaylive: null,
 };
 
 export default function UnifiedDashboard() {
@@ -313,9 +311,9 @@ export default function UnifiedDashboard() {
     // When supporter is viewing a managed athlete's profile, show athlete-appropriate cards
     if (userRole === "supporter" && supporterViewMode === "athlete") {
       // For independent athletes (no team), show limited feature set:
-      // Calendar, Highlights, Game Day Live, and simplified StatTracker
+      // Calendar, Highlights, and simplified StatTracker
       if (isIndependentAthlete) {
-        const independentCardIds = ["schedule", "highlights", "gamedaylive", "stattracker"];
+        const independentCardIds = ["schedule", "highlights", "stattracker"];
         return quickAccessCards.filter(card => independentCardIds.includes(card.id));
       }
       // For team-connected athletes, show full athlete view
@@ -2001,34 +1999,6 @@ export default function UnifiedDashboard() {
             )}
           </div>
         )}
-        {selectedCard === "gamedaylive" && (
-          <div className="space-y-4">
-            <Card className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/40">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
-                    <Zap className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-display font-bold uppercase">Game Day Live</h3>
-                    <p className="text-sm text-muted-foreground">Live engagement during games</p>
-                  </div>
-                </div>
-                <p className="text-muted-foreground mb-4">
-                  Engage with live game sessions, send shoutouts, and cheer on your athlete during games.
-                </p>
-                <Button 
-                  className="w-full gap-2" 
-                  onClick={() => setLocation("/supporter-live")}
-                >
-                  <Zap className="h-4 w-4" />
-                  Join Live Sessions
-                  <ChevronRight className="h-4 w-4 ml-auto" />
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        )}
         {selectedCard === "chat" && (
           <div className="space-y-4">
             <Card className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-blue-500/40">
@@ -2947,7 +2917,9 @@ export default function UnifiedDashboard() {
                                 No upcoming games
                               </h3>
                               <p className="text-xs text-gray-500 dark:text-white/60">
-                                Create a game event to enable live supporter engagement
+                                {userRole === "supporter" && !isStaff 
+                                  ? "Check back when a game is scheduled" 
+                                  : "Create a game event to enable live supporter engagement"}
                               </p>
                             </>
                           )}
