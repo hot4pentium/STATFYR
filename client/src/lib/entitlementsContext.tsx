@@ -28,6 +28,8 @@ const defaultEntitlements: Entitlements = {
   canPromoteMembers: true,
   canFollowCrossTeam: true,
   canTrackOwnStats: true,
+  maxManagedAthletes: 1, // Free: 1 managed athlete
+  canEditExtendedProfile: false, // Supporter Pro only
 };
 
 const EntitlementsContext = createContext<EntitlementsContextType | undefined>(undefined);

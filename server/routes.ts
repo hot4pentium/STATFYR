@@ -1475,6 +1475,23 @@ export async function registerRoutes(
         return res.status(403).json({ error: "Only supporters can manage athletes" });
       }
 
+      // Check managed athlete limit based on subscription tier
+      const { stripeService } = await import("./stripeService");
+      const subscription = await stripeService.getUserSubscription(req.params.supporterId);
+      const tier = subscription?.status === 'active' ? subscription.tier : 'free';
+      const maxAllowed = tier === 'supporter' ? 999 : 1; // Supporter Pro: unlimited, Free: 1
+      
+      const existingAthletes = await storage.getManagedAthletes(req.params.supporterId);
+      if (existingAthletes.length >= maxAllowed) {
+        return res.status(403).json({ 
+          error: "Managed athlete limit reached",
+          code: "LIMIT_REACHED",
+          maxAllowed,
+          current: existingAthletes.length,
+          requiresUpgrade: true
+        });
+      }
+
       // If teamCode is provided, create linked athlete (joins a team)
       if (teamCode) {
         // Find team by code
@@ -5120,6 +5137,23 @@ export async function registerRoutes(
         return res.status(401).json({ error: "Session expired. Please log out and log back in." });
       }
 
+      // Check managed athlete limit based on subscription tier
+      const { stripeService } = await import("./stripeService");
+      const subscription = await stripeService.getUserSubscription(supporterId);
+      const tier = subscription?.status === 'active' ? subscription.tier : 'free';
+      const maxAllowed = tier === 'supporter' ? 999 : 1; // Supporter Pro: unlimited, Free: 1
+      
+      const existingAthletes = await storage.getManagedAthletes(supporterId);
+      if (existingAthletes.length >= maxAllowed) {
+        return res.status(403).json({ 
+          error: "Managed athlete limit reached",
+          code: "LIMIT_REACHED",
+          maxAllowed,
+          current: existingAthletes.length,
+          requiresUpgrade: true
+        });
+      }
+
       const managedAthlete = await storage.createManagedAthlete({
         supporterId,
         athleteId: null,
@@ -5150,7 +5184,7 @@ export async function registerRoutes(
       }
 
       const { id } = req.params;
-      const { athleteName, sport, position, number, profileImageUrl, nickname, height, weight, handedness, footedness, gpa, graduationYear, favoritePlayer, favoriteTeam } = req.body;
+      const { athleteName, sport, position, number, profileImageUrl, nickname, height, weight, handedness, footedness, gpa, graduationYear, favoritePlayer, favoriteTeam, bio, teamAwards } = req.body;
 
       const existing = await storage.getManagedAthleteById(id);
       if (!existing) {
@@ -5176,6 +5210,8 @@ export async function registerRoutes(
         graduationYear: number | null;
         favoritePlayer: string | null;
         favoriteTeam: string | null;
+        bio: string | null;
+        teamAwards: string[] | null;
       }> = {};
       
       if (athleteName !== undefined) updates.athleteName = athleteName;
@@ -5192,6 +5228,8 @@ export async function registerRoutes(
       if (graduationYear !== undefined) updates.graduationYear = graduationYear;
       if (favoritePlayer !== undefined) updates.favoritePlayer = favoritePlayer;
       if (favoriteTeam !== undefined) updates.favoriteTeam = favoriteTeam;
+      if (bio !== undefined) updates.bio = bio;
+      if (teamAwards !== undefined) updates.teamAwards = teamAwards;
 
       const updated = await storage.updateManagedAthlete(id, updates);
       res.json({ managedAthlete: updated });
@@ -5864,6 +5902,8 @@ interface Entitlements {
   canPromoteMembers: boolean;
   canFollowCrossTeam: boolean;
   canTrackOwnStats: boolean;
+  maxManagedAthletes: number;
+  canEditExtendedProfile: boolean;
 }
 
 // Base free entitlements (supporter premium features locked)
@@ -5883,6 +5923,8 @@ function getDefaultEntitlements(): Entitlements {
     canPromoteMembers: false,
     canFollowCrossTeam: false,
     canTrackOwnStats: false,
+    maxManagedAthletes: 1, // Free: 1 managed athlete
+    canEditExtendedProfile: false, // Supporter Pro only
   };
 }
 
@@ -5931,6 +5973,8 @@ function computeEntitlements(tier: string, isCoach: boolean, isStaff: boolean, i
     base.canTrackOwnStats = true;
     base.canViewHighlights = true;
     base.canUseStatTracker = true;
+    base.maxManagedAthletes = 999; // Supporter Pro: unlimited managed athletes
+    base.canEditExtendedProfile = true; // Supporter Pro: extended profile editing
   }
 
   return base;

@@ -191,6 +191,8 @@ export const managedAthletes = pgTable("managed_athletes", {
   graduationYear: integer("graduation_year"),
   favoritePlayer: text("favorite_player"),
   favoriteTeam: text("favorite_team"),
+  bio: text("bio"),
+  teamAwards: text("team_awards").array(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

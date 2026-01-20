@@ -433,6 +433,14 @@ export async function getManagedAthletes(supporterId: string): Promise<ManagedAt
   return data.managedAthletes || [];
 }
 
+export interface ManagedAthleteLimitError {
+  error: string;
+  code: "LIMIT_REACHED";
+  maxAllowed: number;
+  current: number;
+  requiresUpgrade: boolean;
+}
+
 export async function createManagedAthlete(supporterId: string, data: {
   teamCode?: string;
   firstName: string;
@@ -441,7 +449,23 @@ export async function createManagedAthlete(supporterId: string, data: {
   position?: string;
   number?: string;
 }): Promise<ManagedAthlete & { team?: Team; athlete?: { name: string } }> {
-  const res = await apiRequest("POST", `/api/users/${supporterId}/managed-athletes`, data);
+  const res = await fetch(`/api/users/${supporterId}/managed-athletes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: "Failed to create managed athlete" }));
+    if (errorData.code === "LIMIT_REACHED") {
+      const error = new Error(errorData.error) as Error & { limitReached: true; requiresUpgrade: boolean };
+      error.limitReached = true;
+      error.requiresUpgrade = errorData.requiresUpgrade;
+      throw error;
+    }
+    throw new Error(errorData.error || "Failed to create managed athlete");
+  }
+  
   return res.json();
 }
 
@@ -1498,6 +1522,8 @@ export interface Entitlements {
   canPromoteMembers: boolean;
   canFollowCrossTeam: boolean;
   canTrackOwnStats: boolean;
+  maxManagedAthletes: number;
+  canEditExtendedProfile: boolean;
 }
 
 export interface Subscription {

@@ -271,7 +271,17 @@ export default function SupporterSettings() {
       refetchManagedAthletes();
     } catch (error: any) {
       console.error("Failed to add athlete:", error);
-      toast.error(error.message || "Failed to add athlete. Please try again.");
+      if (error.limitReached && error.requiresUpgrade) {
+        toast.error("You've reached the limit of 1 managed athlete. Upgrade to Supporter Pro for unlimited athletes!", {
+          action: {
+            label: "Upgrade",
+            onClick: () => setLocation("/subscription"),
+          },
+          duration: 8000,
+        });
+      } else {
+        toast.error(error.message || "Failed to add athlete. Please try again.");
+      }
     } finally {
       setIsAddingAthlete(false);
     }

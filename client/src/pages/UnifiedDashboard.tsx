@@ -30,6 +30,7 @@ import { PlaybookCanvas } from "@/components/PlaybookCanvas";
 import { TeamBadge } from "@/components/TeamBadge";
 import { GameStatsCard } from "@/components/GameStatsCard";
 import { ExtendedProfileEditDialog } from "@/components/ExtendedProfileEditDialog";
+import { ManagedAthleteExtendedProfileDialog } from "@/components/ManagedAthleteExtendedProfileDialog";
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
 import {
@@ -159,6 +160,7 @@ export default function UnifiedDashboard() {
   
   // Extended profile dialog state
   const [isExtendedProfileDialogOpen, setIsExtendedProfileDialogOpen] = useState(false);
+  const [isManagedAthleteExtendedProfileOpen, setIsManagedAthleteExtendedProfileOpen] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -2583,6 +2585,40 @@ export default function UnifiedDashboard() {
                   </CardContent>
                 </Card>
 
+                {/* Extended Profile Card - Supporter Pro feature */}
+                <Card 
+                  className={`bg-card/60 backdrop-blur-sm border-white/10 mb-4 landscape:mb-5 cursor-pointer transition-all hover:border-primary/50 ${!entitlements.canEditExtendedProfile ? 'opacity-90' : ''}`}
+                  onClick={() => setIsManagedAthleteExtendedProfileOpen(true)}
+                  data-testid="card-extended-profile"
+                >
+                  <CardContent className="p-4 landscape:p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="shrink-0 h-12 w-12 rounded-lg bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center">
+                        {entitlements.canEditExtendedProfile ? (
+                          <Trophy className="h-6 w-6 text-yellow-500" />
+                        ) : (
+                          <div className="relative">
+                            <Trophy className="h-6 w-6 text-muted-foreground" />
+                            <Lock className="h-3 w-3 absolute -bottom-0.5 -right-0.5 text-yellow-500" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-bold uppercase tracking-wide">Extended Profile</h3>
+                          {!entitlements.canEditExtendedProfile && <Crown className="h-3.5 w-3.5 text-yellow-500" />}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {entitlements.canEditExtendedProfile 
+                            ? "Edit height, weight, GPA, awards & more"
+                            : "Upgrade to edit extended profile"}
+                        </p>
+                      </div>
+                      <Pencil className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <div className="flex items-center gap-3 mb-4 landscape:mb-5">
                   <h2 className="text-xl landscape:text-2xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
                 </div>
@@ -3783,6 +3819,14 @@ export default function UnifiedDashboard() {
       <ExtendedProfileEditDialog 
         open={isExtendedProfileDialogOpen} 
         onOpenChange={setIsExtendedProfileDialogOpen} 
+      />
+
+      {/* Managed Athlete Extended Profile Dialog */}
+      <ManagedAthleteExtendedProfileDialog
+        open={isManagedAthleteExtendedProfileOpen}
+        onOpenChange={setIsManagedAthleteExtendedProfileOpen}
+        managedAthlete={selectedManagedAthlete}
+        onSaved={() => queryClient.invalidateQueries({ queryKey: ["/api/supporter/managed-athletes"] })}
       />
     </>
   );
