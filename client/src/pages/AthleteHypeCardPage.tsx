@@ -292,6 +292,16 @@ export default function AthleteHypeCardPage() {
                           )}
                         </div>
                       )}
+                      {((user as any)?.favoritePlayer || (user as any)?.favoriteTeam) && (
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {(user as any)?.favoritePlayer && (
+                            <span className="text-xs text-slate-400">Fav Player: <span className="text-white font-medium">{(user as any).favoritePlayer}</span></span>
+                          )}
+                          {(user as any)?.favoriteTeam && (
+                            <span className="text-xs text-slate-400">Fav Team: <span className="text-white font-medium">{(user as any).favoriteTeam}</span></span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <Badge className="bg-blue-500/80 text-white border-0">
                       {new Date().getFullYear()}

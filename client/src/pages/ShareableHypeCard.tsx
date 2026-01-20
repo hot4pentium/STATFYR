@@ -1163,6 +1163,16 @@ export default function ShareableHypeCard(props: any) {
                         )}
                       </div>
                     )}
+                    {((athlete as any)?.favoritePlayer || (athlete as any)?.favoriteTeam) && (
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {(athlete as any)?.favoritePlayer && (
+                          <span className="text-xs text-slate-400">Fav Player: <span className="text-white font-medium">{(athlete as any).favoritePlayer}</span></span>
+                        )}
+                        {(athlete as any)?.favoriteTeam && (
+                          <span className="text-xs text-slate-400">Fav Team: <span className="text-white font-medium">{(athlete as any).favoriteTeam}</span></span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <Badge className="bg-blue-500/80 text-white border-0">
                     {new Date().getFullYear()}
