@@ -265,6 +265,33 @@ export default function AthleteHypeCardPage() {
                         {currentMembership?.jerseyNumber && `#${currentMembership.jerseyNumber} `}
                         {currentMembership?.position && `• ${currentMembership.position}`}
                       </p>
+                      {/* Extended Profile Stats */}
+                      {((user as any)?.height || (user as any)?.weight || (user as any)?.handedness || (user as any)?.footedness) && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {(user as any)?.height && (
+                            <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded">{(user as any).height}</span>
+                          )}
+                          {(user as any)?.weight && (
+                            <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded">{(user as any).weight}</span>
+                          )}
+                          {(user as any)?.handedness && (
+                            <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded capitalize">{(user as any).handedness === 'ambidextrous' ? 'Both Hands' : `${(user as any).handedness}-handed`}</span>
+                          )}
+                          {(user as any)?.footedness && (
+                            <span className="text-xs bg-slate-800/80 text-cyan-300 px-2 py-0.5 rounded capitalize">{(user as any).footedness === 'both' ? 'Both Feet' : `${(user as any).footedness}-footed`}</span>
+                          )}
+                        </div>
+                      )}
+                      {((user as any)?.gpa || (user as any)?.graduationYear) && (
+                        <div className="flex gap-2 mt-1">
+                          {(user as any)?.gpa && (
+                            <span className="text-xs text-slate-400">GPA: <span className="text-white font-medium">{(user as any).gpa}</span></span>
+                          )}
+                          {(user as any)?.graduationYear && (
+                            <span className="text-xs text-slate-400">Class of <span className="text-white font-medium">{(user as any).graduationYear}</span></span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <Badge className="bg-blue-500/80 text-white border-0">
                       {new Date().getFullYear()}

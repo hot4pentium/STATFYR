@@ -2274,13 +2274,24 @@ export async function registerRoutes(
       const shoutoutCount = await storage.getAthleteShoutoutCount(athleteId);
       
       // Return public profile data (no private team info like roster, plays, chat)
+      // Include extended profile fields for Pro athletes
       res.json({
         athlete: {
           id: athlete.id,
           username: athlete.username,
           name: athlete.name,
           avatar: athlete.avatar,
-          role: athlete.role
+          role: athlete.role,
+          // Extended profile fields (visible to public if athlete has filled them)
+          height: (athlete as any).height || null,
+          weight: (athlete as any).weight || null,
+          handedness: (athlete as any).handedness || null,
+          footedness: (athlete as any).footedness || null,
+          gpa: (athlete as any).gpa || null,
+          graduationYear: (athlete as any).graduationYear || null,
+          bio: (athlete as any).bio || null,
+          teamAwards: (athlete as any).teamAwards || null,
+          socialLinks: (athlete as any).socialLinks || null,
         },
         membership: membershipWithTeam,
         stats,
