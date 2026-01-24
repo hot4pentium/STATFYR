@@ -828,14 +828,26 @@ export default function LandingPage() {
               Design and share plays with an interactive canvas-based play designer
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4">
-            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
-              <div className="text-center p-8">
-                <Shield className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-                <p className="text-muted-foreground">Screenshot placeholder</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">Add playmaker.png to /client/public/screenshots/</p>
+          <div className="mt-4 space-y-4">
+            <div className="bg-card border rounded-lg p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 bg-blue-500/10 rounded flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-blue-500" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm">Pick & Roll Motion</h4>
+                  <p className="text-xs text-muted-foreground">Basketball offense play</p>
+                </div>
               </div>
+              <img 
+                src="/screenshots/playmaker-demo.png" 
+                alt="Pick & Roll Motion play diagram" 
+                className="w-full rounded-lg border"
+              />
             </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Create unlimited plays with our intuitive drag-and-drop designer
+            </p>
           </div>
         </DialogContent>
       </Dialog>
