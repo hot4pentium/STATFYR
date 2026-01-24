@@ -436,23 +436,27 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-2xl font-bold">For Athletes</h3>
               </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {roleFeatures.athletes.features.map((feature) => (
-                  <Card 
-                    key={feature.title} 
-                    className={`transition-all border-green-500/20 ${feature.hasModal ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'opacity-80'}`}
-                    data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
-                    onClick={feature.hasModal ? () => setActiveFeatureModal(feature.title) : undefined}
-                  >
-                    <CardContent className="pt-6">
-                      <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center mb-4">
-                        <feature.icon className="w-5 h-5 text-green-500" />
-                      </div>
-                      <h4 className="font-semibold mb-2">{feature.title}</h4>
-                      <p className="text-sm text-muted-foreground">{feature.description}</p>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 relative">
+                {roleFeatures.athletes.features.map((feature) => {
+                  const isEmphasized = feature.title === "HYPE Card";
+                  
+                  return (
+                    <Card 
+                      key={feature.title} 
+                      className={`transition-all border-green-500/20 ${feature.hasModal ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'opacity-70'} ${isEmphasized ? 'relative z-10 shadow-xl ring-2 ring-orange-500/50 lg:-ml-3 lg:-mr-3 scale-[1.02] bg-gradient-to-br from-orange-500/10 to-transparent' : ''}`}
+                      data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
+                      onClick={feature.hasModal ? () => setActiveFeatureModal(feature.title) : undefined}
+                    >
+                      <CardContent className="pt-6">
+                        <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center mb-4">
+                          <feature.icon className="w-5 h-5 text-green-500" />
+                        </div>
+                        <h4 className="font-semibold mb-2">{feature.title}</h4>
+                        <p className="text-sm text-muted-foreground">{feature.description}</p>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
 
