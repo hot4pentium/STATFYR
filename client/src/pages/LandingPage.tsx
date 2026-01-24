@@ -916,31 +916,6 @@ export default function LandingPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={activeFeatureModal === "HYPE Card"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-                <Star className="w-5 h-5 text-green-500" />
-              </div>
-              HYPE Card
-            </DialogTitle>
-            <DialogDescription>
-              Build and share your personalized athlete profile with stats and highlights
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-4">
-            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
-              <div className="text-center p-8">
-                <Star className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-                <p className="text-muted-foreground">Screenshot placeholder</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">Add hype-card.png to /client/public/screenshots/</p>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={activeFeatureModal === "Team Playbook"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
