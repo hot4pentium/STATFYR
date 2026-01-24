@@ -873,7 +873,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "HYPE Card"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-sm max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
@@ -889,7 +889,7 @@ export default function LandingPage() {
             <img 
               src="/screenshots/hype-card.png" 
               alt="HYPE Card showing athlete profile with stats and highlights" 
-              className="w-full rounded-lg border"
+              className="w-full rounded-lg border max-h-[60vh] object-contain"
             />
           </div>
         </DialogContent>
