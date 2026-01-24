@@ -1032,7 +1032,7 @@ export default function UnifiedDashboard() {
   };
 
   const renderHighlightCard = (highlight: HighlightVideo) => {
-    const hasVideo = highlight.publicUrl && highlight.status === "completed";
+    const hasVideo = highlight.publicUrl && (highlight.status === "completed" || highlight.status === "ready");
     const isProcessing = highlight.status === "processing" || highlight.status === "transcoding";
     
     return (
