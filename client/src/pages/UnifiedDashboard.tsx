@@ -2286,6 +2286,8 @@ export default function UnifiedDashboard() {
           steps={athleteTourSteps} 
           storageKey={`unified-athlete-onboarding-${user.id}`}
           welcomeModal={athleteWelcomeModal}
+          userId={user.id}
+          hasCompletedOnboarding={user.hasCompletedOnboarding}
         />
       )}
       {user?.id && userRole === "coach" && currentTeam && (
@@ -2293,6 +2295,8 @@ export default function UnifiedDashboard() {
           steps={coachTourSteps} 
           storageKey={`unified-coach-onboarding-${user.id}`}
           welcomeModal={coachWelcomeModal}
+          userId={user.id}
+          hasCompletedOnboarding={user.hasCompletedOnboarding}
         />
       )}
       {user?.id && userRole === "supporter" && currentTeam && (
@@ -2300,6 +2304,8 @@ export default function UnifiedDashboard() {
           steps={supporterTourSteps} 
           storageKey={`unified-supporter-onboarding-${user.id}`}
           welcomeModal={supporterWelcomeModal}
+          userId={user.id}
+          hasCompletedOnboarding={user.hasCompletedOnboarding}
         />
       )}
       <DashboardBackground />

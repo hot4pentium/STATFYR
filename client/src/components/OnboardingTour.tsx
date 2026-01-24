@@ -24,9 +24,11 @@ interface OnboardingTourProps {
   storageKey: string;
   welcomeModal?: WelcomeModal;
   onComplete?: () => void;
+  userId?: string;
+  hasCompletedOnboarding?: boolean;
 }
 
-export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: OnboardingTourProps) {
+export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete, userId, hasCompletedOnboarding }: OnboardingTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -60,8 +62,11 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
   }, []);
 
   useEffect(() => {
-    const hasCompleted = localStorage.getItem(storageKey);
-    if (!hasCompleted && steps.length > 0) {
+    // Check database-backed flag first, then fall back to localStorage
+    const hasCompletedLocal = localStorage.getItem(storageKey);
+    const shouldShowOnboarding = !hasCompletedOnboarding && !hasCompletedLocal && steps.length > 0;
+    
+    if (shouldShowOnboarding) {
       const timer = setTimeout(() => {
         if (welcomeModal) {
           setShowWelcome(true);
@@ -71,7 +76,7 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
       }, 800);
       return () => clearTimeout(timer);
     }
-  }, [storageKey, steps.length, welcomeModal]);
+  }, [storageKey, steps.length, welcomeModal, hasCompletedOnboarding]);
 
   const updateTargetPosition = useCallback(() => {
     if (!isVisible || currentStep >= steps.length) return;
@@ -115,8 +120,25 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
     finishOnboarding();
   };
 
-  const handleComplete = () => {
+  const markOnboardingComplete = async () => {
     localStorage.setItem(storageKey, "true");
+    
+    // Also update the database if userId is provided
+    if (userId) {
+      try {
+        await fetch(`/api/users/${userId}?requesterId=${userId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hasCompletedOnboarding: true })
+        });
+      } catch (error) {
+        console.error('Failed to persist onboarding completion:', error);
+      }
+    }
+  };
+
+  const handleComplete = () => {
+    markOnboardingComplete();
     setIsVisible(false);
     setShowWelcome(false);
     if (!isStandalone && (isIOS || isAndroid || deferredPrompt)) {
@@ -127,7 +149,7 @@ export function OnboardingTour({ steps, storageKey, welcomeModal, onComplete }: 
   };
 
   const finishOnboarding = () => {
-    localStorage.setItem(storageKey, "true");
+    markOnboardingComplete();
     setIsVisible(false);
     setShowWelcome(false);
     setShowInstallPrompt(false);

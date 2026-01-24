@@ -64,6 +64,8 @@ export const users = pgTable("users", {
   footedness: text("footedness"), // "left", "right", or "both"
   favoritePlayer: text("favorite_player"), // e.g., "LeBron James"
   favoriteTeam: text("favorite_team"), // e.g., "Lakers"
+  // Onboarding tracking
+  hasCompletedOnboarding: boolean("has_completed_onboarding").notNull().default(false),
 });
 
 export type UpsertUser = typeof users.$inferInsert;
