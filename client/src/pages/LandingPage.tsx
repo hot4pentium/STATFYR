@@ -413,28 +413,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-orange-500 text-white">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Ignite Your Team?</h2>
-          <p className="text-orange-100 mb-8 max-w-xl mx-auto">
-            Join thousands of teams already using STATFYR to track stats, 
-            manage rosters, and engage their supporters.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              variant="secondary"
-              className="gap-2"
-              onClick={() => window.open('https://apps.apple.com/app/statfyr', '_blank')}
-              data-testid="button-download-cta"
-            >
-              Download STATFYR
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </section>
-
       <footer className="py-12 px-4 border-t">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
