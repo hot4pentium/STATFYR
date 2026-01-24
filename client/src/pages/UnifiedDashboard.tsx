@@ -143,6 +143,7 @@ export default function UnifiedDashboard() {
   const [eventSessions, setEventSessions] = useState<Record<string, LiveEngagementSession | null>>({});
   const [loadingSessionForEvent, setLoadingSessionForEvent] = useState<string | null>(null);
   const [confirmStartEvent, setConfirmStartEvent] = useState<Event | null>(null);
+  const [supporterConfirmStartEvent, setSupporterConfirmStartEvent] = useState<Event | null>(null);
   const [themeDialogBadge, setThemeDialogBadge] = useState<{ themeId: string; name: string; emoji: string } | null>(null);
   
   // Create member state
@@ -490,6 +491,34 @@ export default function UnifiedDashboard() {
         await startLiveSession(newSession.id!);
         setEventSessions(prev => ({ ...prev, [event.id]: { ...newSession, status: "live" } }));
         toast.success("Game Day Live session created and started!");
+      }
+    } catch (err) {
+      toast.error("Failed to start live session");
+    } finally {
+      setLoadingSessionForEvent(null);
+    }
+  };
+
+  // Confirm starting Game Day Live session for supporters
+  const handleSupporterConfirmStartGameDayLive = async () => {
+    if (!supporterConfirmStartEvent || !currentTeam) return;
+    const event = supporterConfirmStartEvent;
+    setSupporterConfirmStartEvent(null);
+    setLoadingSessionForEvent(event.id);
+    try {
+      const existingSession = eventSessions[event.id];
+      if (existingSession) {
+        await startLiveSession(existingSession.id!);
+        setEventSessions(prev => ({ ...prev, [event.id]: { ...existingSession, status: "live" } }));
+        toast.success("Game Day Live session started!");
+        setLocation(`/supporter/game/${event.id}`);
+      } else {
+        const eventDate = parseTextDate(event.date) || new Date();
+        const newSession = await createLiveSessionForEvent(event.id, currentTeam.id, eventDate);
+        await startLiveSession(newSession.id!);
+        setEventSessions(prev => ({ ...prev, [event.id]: { ...newSession, status: "live" } }));
+        toast.success("Game Day Live session started!");
+        setLocation(`/supporter/game/${event.id}`);
       }
     } catch (err) {
       toast.error("Failed to start live session");
@@ -2983,11 +3012,22 @@ export default function UnifiedDashboard() {
                                     JOIN LIVE
                                   </Button>
                                 ) : (
-                                  <div className="text-center">
-                                    <p className="text-xs text-gray-500 dark:text-white/60">
-                                      Session not started yet
-                                    </p>
-                                  </div>
+                                  <Button
+                                    size="default"
+                                    className="min-w-[140px] font-bold gap-2 bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30"
+                                    onClick={() => setSupporterConfirmStartEvent(nextGame)}
+                                    disabled={loadingSessionForEvent === nextGame.id}
+                                    data-testid="button-supporter-start-game-day-live"
+                                  >
+                                    {loadingSessionForEvent === nextGame.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <Radio className="h-4 w-4" />
+                                        START SESSION
+                                      </>
+                                    )}
+                                  </Button>
                                 )
                               ) : (
                                 /* Coaches and Staff see Start/Stop buttons + Join when live */
@@ -3296,6 +3336,31 @@ export default function UnifiedDashboard() {
                 className="bg-green-500 hover:bg-green-600"
               >
                 Yes, Start Live
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Supporter Game Day Live Start Confirmation */}
+        <AlertDialog open={!!supporterConfirmStartEvent} onOpenChange={(open) => !open && setSupporterConfirmStartEvent(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Radio className="h-5 w-5 text-green-500" />
+                Has the game started?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Starting a Game Day Live session lets you send taps and shoutouts to support your athletes during the game.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel data-testid="button-supporter-start-cancel">Not Yet</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleSupporterConfirmStartGameDayLive}
+                className="bg-green-500 hover:bg-green-600"
+                data-testid="button-supporter-start-confirm"
+              >
+                Yes, Start Session
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
