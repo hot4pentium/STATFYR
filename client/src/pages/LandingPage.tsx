@@ -31,6 +31,7 @@ import statfyrLogo from "@/assets/statfyr-fire-logo.png";
 
 export default function LandingPage() {
   const [activeRoleModal, setActiveRoleModal] = useState<string | null>(null);
+  const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(null);
   const features = [
     {
       icon: Users,
@@ -334,13 +335,19 @@ export default function LandingPage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature) => (
-              <Card key={feature.title} data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}>
+              <Card 
+                key={feature.title} 
+                className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg"
+                data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
+                onClick={() => setActiveFeatureModal(feature.title)}
+              >
                 <CardContent className="pt-6">
                   <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center mb-4">
                     <feature.icon className="w-5 h-5 text-orange-500" />
                   </div>
                   <h3 className="font-semibold mb-2">{feature.title}</h3>
                   <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  <p className="text-xs text-primary mt-3">Click to see preview</p>
                 </CardContent>
               </Card>
             ))}
@@ -566,6 +573,156 @@ export default function LandingPage() {
             <p className="text-sm text-muted-foreground text-center">
               Follow athletes, send live shoutouts, earn badges, and be the ultimate fan.
             </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "Team Management"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                <Users className="w-5 h-5 text-orange-500" />
+              </div>
+              Team Management
+            </DialogTitle>
+            <DialogDescription>
+              Organize rosters, assign roles, and manage your entire team from one dashboard
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              <div className="text-center p-8">
+                <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">Screenshot placeholder</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Add team-management.png to /client/public/screenshots/</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "Live Stat Tracking"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-orange-500" />
+              </div>
+              Live Stat Tracking
+            </DialogTitle>
+            <DialogDescription>
+              Track game stats in real-time with our intuitive StatTracker for any sport
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              <div className="text-center p-8">
+                <BarChart3 className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">Screenshot placeholder</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Add stat-tracking.png to /client/public/screenshots/</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "Video Highlights"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                <Video className="w-5 h-5 text-orange-500" />
+              </div>
+              Video Highlights
+            </DialogTitle>
+            <DialogDescription>
+              Upload and share game highlights to showcase your team's best moments
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              <div className="text-center p-8">
+                <Video className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">Screenshot placeholder</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Add video-highlights.png to /client/public/screenshots/</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "Season Management"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                <Trophy className="w-5 h-5 text-orange-500" />
+              </div>
+              Season Management
+            </DialogTitle>
+            <DialogDescription>
+              Track records, archive seasons, and build your team's legacy over time
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              <div className="text-center p-8">
+                <Trophy className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">Screenshot placeholder</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Add season-management.png to /client/public/screenshots/</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "Game Day Live"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 text-orange-500" />
+              </div>
+              Game Day Live
+            </DialogTitle>
+            <DialogDescription>
+              Engage supporters with live shoutouts and interactive HYPE features
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              <div className="text-center p-8">
+                <Zap className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">Screenshot placeholder</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Add game-day-live.png to /client/public/screenshots/</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "PlayMaker"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                <Shield className="w-5 h-5 text-orange-500" />
+              </div>
+              PlayMaker
+            </DialogTitle>
+            <DialogDescription>
+              Design and share plays with an interactive canvas-based play designer
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              <div className="text-center p-8">
+                <Shield className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">Screenshot placeholder</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Add playmaker.png to /client/public/screenshots/</p>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
