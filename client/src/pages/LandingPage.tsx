@@ -438,7 +438,7 @@ export default function LandingPage() {
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 relative">
                 {roleFeatures.athletes.features.map((feature) => {
-                  const isEmphasized = feature.title === "HYPE Card";
+                  const isEmphasized = feature.title === "HYPE Card" || feature.title === "Video Highlights";
                   
                   return (
                     <Card 
