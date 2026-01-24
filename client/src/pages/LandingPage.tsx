@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -92,11 +93,11 @@ export default function LandingPage() {
             <span className="text-2xl font-bold tracking-tight">STATF<span className="text-orange-500">Y</span>R</span>
           </div>
           <div className="flex items-center gap-4">
-            <a href="/auth" data-testid="link-login-header">
+            <Link href="/auth" data-testid="link-login-header">
               <Button variant="ghost" size="sm">
                 Log in
               </Button>
-            </a>
+            </Link>
           </div>
         </div>
       </header>
