@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation, useSearch } from "wouter";
 import { Eye, EyeOff, LogOut } from "lucide-react";
-import generatedImage from '@assets/generated_images/abstract_sports_tactical_background.png';
 import { useUser } from "@/lib/userContext";
 import { loginUser, getUserTeams } from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
@@ -112,14 +111,7 @@ export default function AuthPage() {
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
-      <div 
-        className="absolute inset-0 z-0 opacity-20"
-        style={{
-          backgroundImage: `url(${generatedImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      />
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-orange-500/10 via-background to-primary/5" />
       <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
 
       {/* Logout button for stuck sessions */}
