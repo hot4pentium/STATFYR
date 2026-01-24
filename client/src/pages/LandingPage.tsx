@@ -13,6 +13,7 @@ import {
   Check,
   Crown
 } from "lucide-react";
+import statfyrLogo from "@/assets/statfyr-fire-logo.png";
 
 export default function LandingPage() {
   const features = [
@@ -71,8 +72,8 @@ export default function LandingPage() {
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Flame className="w-8 h-8 text-orange-500" />
-            <span className="text-2xl font-bold tracking-tight">STATFYR</span>
+            <img src={statfyrLogo} alt="STATFYR" className="w-8 h-8" />
+            <span className="text-2xl font-bold tracking-tight">STATF<span className="text-orange-500">Y</span>R</span>
           </div>
           <div className="flex items-center gap-4">
             <a 
@@ -414,8 +415,8 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <Flame className="w-6 h-6 text-orange-500" />
-              <span className="font-bold">STATFYR</span>
+              <img src={statfyrLogo} alt="STATFYR" className="w-6 h-6" />
+              <span className="font-bold">STATF<span className="text-orange-500">Y</span>R</span>
             </div>
             <div className="flex gap-6 text-sm text-muted-foreground">
               <a href="/privacy" className="hover:text-foreground" data-testid="link-privacy">Privacy</a>
