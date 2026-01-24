@@ -1,6 +1,14 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Flame, 
   Users, 
@@ -11,11 +19,18 @@ import {
   Shield,
   Zap,
   Check,
-  Crown
+  Crown,
+  Calendar,
+  ClipboardList,
+  Heart,
+  Star,
+  TrendingUp,
+  MessageCircle
 } from "lucide-react";
 import statfyrLogo from "@/assets/statfyr-fire-logo.png";
 
 export default function LandingPage() {
+  const [activeRoleModal, setActiveRoleModal] = useState<string | null>(null);
   const features = [
     {
       icon: Users,
@@ -121,13 +136,19 @@ export default function LandingPage() {
           </h2>
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {roles.map((role) => (
-              <Card key={role.title} className="text-center" data-testid={`card-role-${role.title.toLowerCase()}`}>
+              <Card 
+                key={role.title} 
+                className="text-center cursor-pointer transition-all hover:scale-105 hover:shadow-lg" 
+                data-testid={`card-role-${role.title.toLowerCase()}`}
+                onClick={() => setActiveRoleModal(role.title)}
+              >
                 <CardContent className="pt-6">
                   <div className={`w-12 h-12 ${role.color} rounded-full mx-auto mb-4 flex items-center justify-center`}>
                     <Users className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="font-semibold text-lg mb-2">{role.title}</h3>
                   <p className="text-sm text-muted-foreground">{role.description}</p>
+                  <p className="text-xs text-primary mt-3">Click to see example</p>
                 </CardContent>
               </Card>
             ))}
@@ -362,6 +383,192 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      <Dialog open={activeRoleModal === "Coaches"} onOpenChange={(open) => !open && setActiveRoleModal(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              Coach Dashboard
+            </DialogTitle>
+            <DialogDescription>
+              Full control over your team's success
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="bg-muted rounded-lg p-4">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-background rounded-lg p-3 border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm font-medium">Team Roster</span>
+                  </div>
+                  <p className="text-2xl font-bold">18</p>
+                  <p className="text-xs text-muted-foreground">Active Players</p>
+                </div>
+                <div className="bg-background rounded-lg p-3 border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="w-4 h-4 text-green-500" />
+                    <span className="text-sm font-medium">Next Event</span>
+                  </div>
+                  <p className="text-lg font-bold">Practice</p>
+                  <p className="text-xs text-muted-foreground">Tomorrow 4:00 PM</p>
+                </div>
+              </div>
+              <div className="bg-background rounded-lg p-3 border mb-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="w-4 h-4 text-orange-500" />
+                  <span className="text-sm font-medium">Season Record</span>
+                </div>
+                <p className="text-xl font-bold">12-3-1</p>
+                <div className="w-full bg-muted rounded-full h-2 mt-2">
+                  <div className="bg-green-500 h-2 rounded-full" style={{ width: '75%' }}></div>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-background rounded p-2 border text-center">
+                  <ClipboardList className="w-4 h-4 mx-auto mb-1 text-purple-500" />
+                  <p className="text-xs">Playbook</p>
+                </div>
+                <div className="bg-background rounded p-2 border text-center">
+                  <Video className="w-4 h-4 mx-auto mb-1 text-red-500" />
+                  <p className="text-xs">Highlights</p>
+                </div>
+                <div className="bg-background rounded p-2 border text-center">
+                  <TrendingUp className="w-4 h-4 mx-auto mb-1 text-blue-500" />
+                  <p className="text-xs">StatTracker</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Manage rosters, track stats, design plays, and lead your team to victory.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeRoleModal === "Athletes"} onOpenChange={(open) => !open && setActiveRoleModal(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              Athlete Dashboard
+            </DialogTitle>
+            <DialogDescription>
+              Your stats, your story, your spotlight
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="bg-muted rounded-lg p-4">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                  JD
+                </div>
+                <div>
+                  <h4 className="font-bold text-lg">Jordan Davis</h4>
+                  <p className="text-sm text-muted-foreground">#23 • Point Guard</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                    <span className="text-xs text-muted-foreground ml-1">127 HYPE</span>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                <div className="bg-background rounded-lg p-2 border text-center">
+                  <p className="text-lg font-bold text-green-500">18.5</p>
+                  <p className="text-xs text-muted-foreground">PPG</p>
+                </div>
+                <div className="bg-background rounded-lg p-2 border text-center">
+                  <p className="text-lg font-bold text-blue-500">7.2</p>
+                  <p className="text-xs text-muted-foreground">APG</p>
+                </div>
+                <div className="bg-background rounded-lg p-2 border text-center">
+                  <p className="text-lg font-bold text-purple-500">4.1</p>
+                  <p className="text-xs text-muted-foreground">RPG</p>
+                </div>
+              </div>
+              <div className="bg-background rounded-lg p-3 border">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">HYPE Card</span>
+                  <Badge variant="secondary" className="bg-orange-500/10 text-orange-500">Shareable</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Share your stats with college scouts and fans</p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Track your performance, view team plays, and build your shareable athlete profile.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeRoleModal === "Supporters"} onOpenChange={(open) => !open && setActiveRoleModal(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              Supporter Dashboard
+            </DialogTitle>
+            <DialogDescription>
+              Cheer loud, engage live, be part of the team
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="bg-muted rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b">
+                <div>
+                  <h4 className="font-bold">Following</h4>
+                  <p className="text-sm text-muted-foreground">Your athletes</p>
+                </div>
+                <div className="flex -space-x-2">
+                  <div className="w-8 h-8 bg-green-500 rounded-full border-2 border-background flex items-center justify-center text-white text-xs font-bold">JD</div>
+                  <div className="w-8 h-8 bg-blue-500 rounded-full border-2 border-background flex items-center justify-center text-white text-xs font-bold">MK</div>
+                  <div className="w-8 h-8 bg-orange-500 rounded-full border-2 border-background flex items-center justify-center text-white text-xs font-bold">+2</div>
+                </div>
+              </div>
+              <div className="bg-background rounded-lg p-3 border mb-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-4 h-4 text-orange-500" />
+                  <span className="text-sm font-medium">Game Day Live</span>
+                  <Badge className="bg-red-500 text-white text-xs ml-auto">LIVE</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">Eagles vs Hawks • 3rd Quarter</p>
+                <div className="flex gap-2 mt-2">
+                  <Button size="sm" variant="outline" className="text-xs gap-1">
+                    <Heart className="w-3 h-3" /> Send HYPE
+                  </Button>
+                  <Button size="sm" variant="outline" className="text-xs gap-1">
+                    <MessageCircle className="w-3 h-3" /> Shoutout
+                  </Button>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-background rounded p-2 border text-center">
+                  <Heart className="w-4 h-4 mx-auto mb-1 text-red-500" />
+                  <p className="text-lg font-bold">847</p>
+                  <p className="text-xs text-muted-foreground">Total HYPE</p>
+                </div>
+                <div className="bg-background rounded p-2 border text-center">
+                  <Trophy className="w-4 h-4 mx-auto mb-1 text-yellow-500" />
+                  <p className="text-lg font-bold">12</p>
+                  <p className="text-xs text-muted-foreground">Badges Earned</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Follow athletes, send live shoutouts, earn badges, and be the ultimate fan.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
