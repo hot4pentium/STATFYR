@@ -41,22 +41,26 @@ export default function LandingPage() {
         {
           icon: Users,
           title: "Team Management",
-          description: "Organize rosters, assign roles, and manage your entire team from one dashboard."
+          description: "Organize rosters, assign roles, and manage your entire team from one dashboard.",
+          hasModal: true
         },
         {
           icon: BarChart3,
           title: "Live Stat Tracking",
-          description: "Track game stats in real-time with our intuitive StatTracker for any sport."
+          description: "Track game stats in real-time with our intuitive StatTracker for any sport.",
+          hasModal: false
         },
         {
           icon: Shield,
           title: "PlayMaker",
-          description: "Design and share plays with an interactive canvas-based play designer."
+          description: "Design and share plays with an interactive canvas-based play designer.",
+          hasModal: true
         },
         {
           icon: Trophy,
           title: "Season Management",
-          description: "Track records, archive seasons, and build your team's legacy over time."
+          description: "Track records, archive seasons, and build your team's legacy over time.",
+          hasModal: false
         }
       ]
     },
@@ -67,22 +71,26 @@ export default function LandingPage() {
         {
           icon: BarChart3,
           title: "Personal Stats",
-          description: "View your individual performance stats and track your progress over time."
+          description: "View your individual performance stats and track your progress over time.",
+          hasModal: true
         },
         {
           icon: Star,
           title: "HYPE Card",
-          description: "Build and share your personalized athlete profile with stats and highlights."
+          description: "Build and share your personalized athlete profile with stats and highlights.",
+          hasModal: false
         },
         {
           icon: Video,
           title: "Video Highlights",
-          description: "Showcase your best moments with personal highlight reels."
+          description: "Showcase your best moments with personal highlight reels.",
+          hasModal: false
         },
         {
           icon: ClipboardList,
           title: "Team Playbook",
-          description: "Access plays and strategies shared by your coach anytime."
+          description: "Access plays and strategies shared by your coach anytime.",
+          hasModal: true
         }
       ]
     },
@@ -93,22 +101,26 @@ export default function LandingPage() {
         {
           icon: Heart,
           title: "Follow Athletes",
-          description: "Follow your favorite athletes and stay updated on their performance."
+          description: "Follow your favorite athletes and stay updated on their performance.",
+          hasModal: false
         },
         {
           icon: Zap,
           title: "Game Day Live",
-          description: "Engage in real-time during games with live shoutouts and HYPE features."
+          description: "Engage in real-time during games with live shoutouts and HYPE features.",
+          hasModal: true
         },
         {
           icon: MessageCircle,
           title: "Send Shoutouts",
-          description: "Cheer on your athletes with personalized messages they'll see during games."
+          description: "Cheer on your athletes with personalized messages they'll see during games.",
+          hasModal: false
         },
         {
           icon: Trophy,
           title: "Earn Badges",
-          description: "Unlock badges and themes by supporting your athletes throughout the season."
+          description: "Unlock badges and themes by supporting your athletes throughout the season.",
+          hasModal: true
         }
       ]
     }
@@ -395,9 +407,9 @@ export default function LandingPage() {
                 {roleFeatures.coaches.features.map((feature) => (
                   <Card 
                     key={feature.title} 
-                    className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-blue-500/20"
+                    className={`transition-all border-blue-500/20 ${feature.hasModal ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'opacity-80'}`}
                     data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
-                    onClick={() => setActiveFeatureModal(feature.title)}
+                    onClick={feature.hasModal ? () => setActiveFeatureModal(feature.title) : undefined}
                   >
                     <CardContent className="pt-6">
                       <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4">
@@ -422,9 +434,9 @@ export default function LandingPage() {
                 {roleFeatures.athletes.features.map((feature) => (
                   <Card 
                     key={feature.title} 
-                    className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-green-500/20"
+                    className={`transition-all border-green-500/20 ${feature.hasModal ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'opacity-80'}`}
                     data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
-                    onClick={() => setActiveFeatureModal(feature.title)}
+                    onClick={feature.hasModal ? () => setActiveFeatureModal(feature.title) : undefined}
                   >
                     <CardContent className="pt-6">
                       <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center mb-4">
@@ -449,9 +461,9 @@ export default function LandingPage() {
                 {roleFeatures.supporters.features.map((feature) => (
                   <Card 
                     key={feature.title} 
-                    className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-purple-500/20"
+                    className={`transition-all border-purple-500/20 ${feature.hasModal ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'opacity-80'}`}
                     data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
-                    onClick={() => setActiveFeatureModal(feature.title)}
+                    onClick={feature.hasModal ? () => setActiveFeatureModal(feature.title) : undefined}
                   >
                     <CardContent className="pt-6">
                       <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center mb-4">
