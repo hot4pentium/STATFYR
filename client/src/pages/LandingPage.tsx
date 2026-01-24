@@ -72,7 +72,7 @@ export default function LandingPage() {
           icon: Star,
           title: "HYPE Card",
           description: "Build and share your personalized athlete profile with stats and highlights.",
-          hasModal: false
+          hasModal: true
         },
         {
           icon: BarChart3,
@@ -864,6 +864,29 @@ export default function LandingPage() {
             <p className="text-sm text-muted-foreground text-center">
               Create unlimited plays with our intuitive drag-and-drop designer
             </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "HYPE Card"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                <Star className="w-5 h-5 text-green-500" />
+              </div>
+              HYPE Card
+            </DialogTitle>
+            <DialogDescription>
+              Build and share your personalized athlete profile with stats and highlights
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <img 
+              src="/screenshots/hype-card.png" 
+              alt="HYPE Card showing athlete profile with stats and highlights" 
+              className="w-full rounded-lg border"
+            />
           </div>
         </DialogContent>
       </Dialog>
