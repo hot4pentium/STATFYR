@@ -13,6 +13,7 @@ type PlayItem = {
   name: string;
   type: string;
   tags: string[];
+  thumbnailData?: string | null;
 };
 
 function normalizePlay(play: any): PlayItem {
@@ -24,6 +25,7 @@ function normalizePlay(play: any): PlayItem {
     name: play.name,
     type: play.category || 'General',
     tags: [play.status || 'Active', play.category || 'General'].filter(Boolean),
+    thumbnailData: play.thumbnailData || null,
   };
 }
 
@@ -144,13 +146,23 @@ export default function PlaybookPage() {
               onClick={() => navigate(playUrl)}
             >
               <div className="h-48 bg-[#1a3c28] relative overflow-hidden border-b border-white/5 pattern-grid-lg">
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
-                <svg className="absolute inset-0 w-full h-full p-4" viewBox="0 0 100 100" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1">
-                  <circle cx="50" cy="50" r="10" strokeDasharray="4 4" />
-                  <line x1="10" y1="10" x2="40" y2="40" markerEnd="url(#arrow)" />
-                  <path d="M 60 60 Q 75 40 90 60" strokeDasharray="2 2" />
-                  <rect x="5" y="5" width="90" height="90" rx="2" strokeOpacity="0.2" />
-                </svg>
+                {play.thumbnailData ? (
+                  <img 
+                    src={play.thumbnailData} 
+                    alt={play.name} 
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <>
+                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
+                    <svg className="absolute inset-0 w-full h-full p-4" viewBox="0 0 100 100" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1">
+                      <circle cx="50" cy="50" r="10" strokeDasharray="4 4" />
+                      <line x1="10" y1="10" x2="40" y2="40" markerEnd="url(#arrow)" />
+                      <path d="M 60 60 Q 75 40 90 60" strokeDasharray="2 2" />
+                      <rect x="5" y="5" width="90" height="90" rx="2" strokeOpacity="0.2" />
+                    </svg>
+                  </>
+                )}
                 
                 <div className="absolute top-2 right-2">
                    <Badge variant="secondary" className="bg-black/50 backdrop-blur-sm text-white border-white/10 hover:bg-black/70">{play.type}</Badge>
