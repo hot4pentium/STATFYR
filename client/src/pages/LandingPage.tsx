@@ -713,7 +713,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "Team Management"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
@@ -738,7 +738,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "Live Stat Tracking"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
@@ -761,7 +761,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "Video Highlights"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
@@ -786,7 +786,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "Season Management"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
@@ -811,7 +811,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "Game Day Live"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
@@ -836,7 +836,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "PlayMaker"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
@@ -873,7 +873,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "HYPE Card"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
@@ -896,7 +896,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "Personal Stats"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
@@ -921,7 +921,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "Team Playbook"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
@@ -946,7 +946,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "Follow Athletes"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
@@ -971,7 +971,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "Send Shoutouts"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
@@ -996,7 +996,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "Earn Badges"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
