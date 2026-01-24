@@ -69,28 +69,28 @@ export default function LandingPage() {
       icon: TrendingUp,
       features: [
         {
-          icon: BarChart3,
-          title: "Personal Stats",
-          description: "View your individual performance stats and track your progress over time.",
-          hasModal: true
-        },
-        {
           icon: Star,
           title: "HYPE Card",
           description: "Build and share your personalized athlete profile with stats and highlights.",
           hasModal: false
         },
         {
-          icon: Video,
-          title: "Video Highlights",
-          description: "Showcase your best moments with personal highlight reels.",
-          hasModal: false
+          icon: BarChart3,
+          title: "Personal Stats",
+          description: "View your individual performance stats and track your progress over time.",
+          hasModal: true
         },
         {
           icon: ClipboardList,
           title: "Team Playbook",
           description: "Access plays and strategies shared by your coach anytime.",
           hasModal: true
+        },
+        {
+          icon: Video,
+          title: "Video Highlights",
+          description: "Showcase your best moments with personal highlight reels.",
+          hasModal: false
         }
       ]
     },
