@@ -33,38 +33,86 @@ import statfyrLogo from "@/assets/statfyr-fire-logo.png";
 export default function LandingPage() {
   const [activeRoleModal, setActiveRoleModal] = useState<string | null>(null);
   const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(null);
-  const features = [
-    {
+  const roleFeatures = {
+    coaches: {
+      color: "blue",
       icon: Users,
-      title: "Team Management",
-      description: "Organize rosters, assign roles, and manage your entire team from one dashboard."
+      features: [
+        {
+          icon: Users,
+          title: "Team Management",
+          description: "Organize rosters, assign roles, and manage your entire team from one dashboard."
+        },
+        {
+          icon: BarChart3,
+          title: "Live Stat Tracking",
+          description: "Track game stats in real-time with our intuitive StatTracker for any sport."
+        },
+        {
+          icon: Shield,
+          title: "PlayMaker",
+          description: "Design and share plays with an interactive canvas-based play designer."
+        },
+        {
+          icon: Trophy,
+          title: "Season Management",
+          description: "Track records, archive seasons, and build your team's legacy over time."
+        }
+      ]
     },
-    {
-      icon: BarChart3,
-      title: "Live Stat Tracking",
-      description: "Track game stats in real-time with our intuitive StatTracker for any sport."
+    athletes: {
+      color: "green",
+      icon: TrendingUp,
+      features: [
+        {
+          icon: BarChart3,
+          title: "Personal Stats",
+          description: "View your individual performance stats and track your progress over time."
+        },
+        {
+          icon: Star,
+          title: "HYPE Card",
+          description: "Build and share your personalized athlete profile with stats and highlights."
+        },
+        {
+          icon: Video,
+          title: "Video Highlights",
+          description: "Showcase your best moments with personal highlight reels."
+        },
+        {
+          icon: ClipboardList,
+          title: "Team Playbook",
+          description: "Access plays and strategies shared by your coach anytime."
+        }
+      ]
     },
-    {
-      icon: Video,
-      title: "Video Highlights",
-      description: "Upload and share game highlights to showcase your team's best moments."
-    },
-    {
-      icon: Trophy,
-      title: "Season Management",
-      description: "Track records, archive seasons, and build your team's legacy over time."
-    },
-    {
-      icon: Zap,
-      title: "Game Day Live",
-      description: "Engage supporters with live shoutouts and interactive HYPE features."
-    },
-    {
-      icon: Shield,
-      title: "PlayMaker",
-      description: "Design and share plays with an interactive canvas-based play designer."
+    supporters: {
+      color: "purple",
+      icon: Heart,
+      features: [
+        {
+          icon: Heart,
+          title: "Follow Athletes",
+          description: "Follow your favorite athletes and stay updated on their performance."
+        },
+        {
+          icon: Zap,
+          title: "Game Day Live",
+          description: "Engage in real-time during games with live shoutouts and HYPE features."
+        },
+        {
+          icon: MessageCircle,
+          title: "Send Shoutouts",
+          description: "Cheer on your athletes with personalized messages they'll see during games."
+        },
+        {
+          icon: Trophy,
+          title: "Earn Badges",
+          description: "Unlock badges and themes by supporting your athletes throughout the season."
+        }
+      ]
     }
-  ];
+  };
 
   const roles = [
     {
@@ -329,29 +377,93 @@ export default function LandingPage() {
       <section id="features" className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Everything Your Team Needs</h2>
+            <h2 className="text-3xl font-bold mb-4">Tools For Everyone</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              From practice to game day, STATFYR has the tools to help your team succeed.
+              Whether you're leading the team, playing the game, or cheering from the sidelines - STATFYR has you covered.
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature) => (
-              <Card 
-                key={feature.title} 
-                className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg"
-                data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
-                onClick={() => setActiveFeatureModal(feature.title)}
-              >
-                <CardContent className="pt-6">
-                  <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center mb-4">
-                    <feature.icon className="w-5 h-5 text-orange-500" />
-                  </div>
-                  <h3 className="font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feature.description}</p>
-                  <p className="text-xs text-primary mt-3">Click to see preview</p>
-                </CardContent>
-              </Card>
-            ))}
+          
+          <div className="space-y-12">
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold">For Coaches</h3>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {roleFeatures.coaches.features.map((feature) => (
+                  <Card 
+                    key={feature.title} 
+                    className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-blue-500/20"
+                    data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
+                    onClick={() => setActiveFeatureModal(feature.title)}
+                  >
+                    <CardContent className="pt-6">
+                      <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4">
+                        <feature.icon className="w-5 h-5 text-blue-500" />
+                      </div>
+                      <h4 className="font-semibold mb-2">{feature.title}</h4>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold">For Athletes</h3>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {roleFeatures.athletes.features.map((feature) => (
+                  <Card 
+                    key={feature.title} 
+                    className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-green-500/20"
+                    data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
+                    onClick={() => setActiveFeatureModal(feature.title)}
+                  >
+                    <CardContent className="pt-6">
+                      <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center mb-4">
+                        <feature.icon className="w-5 h-5 text-green-500" />
+                      </div>
+                      <h4 className="font-semibold mb-2">{feature.title}</h4>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                  <Heart className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold">For Supporters</h3>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {roleFeatures.supporters.features.map((feature) => (
+                  <Card 
+                    key={feature.title} 
+                    className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-purple-500/20"
+                    data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
+                    onClick={() => setActiveFeatureModal(feature.title)}
+                  >
+                    <CardContent className="pt-6">
+                      <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center mb-4">
+                        <feature.icon className="w-5 h-5 text-purple-500" />
+                      </div>
+                      <h4 className="font-semibold mb-2">{feature.title}</h4>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -582,8 +694,8 @@ export default function LandingPage() {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-orange-500" />
+              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                <Users className="w-5 h-5 text-blue-500" />
               </div>
               Team Management
             </DialogTitle>
@@ -607,8 +719,8 @@ export default function LandingPage() {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-orange-500" />
+              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-blue-500" />
               </div>
               Live Stat Tracking
             </DialogTitle>
@@ -632,8 +744,8 @@ export default function LandingPage() {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                <Video className="w-5 h-5 text-orange-500" />
+              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                <Video className="w-5 h-5 text-green-500" />
               </div>
               Video Highlights
             </DialogTitle>
@@ -657,8 +769,8 @@ export default function LandingPage() {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                <Trophy className="w-5 h-5 text-orange-500" />
+              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                <Trophy className="w-5 h-5 text-blue-500" />
               </div>
               Season Management
             </DialogTitle>
@@ -682,8 +794,8 @@ export default function LandingPage() {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-orange-500" />
+              <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 text-purple-500" />
               </div>
               Game Day Live
             </DialogTitle>
@@ -707,8 +819,8 @@ export default function LandingPage() {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                <Shield className="w-5 h-5 text-orange-500" />
+              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                <Shield className="w-5 h-5 text-blue-500" />
               </div>
               PlayMaker
             </DialogTitle>
@@ -722,6 +834,156 @@ export default function LandingPage() {
                 <Shield className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
                 <p className="text-muted-foreground">Screenshot placeholder</p>
                 <p className="text-xs text-muted-foreground/70 mt-1">Add playmaker.png to /client/public/screenshots/</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "Personal Stats"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-green-500" />
+              </div>
+              Personal Stats
+            </DialogTitle>
+            <DialogDescription>
+              View your individual performance stats and track your progress over time
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              <div className="text-center p-8">
+                <BarChart3 className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">Screenshot placeholder</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Add personal-stats.png to /client/public/screenshots/</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "HYPE Card"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                <Star className="w-5 h-5 text-green-500" />
+              </div>
+              HYPE Card
+            </DialogTitle>
+            <DialogDescription>
+              Build and share your personalized athlete profile with stats and highlights
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              <div className="text-center p-8">
+                <Star className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">Screenshot placeholder</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Add hype-card.png to /client/public/screenshots/</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "Team Playbook"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                <ClipboardList className="w-5 h-5 text-green-500" />
+              </div>
+              Team Playbook
+            </DialogTitle>
+            <DialogDescription>
+              Access plays and strategies shared by your coach anytime
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              <div className="text-center p-8">
+                <ClipboardList className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">Screenshot placeholder</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Add team-playbook.png to /client/public/screenshots/</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "Follow Athletes"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                <Heart className="w-5 h-5 text-purple-500" />
+              </div>
+              Follow Athletes
+            </DialogTitle>
+            <DialogDescription>
+              Follow your favorite athletes and stay updated on their performance
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              <div className="text-center p-8">
+                <Heart className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">Screenshot placeholder</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Add follow-athletes.png to /client/public/screenshots/</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "Send Shoutouts"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                <MessageCircle className="w-5 h-5 text-purple-500" />
+              </div>
+              Send Shoutouts
+            </DialogTitle>
+            <DialogDescription>
+              Cheer on your athletes with personalized messages they'll see during games
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              <div className="text-center p-8">
+                <MessageCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">Screenshot placeholder</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Add send-shoutouts.png to /client/public/screenshots/</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "Earn Badges"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                <Trophy className="w-5 h-5 text-purple-500" />
+              </div>
+              Earn Badges
+            </DialogTitle>
+            <DialogDescription>
+              Unlock badges and themes by supporting your athletes throughout the season
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              <div className="text-center p-8">
+                <Trophy className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">Screenshot placeholder</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Add earn-badges.png to /client/public/screenshots/</p>
               </div>
             </div>
           </div>
