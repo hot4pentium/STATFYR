@@ -9,7 +9,6 @@ import {
   Trophy, 
   Smartphone,
   ChevronRight,
-  Star,
   Shield,
   Zap,
   Check,
@@ -411,21 +410,6 @@ export default function LandingPage() {
               Get it on Google Play
             </Button>
           </div>
-        </div>
-      </section>
-
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-2xl text-center">
-          <div className="flex justify-center gap-1 mb-4">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-6 h-6 fill-yellow-500 text-yellow-500" />
-            ))}
-          </div>
-          <blockquote className="text-xl italic mb-4" data-testid="text-testimonial">
-            "STATFYR transformed how we manage our team. The live stat tracking 
-            and game day features keep our supporters engaged like never before."
-          </blockquote>
-          <p className="text-muted-foreground" data-testid="text-testimonial-author">— Youth Basketball Coach</p>
         </div>
       </section>
 
