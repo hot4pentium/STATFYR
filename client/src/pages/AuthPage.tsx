@@ -263,37 +263,9 @@ export default function AuthPage() {
                       New to STATFYR?
                     </span>
                   </div>
-                  <p className="text-center text-sm text-muted-foreground mb-3">
-                    Download the app to create your account
+                  <p className="text-center text-sm text-muted-foreground">
+                    Mobile app coming soon to iOS & Android
                   </p>
-                  <div className="flex justify-center gap-3">
-                    <a 
-                      href="https://apps.apple.com/app/statfyr" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="transition-transform hover:scale-105"
-                      data-testid="link-app-store"
-                    >
-                      <img 
-                        src="/app-store-badge.svg" 
-                        alt="Download on App Store" 
-                        className="h-10"
-                      />
-                    </a>
-                    <a 
-                      href="https://play.google.com/store/apps/details?id=com.statfyr.app" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="transition-transform hover:scale-105"
-                      data-testid="link-play-store"
-                    >
-                      <img 
-                        src="/google-play-badge.svg" 
-                        alt="Get it on Google Play" 
-                        className="h-10"
-                      />
-                    </a>
-                  </div>
                 </div>
               </form>
             </CardContent>
