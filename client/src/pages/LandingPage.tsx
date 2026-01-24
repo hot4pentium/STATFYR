@@ -76,6 +76,11 @@ export default function LandingPage() {
             <span className="text-2xl font-bold tracking-tight">STATF<span className="text-orange-500">Y</span>R</span>
           </div>
           <div className="flex items-center gap-4">
+            <a href="/auth" data-testid="link-login-header">
+              <Button variant="ghost" size="sm">
+                Log in
+              </Button>
+            </a>
             <a 
               href="https://apps.apple.com/app/statfyr" 
               target="_blank" 
