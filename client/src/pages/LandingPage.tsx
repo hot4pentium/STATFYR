@@ -100,8 +100,8 @@ export default function LandingPage() {
       features: [
         {
           icon: Heart,
-          title: "Follow Athletes",
-          description: "Follow your favorite athletes and stay updated on their performance.",
+          title: "Manage Athletes",
+          description: "Build your athlete's profile, even when their team is not connected to STATFYR.",
           hasModal: false
         },
         {
