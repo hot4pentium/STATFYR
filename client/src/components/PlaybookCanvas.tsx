@@ -281,11 +281,20 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       const drawWidth = width;
       const drawHeight = fullHeight;
       
-      // Draw full image rotated 90 degrees - canvas height handles the cropping
       ctx.save();
-      ctx.translate(drawWidth / 2, drawHeight / 2);
-      ctx.rotate(Math.PI / 2);
-      ctx.drawImage(img, -drawHeight / 2, -drawWidth / 2, drawHeight, drawWidth);
+      if (showFullCourt) {
+        // Full court: center the image
+        ctx.translate(drawWidth / 2, drawHeight / 2);
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(img, -drawHeight / 2, -drawWidth / 2, drawHeight, drawWidth);
+      } else {
+        // Half court: position so the goal is at top with full visibility
+        // We want to show one half of the field, starting from the goal line
+        ctx.translate(drawWidth / 2, 0);
+        ctx.rotate(Math.PI / 2);
+        // Draw so the top half is visible (goal at top)
+        ctx.drawImage(img, -height, -drawWidth / 2, drawHeight, drawWidth);
+      }
       ctx.restore();
     } else {
       ctx.fillStyle = "#228B22";
