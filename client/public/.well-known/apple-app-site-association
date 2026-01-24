@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAM_ID.com.statfyr.app",
+        "appID": "4A3BQUR9MQ.com.statfyr.app",
         "paths": [
           "/athlete/*",
           "/team/*",
@@ -16,6 +16,6 @@
     ]
   },
   "webcredentials": {
-    "apps": ["TEAM_ID.com.statfyr.app"]
+    "apps": ["4A3BQUR9MQ.com.statfyr.app"]
   }
 }
