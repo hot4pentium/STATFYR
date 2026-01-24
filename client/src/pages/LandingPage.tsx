@@ -48,7 +48,7 @@ export default function LandingPage() {
           icon: BarChart3,
           title: "Live Stat Tracking",
           description: "Track game stats in real-time with our intuitive StatTracker for any sport.",
-          hasModal: false
+          hasModal: true
         },
         {
           icon: Shield,
@@ -741,13 +741,11 @@ export default function LandingPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">
-            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
-              <div className="text-center p-8">
-                <BarChart3 className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-                <p className="text-muted-foreground">Screenshot placeholder</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">Add stat-tracking.png to /client/public/screenshots/</p>
-              </div>
-            </div>
+            <img 
+              src="/screenshots/live-stat-tracking.png" 
+              alt="Live Stat Tracking interface showing game score and stat buttons" 
+              className="w-full rounded-lg border"
+            />
           </div>
         </DialogContent>
       </Dialog>
