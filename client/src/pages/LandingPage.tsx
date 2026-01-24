@@ -8,7 +8,6 @@ import {
   Video, 
   Trophy, 
   Smartphone,
-  ChevronRight,
   Shield,
   Zap,
   Check,
@@ -121,6 +120,10 @@ export default function LandingPage() {
             for team management, live stat tracking, and game day engagement.
           </p>
           
+          <p className="text-lg font-medium mb-4" data-testid="text-download-app">
+            Download the App
+          </p>
+          
           <div className="flex flex-row gap-4 justify-center items-center mb-6">
             <a 
               href="https://apps.apple.com/app/statfyr" 
@@ -148,13 +151,7 @@ export default function LandingPage() {
             </a>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="gap-2" asChild>
-              <a href="#download" data-testid="button-download-app">
-                Download the App
-                <ChevronRight className="w-4 h-4" />
-              </a>
-            </Button>
+          <div className="flex justify-center">
             <Button size="lg" variant="outline" className="gap-2" asChild>
               <a href="#features" data-testid="button-see-features">
                 See Features
