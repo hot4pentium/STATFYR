@@ -90,7 +90,7 @@ export default function LandingPage() {
           icon: Video,
           title: "Video Highlights",
           description: "Showcase your best moments with personal highlight reels.",
-          hasModal: false
+          hasModal: true
         }
       ]
     },
@@ -941,6 +941,29 @@ export default function LandingPage() {
                 <p className="text-xs text-muted-foreground/70 mt-1">Add team-playbook.png to /client/public/screenshots/</p>
               </div>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={activeFeatureModal === "Video Highlights"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                <Video className="w-5 h-5 text-green-500" />
+              </div>
+              Video Highlights
+            </DialogTitle>
+            <DialogDescription>
+              Showcase your best moments with personal highlight reels
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <img 
+              src="/screenshots/video-highlights.png" 
+              alt="Video highlights player showing gameplay footage" 
+              className="w-full rounded-lg border"
+            />
           </div>
         </DialogContent>
       </Dialog>
