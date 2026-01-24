@@ -412,7 +412,7 @@ export default function LandingPage() {
                   return (
                     <Card 
                       key={feature.title} 
-                      className={`transition-all border-blue-500/20 ${feature.hasModal ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'opacity-70'} ${isEmphasized ? 'relative z-10 shadow-xl ring-2 ring-blue-500/30 lg:-ml-3 lg:-mr-3 scale-[1.02]' : ''}`}
+                      className={`transition-all border-blue-500/20 ${feature.hasModal ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'opacity-70'} ${isEmphasized ? 'relative z-10 shadow-xl ring-2 ring-orange-500/50 lg:-ml-3 lg:-mr-3 scale-[1.02] bg-gradient-to-br from-orange-500/10 to-transparent' : ''}`}
                       data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
                       onClick={feature.hasModal ? () => setActiveFeatureModal(feature.title) : undefined}
                     >
