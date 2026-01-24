@@ -87,7 +87,7 @@ export const demoPlays: Play[] = [
     name: "Pick and Roll",
     description: "Classic pick and roll play with the point guard and center. The guard uses the screen to create space for a drive or pass.",
     canvasData: basketballPlayCanvas,
-    thumbnailData: "/screenshots/playmaker-demo.png",
+    thumbnailData: "/screenshots/playmaker-demo.png?v=2",
     category: "Offense",
     status: "Active",
     createdAt: new Date().toISOString(),
