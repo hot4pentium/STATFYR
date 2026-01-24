@@ -47,7 +47,7 @@ export default function LandingPage() {
         {
           icon: BarChart3,
           title: "Live Stat Tracking",
-          description: "Track game stats in real-time with our intuitive StatTracker for any sport.",
+          description: "Track game stats in real-time. Move players in and out of game for specific stat tracking.",
           hasModal: true
         },
         {
@@ -743,7 +743,7 @@ export default function LandingPage() {
               Live Stat Tracking
             </DialogTitle>
             <DialogDescription>
-              Track game stats in real-time with our intuitive StatTracker for any sport
+              Track game stats in real-time. Move players in and out of game for specific stat tracking.
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">
