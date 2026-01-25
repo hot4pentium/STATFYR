@@ -841,50 +841,11 @@ export default function LandingPage() {
 
       <Dialog open={activeFeatureModal === "Send Shoutouts"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
         <DialogContent className="max-w-md bg-gray-900 border-gray-700 p-0 overflow-hidden">
-          <div className="bg-gray-800 p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <ThumbsUp className="w-5 h-5 text-orange-400" />
-              <span className="font-semibold text-white text-lg">Send Shoutouts</span>
-            </div>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full flex items-center justify-center overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face" alt="Kim Smith" className="w-full h-full object-cover" />
-                </div>
-                <div>
-                  <p className="font-medium text-white">Kim Smith</p>
-                  <p className="text-sm text-gray-400">#</p>
-                </div>
-              </div>
-              <span className="text-gray-400 cursor-pointer hover:text-white">Cancel</span>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-orange-500 hover:bg-orange-600 rounded-xl p-4 text-center cursor-pointer transition-all active:scale-95">
-                <Flame className="w-8 h-8 mx-auto mb-2 text-white" />
-                <span className="text-sm font-medium text-white">On Fire!</span>
-              </div>
-              <div className="bg-blue-500 hover:bg-blue-600 rounded-xl p-4 text-center cursor-pointer transition-all active:scale-95">
-                <Hand className="w-8 h-8 mx-auto mb-2 text-white" />
-                <span className="text-sm font-medium text-white">Keep Going!</span>
-              </div>
-              <div className="bg-amber-500 hover:bg-amber-600 rounded-xl p-4 text-center cursor-pointer transition-all active:scale-95">
-                <Star className="w-8 h-8 mx-auto mb-2 text-white" />
-                <span className="text-sm font-medium text-white">MVP!</span>
-              </div>
-              <div className="bg-pink-500 hover:bg-pink-600 rounded-xl p-4 text-center cursor-pointer transition-all active:scale-95">
-                <Heart className="w-8 h-8 mx-auto mb-2 text-white" />
-                <span className="text-sm font-medium text-white">Love It!</span>
-              </div>
-              <div className="bg-purple-500 hover:bg-purple-600 rounded-xl p-4 text-center cursor-pointer transition-all active:scale-95">
-                <Zap className="w-8 h-8 mx-auto mb-2 text-white" />
-                <span className="text-sm font-medium text-white">Electric!</span>
-              </div>
-              <div className="bg-amber-600 hover:bg-amber-700 rounded-xl p-4 text-center cursor-pointer transition-all active:scale-95">
-                <Trophy className="w-8 h-8 mx-auto mb-2 text-white" />
-                <span className="text-sm font-medium text-white">Champion!</span>
-              </div>
-            </div>
-          </div>
+          <img 
+            src="/screenshots/shoutouts-preview.png" 
+            alt="Send Shoutouts - Cheer on your athletes with personalized messages" 
+            className="w-full h-auto"
+          />
         </DialogContent>
       </Dialog>
 
