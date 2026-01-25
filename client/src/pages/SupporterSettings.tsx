@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, UserPlus, Trash2, Camera, Pencil } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
-import { CalendarSubscription } from "@/components/CalendarSubscription";
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -920,8 +919,6 @@ export default function SupporterSettings() {
               </div>
             </CardContent>
           </Card>
-
-          {contextUser && <CalendarSubscription userId={contextUser.id} />}
 
           {contextUser && (
             <DeleteAccountDialog

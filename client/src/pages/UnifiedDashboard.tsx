@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { OnboardingTour, type TourStep, type WelcomeModal } from "@/components/OnboardingTour";
 import { VideoUploader } from "@/components/VideoUploader";
@@ -53,7 +54,7 @@ import {
   startLiveSession, endLiveSession, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount,
   getManagedAthletes, getSupporterBadges, getAllBadges, getSupporterTapTotal, getActiveLiveSessions,
   getUserTeams, joinTeamByCode, getTeamEngagementStats, getTopTappers, getActiveTheme, getTeamPlayStats,
-  getGamePlayOutcomes, getConnectedSupporter, disconnectSupporter,
+  getGamePlayOutcomes, getConnectedSupporter, disconnectSupporter, getCalendarToken,
   type Team, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup,
   type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession, type ManagedAthlete,
   type TopTapper, type SupporterBadge, type BadgeDefinition, type TeamPlayStats, type GamePlayOutcomes
@@ -124,6 +125,9 @@ export default function UnifiedDashboard() {
   
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [calendarUrl, setCalendarUrl] = useState<string | null>(null);
+  const [isLoadingCalendarUrl, setIsLoadingCalendarUrl] = useState(false);
+  const [calendarUrlCopied, setCalendarUrlCopied] = useState(false);
   const [eventForm, setEventForm] = useState({
     type: "Practice", date: "", hour: "09", minute: "00", ampm: "AM",
     location: "", details: "", opponent: "", drinksAthleteId: "", snacksAthleteId: ""
@@ -1339,11 +1343,92 @@ export default function UnifiedDashboard() {
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
                 Upcoming Events
               </h3>
-              {(userRole === "coach" || isStaff) && (
-                <Button onClick={() => { resetEventForm(); setIsEventModalOpen(true); }} size="sm" className="gap-2">
-                  <Plus className="h-4 w-4" /> Add Event
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {user && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={async () => {
+                          if (!calendarUrl && !isLoadingCalendarUrl) {
+                            setIsLoadingCalendarUrl(true);
+                            try {
+                              const result = await getCalendarToken(user.id);
+                              setCalendarUrl(result.calendarUrl);
+                            } catch (error) {
+                              toast.error("Failed to get calendar link");
+                            } finally {
+                              setIsLoadingCalendarUrl(false);
+                            }
+                          }
+                        }}
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Subscribe
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="font-medium text-sm">Subscribe to Calendar</h4>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Add your team events to Google Calendar, Apple Calendar, or any calendar app.
+                          </p>
+                        </div>
+                        {isLoadingCalendarUrl ? (
+                          <div className="flex items-center justify-center py-4">
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                          </div>
+                        ) : calendarUrl ? (
+                          <div className="space-y-2">
+                            <div className="flex gap-2">
+                              <Input 
+                                readOnly 
+                                value={calendarUrl} 
+                                className="text-xs font-mono"
+                              />
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(calendarUrl);
+                                  setCalendarUrlCopied(true);
+                                  toast.success("Calendar URL copied!");
+                                  setTimeout(() => setCalendarUrlCopied(false), 2000);
+                                }}
+                              >
+                                {calendarUrlCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                            <Button
+                              size="sm"
+                              className="w-full gap-2"
+                              onClick={() => {
+                                const googleUrl = `https://www.google.com/calendar/render?cid=${encodeURIComponent(calendarUrl)}`;
+                                window.open(googleUrl, '_blank');
+                              }}
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Add to Google Calendar
+                            </Button>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground text-center py-2">
+                            Click Subscribe to generate your calendar link
+                          </p>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+                {(userRole === "coach" || isStaff) && (
+                  <Button onClick={() => { resetEventForm(); setIsEventModalOpen(true); }} size="sm" className="gap-2">
+                    <Plus className="h-4 w-4" /> Add Event
+                  </Button>
+                )}
+              </div>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
               {[...upcomingEvents].sort((a, b) => {
