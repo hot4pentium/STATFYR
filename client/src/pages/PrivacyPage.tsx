@@ -56,7 +56,7 @@ export default function PrivacyPage() {
         <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
           <Link href="/privacy" className="hover:text-white transition-colors" data-testid="link-footer-privacy">Privacy Policy</Link>
           <Link href="/cookies" className="hover:text-white transition-colors" data-testid="link-footer-cookies">Cookie Policy</Link>
-          <a href="mailto:support@statfyr.com" className="hover:text-white transition-colors" data-testid="link-footer-contact">Contact</a>
+          <Link href="/contact" className="hover:text-white transition-colors" data-testid="link-footer-contact">Contact</Link>
         </div>
         <p className="text-center text-sm text-muted-foreground mt-4" data-testid="text-footer-copyright">
           © 2026 STATFYR. All rights reserved.

@@ -70,6 +70,49 @@ export async function registerRoutes(
     });
   });
 
+  // Contact form submission
+  app.post("/api/contact", async (req, res) => {
+    try {
+      const { name, email, subject, message } = req.body;
+      
+      if (!name || !email || !message) {
+        return res.status(400).json({ error: "Name, email, and message are required" });
+      }
+
+      // Log the contact submission (in production, you'd send this via email)
+      console.log("Contact form submission:", { name, email, subject, message, timestamp: new Date().toISOString() });
+
+      // If Resend is configured, send an email notification
+      if (process.env.RESEND_API_KEY) {
+        try {
+          const { Resend } = await import("resend");
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          
+          await resend.emails.send({
+            from: "STATFYR Contact <noreply@statfyr.com>",
+            to: "support@statfyr.com",
+            subject: `[Contact Form] ${subject || "General Inquiry"} from ${name}`,
+            html: `
+              <h2>New Contact Form Submission</h2>
+              <p><strong>From:</strong> ${name} (${email})</p>
+              <p><strong>Subject:</strong> ${subject || "General Inquiry"}</p>
+              <p><strong>Message:</strong></p>
+              <p>${message.replace(/\n/g, "<br>")}</p>
+            `,
+          });
+        } catch (emailError) {
+          console.error("Failed to send contact email:", emailError);
+          // Still return success - the form was logged
+        }
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Contact form error:", error);
+      res.status(500).json({ error: "Failed to process contact form" });
+    }
+  });
+
   app.post("/api/auth/register", async (req, res) => {
     try {
       const parsed = insertUserSchema.parse(req.body);
