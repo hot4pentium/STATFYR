@@ -128,6 +128,7 @@ export default function UnifiedDashboard() {
   const [calendarUrl, setCalendarUrl] = useState<string | null>(null);
   const [isLoadingCalendarUrl, setIsLoadingCalendarUrl] = useState(false);
   const [calendarUrlCopied, setCalendarUrlCopied] = useState(false);
+  const [showCalendarHowTo, setShowCalendarHowTo] = useState(false);
   const [eventForm, setEventForm] = useState({
     type: "Practice", date: "", hour: "09", minute: "00", ampm: "AM",
     location: "", details: "", opponent: "", drinksAthleteId: "", snacksAthleteId: ""
@@ -1369,7 +1370,7 @@ export default function UnifiedDashboard() {
                         Subscribe
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-80">
+                    <PopoverContent className="w-96">
                       <div className="space-y-3">
                         <div>
                           <h4 className="font-medium text-sm">Subscribe to Calendar</h4>
@@ -1382,7 +1383,7 @@ export default function UnifiedDashboard() {
                             <Loader2 className="h-5 w-5 animate-spin" />
                           </div>
                         ) : calendarUrl ? (
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             <div className="flex gap-2">
                               <Input 
                                 readOnly 
@@ -1413,6 +1414,58 @@ export default function UnifiedDashboard() {
                               <ExternalLink className="h-4 w-4" />
                               Add to Google Calendar
                             </Button>
+                            
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="w-full text-xs text-muted-foreground"
+                              onClick={() => setShowCalendarHowTo(!showCalendarHowTo)}
+                            >
+                              {showCalendarHowTo ? "Hide instructions" : "How to add to your calendar"}
+                              <ChevronDown className={`h-3 w-3 ml-1 transition-transform ${showCalendarHowTo ? "rotate-180" : ""}`} />
+                            </Button>
+                            
+                            {showCalendarHowTo && (
+                              <div className="space-y-4 pt-2 border-t">
+                                <div>
+                                  <h5 className="font-medium text-xs flex items-center gap-2 mb-2">
+                                    <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5">Google Calendar</span>
+                                  </h5>
+                                  <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside">
+                                    <li>Click "Add to Google Calendar" above</li>
+                                    <li>Sign in to your Google account if prompted</li>
+                                    <li>Click "Add calendar" to confirm</li>
+                                    <li>Events will sync automatically!</li>
+                                  </ol>
+                                </div>
+                                
+                                <div>
+                                  <h5 className="font-medium text-xs flex items-center gap-2 mb-2">
+                                    <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5">Apple Calendar (iPhone/Mac)</span>
+                                  </h5>
+                                  <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside">
+                                    <li>Copy the calendar URL above</li>
+                                    <li>Open Settings → Calendar → Accounts</li>
+                                    <li>Tap "Add Account" → "Other"</li>
+                                    <li>Tap "Add Subscribed Calendar"</li>
+                                    <li>Paste the URL and tap "Next"</li>
+                                    <li>Tap "Save" - events will sync!</li>
+                                  </ol>
+                                </div>
+                                
+                                <div>
+                                  <h5 className="font-medium text-xs flex items-center gap-2 mb-2">
+                                    <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5">Outlook</span>
+                                  </h5>
+                                  <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside">
+                                    <li>Copy the calendar URL above</li>
+                                    <li>Open Outlook → Calendar view</li>
+                                    <li>Click "Add calendar" → "From internet"</li>
+                                    <li>Paste the URL and click "OK"</li>
+                                  </ol>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <p className="text-xs text-muted-foreground text-center py-2">
