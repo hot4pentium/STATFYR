@@ -13,6 +13,7 @@ import {
   getGameByEvent,
   getEvent,
   getGameRoster,
+  getTeamMembers,
   sendShoutout,
   sendTapBurst,
   getGameTapCount,
@@ -25,7 +26,8 @@ import {
   type GameRoster,
   type BadgeDefinition,
   type Event,
-  type LiveEngagementSession
+  type LiveEngagementSession,
+  type TeamMember
 } from "@/lib/api";
 import { enableKeepAwake, disableKeepAwake, getNetworkStatus, addNetworkListener } from "@/lib/capacitor";
 
@@ -107,6 +109,13 @@ export default function SupporterGameLive() {
     enabled: !!gameId,
   });
 
+  // Fallback: fetch team members when no game roster exists
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "members"],
+    queryFn: () => currentTeam?.id ? getTeamMembers(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam?.id && !gameId,
+  });
+
   // Use session-based tap count when we have a live session
   const { data: tapCountData, isError: tapQueryError, isSuccess: tapQuerySuccess } = useQuery({
     queryKey: ["/api/live-sessions", sessionId, "taps"],
@@ -163,7 +172,33 @@ export default function SupporterGameLive() {
     };
   }, [liveSession?.status, event]);
 
-  const inGamePlayers = roster.filter(r => r.isInGame);
+  // Use game roster if available, otherwise fall back to team athletes
+  const inGamePlayers: GameRoster[] = roster.length > 0 
+    ? roster.filter(r => r.isInGame)
+    : teamMembers
+        .filter((m: TeamMember) => m.role === "athlete")
+        .map((m: TeamMember) => ({
+          id: m.id,
+          gameId: "",
+          athleteId: m.userId,
+          isInGame: true,
+          jerseyNumber: m.user?.number ? String(m.user.number) : null,
+          position: m.user?.position || null,
+          createdAt: new Date().toISOString(),
+          athlete: {
+            id: m.userId,
+            username: m.user?.username || "",
+            email: m.user?.email || "",
+            role: "athlete" as const,
+            firstName: m.user?.firstName || "",
+            lastName: m.user?.lastName || "",
+            name: m.user?.name || `${m.user?.firstName || ""} ${m.user?.lastName || ""}`.trim(),
+            number: m.user?.number || null,
+            position: m.user?.position || null,
+            avatar: m.user?.avatar || null,
+            createdAt: m.user?.createdAt || new Date().toISOString(),
+          }
+        }));
 
   const checkForBadges = useCallback(async () => {
     if (user && currentTeam) {
