@@ -24,31 +24,13 @@ export default function PrivacyPage() {
       </header>
 
       <main className="container mx-auto px-4 py-12 max-w-4xl">
-        <h1 className="text-4xl font-display font-bold mb-8" data-testid="text-privacy-title">Privacy Policy</h1>
-        
-        <div className="prose prose-invert prose-lg max-w-none">
-          <p className="text-muted-foreground mb-8" data-testid="text-privacy-updated">
-            Last updated: January 2026
-          </p>
-
-          <div id="termly-privacy-policy" className="bg-white/5 rounded-lg p-8 border border-white/10" data-testid="container-privacy-policy">
-            <p className="text-center text-muted-foreground">
-              Privacy policy content will be displayed here.
-            </p>
-            <p className="text-center text-sm text-muted-foreground mt-4">
-              To embed your Termly privacy policy, replace this placeholder with your Termly embed code.
-            </p>
-          </div>
-
-          <div className="mt-12 space-y-6">
-            <h2 className="text-2xl font-semibold">Contact Us</h2>
-            <p className="text-muted-foreground">
-              If you have any questions about this Privacy Policy, please contact us at:
-            </p>
-            <p className="text-muted-foreground">
-              Email: privacy@statfyr.com
-            </p>
-          </div>
+        <div className="bg-white rounded-lg overflow-hidden" data-testid="container-privacy-policy">
+          <iframe
+            src="https://app.termly.io/policy-viewer/policy.html?policyUUID=b44f5182-a21b-4288-93de-f8c01023068e"
+            title="Privacy Policy"
+            className="w-full min-h-[800px] border-0"
+            style={{ minHeight: "80vh" }}
+          />
         </div>
       </main>
 
