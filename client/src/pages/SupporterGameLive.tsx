@@ -6,7 +6,17 @@ import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Flame, Heart, Star, Zap, Trophy, ThumbsUp, Sparkles, Hand, WifiOff } from "lucide-react";
+import { ArrowLeft, Flame, Heart, Star, Zap, Trophy, ThumbsUp, Sparkles, Hand, WifiOff, Square } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { 
   getGame,
@@ -22,6 +32,7 @@ import {
   getEventLiveSession,
   sendSessionTaps,
   getSessionTapCount,
+  endLiveSession,
   type Game, 
   type GameRoster,
   type BadgeDefinition,
@@ -55,6 +66,8 @@ export default function SupporterGameLive() {
   const [showHypeCheck, setShowHypeCheck] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [queryFailed, setQueryFailed] = useState(false);
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [isEndingSession, setIsEndingSession] = useState(false);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const tapCountRef = useRef<number>(0);
   const badgeCheckRef = useRef<NodeJS.Timeout | null>(null);
@@ -292,6 +305,22 @@ export default function SupporterGameLive() {
     }
   };
 
+  const handleEndSession = async () => {
+    if (!sessionId) return;
+    
+    setIsEndingSession(true);
+    try {
+      await endLiveSession(sessionId, user?.id);
+      toast.success("Game Day Live session ended");
+      setLocation("/supporter/dashboard");
+    } catch (error) {
+      toast.error("Failed to end session");
+    } finally {
+      setIsEndingSession(false);
+      setShowEndConfirm(false);
+    }
+  };
+
   if (!user || !currentTeam) {
     return null;
   }
@@ -348,10 +377,24 @@ export default function SupporterGameLive() {
                 {currentTeam.name} {event.opponent ? `vs ${event.opponent}` : event.title}
               </p>
             </div>
-            <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-              isActive ? "bg-green-500/20 text-green-500 animate-pulse" : "bg-muted text-muted-foreground"
-            }`}>
-              {isActive ? "LIVE" : "ENDED"}
+            <div className="flex items-center gap-2">
+              <div className={`px-3 py-1 rounded-full text-xs font-bold ${
+                isActive ? "bg-green-500/20 text-green-500 animate-pulse" : "bg-muted text-muted-foreground"
+              }`}>
+                {isActive ? "LIVE" : "ENDED"}
+              </div>
+              {liveSession?.status === "live" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-red-500 border-red-500/30 hover:bg-red-500/10"
+                  onClick={() => setShowEndConfirm(true)}
+                  data-testid="button-end-session"
+                >
+                  <Square className="h-3 w-3 mr-1" />
+                  End
+                </Button>
+              )}
             </div>
           </div>
 
@@ -547,6 +590,31 @@ export default function SupporterGameLive() {
           </div>
         </div>
       )}
+
+      <AlertDialog open={showEndConfirm} onOpenChange={setShowEndConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Square className="h-5 w-5 text-red-500" />
+              End Game Day Live?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will end the Game Day Live session. You can always start a new one later if needed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-end-session-cancel">Keep Going</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleEndSession}
+              className="bg-red-500 hover:bg-red-600"
+              disabled={isEndingSession}
+              data-testid="button-end-session-confirm"
+            >
+              {isEndingSession ? "Ending..." : "Yes, End Session"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
