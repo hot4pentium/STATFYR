@@ -474,13 +474,13 @@ export default function LandingPage() {
                 {roleFeatures.supporters.features.map((feature) => (
                   <Card 
                     key={feature.title} 
-                    className={`transition-all ${feature.title === "Game Day Live" ? 'border-orange-500 border-2 bg-orange-500/5 shadow-lg shadow-orange-500/20' : 'border-purple-500/20'} ${feature.hasModal ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'opacity-80'}`}
+                    className={`transition-all ${feature.title === "Game Day Live" || feature.title === "Send Shoutouts" ? 'border-orange-500 border-2 bg-orange-500/5 shadow-lg shadow-orange-500/20' : 'border-purple-500/20'} ${feature.hasModal ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'opacity-80'}`}
                     data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
                     onClick={feature.hasModal ? () => setActiveFeatureModal(feature.title) : undefined}
                   >
                     <CardContent className="pt-6">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${feature.title === "Game Day Live" ? 'bg-orange-500/20' : 'bg-purple-500/10'}`}>
-                        <feature.icon className={`w-5 h-5 ${feature.title === "Game Day Live" ? 'text-orange-500' : 'text-purple-500'}`} />
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${feature.title === "Game Day Live" || feature.title === "Send Shoutouts" ? 'bg-orange-500/20' : 'bg-purple-500/10'}`}>
+                        <feature.icon className={`w-5 h-5 ${feature.title === "Game Day Live" || feature.title === "Send Shoutouts" ? 'text-orange-500' : 'text-purple-500'}`} />
                       </div>
                       <h4 className="font-semibold mb-2">{feature.title}</h4>
                       <p className="text-sm text-muted-foreground">{feature.description}</p>
