@@ -1915,8 +1915,18 @@ export default function UnifiedDashboard() {
         )}
         {selectedCard === "highlights" && (
           <div className="space-y-4">
-            {currentTeam && user && (userRole === "coach" || isStaff || entitlements.canUploadHighlights) ? (
+            {currentTeam && user && userRole !== "athlete" && (userRole === "coach" || isStaff || entitlements.canUploadHighlights) ? (
               <VideoUploader teamId={currentTeam.id} userId={user.id} onUploadComplete={() => refetchHighlights()} />
+            ) : userRole === "athlete" ? (
+              <Card className="bg-card/60 backdrop-blur-sm border border-muted-foreground/20">
+                <CardContent className="p-4 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Video className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <p className="font-semibold text-foreground">Team Highlights</p>
+                  <p className="text-sm text-muted-foreground mt-1">View highlights from your team and supporter</p>
+                </CardContent>
+              </Card>
             ) : (
               <Card className="bg-card/60 backdrop-blur-sm border-dashed border-2 border-yellow-500/30">
                 <CardContent className="p-6 text-center">
@@ -2854,7 +2864,7 @@ export default function UnifiedDashboard() {
                             <div className="flex items-center gap-2">
                               <Check className="h-4 w-4 text-green-500" />
                               <span className="text-sm text-green-400">
-                                Connected to {connectedSupporterData?.supporter?.displayName || "Supporter"}
+                                Connected to {connectedSupporterData?.supporter?.name || "Supporter"}
                               </span>
                             </div>
                             <Button
