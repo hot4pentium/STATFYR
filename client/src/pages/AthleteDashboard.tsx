@@ -127,12 +127,15 @@ export default function AthleteDashboard() {
     refetchInterval: 30000,
   });
 
-  const { data: connectedSupporterData, refetch: refetchConnectedSupporter } = useQuery({
+  const { data: connectedSupporterData, refetch: refetchConnectedSupporter, isLoading: isLoadingSupporterConnection } = useQuery({
     queryKey: ["/api/athlete/connected-supporter", user?.id],
     queryFn: () => user ? getConnectedSupporter(user.id) : Promise.resolve({ connected: false, supporter: null }),
     enabled: !!user && user.role === 'athlete',
     refetchInterval: 30000,
   });
+  
+  // Helper to check if supporter is connected (defaults to false during loading)
+  const isSupporterConnected = connectedSupporterData?.connected === true;
 
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const handleDisconnectSupporter = async () => {
@@ -315,7 +318,7 @@ export default function AthleteDashboard() {
   ];
 
   // Filter nav cards based on supporter connection - highlights only when connected
-  const filteredNavCards = connectedSupporterData?.connected 
+  const filteredNavCards = isSupporterConnected 
     ? [...navCards.slice(0, 2), { id: "highlights", name: "Highlights", icon: Video, description: "Watch team highlight videos." }, navCards[2]]
     : navCards;
 
@@ -537,7 +540,7 @@ export default function AthleteDashboard() {
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs text-muted-foreground">Code:</span>
                   <span className="text-sm font-mono font-bold text-primary">{athleteCode || "Loading..."}</span>
-                  {athleteCode && !connectedSupporterData?.connected && (
+                  {athleteCode && !isSupporterConnected && (
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(athleteCode);
@@ -551,13 +554,13 @@ export default function AthleteDashboard() {
                       {copiedAthleteCode ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
                     </button>
                   )}
-                  {connectedSupporterData?.connected && (
+                  {isSupporterConnected && (
                     <Badge variant="outline" className="text-xs px-1.5 py-0 border-green-500/50 text-green-600 bg-green-500/10">
                       Connected
                     </Badge>
                   )}
                 </div>
-                {connectedSupporterData?.connected && connectedSupporterData.supporter && (
+                {isSupporterConnected && connectedSupporterData?.supporter && (
                   <div className="flex items-center gap-2 mt-1 text-xs">
                     <span className="text-muted-foreground">Linked to:</span>
                     <span className="font-medium text-foreground">{connectedSupporterData.supporter.name}</span>
@@ -573,7 +576,7 @@ export default function AthleteDashboard() {
                     </Button>
                   </div>
                 )}
-                {!connectedSupporterData?.connected && (
+                {!isSupporterConnected && (
                   <p className="text-xs text-muted-foreground mt-1">
                     Share your code with a parent/guardian to connect
                   </p>
@@ -600,7 +603,7 @@ export default function AthleteDashboard() {
           </div>
 
           {/* HYPE Cards - Only shown when connected to a supporter */}
-          {connectedSupporterData?.connected ? (
+          {isSupporterConnected ? (
             <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
               {/* HYPE Hub Card */}
               <Card 
@@ -677,7 +680,7 @@ export default function AthleteDashboard() {
           )}
 
           {/* Extended Profile Card - Pro Feature (only shown when connected to supporter) */}
-          {connectedSupporterData?.connected && (
+          {isSupporterConnected && (
           <Card className={`mb-6 border-yellow-500/30 ${tier === 'athlete_pro' || tier === 'coach_pro' ? 'bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-yellow-500/10' : 'bg-card/50'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
