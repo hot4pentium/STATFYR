@@ -294,7 +294,7 @@ export default function LandingPage() {
               <CardContent className="space-y-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="secondary">Free</Badge>
+                    <Badge variant="secondary">Always Free</Badge>
                   </div>
                   <ul className="space-y-1 text-sm text-muted-foreground">
                     <li className="flex items-center gap-2">
@@ -309,12 +309,17 @@ export default function LandingPage() {
                       <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
                       Access playbook
                     </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Connect with supporter
+                    </li>
                   </ul>
                 </div>
                 <div className="border-t pt-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge className="bg-green-500">Pro $2.99/mo</Badge>
+                    <Badge className="bg-purple-500">Via Supporter Pro</Badge>
                   </div>
+                  <p className="text-xs text-muted-foreground mb-2">Premium features unlock when your supporter upgrades:</p>
                   <ul className="space-y-1 text-sm">
                     <li className="flex items-center gap-2">
                       <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
