@@ -2883,7 +2883,7 @@ export default function UnifiedDashboard() {
                     ) : (
                       <>
                         {/* Not Connected: Show locked HYPE cards with code sharing prompt */}
-                        <Card className="bg-gray-800/50 border-gray-600/50 mb-3">
+                        <Card className="bg-gray-800/50 border-gray-600/50">
                           <CardContent className="p-4">
                             <div className="flex items-center gap-3 mb-3">
                               <div className="p-2 rounded-lg bg-orange-500/20">
@@ -2894,7 +2894,7 @@ export default function UnifiedDashboard() {
                                 <p className="text-xs text-muted-foreground">Connect with a parent/supporter to unlock</p>
                               </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-3 opacity-50 pointer-events-none">
+                            <div className="grid grid-cols-2 gap-3 opacity-50 pointer-events-none mb-4">
                               {/* Locked HYPE Hub Preview */}
                               <div className="p-3 rounded-lg border border-gray-600/50 bg-gray-700/30 flex flex-col items-center gap-2">
                                 <div className="p-2 rounded-lg bg-gray-600/50">
@@ -2910,42 +2910,35 @@ export default function UnifiedDashboard() {
                                 <span className="text-xs text-gray-500 font-medium">HYPE Card</span>
                               </div>
                             </div>
-                          </CardContent>
-                        </Card>
-                        {/* Share Athlete Code Card */}
-                        <Card className="bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/10 border-orange-500/30">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="p-2 rounded-lg bg-orange-500/20">
-                                <Heart className="h-5 w-5 text-orange-400" />
+                            {/* Share Code Section - Below Grid */}
+                            <div className="pt-3 border-t border-gray-600/30">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Heart className="h-4 w-4 text-orange-400" />
+                                <span className="text-sm font-medium">Share Your Code</span>
                               </div>
-                              <div className="flex-1">
-                                <h3 className="font-display font-bold text-sm uppercase tracking-wide">Share Your Code</h3>
-                                <p className="text-xs text-muted-foreground">Send to a parent to unlock HYPE features</p>
+                              <div className="flex items-center gap-2 p-2 bg-background/50 rounded-lg border border-orange-500/20">
+                                <code className="flex-1 text-lg font-mono text-orange-400 tracking-wider text-center">
+                                  {user?.athleteCode || "Loading..."}
+                                </code>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-orange-400 hover:text-orange-300 h-8"
+                                  onClick={() => {
+                                    if (user?.athleteCode) {
+                                      navigator.clipboard.writeText(user.athleteCode);
+                                      toast.success("Athlete code copied!");
+                                    }
+                                  }}
+                                  data-testid="button-copy-athlete-code"
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
                               </div>
+                              <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                                Send this code to a parent to unlock HYPE features
+                              </p>
                             </div>
-                            <div className="flex items-center gap-2 p-2 bg-background/50 rounded-lg border border-orange-500/20">
-                              <code className="flex-1 text-lg font-mono text-orange-400 tracking-wider text-center">
-                                {user?.athleteCode || "Loading..."}
-                              </code>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-orange-400 hover:text-orange-300 h-8"
-                                onClick={() => {
-                                  if (user?.athleteCode) {
-                                    navigator.clipboard.writeText(user.athleteCode);
-                                    toast.success("Athlete code copied!");
-                                  }
-                                }}
-                                data-testid="button-copy-athlete-code"
-                              >
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                              Your parent enters this code in their Supporter app to connect with you
-                            </p>
                           </CardContent>
                         </Card>
                       </>
