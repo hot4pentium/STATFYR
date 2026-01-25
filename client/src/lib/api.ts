@@ -42,6 +42,8 @@ export interface TeamMember {
   jerseyNumber?: string | null;
   position?: string | null;
   joinedAt?: string | null;
+  promotedToStaffAt?: string | null;
+  staffPromotionSeen?: boolean | null;
   user: User;
 }
 
@@ -182,6 +184,10 @@ export async function updateTeamMember(
 
 export async function removeTeamMember(teamId: string, userId: string, requesterId: string): Promise<void> {
   await apiRequest("DELETE", `/api/teams/${teamId}/members/${userId}?requesterId=${requesterId}`, {});
+}
+
+export async function markStaffPromotionSeen(teamId: string, userId: string): Promise<void> {
+  await apiRequest("POST", `/api/teams/${teamId}/members/${userId}/promotion-seen`, {});
 }
 
 export async function getTeamEvents(teamId: string): Promise<Event[]> {

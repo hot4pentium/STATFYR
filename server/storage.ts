@@ -575,6 +575,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTeamMember(teamId: string, userId: string, data: UpdateTeamMember): Promise<TeamMember | undefined> {
+    // Check if this is a promotion to staff
+    if (data.role === 'staff') {
+      // Get current member to check if it's actually a promotion
+      const [currentMember] = await db
+        .select()
+        .from(teamMembers)
+        .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)));
+      
+      // If they weren't staff before, track the promotion
+      if (currentMember && currentMember.role !== 'staff') {
+        (data as any).promotedToStaffAt = new Date();
+        (data as any).staffPromotionSeen = false;
+      }
+    }
+    
     const [member] = await db
       .update(teamMembers)
       .set(data)

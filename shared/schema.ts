@@ -46,6 +46,8 @@ export const teamMembers = pgTable("team_members", {
   jerseyNumber: text("jersey_number"),
   position: text("position"),
   joinedAt: timestamp("joined_at").defaultNow(),
+  promotedToStaffAt: timestamp("promoted_to_staff_at"),
+  staffPromotionSeen: boolean("staff_promotion_seen").default(false),
 });
 
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({

@@ -46,7 +46,7 @@ import { Link } from "wouter";
 import {
   getTeamMembers, getCoachTeams, getTeamEvents, createEvent, updateEvent, deleteEvent,
   getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, createPlay, updatePlay, deletePlay,
-  updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup,
+  updateTeamMember, removeTeamMember, getStartingLineup, saveStartingLineup, markStaffPromotionSeen,
   getTeamAggregateStats, getAdvancedTeamStats, getLiveSessionByEvent, createLiveSessionForEvent,
   startLiveSession, endLiveSession, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount,
   getManagedAthletes, getSupporterBadges, getAllBadges, getSupporterTapTotal, getActiveLiveSessions,
@@ -162,6 +162,10 @@ export default function UnifiedDashboard() {
   // Extended profile dialog state
   const [isExtendedProfileDialogOpen, setIsExtendedProfileDialogOpen] = useState(false);
   const [isManagedAthleteExtendedProfileOpen, setIsManagedAthleteExtendedProfileOpen] = useState(false);
+  
+  // Staff promotion celebration modal
+  const [showStaffCelebration, setShowStaffCelebration] = useState(false);
+  const [staffPromotionTeam, setStaffPromotionTeam] = useState<{ teamId: string; teamName: string } | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -212,6 +216,27 @@ export default function UnifiedDashboard() {
     if (isStaff) return "coach"; // Staff get coach-level feature access
     return userRole;
   }, [isStaff, userRole]);
+
+  // Check for unseen staff promotion and show celebration
+  useEffect(() => {
+    if (currentMembership && currentMembership.role === "staff" && 
+        currentMembership.promotedToStaffAt && !currentMembership.staffPromotionSeen && currentTeam) {
+      setStaffPromotionTeam({ teamId: currentTeam.id, teamName: currentTeam.name });
+      setShowStaffCelebration(true);
+    }
+  }, [currentMembership, currentTeam]);
+
+  const handleStaffCelebrationClose = async () => {
+    if (staffPromotionTeam && user) {
+      try {
+        await markStaffPromotionSeen(staffPromotionTeam.teamId, user.id);
+      } catch (error) {
+        console.error("Failed to mark promotion as seen:", error);
+      }
+    }
+    setShowStaffCelebration(false);
+    setStaffPromotionTeam(null);
+  };
 
   // Note: isIndependentAthlete and visibleCards are defined after managedAthletes query below
 
@@ -3921,6 +3946,33 @@ export default function UnifiedDashboard() {
         managedAthlete={selectedManagedAthlete}
         onSaved={() => queryClient.invalidateQueries({ queryKey: ["/api/supporter/managed-athletes"] })}
       />
+
+      {/* Staff Promotion Celebration Modal */}
+      {showStaffCelebration && staffPromotionTeam && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 animate-in fade-in duration-300">
+          <div className="bg-gradient-to-br from-orange-600 to-amber-500 p-8 rounded-3xl text-center animate-in zoom-in-95 duration-300 shadow-2xl max-w-sm mx-4">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold text-white mb-2">Congratulations!</h2>
+            <p className="text-white/90 text-lg font-semibold mb-1">You've been promoted to Staff!</p>
+            <p className="text-white/80 text-sm mb-6">
+              You now have expanded access on {staffPromotionTeam.teamName}. You can help manage the team, track stats, and more!
+            </p>
+            <div className="bg-white/20 rounded-lg px-4 py-3 mb-6">
+              <div className="flex items-center justify-center gap-2 text-white">
+                <Award className="h-5 w-5" />
+                <span className="font-medium">Staff Member</span>
+              </div>
+            </div>
+            <Button 
+              onClick={handleStaffCelebrationClose}
+              className="w-full bg-white text-orange-600 hover:bg-white/90 font-semibold"
+              data-testid="button-staff-celebration-close"
+            >
+              Let's Go!
+            </Button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

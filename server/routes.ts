@@ -764,6 +764,24 @@ export async function registerRoutes(
     }
   });
 
+  // Mark staff promotion as seen
+  app.post("/api/teams/:teamId/members/:userId/promotion-seen", async (req, res) => {
+    try {
+      const { teamId, userId } = req.params;
+      
+      const member = await storage.updateTeamMember(teamId, userId, { staffPromotionSeen: true } as any);
+      
+      if (!member) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to mark promotion as seen:", error);
+      res.status(500).json({ error: "Failed to update" });
+    }
+  });
+
   app.delete("/api/teams/:teamId/members/:userId", async (req, res) => {
     try {
       const { teamId, userId } = req.params;
