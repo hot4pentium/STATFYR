@@ -447,6 +447,8 @@ export default function UnifiedDashboard() {
   // Get the next upcoming game for Game Day Live (or current game with active session)
   const nextGame = useMemo(() => {
     const now = new Date();
+    // Start of today (midnight)
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
     // First check for any game with an active live session
     const activeSessionGame = teamEvents.find((e: Event) => 
@@ -454,10 +456,11 @@ export default function UnifiedDashboard() {
     );
     if (activeSessionGame) return activeSessionGame;
     
-    // Otherwise find next upcoming game
+    // Otherwise find next upcoming game (include games from today, not just future)
     const games = teamEvents.filter((e: Event) => {
       const d = parseTextDate(e.date);
-      return d && d >= now && e.type === "Game";
+      // Show games from today onwards (using start of today, not current time)
+      return d && d >= startOfToday && e.type === "Game";
     });
     games.sort((a: Event, b: Event) => {
       const da = parseTextDate(a.date);
