@@ -419,9 +419,17 @@ export default function UnifiedDashboard() {
     });
   }, [teamEvents]);
 
-  // Get the next upcoming game for Game Day Live
+  // Get the next upcoming game for Game Day Live (or current game with active session)
   const nextGame = useMemo(() => {
     const now = new Date();
+    
+    // First check for any game with an active live session
+    const activeSessionGame = teamEvents.find((e: Event) => 
+      e.type === "Game" && eventSessions[e.id]?.status === "live"
+    );
+    if (activeSessionGame) return activeSessionGame;
+    
+    // Otherwise find next upcoming game
     const games = teamEvents.filter((e: Event) => {
       const d = parseTextDate(e.date);
       return d && d >= now && e.type === "Game";
@@ -432,23 +440,37 @@ export default function UnifiedDashboard() {
       return (da?.getTime() || 0) - (db?.getTime() || 0);
     });
     return games[0] || null;
-  }, [teamEvents]);
+  }, [teamEvents, eventSessions]);
 
-  // Fetch session status for next game
+  // Fetch session status for all recent games (to detect active sessions)
   useEffect(() => {
-    if (!nextGame || !currentTeam) return;
-    const fetchSession = async () => {
-      try {
-        const session = await getLiveSessionByEvent(nextGame.id);
-        setEventSessions(prev => ({ ...prev, [nextGame.id]: session }));
-      } catch {
-        setEventSessions(prev => ({ ...prev, [nextGame.id]: null }));
+    if (!currentTeam || teamEvents.length === 0) return;
+    
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    
+    // Get all games from the past day and upcoming games
+    const recentGames = teamEvents.filter((e: Event) => {
+      if (e.type !== "Game") return false;
+      const d = parseTextDate(e.date);
+      return d && d >= oneDayAgo;
+    });
+    
+    const fetchSessions = async () => {
+      for (const game of recentGames) {
+        try {
+          const session = await getLiveSessionByEvent(game.id);
+          setEventSessions(prev => ({ ...prev, [game.id]: session }));
+        } catch {
+          setEventSessions(prev => ({ ...prev, [game.id]: null }));
+        }
       }
     };
-    fetchSession();
-    const interval = setInterval(fetchSession, 5000);
+    
+    fetchSessions();
+    const interval = setInterval(fetchSessions, 5000);
     return () => clearInterval(interval);
-  }, [nextGame?.id, currentTeam?.id]);
+  }, [teamEvents, currentTeam?.id]);
 
   // Handler for toggling Game Day Live session
   const handleToggleGameDayLive = async (event: Event) => {
