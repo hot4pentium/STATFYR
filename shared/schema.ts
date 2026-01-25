@@ -796,6 +796,36 @@ export const liveTapEventsRelations = relations(liveTapEvents, ({ one }) => ({
   }),
 }));
 
+// Game Day Live Guest Sessions - temporary access for guests via QR code
+export const gameDayGuests = pgTable("game_day_guests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().references(() => liveEngagementSessions.id),
+  invitedBy: varchar("invited_by").notNull().references(() => users.id), // The supporter who invited the guest
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  guestToken: varchar("guest_token", { length: 32 }).notNull().unique(), // Token for guest access (shared via QR)
+  guestName: text("guest_name"), // Optional name the guest provides
+  expiresAt: timestamp("expires_at").notNull(), // When the guest session expires (end of game day)
+  createdAt: timestamp("created_at").defaultNow(),
+  lastActiveAt: timestamp("last_active_at"),
+  tapCount: integer("tap_count").notNull().default(0), // Guest's contribution to taps
+  isActive: boolean("is_active").notNull().default(true),
+});
+
+export const gameDayGuestsRelations = relations(gameDayGuests, ({ one }) => ({
+  session: one(liveEngagementSessions, {
+    fields: [gameDayGuests.sessionId],
+    references: [liveEngagementSessions.id],
+  }),
+  inviter: one(users, {
+    fields: [gameDayGuests.invitedBy],
+    references: [users.id],
+  }),
+  team: one(teams, {
+    fields: [gameDayGuests.teamId],
+    references: [teams.id],
+  }),
+}));
+
 // Live Tap Totals - aggregated season totals per supporter per team
 export const liveTapTotals = pgTable("live_tap_totals", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -963,6 +993,16 @@ export type InsertLiveTapEvent = z.infer<typeof insertLiveTapEventSchema>;
 export type LiveTapEvent = typeof liveTapEvents.$inferSelect;
 export type UpsertLiveTapTotal = z.infer<typeof upsertLiveTapTotalSchema>;
 export type LiveTapTotal = typeof liveTapTotals.$inferSelect;
+
+// Game Day Guest schemas
+export const insertGameDayGuestSchema = createInsertSchema(gameDayGuests).omit({
+  id: true,
+  createdAt: true,
+  lastActiveAt: true,
+});
+
+export type InsertGameDayGuest = z.infer<typeof insertGameDayGuestSchema>;
+export type GameDayGuest = typeof gameDayGuests.$inferSelect;
 
 // Badge schemas
 export const insertBadgeDefinitionSchema = createInsertSchema(badgeDefinitions).omit({

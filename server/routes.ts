@@ -3812,6 +3812,10 @@ export async function registerRoutes(
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
       }
+      
+      // Deactivate all guest sessions when the main session ends
+      await storage.deactivateSessionGuests(req.params.sessionId);
+      
       res.json(session);
     } catch (error) {
       console.error("Error ending live session:", error);
@@ -3985,6 +3989,196 @@ export async function registerRoutes(
     }
   });
 
+  // ============ GAME DAY GUEST ACCESS (QR Code Invites) ============
+
+  // Generate QR code invite for a guest to join Game Day Live
+  app.post("/api/live-sessions/:sessionId/invite-guest", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { sessionId } = req.params;
+      const session = await storage.getLiveSession(sessionId);
+      
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      if (session.status !== "live") {
+        return res.status(400).json({ error: "Session is not currently live" });
+      }
+
+      // Authorization: verify user is a team member (supporter, coach, staff, or athlete)
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      const teamMembership = await storage.getTeamMember(session.teamId, userId);
+      if (!teamMembership) {
+        // Allow if user is a supporter following an athlete on the team
+        const supporterLinks = await storage.getSupporterAthleteLinks(userId);
+        const isConnectedToTeam = supporterLinks.some(link => 
+          link.teamId === session.teamId || link.athlete?.claimedBySupporterId === userId
+        );
+        
+        if (!isConnectedToTeam) {
+          return res.status(403).json({ error: "You must be a team member or connected supporter to invite guests" });
+        }
+      }
+
+      // Generate a unique token for the guest
+      const crypto = await import('crypto');
+      const guestToken = crypto.randomBytes(16).toString('hex');
+
+      // Set expiration to end of session or 4 hours from now, whichever is sooner
+      const fourHoursFromNow = new Date(Date.now() + 4 * 60 * 60 * 1000);
+      const expiresAt = session.scheduledEnd && session.scheduledEnd < fourHoursFromNow
+        ? session.scheduledEnd
+        : fourHoursFromNow;
+
+      const guest = await storage.createGameDayGuest({
+        sessionId,
+        invitedBy: userId,
+        teamId: session.teamId,
+        guestToken,
+        expiresAt,
+        isActive: true,
+        tapCount: 0,
+      });
+
+      res.json({
+        success: true,
+        guestToken,
+        expiresAt,
+        inviteUrl: `/game-day/guest/${guestToken}`,
+      });
+    } catch (error) {
+      console.error("Failed to create guest invite:", error);
+      res.status(500).json({ error: "Failed to create guest invite" });
+    }
+  });
+
+  // Join as guest using token
+  app.post("/api/game-day/join-as-guest", async (req, res) => {
+    try {
+      const { token, guestName } = req.body;
+      
+      if (!token) {
+        return res.status(400).json({ error: "Guest token is required" });
+      }
+
+      const guest = await storage.getGameDayGuestByToken(token);
+      
+      if (!guest) {
+        return res.status(404).json({ error: "Invalid or expired invite" });
+      }
+
+      // Check if expired
+      if (new Date() > guest.expiresAt) {
+        return res.status(400).json({ error: "This invite has expired" });
+      }
+
+      // Get session info
+      const session = await storage.getLiveSession(guest.sessionId);
+      if (!session || session.status !== "live") {
+        return res.status(400).json({ error: "Session is no longer active" });
+      }
+
+      // Get team info
+      const team = await storage.getTeam(guest.teamId);
+
+      res.json({
+        success: true,
+        guestId: guest.id,
+        sessionId: guest.sessionId,
+        teamId: guest.teamId,
+        teamName: team?.name,
+        expiresAt: guest.expiresAt,
+      });
+    } catch (error) {
+      console.error("Failed to join as guest:", error);
+      res.status(500).json({ error: "Failed to join as guest" });
+    }
+  });
+
+  // Guest taps (anonymous tapping) - token-based, no auth required
+  app.post("/api/game-day/guest/:token/tap", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { tapCount = 1 } = req.body;
+
+      const guest = await storage.getGameDayGuestByToken(token);
+      if (!guest) {
+        return res.status(404).json({ error: "Invalid guest session" });
+      }
+
+      // Check if expired or inactive
+      if (new Date() > guest.expiresAt || !guest.isActive) {
+        return res.status(400).json({ error: "Guest session has expired" });
+      }
+
+      // Also verify the session is still live
+      const session = await storage.getLiveSession(guest.sessionId);
+      if (!session || session.status !== "live") {
+        return res.status(400).json({ error: "Game session is no longer active" });
+      }
+
+      // Update guest tap count
+      const updated = await storage.updateGameDayGuestTaps(guest.id, tapCount);
+
+      // Also record as a live tap event attributed to the inviter
+      await storage.createSessionTapEvent({
+        sessionId: guest.sessionId,
+        supporterId: guest.invitedBy, // Attribute to inviter for totals
+        teamId: guest.teamId,
+        tapCount,
+      });
+
+      res.json({
+        success: true,
+        guestTapCount: updated?.tapCount || 0,
+      });
+    } catch (error) {
+      console.error("Failed to record guest tap:", error);
+      res.status(500).json({ error: "Failed to record tap" });
+    }
+  });
+
+  // Get session guests (for supporter to see who joined)
+  app.get("/api/live-sessions/:sessionId/guests", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      
+      const session = await storage.getLiveSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      const guests = await storage.getSessionGuests(sessionId);
+      
+      res.json({
+        guests: guests.map(g => ({
+          id: g.id,
+          guestName: g.guestName,
+          tapCount: g.tapCount,
+          joinedAt: g.createdAt,
+          lastActiveAt: g.lastActiveAt,
+          isActive: g.isActive,
+        })),
+        totalGuestTaps: guests.reduce((sum, g) => sum + g.tapCount, 0),
+      });
+    } catch (error) {
+      console.error("Failed to get session guests:", error);
+      res.status(500).json({ error: "Failed to get guests" });
+    }
+  });
+
   // ============ AUTO SESSION MANAGEMENT (called on app load) ============
 
   // Check and auto-start/end sessions based on time
@@ -4038,6 +4232,8 @@ export async function registerRoutes(
             const endTime = session.extendedUntil || session.scheduledEnd;
             if (endTime && now >= new Date(endTime.getTime() + autoEndBuffer)) {
               await storage.endLiveSession(session.id);
+              // Also deactivate all guest sessions when auto-ending
+              await storage.deactivateSessionGuests(session.id);
               results.autoEnded.push(session.id);
             }
           }
@@ -4982,7 +5178,7 @@ export async function registerRoutes(
 
   // ==================== Supporter Athlete Following ====================
   
-  // Get supporter's followed athletes
+  // Get supporter's followed athletes (includes HYPE claim status)
   app.get("/api/supporter/following", async (req, res) => {
     try {
       const oauthUser = (req as any).user?.claims?.sub;
@@ -4994,7 +5190,15 @@ export async function registerRoutes(
       }
 
       const links = await storage.getSupporterAthleteLinks(userId);
-      res.json({ following: links });
+      
+      // Enrich with HYPE claim status - supporter has claimed this athlete if claimedBySupporterId matches
+      const enrichedLinks = links.map(link => ({
+        ...link,
+        isClaimedByMe: link.athlete.claimedBySupporterId === userId,
+        canAccessHypeFeatures: link.athlete.claimedBySupporterId === userId,
+      }));
+      
+      res.json({ following: enrichedLinks });
     } catch (error) {
       console.error("Failed to get followed athletes:", error);
       res.status(500).json({ error: "Failed to get followed athletes" });
@@ -5159,7 +5363,78 @@ export async function registerRoutes(
     }
   });
 
-  // Follow athlete by athlete code
+  // Claim athlete by code (one supporter per athlete for HYPE features)
+  app.post("/api/supporter/claim-athlete", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      // Verify user is a supporter
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'supporter') {
+        return res.status(403).json({ error: "Only supporters can claim athlete codes" });
+      }
+
+      const { code } = req.body;
+      if (!code) {
+        return res.status(400).json({ error: "Athlete code is required" });
+      }
+
+      // Find athlete by their personal code
+      const athlete = await storage.findAthleteByCode(code.toUpperCase());
+      if (!athlete) {
+        return res.status(404).json({ error: "Invalid athlete code" });
+      }
+
+      // Check if code is already claimed (pre-check, actual atomic check happens in storage)
+      if (athlete.athleteCodeClaimed) {
+        return res.status(400).json({ error: "This athlete is already connected to a supporter" });
+      }
+
+      // Claim the athlete code (storage method should use atomic update with WHERE clause)
+      const claimedAthlete = await storage.claimAthleteCode(athlete.id, userId);
+      if (!claimedAthlete) {
+        return res.status(400).json({ error: "Failed to claim athlete. Code may have already been claimed." });
+      }
+
+      // Get one of the athlete's teams if they're on any
+      const athleteTeams = await storage.getTeamsByUserId(athlete.id);
+      const teamId = athleteTeams.length > 0 ? athleteTeams[0].id : null;
+
+      // Also create a supporter-athlete link for following
+      const existingLink = await storage.getSupporterAthleteLink(userId, athlete.id);
+      if (!existingLink) {
+        await storage.createSupporterAthleteLink({
+          supporterId: userId,
+          athleteId: athlete.id,
+          teamId,
+          nickname: null,
+        });
+      }
+
+      res.json({ 
+        success: true,
+        message: "You are now connected to this athlete and can access HYPE features",
+        athlete: {
+          id: claimedAthlete.id,
+          name: claimedAthlete.name || claimedAthlete.username || claimedAthlete.email,
+          position: claimedAthlete.position,
+          number: claimedAthlete.number,
+          profileImageUrl: claimedAthlete.profileImageUrl,
+        }
+      });
+    } catch (error) {
+      console.error("Failed to claim athlete:", error);
+      res.status(500).json({ error: "Failed to claim athlete" });
+    }
+  });
+
+  // Follow athlete by athlete code (for watching, not managing)
   app.post("/api/supporter/follow-by-code", async (req, res) => {
     try {
       const oauthUser = (req as any).user?.claims?.sub;
@@ -5213,6 +5488,70 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Failed to follow athlete by code:", error);
       res.status(500).json({ error: "Failed to follow athlete by code" });
+    }
+  });
+
+  // Athlete disconnects from supporter (releases code for new connection)
+  app.post("/api/athlete/disconnect-supporter", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'athlete') {
+        return res.status(403).json({ error: "Only athletes can disconnect from supporters" });
+      }
+
+      if (!user.athleteCodeClaimed) {
+        return res.status(400).json({ error: "No supporter is currently connected" });
+      }
+
+      // Release the claim and generate new code
+      const updatedAthlete = await storage.releaseAthleteCode(userId);
+      
+      res.json({
+        success: true,
+        message: "Disconnected from supporter. Your code has been regenerated.",
+        newCode: updatedAthlete?.athleteCode,
+      });
+    } catch (error) {
+      console.error("Failed to disconnect supporter:", error);
+      res.status(500).json({ error: "Failed to disconnect supporter" });
+    }
+  });
+
+  // Get athlete's connected supporter info
+  app.get("/api/athlete/connected-supporter", async (req, res) => {
+    try {
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const link = await storage.getAthleteSupporterLink(userId);
+      if (!link) {
+        return res.json({ connected: false, supporter: null });
+      }
+
+      res.json({
+        connected: true,
+        supporter: {
+          id: link.supporter.id,
+          name: link.supporter.name || link.supporter.firstName + ' ' + link.supporter.lastName,
+          profileImageUrl: link.supporter.profileImageUrl,
+        }
+      });
+    } catch (error) {
+      console.error("Failed to get connected supporter:", error);
+      res.status(500).json({ error: "Failed to get connected supporter" });
     }
   });
 

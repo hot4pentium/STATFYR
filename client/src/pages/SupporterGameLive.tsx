@@ -6,7 +6,8 @@ import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Flame, Heart, Star, Zap, Trophy, ThumbsUp, Sparkles, Hand, WifiOff, Square } from "lucide-react";
+import { ArrowLeft, Flame, Heart, Star, Zap, Trophy, ThumbsUp, Sparkles, Hand, WifiOff, Square, Users, QrCode } from "lucide-react";
+import { GuestInviteQR } from "@/components/gameday";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,6 +68,7 @@ export default function SupporterGameLive() {
   const [isOnline, setIsOnline] = useState(true);
   const [queryFailed, setQueryFailed] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [showGuestInvite, setShowGuestInvite] = useState(false);
   const [isEndingSession, setIsEndingSession] = useState(false);
   const [showRecap, setShowRecap] = useState(false);
   const [recapData, setRecapData] = useState<{
@@ -404,6 +406,18 @@ export default function SupporterGameLive() {
               }`}>
                 {isActive ? "LIVE" : "ENDED"}
               </div>
+              {liveSession?.status === "live" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-500 border-blue-500/30 hover:bg-blue-500/10"
+                  onClick={() => setShowGuestInvite(true)}
+                  data-testid="button-invite-guest"
+                >
+                  <QrCode className="h-3 w-3 mr-1" />
+                  Invite
+                </Button>
+              )}
               {liveSession?.status === "live" && (liveSession?.startedBy === user?.id || user?.role === "coach" || user?.role === "staff") && (
                 <Button
                   variant="outline"
@@ -675,6 +689,14 @@ export default function SupporterGameLive() {
             </Button>
           </div>
         </div>
+      )}
+
+      {sessionId && (
+        <GuestInviteQR
+          sessionId={sessionId}
+          open={showGuestInvite}
+          onOpenChange={setShowGuestInvite}
+        />
       )}
     </>
   );

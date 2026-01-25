@@ -51,6 +51,7 @@ import ThemeGallery from "@/pages/ThemeGallery";
 import SeasonHistoryPage from "@/pages/SeasonHistoryPage";
 import SupporterSeasonHistoryPage from "@/pages/SupporterSeasonHistoryPage";
 import LandingPage from "@/pages/LandingPage";
+import GuestGameDayLive from "@/pages/GuestGameDayLive";
 
 function Router() {
   // Handle Replit internal iframe paths - treat them as root
@@ -88,6 +89,7 @@ function Router() {
       <Route path="/supporter/hub" component={SupporterHypeHub} />
       <Route path="/supporter/game/:gameId" component={SupporterGameLive} />
       <Route path="/supporter/live/:sessionId" component={SupporterSessionLive} />
+      <Route path="/game-day/guest/:token" component={GuestGameDayLive} />
       <Route path="/supporter/themes" component={ThemeGallery} />
       <Route path="/supporter/hype-portal" component={SupporterHypeHub} />
       <Route path="/supporter/hype-card" component={AthleteHypeCardPage} />

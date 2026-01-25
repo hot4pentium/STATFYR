@@ -6,6 +6,7 @@ import {
   liveEngagementSessions, profileLikes, profileComments, fcmTokens, chatMessages, athleteFollowers, hypePosts,
   impersonationSessions, hypes, athleteHypeTotals, directMessages, messageReads, notificationPreferences,
   supporterAthleteLinks, supporterStats, subscriptions, adminMessages, seasonArchives,
+  gameDayGuests,
   type User, type InsertUser,
   type Team, type InsertTeam,
   type TeamMember, type InsertTeamMember, type UpdateTeamMember,
@@ -48,6 +49,7 @@ import {
   type AdminMessageReceipt, type InsertAdminMessageReceipt,
   type SeasonArchive, type InsertSeasonArchive,
   type SupporterSeasonArchive, type InsertSupporterSeasonArchive,
+  type GameDayGuest, type InsertGameDayGuest,
   adminMessageReceipts,
   chatPresence
 } from "@shared/schema";
@@ -236,6 +238,18 @@ export interface IStorage {
   getSessionTapCount(sessionId: string): Promise<number>;
   createSessionShoutout(data: { sessionId: string; supporterId: string; athleteId: string; message: string }): Promise<Shoutout>;
   createSessionTapEvent(data: { sessionId: string; supporterId: string; teamId: string; tapCount: number }): Promise<LiveTapEvent>;
+  
+  // Game Day Guest methods (QR code access for temporary participants)
+  createGameDayGuest(data: InsertGameDayGuest): Promise<GameDayGuest>;
+  getGameDayGuestByToken(token: string): Promise<GameDayGuest | undefined>;
+  getSessionGuests(sessionId: string): Promise<GameDayGuest[]>;
+  updateGameDayGuestTaps(id: string, incrementBy: number): Promise<GameDayGuest | undefined>;
+  deactivateSessionGuests(sessionId: string): Promise<void>;
+  
+  // Athlete code claim methods (one supporter per athlete)
+  claimAthleteCode(athleteId: string, supporterId: string): Promise<User | undefined>;
+  releaseAthleteCode(athleteId: string): Promise<User | undefined>;
+  getAthleteSupporterLink(athleteId: string): Promise<{ supporter: User } | undefined>;
   
   // Team engagement stats
   getTeamEngagementStats(teamId: string): Promise<{ totalTaps: number; totalShoutouts: number }>;
@@ -1906,6 +1920,91 @@ export class DatabaseStorage implements IStorage {
     return event;
   }
 
+  // Game Day Guest methods
+  async createGameDayGuest(data: InsertGameDayGuest): Promise<GameDayGuest> {
+    const [guest] = await db.insert(gameDayGuests).values(data).returning();
+    return guest;
+  }
+
+  async getGameDayGuestByToken(token: string): Promise<GameDayGuest | undefined> {
+    const [guest] = await db
+      .select()
+      .from(gameDayGuests)
+      .where(and(
+        eq(gameDayGuests.guestToken, token),
+        eq(gameDayGuests.isActive, true)
+      ));
+    return guest;
+  }
+
+  async getSessionGuests(sessionId: string): Promise<GameDayGuest[]> {
+    return db
+      .select()
+      .from(gameDayGuests)
+      .where(eq(gameDayGuests.sessionId, sessionId));
+  }
+
+  async updateGameDayGuestTaps(id: string, incrementBy: number): Promise<GameDayGuest | undefined> {
+    const [updated] = await db
+      .update(gameDayGuests)
+      .set({ 
+        tapCount: sql`${gameDayGuests.tapCount} + ${incrementBy}`,
+        lastActiveAt: new Date()
+      })
+      .where(eq(gameDayGuests.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deactivateSessionGuests(sessionId: string): Promise<void> {
+    await db
+      .update(gameDayGuests)
+      .set({ isActive: false })
+      .where(eq(gameDayGuests.sessionId, sessionId));
+  }
+
+  // Athlete code claim methods (one supporter per athlete)
+  async claimAthleteCode(athleteId: string, supporterId: string): Promise<User | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set({
+        athleteCodeClaimed: true,
+        claimedBySupporterId: supporterId,
+      })
+      .where(and(
+        eq(users.id, athleteId),
+        eq(users.athleteCodeClaimed, false)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async releaseAthleteCode(athleteId: string): Promise<User | undefined> {
+    const code = await this.generateAndSetAthleteCode(athleteId);
+    const [updated] = await db
+      .update(users)
+      .set({
+        athleteCodeClaimed: false,
+        claimedBySupporterId: null,
+        athleteCode: code,
+      })
+      .where(eq(users.id, athleteId))
+      .returning();
+    return updated;
+  }
+
+  async getAthleteSupporterLink(athleteId: string): Promise<{ supporter: User } | undefined> {
+    const [athlete] = await db.select().from(users).where(eq(users.id, athleteId));
+    if (!athlete || !athlete.claimedBySupporterId) {
+      return undefined;
+    }
+    const supporter = await this.getUser(athlete.claimedBySupporterId);
+    if (!supporter) {
+      return undefined;
+    }
+    return { supporter };
+  }
+
   async getTeamEngagementStats(teamId: string): Promise<{ totalTaps: number; totalShoutouts: number }> {
     // Get total taps from liveTapTotals for the team
     const [tapsResult] = await db
@@ -2217,6 +2316,8 @@ export class DatabaseStorage implements IStorage {
         deletedAt: users.deletedAt,
         deletionScheduledFor: users.deletionScheduledFor,
         loginDisabled: users.loginDisabled,
+        athleteCodeClaimed: users.athleteCodeClaimed,
+        claimedBySupporterId: users.claimedBySupporterId,
       })
       .from(users)
       .where(

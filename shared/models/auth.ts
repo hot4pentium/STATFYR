@@ -52,6 +52,10 @@ export const users = pgTable("users", {
   resetTokenExpiry: timestamp("reset_token_expiry"),
   // Athlete personal code for supporters to follow
   athleteCode: varchar("athlete_code", { length: 8 }).unique(),
+  // Whether this athlete's code has been claimed by a supporter (one supporter per athlete)
+  athleteCodeClaimed: boolean("athlete_code_claimed").notNull().default(false),
+  // ID of the supporter who claimed/manages this athlete
+  claimedBySupporterId: varchar("claimed_by_supporter_id"),
   // Extended profile fields for paid athletes (Athlete Pro)
   height: text("height"), // e.g., "5'10" or "178cm"
   weight: text("weight"), // e.g., "165 lbs" or "75kg"
