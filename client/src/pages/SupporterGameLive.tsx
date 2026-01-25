@@ -68,6 +68,12 @@ export default function SupporterGameLive() {
   const [queryFailed, setQueryFailed] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [isEndingSession, setIsEndingSession] = useState(false);
+  const [showRecap, setShowRecap] = useState(false);
+  const [recapData, setRecapData] = useState<{
+    totalTaps: number;
+    myTaps: number;
+    duration: string;
+  } | null>(null);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const tapCountRef = useRef<number>(0);
   const badgeCheckRef = useRef<NodeJS.Timeout | null>(null);
@@ -310,14 +316,29 @@ export default function SupporterGameLive() {
     
     setIsEndingSession(true);
     try {
+      // Calculate session duration
+      const startTime = liveSession?.startedAt ? new Date(liveSession.startedAt) : new Date();
+      const endTime = new Date();
+      const durationMs = endTime.getTime() - startTime.getTime();
+      const minutes = Math.floor(durationMs / 60000);
+      const hours = Math.floor(minutes / 60);
+      const remainingMins = minutes % 60;
+      const duration = hours > 0 ? `${hours}h ${remainingMins}m` : `${minutes}m`;
+      
+      // Set recap data before ending
+      setRecapData({
+        totalTaps: sessionTapCount || 0,
+        myTaps: localTapCount + gameTapCount,
+        duration
+      });
+      
       await endLiveSession(sessionId, user?.id);
-      toast.success("Game Day Live session ended");
-      setLocation("/supporter/dashboard");
+      setShowEndConfirm(false);
+      setShowRecap(true);
     } catch (error) {
       toast.error("Failed to end session");
     } finally {
       setIsEndingSession(false);
-      setShowEndConfirm(false);
     }
   };
 
@@ -615,6 +636,46 @@ export default function SupporterGameLive() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Session Recap Modal */}
+      {showRecap && recapData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 animate-in fade-in duration-300">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-orange-500/30 p-8 rounded-3xl text-center animate-in zoom-in-95 duration-300 shadow-2xl max-w-sm mx-4">
+            <div className="text-5xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold text-white mb-2">Game Day Recap</h2>
+            <p className="text-muted-foreground text-sm mb-6">
+              {currentTeam?.name} {event?.opponent ? `vs ${event.opponent}` : event?.title}
+            </p>
+            
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="bg-white/5 rounded-xl p-3">
+                <p className="text-2xl font-bold text-orange-400">{recapData.totalTaps.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Total HYPE</p>
+              </div>
+              <div className="bg-white/5 rounded-xl p-3">
+                <p className="text-2xl font-bold text-green-400">{recapData.myTaps.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Your Taps</p>
+              </div>
+              <div className="bg-white/5 rounded-xl p-3">
+                <p className="text-2xl font-bold text-blue-400">{recapData.duration}</p>
+                <p className="text-xs text-muted-foreground">Duration</p>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground mb-6">
+              Thanks for bringing the energy! 🔥
+            </p>
+            
+            <Button 
+              onClick={() => setLocation("/supporter/dashboard")}
+              className="w-full bg-orange-500 hover:bg-orange-600"
+              data-testid="button-recap-done"
+            >
+              Back to Dashboard
+            </Button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
