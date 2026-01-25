@@ -22,11 +22,7 @@ interface AthleteManagementDialogProps {
 type ConnectionPath = "team-follower" | "independent" | "claim-code" | null;
 type ViewState = "main" | "detail" | "add-form";
 
-const SPORTS_LIST = [
-  "Baseball", "Basketball", "Cheerleading", "Cross Country", "Field Hockey",
-  "Football", "Golf", "Gymnastics", "Ice Hockey", "Lacrosse", "Soccer",
-  "Softball", "Swimming", "Tennis", "Track & Field", "Volleyball", "Wrestling", "Other"
-];
+const SPORTS_LIST = ["Basketball", "Baseball", "Football", "Soccer", "Volleyball"];
 
 export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: AthleteManagementDialogProps) {
   const [selectedPath, setSelectedPath] = useState<ConnectionPath>(null);
