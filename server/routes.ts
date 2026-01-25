@@ -448,6 +448,13 @@ export async function registerRoutes(
   app.delete("/api/users/:id", async (req, res) => {
     try {
       const userId = req.params.id;
+      
+      // Authorization check - user can only delete their own account
+      const requesterId = req.headers["x-user-id"] as string;
+      if (!requesterId || requesterId !== userId) {
+        return res.status(403).json({ error: "You can only delete your own account" });
+      }
+      
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
@@ -479,6 +486,13 @@ export async function registerRoutes(
   app.post("/api/users/:id/reactivate", async (req, res) => {
     try {
       const userId = req.params.id;
+      
+      // Authorization check - user can only reactivate their own account
+      const requesterId = req.headers["x-user-id"] as string;
+      if (!requesterId || requesterId !== userId) {
+        return res.status(403).json({ error: "You can only reactivate your own account" });
+      }
+      
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -563,10 +577,24 @@ export async function registerRoutes(
   app.post("/api/teams/:id/hibernate", async (req, res) => {
     try {
       const teamId = req.params.id;
+      
+      // Authorization check - only team coach can hibernate the team
+      const requesterId = req.headers["x-user-id"] as string;
+      if (!requesterId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
       const team = await storage.getTeam(teamId);
       
       if (!team) {
         return res.status(404).json({ error: "Team not found" });
+      }
+      
+      // Check if requester is the team's coach
+      const teamMembers = await storage.getTeamMembers(teamId);
+      const isCoach = teamMembers.some(m => m.userId === requesterId && m.role === 'coach');
+      if (!isCoach) {
+        return res.status(403).json({ error: "Only the team coach can hibernate the team" });
       }
       
       if (team.hibernatedAt) {
@@ -592,10 +620,24 @@ export async function registerRoutes(
   app.post("/api/teams/:id/reactivate", async (req, res) => {
     try {
       const teamId = req.params.id;
+      
+      // Authorization check - only team coach can reactivate the team
+      const requesterId = req.headers["x-user-id"] as string;
+      if (!requesterId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
       const team = await storage.getTeam(teamId);
       
       if (!team) {
         return res.status(404).json({ error: "Team not found" });
+      }
+      
+      // Check if requester is the team's coach
+      const teamMembers = await storage.getTeamMembers(teamId);
+      const isCoach = teamMembers.some(m => m.userId === requesterId && m.role === 'coach');
+      if (!isCoach) {
+        return res.status(403).json({ error: "Only the team coach can reactivate the team" });
       }
       
       if (!team.hibernatedAt) {
@@ -4666,6 +4708,89 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Mark message read failed:", error);
       res.status(500).json({ error: "Failed to mark message as read" });
+    }
+  });
+
+  // ============ CLEANUP ENDPOINTS ============
+
+  // Run cleanup for expired deleted accounts and hibernated teams
+  // This can be called by a scheduled task or cron job
+  app.post("/api/admin/cleanup", requireSuperAdmin, async (req, res) => {
+    try {
+      const results = {
+        deletedUsers: 0,
+        deletedTeams: 0,
+        errors: [] as string[],
+      };
+
+      // Clean up users pending deletion (30 days after soft delete)
+      const usersPendingDeletion = await storage.getUsersPendingDeletion();
+      for (const user of usersPendingDeletion) {
+        try {
+          await storage.permanentlyDeleteUser(user.id);
+          results.deletedUsers++;
+          console.log(`Permanently deleted user ${user.id} (${user.email})`);
+        } catch (error: any) {
+          const errorMsg = `Failed to delete user ${user.id}: ${error.message}`;
+          results.errors.push(errorMsg);
+          console.error(errorMsg);
+        }
+      }
+
+      // Clean up hibernated teams (60 days after hibernation)
+      const teamsPendingDeletion = await storage.getTeamsPendingDeletion();
+      for (const team of teamsPendingDeletion) {
+        try {
+          await storage.permanentlyDeleteTeam(team.id);
+          results.deletedTeams++;
+          console.log(`Permanently deleted team ${team.id} (${team.name})`);
+        } catch (error: any) {
+          const errorMsg = `Failed to delete team ${team.id}: ${error.message}`;
+          results.errors.push(errorMsg);
+          console.error(errorMsg);
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Cleanup completed. Deleted ${results.deletedUsers} users and ${results.deletedTeams} teams.`,
+        ...results,
+      });
+    } catch (error) {
+      console.error("Cleanup failed:", error);
+      res.status(500).json({ error: "Cleanup failed" });
+    }
+  });
+
+  // Get cleanup status (accounts/teams pending deletion)
+  app.get("/api/admin/cleanup/status", requireSuperAdmin, async (req, res) => {
+    try {
+      const usersPendingDeletion = await storage.getUsersPendingDeletion();
+      const teamsPendingDeletion = await storage.getTeamsPendingDeletion();
+
+      res.json({
+        users: {
+          count: usersPendingDeletion.length,
+          items: usersPendingDeletion.map(u => ({
+            id: u.id,
+            email: u.email,
+            deletedAt: u.deletedAt,
+            deletionScheduledFor: u.deletionScheduledFor,
+          })),
+        },
+        teams: {
+          count: teamsPendingDeletion.length,
+          items: teamsPendingDeletion.map(t => ({
+            id: t.id,
+            name: t.name,
+            hibernatedAt: t.hibernatedAt,
+            hibernationEndsAt: t.hibernationEndsAt,
+          })),
+        },
+      });
+    } catch (error) {
+      console.error("Failed to get cleanup status:", error);
+      res.status(500).json({ error: "Failed to get cleanup status" });
     }
   });
 

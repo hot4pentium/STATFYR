@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, Users, Plus, Camera } from "lucide-react";
+import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, Users, Plus, Camera, Trash2 } from "lucide-react";
+import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -434,6 +435,15 @@ export default function AthleteSettings() {
               </div>
             </CardContent>
           </Card>
+
+          {contextUser && (
+            <DeleteAccountDialog
+              userId={contextUser.id}
+              onLogout={() => {
+                window.location.href = "/auth";
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

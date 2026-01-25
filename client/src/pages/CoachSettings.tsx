@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Shield, Copy, Check, ArrowLeft } from "lucide-react";
+import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
+import { HibernateTeamDialog } from "@/components/HibernateTeamDialog";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -465,6 +467,25 @@ export default function CoachSettings() {
               </div>
             </CardContent>
           </Card>
+
+          {currentTeam && user && (
+            <HibernateTeamDialog
+              teamId={currentTeam.id}
+              teamName={currentTeam.name}
+              isHibernated={!!currentTeam.hibernatedAt}
+              hibernationEndsAt={currentTeam.hibernationEndsAt}
+              userId={user.id}
+            />
+          )}
+
+          {user && (
+            <DeleteAccountDialog
+              userId={user.id}
+              onLogout={() => {
+                window.location.href = "/auth";
+              }}
+            />
+          )}
         </div>
       </div>
     </Layout>
