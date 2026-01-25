@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, Users, Plus, Camera, Trash2 } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
+import { CalendarSubscription } from "@/components/CalendarSubscription";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -435,6 +436,8 @@ export default function AthleteSettings() {
               </div>
             </CardContent>
           </Card>
+
+          {contextUser && <CalendarSubscription userId={contextUser.id} />}
 
           {contextUser && (
             <DeleteAccountDialog

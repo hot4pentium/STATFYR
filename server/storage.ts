@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import { 
   users, teams, teamMembers, events, highlightVideos, plays, playOutcomes, managedAthletes, supporterEvents,
   supporterStatSessions, supporterStatEntries, supporterSeasonArchives,
@@ -81,6 +82,8 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUsersByEmail(email: string): Promise<User[]>;
   getUserByResetToken(token: string): Promise<User | undefined>;
+  getUserByCalendarToken(token: string): Promise<User | undefined>;
+  generateCalendarToken(userId: string): Promise<string>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, data: Partial<InsertUser> & { lastAccessedAt?: Date; password?: string; mustChangePassword?: boolean; profileImageUrl?: string | null; resetToken?: string | null; resetTokenExpiry?: Date | null }): Promise<User | undefined>;
   deleteUser(id: string): Promise<void>;
@@ -385,6 +388,17 @@ export class DatabaseStorage implements IStorage {
   async getUserByResetToken(token: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.resetToken, token));
     return user || undefined;
+  }
+
+  async getUserByCalendarToken(token: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.calendarToken, token));
+    return user || undefined;
+  }
+
+  async generateCalendarToken(userId: string): Promise<string> {
+    const token = randomBytes(32).toString('hex');
+    await db.update(users).set({ calendarToken: token }).where(eq(users.id, userId));
+    return token;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -2318,6 +2332,7 @@ export class DatabaseStorage implements IStorage {
         loginDisabled: users.loginDisabled,
         athleteCodeClaimed: users.athleteCodeClaimed,
         claimedBySupporterId: users.claimedBySupporterId,
+        calendarToken: users.calendarToken,
       })
       .from(users)
       .where(

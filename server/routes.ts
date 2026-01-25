@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { withRetry, db } from "./db";
-import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema, insertAthleteFollowerSchema, insertHypePostSchema, insertHypeSchema, teams } from "@shared/schema";
+import { insertUserSchema, insertTeamSchema, insertEventSchema, updateEventSchema, insertHighlightVideoSchema, insertPlaySchema, updatePlaySchema, updateTeamMemberSchema, insertGameSchema, updateGameSchema, insertStatConfigSchema, updateStatConfigSchema, insertGameStatSchema, insertGameRosterSchema, updateGameRosterSchema, insertStartingLineupSchema, insertStartingLineupPlayerSchema, insertShoutoutSchema, insertLiveTapEventSchema, insertBadgeDefinitionSchema, insertProfileLikeSchema, insertProfileCommentSchema, insertChatMessageSchema, insertAthleteFollowerSchema, insertHypePostSchema, insertHypeSchema, teams, type Event as TeamEvent, type User } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { registerObjectStorageRoutes, ObjectStorageService, objectStorageClient } from "./replit_integrations/object_storage";
@@ -6501,7 +6501,216 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== iCal Calendar Subscription ====================
+
+  // Helper to derive base URL from request or env
+  function getBaseUrl(req: any): string {
+    // Try Replit environment variables first
+    if (process.env.REPLIT_DEV_DOMAIN) {
+      return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    }
+    if (process.env.REPLIT_DOMAINS) {
+      const domain = process.env.REPLIT_DOMAINS.split(',')[0];
+      if (domain) return `https://${domain}`;
+    }
+    // Fallback to request host
+    const protocol = req.protocol || 'https';
+    const host = req.get('host') || req.headers.host;
+    if (host) {
+      return `${protocol}://${host}`;
+    }
+    // Last resort
+    return '';
+  }
+
+  // Generate or get calendar token for user
+  // NOTE: This follows the existing codebase auth pattern using x-user-id header
+  // The calendar token is personal - users can only access their own token
+  app.post("/api/calendar/token", async (req, res) => {
+    try {
+      // Auth using existing codebase pattern (OAuth or header)
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Return existing token or generate new one
+      let token = user.calendarToken;
+      if (!token) {
+        token = await storage.generateCalendarToken(userId);
+      }
+
+      const baseUrl = getBaseUrl(req);
+      const calendarUrl = `${baseUrl}/api/calendar/${token}.ics`;
+
+      res.json({ token, calendarUrl });
+    } catch (error) {
+      console.error("Failed to generate calendar token:", error);
+      res.status(500).json({ error: "Failed to generate calendar token" });
+    }
+  });
+
+  // Regenerate calendar token (invalidates old URL)
+  // NOTE: This follows the existing codebase auth pattern using x-user-id header
+  app.post("/api/calendar/token/regenerate", async (req, res) => {
+    try {
+      // Auth using existing codebase pattern (OAuth or header)
+      const oauthUser = (req as any).user?.claims?.sub;
+      const headerUserId = req.headers["x-user-id"] as string;
+      const userId = oauthUser || headerUserId;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      // Verify user exists before regenerating
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const token = await storage.generateCalendarToken(userId);
+      
+      const baseUrl = getBaseUrl(req);
+      const calendarUrl = `${baseUrl}/api/calendar/${token}.ics`;
+
+      res.json({ token, calendarUrl });
+    } catch (error) {
+      console.error("Failed to regenerate calendar token:", error);
+      res.status(500).json({ error: "Failed to regenerate calendar token" });
+    }
+  });
+
+  // iCal feed endpoint (publicly accessible via token)
+  app.get("/api/calendar/:token.ics", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      const user = await storage.getUserByCalendarToken(token);
+      if (!user) {
+        return res.status(404).send("Calendar not found");
+      }
+
+      // Get all teams the user is a member of
+      const memberships = await storage.getUserTeamMemberships(user.id);
+      
+      // Collect all events from all teams
+      const allEvents: { event: TeamEvent; teamName: string }[] = [];
+      
+      for (const membership of memberships) {
+        const team = await storage.getTeam(membership.teamId);
+        if (!team) continue;
+        
+        const teamEvents = await storage.getTeamEvents(membership.teamId);
+        for (const event of teamEvents) {
+          allEvents.push({ event, teamName: team.name });
+        }
+      }
+
+      // Generate iCal content
+      const icsContent = generateICalContent(allEvents, user);
+      
+      res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+      res.setHeader("Content-Disposition", 'attachment; filename="statfyr-calendar.ics"');
+      res.send(icsContent);
+    } catch (error) {
+      console.error("Failed to generate calendar feed:", error);
+      res.status(500).send("Failed to generate calendar");
+    }
+  });
+
   return httpServer;
+}
+
+// Generate iCal content from events
+function generateICalContent(
+  events: { event: TeamEvent; teamName: string }[],
+  user: User
+): string {
+  const lines: string[] = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//STATFYR//Team Calendar//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    `X-WR-CALNAME:STATFYR - ${user.name || user.firstName || "My"} Calendar`,
+  ];
+
+  for (const { event, teamName } of events) {
+    const uid = `${event.id}@statfyr.com`;
+    const summary = escapeICalText(`${teamName}: ${event.title || event.type}`);
+    const description = escapeICalText(
+      [
+        event.type,
+        event.opponent ? `vs ${event.opponent}` : null,
+        event.details,
+      ]
+        .filter(Boolean)
+        .join(" - ")
+    );
+    const location = escapeICalText(event.location || "");
+
+    // Parse date - could be "2024-01-25" or "2024-01-25T10:00:00"
+    const startDate = parseEventDate(event.date);
+    const endDate = event.endDate ? parseEventDate(event.endDate) : null;
+
+    // Format dates for iCal
+    const dtStart = formatICalDate(startDate);
+    const dtEnd = endDate
+      ? formatICalDate(endDate)
+      : formatICalDate(new Date(startDate.getTime() + 2 * 60 * 60 * 1000)); // Default 2 hour duration
+
+    lines.push("BEGIN:VEVENT");
+    lines.push(`UID:${uid}`);
+    lines.push(`DTSTAMP:${formatICalDate(new Date())}`);
+    lines.push(`DTSTART:${dtStart}`);
+    lines.push(`DTEND:${dtEnd}`);
+    lines.push(`SUMMARY:${summary}`);
+    if (description) lines.push(`DESCRIPTION:${description}`);
+    if (location) lines.push(`LOCATION:${location}`);
+    lines.push("END:VEVENT");
+  }
+
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+}
+
+function escapeICalText(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\n/g, "\\n");
+}
+
+function parseEventDate(dateStr: string): Date {
+  // Handle various date formats
+  if (dateStr.includes("T")) {
+    return new Date(dateStr);
+  }
+  // Date only - treat as all day or assume noon
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day, 12, 0, 0);
+}
+
+function formatICalDate(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const year = date.getUTCFullYear();
+  const month = pad(date.getUTCMonth() + 1);
+  const day = pad(date.getUTCDate());
+  const hours = pad(date.getUTCHours());
+  const minutes = pad(date.getUTCMinutes());
+  const seconds = pad(date.getUTCSeconds());
+  return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
 }
 
 // Entitlements helper functions

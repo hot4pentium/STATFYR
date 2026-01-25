@@ -74,6 +74,8 @@ export const users = pgTable("users", {
   deletedAt: timestamp("deleted_at"),
   deletionScheduledFor: timestamp("deletion_scheduled_for"),
   loginDisabled: boolean("login_disabled").notNull().default(false),
+  // Calendar subscription token for iCal feed
+  calendarToken: varchar("calendar_token", { length: 64 }).unique(),
 });
 
 export type UpsertUser = typeof users.$inferInsert;

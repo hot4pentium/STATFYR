@@ -1775,3 +1775,22 @@ export async function disconnectSupporter(userId: string): Promise<{ success: bo
   if (!res.ok) throw new Error("Failed to disconnect supporter");
   return res.json();
 }
+
+// Calendar subscription API
+export async function getCalendarToken(userId: string): Promise<{ token: string; calendarUrl: string }> {
+  const res = await fetch("/api/calendar/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-user-id": userId },
+  });
+  if (!res.ok) throw new Error("Failed to get calendar token");
+  return res.json();
+}
+
+export async function regenerateCalendarToken(userId: string): Promise<{ token: string; calendarUrl: string }> {
+  const res = await fetch("/api/calendar/token/regenerate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-user-id": userId },
+  });
+  if (!res.ok) throw new Error("Failed to regenerate calendar token");
+  return res.json();
+}

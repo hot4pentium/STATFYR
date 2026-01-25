@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Shield, Copy, Check, ArrowLeft } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
+import { CalendarSubscription } from "@/components/CalendarSubscription";
 import { HibernateTeamDialog } from "@/components/HibernateTeamDialog";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
@@ -477,6 +478,8 @@ export default function CoachSettings() {
               userId={user.id}
             />
           )}
+
+          {user && <CalendarSubscription userId={user.id} />}
 
           {user && (
             <DeleteAccountDialog
