@@ -277,12 +277,16 @@ export default function SupporterGameLive() {
   };
 
   const handleShoutout = async (athleteId: string, message: string) => {
-    if (!user || !gameId) return;
+    if (!user) return;
+    
+    // Always close the shoutout options first
+    setSelectedAthlete(null);
 
     try {
-      await sendShoutout(gameId, user.id, athleteId, message);
+      if (gameId) {
+        await sendShoutout(gameId, user.id, athleteId, message);
+      }
       toast.success(`Shoutout sent! ${message}`);
-      setSelectedAthlete(null);
     } catch (error) {
       toast.error("Failed to send shoutout");
     }
