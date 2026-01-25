@@ -1758,3 +1758,20 @@ export async function getAthleteSupporterStatsAggregate(
   if (!res.ok) throw new Error("Failed to get aggregate stats");
   return res.json();
 }
+
+export async function getConnectedSupporter(userId: string): Promise<{ connected: boolean; supporter: { id: string; name: string; profileImageUrl?: string } | null }> {
+  const res = await fetch("/api/athlete/connected-supporter", {
+    headers: { "x-user-id": userId },
+  });
+  if (!res.ok) throw new Error("Failed to get connected supporter");
+  return res.json();
+}
+
+export async function disconnectSupporter(userId: string): Promise<{ success: boolean; message: string; newCode: string }> {
+  const res = await fetch("/api/athlete/disconnect-supporter", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-user-id": userId },
+  });
+  if (!res.ok) throw new Error("Failed to disconnect supporter");
+  return res.json();
+}

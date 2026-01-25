@@ -11,7 +11,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useTheme } from "next-themes";
 import { DashboardBackground } from "@/components/layout/DashboardBackground";
 import { useUser } from "@/lib/userContext";
-import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount, joinTeamByCode, getUnreadMessageCount, type TeamMember, type Event, type HighlightVideo, type Play, type Shoutout } from "@/lib/api";
+import { getTeamMembers, getTeamEvents, getAllTeamHighlights, deleteHighlightVideo, getTeamPlays, getTeamAggregateStats, getAdvancedTeamStats, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount, joinTeamByCode, getUnreadMessageCount, getConnectedSupporter, disconnectSupporter, type TeamMember, type Event, type HighlightVideo, type Play, type Shoutout } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePWA } from "@/lib/pwaContext";
 import { useEntitlements } from "@/lib/entitlementsContext";
@@ -126,6 +126,29 @@ export default function AthleteDashboard() {
     enabled: !!user && selectedCard === "hype-card",
     refetchInterval: 30000,
   });
+
+  const { data: connectedSupporterData, refetch: refetchConnectedSupporter } = useQuery({
+    queryKey: ["/api/athlete/connected-supporter", user?.id],
+    queryFn: () => user ? getConnectedSupporter(user.id) : Promise.resolve({ connected: false, supporter: null }),
+    enabled: !!user && user.role === 'athlete',
+    refetchInterval: 30000,
+  });
+
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const handleDisconnectSupporter = async () => {
+    if (!user?.id) return;
+    setIsDisconnecting(true);
+    try {
+      const result = await disconnectSupporter(user.id);
+      toast.success(result.message);
+      updateUser({ ...user, athleteCode: result.newCode, athleteCodeClaimed: false, claimedBySupporterId: undefined });
+      refetchConnectedSupporter();
+    } catch (error) {
+      toast.error("Failed to disconnect supporter");
+    } finally {
+      setIsDisconnecting(false);
+    }
+  };
 
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -515,7 +538,7 @@ export default function AthleteDashboard() {
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs text-muted-foreground">Code:</span>
                   <span className="text-sm font-mono font-bold text-primary">{athleteCode || "Loading..."}</span>
-                  {athleteCode && (
+                  {athleteCode && !connectedSupporterData?.connected && (
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(athleteCode);
@@ -529,7 +552,33 @@ export default function AthleteDashboard() {
                       {copiedAthleteCode ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
                     </button>
                   )}
+                  {connectedSupporterData?.connected && (
+                    <Badge variant="outline" className="text-xs px-1.5 py-0 border-green-500/50 text-green-600 bg-green-500/10">
+                      Connected
+                    </Badge>
+                  )}
                 </div>
+                {connectedSupporterData?.connected && connectedSupporterData.supporter && (
+                  <div className="flex items-center gap-2 mt-1 text-xs">
+                    <span className="text-muted-foreground">Linked to:</span>
+                    <span className="font-medium text-foreground">{connectedSupporterData.supporter.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleDisconnectSupporter}
+                      disabled={isDisconnecting}
+                      className="h-5 px-1.5 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                      data-testid="button-disconnect-supporter"
+                    >
+                      {isDisconnecting ? <Loader2 className="h-3 w-3 animate-spin" /> : "Disconnect"}
+                    </Button>
+                  </div>
+                )}
+                {!connectedSupporterData?.connected && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Share your code with a parent/guardian to connect
+                  </p>
+                )}
                 <div className="mt-1 sm:mt-2 flex flex-wrap items-center gap-1 sm:gap-2">
                   <p className="text-xs sm:text-sm text-foreground font-semibold truncate">{user?.name || user?.username}</p>
                   <span className="text-muted-foreground hidden sm:inline">•</span>
