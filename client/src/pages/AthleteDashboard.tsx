@@ -136,6 +136,9 @@ export default function AthleteDashboard() {
   
   // Helper to check if supporter is connected (defaults to false during loading)
   const isSupporterConnected = connectedSupporterData?.connected === true;
+  
+  // Debug logging
+  console.log('[AthleteDashboard] connectedSupporterData:', connectedSupporterData, 'isSupporterConnected:', isSupporterConnected);
 
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const handleDisconnectSupporter = async () => {
