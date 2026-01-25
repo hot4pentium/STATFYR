@@ -4,9 +4,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, UserPlus, Link2, ChevronRight, ArrowLeft, Heart, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Users, UserPlus, Link2, ChevronRight, ArrowLeft, Heart, Sparkles, Loader2 } from "lucide-react";
 import { AthleteCodeClaimDialog } from "./AthleteCodeClaimDialog";
 import { useUser } from "@/lib/userContext";
+import { createManagedAthlete } from "@/lib/api";
+import { toast } from "sonner";
 
 interface AthleteManagementDialogProps {
   open: boolean;
@@ -15,18 +20,102 @@ interface AthleteManagementDialogProps {
 }
 
 type ConnectionPath = "team-follower" | "independent" | "claim-code" | null;
+type ViewState = "main" | "detail" | "add-form";
+
+const SPORTS_LIST = [
+  "Baseball", "Basketball", "Cheerleading", "Cross Country", "Field Hockey",
+  "Football", "Golf", "Gymnastics", "Ice Hockey", "Lacrosse", "Soccer",
+  "Softball", "Swimming", "Tennis", "Track & Field", "Volleyball", "Wrestling", "Other"
+];
 
 export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: AthleteManagementDialogProps) {
   const [selectedPath, setSelectedPath] = useState<ConnectionPath>(null);
+  const [viewState, setViewState] = useState<ViewState>("main");
   const [showClaimDialog, setShowClaimDialog] = useState(false);
   const { user } = useUser();
   const [, setLocation] = useLocation();
 
-  const handleBack = () => setSelectedPath(null);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [sport, setSport] = useState("");
+  const [position, setPosition] = useState("");
+  const [jerseyNumber, setJerseyNumber] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const resetForm = () => {
+    setFirstName("");
+    setLastName("");
+    setSport("");
+    setPosition("");
+    setJerseyNumber("");
+  };
+
+  const handleBack = () => {
+    if (viewState === "add-form") {
+      setViewState("detail");
+    } else {
+      setSelectedPath(null);
+      setViewState("main");
+    }
+  };
   
   const handleClose = () => {
     setSelectedPath(null);
+    setViewState("main");
+    resetForm();
     onOpenChange(false);
+  };
+
+  const handleAddAthlete = async () => {
+    if (!user) {
+      toast.error("Please log in to add an athlete.");
+      return;
+    }
+
+    if (!firstName.trim() || !lastName.trim()) {
+      toast.error("Please enter first and last name.");
+      return;
+    }
+
+    if (!sport) {
+      toast.error("Please select a sport.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const result = await createManagedAthlete(user.id, {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        sport: sport,
+        position: position.trim() || undefined,
+        number: jerseyNumber.trim() || undefined,
+      });
+      
+      const athleteName = result.athlete?.name || `${firstName} ${lastName}`;
+      toast.success(`${athleteName} has been added as your athlete!`);
+      resetForm();
+      onAthleteAdded?.();
+      handleClose();
+    } catch (error: any) {
+      console.error("Failed to add athlete:", error);
+      if (error.limitReached && error.requiresUpgrade) {
+        toast.error("You've reached the limit of 1 managed athlete. Upgrade to Supporter Pro for unlimited athletes!", {
+          action: {
+            label: "Upgrade",
+            onClick: () => {
+              handleClose();
+              setLocation("/subscription");
+            },
+          },
+          duration: 8000,
+        });
+      } else {
+        toast.error(error.message || "Failed to add athlete. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const connectionPaths = [
@@ -66,8 +155,7 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
       ],
       note: "Perfect for parents of young athletes who may not have their own account or aren't on a team using STATFYR yet.",
       action: () => {
-        handleClose();
-        setLocation("/supporter/settings?section=athletes");
+        setViewState("add-form");
       },
       actionLabel: "Add Athlete Profile",
     },
@@ -109,7 +197,12 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
             className={`cursor-pointer transition-all hover:shadow-md hover:border-primary/50 ${
               path.comingSoon ? 'opacity-60' : ''
             }`}
-            onClick={() => !path.comingSoon && setSelectedPath(path.id)}
+            onClick={() => {
+              if (!path.comingSoon) {
+                setSelectedPath(path.id);
+                setViewState("detail");
+              }
+            }}
             data-testid={`card-${path.id}`}
           >
             <CardHeader className="pb-2">
@@ -200,7 +293,129 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
     </div>
   );
 
+  const renderAddAthleteForm = () => (
+    <div className="space-y-6">
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={handleBack}
+        className="mb-2"
+        data-testid="button-back-form"
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back
+      </Button>
+
+      <div className="flex items-center gap-4 mb-4">
+        <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
+          <UserPlus className="h-8 w-8 text-primary" />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold">Add Your Athlete</h3>
+          <p className="text-muted-foreground text-sm">Create a profile for your child</p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="firstName">First Name *</Label>
+            <Input
+              id="firstName"
+              placeholder="First name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              data-testid="input-first-name"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Last Name *</Label>
+            <Input
+              id="lastName"
+              placeholder="Last name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              data-testid="input-last-name"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="sport">Sport *</Label>
+          <Select value={sport} onValueChange={setSport}>
+            <SelectTrigger data-testid="select-sport">
+              <SelectValue placeholder="Select a sport" />
+            </SelectTrigger>
+            <SelectContent>
+              {SPORTS_LIST.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="position">Position (optional)</Label>
+            <Input
+              id="position"
+              placeholder="e.g., Point Guard"
+              value={position}
+              onChange={(e) => setPosition(e.target.value)}
+              data-testid="input-position"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="jerseyNumber">Jersey # (optional)</Label>
+            <Input
+              id="jerseyNumber"
+              placeholder="e.g., 23"
+              value={jerseyNumber}
+              onChange={(e) => setJerseyNumber(e.target.value)}
+              data-testid="input-jersey-number"
+            />
+          </div>
+        </div>
+      </div>
+
+      <Button 
+        className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+        onClick={handleAddAthlete}
+        disabled={isSubmitting || !firstName.trim() || !lastName.trim() || !sport}
+        data-testid="button-submit-athlete"
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Adding...
+          </>
+        ) : (
+          <>
+            <UserPlus className="h-4 w-4 mr-2" />
+            Add Athlete
+          </>
+        )}
+      </Button>
+
+      <p className="text-xs text-muted-foreground text-center">
+        You can add more details like photo and profile info after creation.
+      </p>
+    </div>
+  );
+
   const selectedPathData = connectionPaths.find(p => p.id === selectedPath);
+
+  const getDialogTitle = () => {
+    if (viewState === "add-form") return "Add Your Athlete";
+    if (viewState === "detail" && selectedPathData) return selectedPathData.title;
+    return "Connect with Athletes";
+  };
+
+  const getDialogDescription = () => {
+    if (viewState === "add-form") return "Enter your athlete's information";
+    if (viewState === "detail") return "Learn more about this connection option";
+    return "Choose the best way to support your athletes";
+  };
 
   return (
     <>
@@ -209,19 +424,18 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Heart className="h-5 w-5 text-primary" />
-              {selectedPath ? selectedPathData?.title : "Connect with Athletes"}
+              {getDialogTitle()}
             </DialogTitle>
             <DialogDescription>
-              {selectedPath 
-                ? "Learn more about this connection option"
-                : "Choose the best way to support your athletes"
-              }
+              {getDialogDescription()}
             </DialogDescription>
           </DialogHeader>
 
-          {selectedPath && selectedPathData 
-            ? renderDetailView(selectedPathData)
-            : renderMainView()
+          {viewState === "add-form" 
+            ? renderAddAthleteForm()
+            : viewState === "detail" && selectedPathData 
+              ? renderDetailView(selectedPathData)
+              : renderMainView()
           }
         </DialogContent>
       </Dialog>
