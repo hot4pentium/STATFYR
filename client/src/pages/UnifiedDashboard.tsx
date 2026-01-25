@@ -32,6 +32,7 @@ import { GameStatsCard } from "@/components/GameStatsCard";
 import { ExtendedProfileEditDialog } from "@/components/ExtendedProfileEditDialog";
 import { ManagedAthleteExtendedProfileDialog } from "@/components/ManagedAthleteExtendedProfileDialog";
 import { AthleteCodeClaimDialog } from "@/components/supporter/AthleteCodeClaimDialog";
+import { AthleteManagementDialog } from "@/components/supporter/AthleteManagementDialog";
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
 import {
@@ -40,7 +41,7 @@ import {
   Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Bell,
   ArrowLeft, MapPin, Clock, Utensils, Coffee, MoreVertical, UserCog, UserMinus, 
   Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User, Calendar,
-  List, Grid, Lock, Crown, PlayCircle, StopCircle, History, Info, Link2
+  List, Grid, Lock, Crown, PlayCircle, StopCircle, History, Info, Link2, UserPlus
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -166,6 +167,8 @@ export default function UnifiedDashboard() {
   
   // Athlete code claim dialog state (for supporters to connect with athletes)
   const [isAthleteCodeClaimOpen, setIsAthleteCodeClaimOpen] = useState(false);
+  // Athlete management dialog (comprehensive options for supporters)
+  const [isAthleteManagementOpen, setIsAthleteManagementOpen] = useState(false);
   
   // Staff promotion celebration modal
   const [showStaffCelebration, setShowStaffCelebration] = useState(false);
@@ -2601,15 +2604,15 @@ export default function UnifiedDashboard() {
             {userRole === "supporter" && (
               <div className="mt-4">
                 <Button
-                  onClick={() => setIsAthleteCodeClaimOpen(true)}
+                  onClick={() => setIsAthleteManagementOpen(true)}
                   className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
-                  data-testid="button-connect-athlete"
+                  data-testid="button-manage-athletes"
                 >
-                  <Link2 className="h-4 w-4 mr-2" />
-                  Connect with Athlete
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Manage Athletes
                 </Button>
                 <p className="text-[10px] text-muted-foreground mt-1 text-center">
-                  Enter your athlete's code to unlock HYPE features
+                  Add, connect, or manage your athletes
                 </p>
               </div>
             )}
@@ -4105,6 +4108,16 @@ export default function UnifiedDashboard() {
         onSuccess={(athlete) => {
           queryClient.invalidateQueries({ queryKey: ["/api/supporter/managed-athletes"] });
           toast.success(`Connected with ${athlete.name}!`);
+        }}
+      />
+
+      {/* Athlete Management Dialog - Comprehensive options for supporters */}
+      <AthleteManagementDialog
+        open={isAthleteManagementOpen}
+        onOpenChange={setIsAthleteManagementOpen}
+        onAthleteAdded={() => {
+          queryClient.invalidateQueries({ queryKey: ["/api/supporter/managed-athletes"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/supporters", user?.id, "managed-athletes"] });
         }}
       />
 
