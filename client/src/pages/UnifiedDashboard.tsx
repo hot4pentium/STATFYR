@@ -51,7 +51,7 @@ import {
   startLiveSession, endLiveSession, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount,
   getManagedAthletes, getSupporterBadges, getAllBadges, getSupporterTapTotal, getActiveLiveSessions,
   getUserTeams, joinTeamByCode, getTeamEngagementStats, getTopTappers, getActiveTheme, getTeamPlayStats,
-  getGamePlayOutcomes,
+  getGamePlayOutcomes, getConnectedSupporter, disconnectSupporter,
   type Team, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup,
   type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession, type ManagedAthlete,
   type TopTapper, type SupporterBadge, type BadgeDefinition, type TeamPlayStats, type GamePlayOutcomes
@@ -216,6 +216,32 @@ export default function UnifiedDashboard() {
     if (isStaff) return "coach"; // Staff get coach-level feature access
     return userRole;
   }, [isStaff, userRole]);
+
+  // Check if athlete is connected to a supporter (for gating HYPE features)
+  const { data: connectedSupporterData, refetch: refetchConnectedSupporter } = useQuery({
+    queryKey: ["/api/athlete/connected-supporter", user?.id],
+    queryFn: () => user ? getConnectedSupporter(user.id) : Promise.resolve({ connected: false, supporter: null }),
+    enabled: !!user?.id && userRole === "athlete",
+    refetchInterval: 30000,
+  });
+  
+  // Helper to check if athlete is connected to supporter (defaults to false)
+  const isSupporterConnected = connectedSupporterData?.connected === true;
+  
+  const [isDisconnectingSupporter, setIsDisconnectingSupporter] = useState(false);
+  const handleDisconnectSupporter = async () => {
+    if (!user?.id) return;
+    setIsDisconnectingSupporter(true);
+    try {
+      const result = await disconnectSupporter(user.id);
+      toast.success(result.message);
+      refetchConnectedSupporter();
+    } catch (error) {
+      toast.error("Failed to disconnect supporter");
+    } finally {
+      setIsDisconnectingSupporter(false);
+    }
+  };
 
   // Check for unseen staff promotion and show celebration
   useEffect(() => {
@@ -2775,53 +2801,150 @@ export default function UnifiedDashboard() {
               >
                 {/* HYPE Cards - Athletes Only - Above Quick Access */}
                 {userRole === "athlete" && (
-                  <div className="mt-4 mb-4 landscape:mb-5 grid grid-cols-2 gap-3 landscape:gap-4">
-                    {/* HYPE Hub Card */}
-                    <Card 
-                      onClick={() => setLocation("/athlete/hype-portal")}
-                      className="bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
-                      data-testid="card-hype-portal"
-                    >
-                      <CardContent className="p-3 sm:p-4 landscape:p-5 flex flex-col items-center gap-2 sm:gap-3 landscape:gap-4">
-                        <div className="p-2 sm:p-2.5 landscape:p-3 rounded-xl shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-gray-400 to-gray-600">
-                          <img src={logoImage} alt="STATFYR" className="h-6 w-6 sm:h-8 sm:w-8 landscape:h-10 landscape:w-10 object-contain" />
-                        </div>
-                        <div className="text-center">
-                          <h3 className="font-display font-bold text-sm sm:text-lg landscape:text-xl uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
-                            HYPE Hub
-                          </h3>
-                          <p className="hidden sm:block text-xs landscape:text-sm text-muted-foreground mt-0.5">
-                            Post updates & fire up followers
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  <div className="mt-4 mb-4 landscape:mb-5">
+                    {isSupporterConnected ? (
+                      <>
+                        {/* Connected: Show HYPE feature cards */}
+                        <div className="grid grid-cols-2 gap-3 landscape:gap-4">
+                          {/* HYPE Hub Card */}
+                          <Card 
+                            onClick={() => setLocation("/athlete/hype-portal")}
+                            className="bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
+                            data-testid="card-hype-portal"
+                          >
+                            <CardContent className="p-3 sm:p-4 landscape:p-5 flex flex-col items-center gap-2 sm:gap-3 landscape:gap-4">
+                              <div className="p-2 sm:p-2.5 landscape:p-3 rounded-xl shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-gray-400 to-gray-600">
+                                <img src={logoImage} alt="STATFYR" className="h-6 w-6 sm:h-8 sm:w-8 landscape:h-10 landscape:w-10 object-contain" />
+                              </div>
+                              <div className="text-center">
+                                <h3 className="font-display font-bold text-sm sm:text-lg landscape:text-xl uppercase tracking-wide text-orange-500 group-hover:text-orange-400 transition-colors">
+                                  HYPE Hub
+                                </h3>
+                                <p className="hidden sm:block text-xs landscape:text-sm text-muted-foreground mt-0.5">
+                                  Post updates & fire up followers
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
 
-                    {/* HYPE Card - Link to dedicated page */}
-                    <Card 
-                      onClick={() => setLocation("/athlete/hype-card")}
-                      className="bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-cyan-500/20 border-cyan-500/40 hover:border-cyan-500/60 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
-                      data-testid="card-hype-card"
-                    >
-                      <CardContent className="p-3 sm:p-4 landscape:p-5 flex flex-col items-center gap-2 sm:gap-3 landscape:gap-4">
-                        <div className="p-2 sm:p-2.5 landscape:p-3 rounded-xl shadow-lg shadow-cyan-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-slate-700 to-slate-900">
-                          <User className="h-6 w-6 sm:h-8 sm:w-8 landscape:h-10 landscape:w-10 text-cyan-400" />
+                          {/* HYPE Card - Link to dedicated page */}
+                          <Card 
+                            onClick={() => setLocation("/athlete/hype-card")}
+                            className="bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-cyan-500/20 border-cyan-500/40 hover:border-cyan-500/60 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 cursor-pointer group overflow-hidden"
+                            data-testid="card-hype-card"
+                          >
+                            <CardContent className="p-3 sm:p-4 landscape:p-5 flex flex-col items-center gap-2 sm:gap-3 landscape:gap-4">
+                              <div className="p-2 sm:p-2.5 landscape:p-3 rounded-xl shadow-lg shadow-cyan-500/30 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-slate-700 to-slate-900">
+                                <User className="h-6 w-6 sm:h-8 sm:w-8 landscape:h-10 landscape:w-10 text-cyan-400" />
+                              </div>
+                              <div className="text-center">
+                                <h3 className="font-display font-bold text-sm sm:text-lg landscape:text-xl uppercase tracking-wide text-cyan-500 group-hover:text-cyan-400 transition-colors">
+                                  HYPE Card
+                                </h3>
+                                <p className="hidden sm:block text-xs landscape:text-sm text-muted-foreground mt-0.5">
+                                  View & share your player card
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
                         </div>
-                        <div className="text-center">
-                          <h3 className="font-display font-bold text-sm sm:text-lg landscape:text-xl uppercase tracking-wide text-cyan-500 group-hover:text-cyan-400 transition-colors">
-                            HYPE Card
-                          </h3>
-                          <p className="hidden sm:block text-xs landscape:text-sm text-muted-foreground mt-0.5">
-                            View & share your player card
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        {/* Connected supporter info and disconnect option */}
+                        <Card className="mt-3 bg-green-500/10 border-green-500/30">
+                          <CardContent className="p-3 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Check className="h-4 w-4 text-green-500" />
+                              <span className="text-sm text-green-400">
+                                Connected to {connectedSupporterData?.supporter?.displayName || "Supporter"}
+                              </span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-400 hover:text-red-300 h-7 text-xs"
+                              onClick={handleDisconnectSupporter}
+                              disabled={isDisconnectingSupporter}
+                              data-testid="button-disconnect-supporter"
+                            >
+                              {isDisconnectingSupporter ? <Loader2 className="h-3 w-3 animate-spin" /> : "Disconnect"}
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </>
+                    ) : (
+                      <>
+                        {/* Not Connected: Show locked HYPE cards with code sharing prompt */}
+                        <Card className="bg-gray-800/50 border-gray-600/50 mb-3">
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="p-2 rounded-lg bg-orange-500/20">
+                                <Lock className="h-5 w-5 text-orange-400" />
+                              </div>
+                              <div>
+                                <h3 className="font-display font-bold text-sm uppercase tracking-wide text-gray-300">HYPE Features Locked</h3>
+                                <p className="text-xs text-muted-foreground">Connect with a parent/supporter to unlock</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 opacity-50 pointer-events-none">
+                              {/* Locked HYPE Hub Preview */}
+                              <div className="p-3 rounded-lg border border-gray-600/50 bg-gray-700/30 flex flex-col items-center gap-2">
+                                <div className="p-2 rounded-lg bg-gray-600/50">
+                                  <img src={logoImage} alt="STATFYR" className="h-6 w-6 object-contain grayscale" />
+                                </div>
+                                <span className="text-xs text-gray-500 font-medium">HYPE Hub</span>
+                              </div>
+                              {/* Locked HYPE Card Preview */}
+                              <div className="p-3 rounded-lg border border-gray-600/50 bg-gray-700/30 flex flex-col items-center gap-2">
+                                <div className="p-2 rounded-lg bg-gray-600/50">
+                                  <User className="h-6 w-6 text-gray-500" />
+                                </div>
+                                <span className="text-xs text-gray-500 font-medium">HYPE Card</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        {/* Share Athlete Code Card */}
+                        <Card className="bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/10 border-orange-500/30">
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="p-2 rounded-lg bg-orange-500/20">
+                                <Heart className="h-5 w-5 text-orange-400" />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="font-display font-bold text-sm uppercase tracking-wide">Share Your Code</h3>
+                                <p className="text-xs text-muted-foreground">Send to a parent to unlock HYPE features</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 p-2 bg-background/50 rounded-lg border border-orange-500/20">
+                              <code className="flex-1 text-lg font-mono text-orange-400 tracking-wider text-center">
+                                {user?.athleteCode || "Loading..."}
+                              </code>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-orange-400 hover:text-orange-300 h-8"
+                                onClick={() => {
+                                  if (user?.athleteCode) {
+                                    navigator.clipboard.writeText(user.athleteCode);
+                                    toast.success("Athlete code copied!");
+                                  }
+                                }}
+                                data-testid="button-copy-athlete-code"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                              Your parent enters this code in their Supporter app to connect with you
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </>
+                    )}
                   </div>
                 )}
 
-                {/* Extended Profile Card - Athlete Pro Feature */}
-                {userRole === "athlete" && (
+                {/* Extended Profile Card - Athlete Pro Feature - Only when connected to supporter */}
+                {userRole === "athlete" && isSupporterConnected && (
                   <Card className={`mb-4 border-yellow-500/30 ${tier === 'athlete_pro' || tier === 'coach_pro' ? 'bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-yellow-500/10' : 'bg-card/50'}`}>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-3">
