@@ -26,7 +26,10 @@ import {
   Heart,
   Star,
   TrendingUp,
-  MessageCircle
+  MessageCircle,
+  Hand,
+  Sparkles,
+  ThumbsUp
 } from "lucide-react";
 import statfyrLogo from "@/assets/statfyr-fire-logo.png";
 
@@ -811,24 +814,76 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={activeFeatureModal === "Game Day Live"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-purple-500" />
+        <DialogContent className="max-w-sm bg-gradient-to-b from-gray-900 to-gray-800 border-green-500/30">
+          <div className="text-center pt-2 pb-4">
+            <h2 className="text-2xl font-bold text-green-400 mb-1">Cheer on your team!</h2>
+            <p className="text-sm text-gray-400">Tap below to show your support</p>
+          </div>
+          
+          {/* Live Taps Card */}
+          <div className="bg-gray-800/80 rounded-xl p-4 border border-gray-700">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-orange-400" />
+                <span className="font-semibold text-white">Live Taps</span>
               </div>
-              Game Day Live
-            </DialogTitle>
-            <DialogDescription>
-              Engage supporters with live shoutouts and interactive HYPE features
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-4">
-            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
-              <div className="text-center p-8">
-                <Zap className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-                <p className="text-muted-foreground">Screenshot placeholder</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">Add game-day-live.png to /client/public/screenshots/</p>
+              <div className="text-right">
+                <span className="text-2xl font-bold text-orange-400">5</span>
+                <p className="text-xs text-gray-400">this game</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-400 text-center mb-2">Your season total</p>
+            <p className="text-xl font-bold text-white text-center mb-4">5 taps</p>
+            <div className="bg-orange-500 hover:bg-orange-600 rounded-xl p-6 cursor-pointer transition-all active:scale-95">
+              <div className="text-center">
+                <Hand className="w-12 h-12 mx-auto mb-2 text-white" />
+                <span className="text-xl font-bold text-white">TAP!</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Send Shoutouts Card */}
+          <div className="bg-gray-800/80 rounded-xl p-4 border border-gray-700 mt-3">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <ThumbsUp className="w-5 h-5 text-orange-400" />
+                <span className="font-semibold text-white">Send Shoutouts</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full flex items-center justify-center text-white font-semibold">
+                KS
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-white">Kim Smith</p>
+                <p className="text-xs text-gray-400">#</p>
+              </div>
+              <span className="text-sm text-gray-400">Cancel</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-gradient-to-br from-red-500 to-orange-500 rounded-lg p-3 text-center cursor-pointer hover:scale-105 transition-transform">
+                <Flame className="w-5 h-5 mx-auto mb-1 text-white" />
+                <span className="text-xs font-medium text-white">On Fire!</span>
+              </div>
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-3 text-center cursor-pointer hover:scale-105 transition-transform">
+                <Hand className="w-5 h-5 mx-auto mb-1 text-white" />
+                <span className="text-xs font-medium text-white">Keep Going!</span>
+              </div>
+              <div className="bg-gradient-to-br from-yellow-400 to-amber-500 rounded-lg p-3 text-center cursor-pointer hover:scale-105 transition-transform">
+                <Star className="w-5 h-5 mx-auto mb-1 text-white" />
+                <span className="text-xs font-medium text-white">MVP!</span>
+              </div>
+              <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg p-3 text-center cursor-pointer hover:scale-105 transition-transform">
+                <Heart className="w-5 h-5 mx-auto mb-1 text-white" />
+                <span className="text-xs font-medium text-white">Love It!</span>
+              </div>
+              <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg p-3 text-center cursor-pointer hover:scale-105 transition-transform">
+                <Zap className="w-5 h-5 mx-auto mb-1 text-white" />
+                <span className="text-xs font-medium text-white">Electric!</span>
+              </div>
+              <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg p-3 text-center cursor-pointer hover:scale-105 transition-transform">
+                <Trophy className="w-5 h-5 mx-auto mb-1 text-white" />
+                <span className="text-xs font-medium text-white">Champion!</span>
               </div>
             </div>
           </div>
