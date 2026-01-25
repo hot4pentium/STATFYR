@@ -1046,31 +1046,6 @@ export default function LandingPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={activeFeatureModal === "Send Shoutouts"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-purple-500" />
-              </div>
-              Send Shoutouts
-            </DialogTitle>
-            <DialogDescription>
-              Cheer on your athletes with personalized messages they'll see during games
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-4">
-            <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
-              <div className="text-center p-8">
-                <MessageCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-                <p className="text-muted-foreground">Screenshot placeholder</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">Add send-shoutouts.png to /client/public/screenshots/</p>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={activeFeatureModal === "Earn Badges"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
