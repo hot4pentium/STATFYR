@@ -11,10 +11,11 @@ import { toast } from "sonner";
 interface AthleteCodeClaimDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  userId?: string;
   onSuccess?: (athlete: { id: string; name: string }) => void;
 }
 
-export function AthleteCodeClaimDialog({ open, onOpenChange, onSuccess }: AthleteCodeClaimDialogProps) {
+export function AthleteCodeClaimDialog({ open, onOpenChange, userId, onSuccess }: AthleteCodeClaimDialogProps) {
   const [code, setCode] = useState("");
   const queryClient = useQueryClient();
 
@@ -22,7 +23,10 @@ export function AthleteCodeClaimDialog({ open, onOpenChange, onSuccess }: Athlet
     mutationFn: async (athleteCode: string) => {
       const res = await fetch("/api/supporter/claim-athlete", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(userId && { "x-user-id": userId })
+        },
         body: JSON.stringify({ code: athleteCode }),
         credentials: "include",
       });

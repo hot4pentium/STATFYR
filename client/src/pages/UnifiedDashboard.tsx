@@ -4101,6 +4101,7 @@ export default function UnifiedDashboard() {
       <AthleteCodeClaimDialog
         open={isAthleteCodeClaimOpen}
         onOpenChange={setIsAthleteCodeClaimOpen}
+        userId={user?.id}
         onSuccess={(athlete) => {
           queryClient.invalidateQueries({ queryKey: ["/api/supporter/managed-athletes"] });
           toast.success(`Connected with ${athlete.name}!`);
