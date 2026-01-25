@@ -130,7 +130,7 @@ export default function AthleteDashboard() {
   const { data: connectedSupporterData, refetch: refetchConnectedSupporter, isLoading: isLoadingSupporterConnection } = useQuery({
     queryKey: ["/api/athlete/connected-supporter", user?.id],
     queryFn: () => user ? getConnectedSupporter(user.id) : Promise.resolve({ connected: false, supporter: null }),
-    enabled: !!user && user.role === 'athlete',
+    enabled: !!user?.id,
     refetchInterval: 30000,
   });
   
