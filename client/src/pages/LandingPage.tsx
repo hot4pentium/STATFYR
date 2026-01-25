@@ -524,6 +524,7 @@ export default function LandingPage() {
             </div>
             <div className="flex gap-6 text-sm text-muted-foreground">
               <a href="/privacy" className="hover:text-foreground" data-testid="link-privacy">Privacy</a>
+              <a href="/cookies" className="hover:text-foreground" data-testid="link-cookies">Cookies</a>
               <a href="/terms" className="hover:text-foreground" data-testid="link-terms">Terms</a>
               <a href="mailto:support@statfyr.com" className="hover:text-foreground" data-testid="link-contact">Contact</a>
             </div>
