@@ -31,6 +31,7 @@ import { TeamBadge } from "@/components/TeamBadge";
 import { GameStatsCard } from "@/components/GameStatsCard";
 import { ExtendedProfileEditDialog } from "@/components/ExtendedProfileEditDialog";
 import { ManagedAthleteExtendedProfileDialog } from "@/components/ManagedAthleteExtendedProfileDialog";
+import { AthleteCodeClaimDialog } from "@/components/supporter/AthleteCodeClaimDialog";
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 
 import {
@@ -39,7 +40,7 @@ import {
   Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Bell,
   ArrowLeft, MapPin, Clock, Utensils, Coffee, MoreVertical, UserCog, UserMinus, 
   Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User, Calendar,
-  List, Grid, Lock, Crown, PlayCircle, StopCircle, History, Info
+  List, Grid, Lock, Crown, PlayCircle, StopCircle, History, Info, Link2
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -162,6 +163,9 @@ export default function UnifiedDashboard() {
   // Extended profile dialog state
   const [isExtendedProfileDialogOpen, setIsExtendedProfileDialogOpen] = useState(false);
   const [isManagedAthleteExtendedProfileOpen, setIsManagedAthleteExtendedProfileOpen] = useState(false);
+  
+  // Athlete code claim dialog state (for supporters to connect with athletes)
+  const [isAthleteCodeClaimOpen, setIsAthleteCodeClaimOpen] = useState(false);
   
   // Staff promotion celebration modal
   const [showStaffCelebration, setShowStaffCelebration] = useState(false);
@@ -2593,6 +2597,23 @@ export default function UnifiedDashboard() {
               )}
             </div>
 
+            {/* Connect with Athlete Button - Supporters Only */}
+            {userRole === "supporter" && (
+              <div className="mt-4">
+                <Button
+                  onClick={() => setIsAthleteCodeClaimOpen(true)}
+                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
+                  data-testid="button-connect-athlete"
+                >
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Connect with Athlete
+                </Button>
+                <p className="text-[10px] text-muted-foreground mt-1 text-center">
+                  Enter your athlete's code to unlock HYPE features
+                </p>
+              </div>
+            )}
+
             {/* View Selector - Supporters Only */}
             {userRole === "supporter" && managedAthletes.length > 0 && (
               <div className="mt-4 p-3 rounded-lg bg-white/80 dark:bg-black/60 backdrop-blur-md border border-gray-200 dark:border-white/20 shadow-lg">
@@ -4074,6 +4095,16 @@ export default function UnifiedDashboard() {
         onOpenChange={setIsManagedAthleteExtendedProfileOpen}
         managedAthlete={selectedManagedAthlete}
         onSaved={() => queryClient.invalidateQueries({ queryKey: ["/api/supporter/managed-athletes"] })}
+      />
+
+      {/* Athlete Code Claim Dialog - For Supporters */}
+      <AthleteCodeClaimDialog
+        open={isAthleteCodeClaimOpen}
+        onOpenChange={setIsAthleteCodeClaimOpen}
+        onSuccess={(athlete) => {
+          queryClient.invalidateQueries({ queryKey: ["/api/supporter/managed-athletes"] });
+          toast.success(`Connected with ${athlete.name}!`);
+        }}
       />
 
       {/* Athlete Code Info Modal */}
