@@ -28,6 +28,9 @@ export const teams = pgTable("teams", {
   losses: integer("losses").notNull().default(0),
   ties: integer("ties").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
+  // Team hibernation (60-day pause for off-season)
+  hibernatedAt: timestamp("hibernated_at"),
+  hibernationEndsAt: timestamp("hibernation_ends_at"),
 });
 
 export const teamsRelations = relations(teams, ({ one, many }) => ({

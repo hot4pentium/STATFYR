@@ -448,15 +448,61 @@ export async function registerRoutes(
   app.delete("/api/users/:id", async (req, res) => {
     try {
       const userId = req.params.id;
-      const coachTeams = await storage.getTeamsByCoach(userId);
-      if (coachTeams.length > 0) {
-        return res.status(400).json({ error: "Cannot delete user with existing teams" });
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
       }
-      await storage.deleteUser(userId);
-      res.status(204).send();
+      
+      // For coaches with teams, they must delete/transfer teams first
+      if (user.role === 'coach') {
+        const coachTeams = await storage.getTeamsByCoach(userId);
+        if (coachTeams.length > 0) {
+          return res.status(400).json({ error: "Cannot delete account with existing teams. Please delete or transfer your teams first." });
+        }
+      }
+      
+      // Soft delete - disable login and schedule permanent deletion in 30 days
+      const deletedUser = await storage.softDeleteUser(userId);
+      res.json({ 
+        message: "Account deletion scheduled",
+        deletedAt: deletedUser?.deletedAt,
+        deletionScheduledFor: deletedUser?.deletionScheduledFor,
+        info: "Your account has been disabled. Your data will be permanently deleted in 30 days. Log in within this period to reactivate."
+      });
     } catch (error) {
       console.error("Failed to delete user:", error);
       res.status(500).json({ error: "Failed to delete user" });
+    }
+  });
+
+  // Reactivate a soft-deleted account
+  app.post("/api/users/:id/reactivate", async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      if (!user.deletedAt) {
+        return res.status(400).json({ error: "Account is not pending deletion" });
+      }
+      
+      // Check if still within 30-day window
+      const now = new Date();
+      if (user.deletionScheduledFor && now > user.deletionScheduledFor) {
+        return res.status(400).json({ error: "Reactivation window has expired. Account data has been permanently deleted." });
+      }
+      
+      const reactivatedUser = await storage.reactivateUser(userId);
+      res.json({ 
+        message: "Account reactivated successfully",
+        user: reactivatedUser
+      });
+    } catch (error) {
+      console.error("Failed to reactivate user:", error);
+      res.status(500).json({ error: "Failed to reactivate user" });
     }
   });
 
@@ -510,6 +556,70 @@ export async function registerRoutes(
       res.json(team);
     } catch (error) {
       res.status(500).json({ error: "Failed to update team" });
+    }
+  });
+
+  // Team Hibernation Routes (60-day pause for off-season)
+  app.post("/api/teams/:id/hibernate", async (req, res) => {
+    try {
+      const teamId = req.params.id;
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      
+      if (team.hibernatedAt) {
+        return res.status(400).json({ error: "Team is already hibernated" });
+      }
+      
+      const hibernatedTeam = await storage.hibernateTeam(teamId);
+      
+      // TODO: Pause Stripe subscription when implemented
+      
+      res.json({
+        message: "Team hibernated successfully",
+        hibernatedAt: hibernatedTeam?.hibernatedAt,
+        hibernationEndsAt: hibernatedTeam?.hibernationEndsAt,
+        info: "Your team is now paused. Billing has stopped. You have 60 days to reactivate before the team is permanently deleted."
+      });
+    } catch (error) {
+      console.error("Failed to hibernate team:", error);
+      res.status(500).json({ error: "Failed to hibernate team" });
+    }
+  });
+
+  app.post("/api/teams/:id/reactivate", async (req, res) => {
+    try {
+      const teamId = req.params.id;
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      
+      if (!team.hibernatedAt) {
+        return res.status(400).json({ error: "Team is not hibernated" });
+      }
+      
+      // Check if still within 60-day window
+      const now = new Date();
+      if (team.hibernationEndsAt && now > team.hibernationEndsAt) {
+        return res.status(400).json({ error: "Reactivation window has expired. Team has been permanently deleted." });
+      }
+      
+      const reactivatedTeam = await storage.reactivateTeam(teamId);
+      
+      // TODO: Resume Stripe subscription when implemented
+      
+      res.json({
+        message: "Team reactivated successfully",
+        team: reactivatedTeam,
+        info: "Your team is now active again. Billing will resume."
+      });
+    } catch (error) {
+      console.error("Failed to reactivate team:", error);
+      res.status(500).json({ error: "Failed to reactivate team" });
     }
   });
 

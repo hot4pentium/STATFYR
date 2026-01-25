@@ -66,6 +66,10 @@ export const users = pgTable("users", {
   favoriteTeam: text("favorite_team"), // e.g., "Lakers"
   // Onboarding tracking
   hasCompletedOnboarding: boolean("has_completed_onboarding").notNull().default(false),
+  // Account deletion (soft delete with 30-day retention)
+  deletedAt: timestamp("deleted_at"),
+  deletionScheduledFor: timestamp("deletion_scheduled_for"),
+  loginDisabled: boolean("login_disabled").notNull().default(false),
 });
 
 export type UpsertUser = typeof users.$inferInsert;

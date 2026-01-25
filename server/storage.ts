@@ -82,6 +82,10 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, data: Partial<InsertUser> & { lastAccessedAt?: Date; password?: string; mustChangePassword?: boolean; profileImageUrl?: string | null; resetToken?: string | null; resetTokenExpiry?: Date | null }): Promise<User | undefined>;
   deleteUser(id: string): Promise<void>;
+  softDeleteUser(id: string): Promise<User | undefined>;
+  reactivateUser(id: string): Promise<User | undefined>;
+  permanentlyDeleteUser(id: string): Promise<void>;
+  getUsersPendingDeletion(): Promise<User[]>;
   
   getTeam(id: string): Promise<Team | undefined>;
   getTeamByCode(code: string): Promise<Team | undefined>;
@@ -91,6 +95,10 @@ export interface IStorage {
   createTeam(team: InsertTeam, coachId: string): Promise<Team>;
   updateTeam(id: string, data: Partial<{ name: string; sport: string; season: string; badgeId: string | null; teamColor: string | null }>): Promise<Team | undefined>;
   deleteTeam(id: string): Promise<void>;
+  hibernateTeam(id: string): Promise<Team | undefined>;
+  reactivateTeam(id: string): Promise<Team | undefined>;
+  permanentlyDeleteTeam(id: string): Promise<void>;
+  getTeamsPendingDeletion(): Promise<Team[]>;
   
   getTeamMembers(teamId: string): Promise<(TeamMember & { user: Omit<User, 'password'> })[]>;
   getTeamMembership(teamId: string, userId: string): Promise<TeamMember | undefined>;
@@ -409,6 +417,51 @@ export class DatabaseStorage implements IStorage {
     await db.delete(users).where(eq(users.id, id));
   }
 
+  async softDeleteUser(id: string): Promise<User | undefined> {
+    const deletionDate = new Date();
+    const scheduledDeletion = new Date(deletionDate);
+    scheduledDeletion.setDate(scheduledDeletion.getDate() + 30);
+    
+    const [user] = await db
+      .update(users)
+      .set({
+        deletedAt: deletionDate,
+        deletionScheduledFor: scheduledDeletion,
+        loginDisabled: true
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async reactivateUser(id: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({
+        deletedAt: null,
+        deletionScheduledFor: null,
+        loginDisabled: false
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async permanentlyDeleteUser(id: string): Promise<void> {
+    await db.delete(teamMembers).where(eq(teamMembers.userId, id));
+    await db.delete(users).where(eq(users.id, id));
+  }
+
+  async getUsersPendingDeletion(): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(and(
+        sql`${users.deletionScheduledFor} <= NOW()`,
+        eq(users.loginDisabled, true)
+      ));
+  }
+
   async getTeam(id: string): Promise<Team | undefined> {
     const [team] = await db.select().from(teams).where(eq(teams.id, id));
     return team || undefined;
@@ -511,6 +564,45 @@ export class DatabaseStorage implements IStorage {
     
     // Finally delete the team itself
     await db.delete(teams).where(eq(teams.id, id));
+  }
+
+  async hibernateTeam(id: string): Promise<Team | undefined> {
+    const hibernationDate = new Date();
+    const hibernationEnds = new Date(hibernationDate);
+    hibernationEnds.setDate(hibernationEnds.getDate() + 60);
+    
+    const [team] = await db
+      .update(teams)
+      .set({
+        hibernatedAt: hibernationDate,
+        hibernationEndsAt: hibernationEnds
+      })
+      .where(eq(teams.id, id))
+      .returning();
+    return team || undefined;
+  }
+
+  async reactivateTeam(id: string): Promise<Team | undefined> {
+    const [team] = await db
+      .update(teams)
+      .set({
+        hibernatedAt: null,
+        hibernationEndsAt: null
+      })
+      .where(eq(teams.id, id))
+      .returning();
+    return team || undefined;
+  }
+
+  async permanentlyDeleteTeam(id: string): Promise<void> {
+    await this.deleteTeam(id);
+  }
+
+  async getTeamsPendingDeletion(): Promise<Team[]> {
+    return await db
+      .select()
+      .from(teams)
+      .where(sql`${teams.hibernationEndsAt} <= NOW()`);
   }
 
   async getTeamMembers(teamId: string): Promise<(TeamMember & { user: Omit<User, 'password'> })[]> {
@@ -2109,6 +2201,22 @@ export class DatabaseStorage implements IStorage {
         isSuperAdmin: users.isSuperAdmin,
         resetToken: users.resetToken,
         resetTokenExpiry: users.resetTokenExpiry,
+        athleteCode: users.athleteCode,
+        height: users.height,
+        weight: users.weight,
+        bio: users.bio,
+        gpa: users.gpa,
+        graduationYear: users.graduationYear,
+        teamAwards: users.teamAwards,
+        socialLinks: users.socialLinks,
+        handedness: users.handedness,
+        footedness: users.footedness,
+        favoritePlayer: users.favoritePlayer,
+        favoriteTeam: users.favoriteTeam,
+        hasCompletedOnboarding: users.hasCompletedOnboarding,
+        deletedAt: users.deletedAt,
+        deletionScheduledFor: users.deletionScheduledFor,
+        loginDisabled: users.loginDisabled,
       })
       .from(users)
       .where(
