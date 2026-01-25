@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Users, UserPlus, Link2, ChevronRight, ArrowLeft, Heart, Sparkles, Loader2 } from "lucide-react";
 import { AthleteCodeClaimDialog } from "./AthleteCodeClaimDialog";
 import { useUser } from "@/lib/userContext";
-import { createManagedAthlete } from "@/lib/api";
+import { createManagedAthlete, joinTeamByCode } from "@/lib/api";
 import { toast } from "sonner";
 
 interface AthleteManagementDialogProps {
@@ -20,7 +20,7 @@ interface AthleteManagementDialogProps {
 }
 
 type ConnectionPath = "team-follower" | "independent" | "claim-code" | null;
-type ViewState = "main" | "detail" | "add-form";
+type ViewState = "main" | "detail" | "add-form" | "join-team-form";
 
 const SPORTS_LIST = ["Basketball", "Baseball", "Football", "Soccer", "Volleyball"];
 
@@ -31,6 +31,7 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
   const { user } = useUser();
   const [, setLocation] = useLocation();
 
+  // Add athlete form state
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [sport, setSport] = useState("");
@@ -38,16 +39,21 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
   const [jerseyNumber, setJerseyNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Join team form state
+  const [teamCode, setTeamCode] = useState("");
+  const [isJoiningTeam, setIsJoiningTeam] = useState(false);
+
   const resetForm = () => {
     setFirstName("");
     setLastName("");
     setSport("");
     setPosition("");
     setJerseyNumber("");
+    setTeamCode("");
   };
 
   const handleBack = () => {
-    if (viewState === "add-form") {
+    if (viewState === "add-form" || viewState === "join-team-form") {
       setViewState("detail");
     } else {
       setSelectedPath(null);
@@ -60,6 +66,32 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
     setViewState("main");
     resetForm();
     onOpenChange(false);
+  };
+
+  const handleJoinTeam = async () => {
+    if (!user) {
+      toast.error("Please log in to join a team.");
+      return;
+    }
+
+    if (!teamCode.trim()) {
+      toast.error("Please enter a team code.");
+      return;
+    }
+
+    setIsJoiningTeam(true);
+    try {
+      const result = await joinTeamByCode(teamCode.trim().toUpperCase(), user.id, "supporter");
+      toast.success(`You've joined ${result.team?.name || "the team"} as a supporter!`);
+      resetForm();
+      onAthleteAdded?.();
+      handleClose();
+    } catch (error: any) {
+      console.error("Failed to join team:", error);
+      toast.error(error.message || "Invalid team code. Please check and try again.");
+    } finally {
+      setIsJoiningTeam(false);
+    }
   };
 
   const handleAddAthlete = async () => {
@@ -130,10 +162,9 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
       ],
       note: "Best for extended family, friends, and team supporters who want to cheer on the whole team.",
       action: () => {
-        handleClose();
+        setViewState("join-team-form");
       },
-      actionLabel: "Join a Team",
-      comingSoon: true,
+      actionLabel: "Enter Team Code",
     },
     {
       id: "independent" as const,
@@ -190,14 +221,10 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
         {connectionPaths.map((path) => (
           <Card 
             key={path.id}
-            className={`cursor-pointer transition-all hover:shadow-md hover:border-primary/50 ${
-              path.comingSoon ? 'opacity-60' : ''
-            }`}
+            className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50"
             onClick={() => {
-              if (!path.comingSoon) {
-                setSelectedPath(path.id);
-                setViewState("detail");
-              }
+              setSelectedPath(path.id);
+              setViewState("detail");
             }}
             data-testid={`card-${path.id}`}
           >
@@ -213,13 +240,10 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
                       <Badge variant={path.badgeVariant} className="text-xs">
                         {path.badge}
                       </Badge>
-                      {path.comingSoon && (
-                        <Badge variant="outline" className="text-xs">Coming Soon</Badge>
-                      )}
                     </CardTitle>
                   </div>
                 </div>
-                {!path.comingSoon && <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -285,6 +309,68 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
       >
         {path.actionLabel}
         <ChevronRight className="h-4 w-4 ml-2" />
+      </Button>
+    </div>
+  );
+
+  const renderJoinTeamForm = () => (
+    <div className="space-y-6">
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={handleBack}
+        className="mb-2"
+        data-testid="button-back-team-form"
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back
+      </Button>
+
+      <div className="flex items-center gap-4 mb-4">
+        <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
+          <Users className="h-8 w-8 text-primary" />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold">Follow a Team</h3>
+          <p className="text-muted-foreground text-sm">Enter the team's code to join as a supporter</p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="teamCode">Team Code *</Label>
+          <Input
+            id="teamCode"
+            placeholder="Enter team code (e.g., ABC123)"
+            value={teamCode}
+            onChange={(e) => setTeamCode(e.target.value.toUpperCase())}
+            className="text-center text-lg tracking-widest font-mono"
+            maxLength={10}
+            data-testid="input-team-code"
+          />
+          <p className="text-xs text-muted-foreground text-center">
+            Ask your athlete's coach for the team code
+          </p>
+        </div>
+      </div>
+
+      <Button 
+        className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+        onClick={handleJoinTeam}
+        disabled={isJoiningTeam || !teamCode.trim()}
+        data-testid="button-submit-team-code"
+      >
+        {isJoiningTeam ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Joining...
+          </>
+        ) : (
+          <>
+            <Users className="h-4 w-4 mr-2" />
+            Join Team
+          </>
+        )}
       </Button>
     </div>
   );
@@ -403,14 +489,29 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
 
   const getDialogTitle = () => {
     if (viewState === "add-form") return "Add Your Athlete";
+    if (viewState === "join-team-form") return "Follow a Team";
     if (viewState === "detail" && selectedPathData) return selectedPathData.title;
     return "Connect with Athletes";
   };
 
   const getDialogDescription = () => {
     if (viewState === "add-form") return "Enter your athlete's information";
+    if (viewState === "join-team-form") return "Enter the team code to join";
     if (viewState === "detail") return "Learn more about this connection option";
     return "Choose the best way to support your athletes";
+  };
+
+  const renderCurrentView = () => {
+    switch (viewState) {
+      case "add-form":
+        return renderAddAthleteForm();
+      case "join-team-form":
+        return renderJoinTeamForm();
+      case "detail":
+        return selectedPathData ? renderDetailView(selectedPathData) : renderMainView();
+      default:
+        return renderMainView();
+    }
   };
 
   return (
@@ -427,12 +528,7 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
             </DialogDescription>
           </DialogHeader>
 
-          {viewState === "add-form" 
-            ? renderAddAthleteForm()
-            : viewState === "detail" && selectedPathData 
-              ? renderDetailView(selectedPathData)
-              : renderMainView()
-          }
+          {renderCurrentView()}
         </DialogContent>
       </Dialog>
 
