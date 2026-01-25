@@ -1759,7 +1759,7 @@ export async function getAthleteSupporterStatsAggregate(
   return res.json();
 }
 
-export async function getConnectedSupporter(userId: string): Promise<{ connected: boolean; supporter: { id: string; name: string; profileImageUrl?: string } | null }> {
+export async function getConnectedSupporter(userId: string): Promise<{ connected: boolean; supporter: { id: string; name: string; profileImageUrl?: string; hasProAccess?: boolean } | null }> {
   const res = await fetch("/api/athlete/connected-supporter", {
     headers: { "x-user-id": userId },
   });

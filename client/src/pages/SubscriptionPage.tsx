@@ -40,7 +40,7 @@ export default function SubscriptionPage() {
                 <div className="mx-auto mb-4 p-4 rounded-full bg-primary/10">
                   <Crown className="w-12 h-12 text-primary" />
                 </div>
-                <CardTitle className="text-2xl">You're on {tier === 'coach' ? 'Coach' : tier === 'athlete' ? 'Athlete' : 'Supporter'} Pro!</CardTitle>
+                <CardTitle className="text-2xl">You're on {tier === 'coach' ? 'Coach' : 'Supporter'} Pro!</CardTitle>
                 <CardDescription>
                   Your subscription is active. Manage your subscription in the STATFYR app.
                 </CardDescription>
@@ -99,31 +99,6 @@ export default function SubscriptionPage() {
                         <li className="flex items-center gap-2">
                           <Check className="w-4 h-4 text-green-500" />
                           Season management
-                        </li>
-                      </ul>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="bg-muted/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Star className="w-5 h-5 text-green-500" />
-                        Athlete Pro - $2.99/mo
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-1 text-sm">
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-green-500" />
-                          Shareable HYPE Card
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-green-500" />
-                          Video highlights upload
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-green-500" />
-                          Extended profile
                         </li>
                       </ul>
                     </CardContent>
@@ -217,7 +192,7 @@ export default function SubscriptionPage() {
                   Current Plan
                 </CardTitle>
                 <Badge variant="default">
-                  {tier === 'coach' ? 'Coach Pro' : tier === 'athlete' ? 'Athlete Pro' : 'Supporter Pro'}
+                  {tier === 'coach' ? 'Coach Pro' : 'Supporter Pro'}
                 </Badge>
               </div>
               <CardDescription>

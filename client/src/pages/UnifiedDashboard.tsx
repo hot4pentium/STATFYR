@@ -2970,16 +2970,16 @@ export default function UnifiedDashboard() {
                   </div>
                 )}
 
-                {/* Extended Profile Card - Athlete Pro Feature - Only when connected to supporter */}
+                {/* Extended Profile Card - Unlocked by Supporter Pro - Only when connected to supporter */}
                 {userRole === "athlete" && isSupporterConnected && (
-                  <Card className={`mb-4 border-yellow-500/30 ${tier === 'athlete_pro' || tier === 'coach_pro' ? 'bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-yellow-500/10' : 'bg-card/50'}`}>
+                  <Card className={`mb-4 border-yellow-500/30 ${connectedSupporterData?.supporter?.hasProAccess ? 'bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-yellow-500/10' : 'bg-card/50'}`}>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <Crown className="h-5 w-5 text-yellow-500" />
                           <h3 className="font-display font-bold text-sm uppercase tracking-wide">Extended Profile</h3>
                         </div>
-                        {tier === 'athlete_pro' || tier === 'coach_pro' ? (
+                        {connectedSupporterData?.supporter?.hasProAccess ? (
                           <Button 
                             variant="ghost" 
                             size="sm" 
@@ -2994,7 +2994,7 @@ export default function UnifiedDashboard() {
                         )}
                       </div>
                       
-                      {tier === 'athlete_pro' || tier === 'coach_pro' ? (
+                      {connectedSupporterData?.supporter?.hasProAccess ? (
                         <>
                           {((user as any)?.height || (user as any)?.weight || (user as any)?.handedness || (user as any)?.footedness || (user as any)?.gpa || (user as any)?.favoritePlayer || (user as any)?.favoriteTeam || (user as any)?.bio) ? (
                             <div className="space-y-2">
@@ -3079,13 +3079,8 @@ export default function UnifiedDashboard() {
                         </>
                       ) : (
                         <div className="text-center py-3">
-                          <p className="text-sm text-muted-foreground mb-2">Unlock extended profile with Athlete Pro</p>
-                          <Link href="/subscription">
-                            <Button variant="outline" size="sm" className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10" data-testid="button-upgrade-extended-profile">
-                              <Crown className="h-4 w-4 mr-2" />
-                              Upgrade to Pro
-                            </Button>
-                          </Link>
+                          <p className="text-sm text-muted-foreground mb-2">Extended profile unlocks when your supporter upgrades to Pro</p>
+                          <p className="text-xs text-muted-foreground">Ask your supporter to upgrade for premium features</p>
                         </div>
                       )}
                     </CardContent>

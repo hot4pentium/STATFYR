@@ -222,7 +222,6 @@ export default function SuperAdminPanel() {
   const getTierLabel = (tier: string) => {
     switch (tier) {
       case "coach": return "Coach Pro";
-      case "athlete": return "Athlete Pro";
       case "supporter": return "Supporter Pro";
       case "free": return "Free";
       default: return tier;
@@ -872,7 +871,6 @@ export default function SuperAdminPanel() {
                   <SelectContent>
                     <SelectItem value="free">Free</SelectItem>
                     <SelectItem value="coach">Coach Pro ($9.99/mo)</SelectItem>
-                    <SelectItem value="athlete">Athlete Pro ($2.99/mo)</SelectItem>
                     <SelectItem value="supporter">Supporter Pro ($5.99/mo)</SelectItem>
                   </SelectContent>
                 </Select>

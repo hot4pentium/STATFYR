@@ -4696,8 +4696,8 @@ export async function registerRoutes(
       const { userId } = req.params;
       const { tier, status } = req.body;
       
-      if (!tier || !['free', 'coach', 'athlete', 'supporter'].includes(tier)) {
-        return res.status(400).json({ error: "Valid tier required: free, coach, athlete, supporter" });
+      if (!tier || !['free', 'coach', 'supporter'].includes(tier)) {
+        return res.status(400).json({ error: "Valid tier required: free, coach, supporter" });
       }
 
       const { stripeService } = await import("./stripeService");
@@ -5561,12 +5561,18 @@ export async function registerRoutes(
         return res.json({ connected: false, supporter: null });
       }
 
+      // Check if supporter has Pro subscription
+      const { stripeService } = await import("./stripeService");
+      const subscription = await stripeService.getUserSubscription(link.supporter.id);
+      const hasProAccess = subscription?.status === 'active' && subscription?.tier === 'supporter';
+
       res.json({
         connected: true,
         supporter: {
           id: link.supporter.id,
           name: link.supporter.name || link.supporter.firstName + ' ' + link.supporter.lastName,
           profileImageUrl: link.supporter.profileImageUrl,
+          hasProAccess,
         }
       });
     } catch (error) {
@@ -6572,10 +6578,6 @@ function computeEntitlements(tier: string, isCoach: boolean, isStaff: boolean, i
   if (isAthlete) {
     base.canViewIndividualStats = true;
     base.canViewHighlights = true;
-    
-    if (tier === 'athlete') {
-      base.canUploadHighlights = true;
-    }
   }
 
   if (tier === 'supporter') {
