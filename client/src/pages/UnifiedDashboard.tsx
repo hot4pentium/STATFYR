@@ -39,7 +39,7 @@ import {
   Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Bell,
   ArrowLeft, MapPin, Clock, Utensils, Coffee, MoreVertical, UserCog, UserMinus, 
   Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User, Calendar,
-  List, Grid, Lock, Crown, PlayCircle, StopCircle, History
+  List, Grid, Lock, Crown, PlayCircle, StopCircle, History, Info
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -229,6 +229,7 @@ export default function UnifiedDashboard() {
   const isSupporterConnected = connectedSupporterData?.connected === true;
   
   const [isDisconnectingSupporter, setIsDisconnectingSupporter] = useState(false);
+  const [isAthleteCodeInfoOpen, setIsAthleteCodeInfoOpen] = useState(false);
   const handleDisconnectSupporter = async () => {
     if (!user?.id) return;
     setIsDisconnectingSupporter(true);
@@ -2889,10 +2890,19 @@ export default function UnifiedDashboard() {
                               <div className="p-2 rounded-lg bg-orange-500/20">
                                 <Lock className="h-5 w-5 text-orange-400" />
                               </div>
-                              <div>
+                              <div className="flex-1">
                                 <h3 className="font-display font-bold text-sm uppercase tracking-wide text-gray-300">HYPE Features Locked</h3>
                                 <p className="text-xs text-muted-foreground">Connect with a parent/supporter to unlock</p>
                               </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-muted-foreground hover:text-orange-400"
+                                onClick={() => setIsAthleteCodeInfoOpen(true)}
+                                data-testid="button-athlete-code-info"
+                              >
+                                <Info className="h-5 w-5" />
+                              </Button>
                             </div>
                             <div className="grid grid-cols-3 gap-3">
                               {/* Locked HYPE Hub Preview */}
@@ -4065,6 +4075,52 @@ export default function UnifiedDashboard() {
         managedAthlete={selectedManagedAthlete}
         onSaved={() => queryClient.invalidateQueries({ queryKey: ["/api/supporter/managed-athletes"] })}
       />
+
+      {/* Athlete Code Info Modal */}
+      <Dialog open={isAthleteCodeInfoOpen} onOpenChange={setIsAthleteCodeInfoOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Heart className="h-5 w-5 text-orange-500" />
+              What is Your Athlete Code?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <p>
+              Your <strong>Athlete Code</strong> is a unique code that connects you with a parent or supporter in the STATFYR app.
+            </p>
+            <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
+              <p className="font-medium text-orange-400 mb-2">When a supporter enters your code:</p>
+              <ul className="space-y-1 text-muted-foreground text-xs">
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                  <span>They become your connected supporter</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                  <span>You unlock HYPE Hub & HYPE Card features</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                  <span>They can send you shoutouts and support during games</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                  <span>They can upload highlight videos for you</span>
+                </li>
+              </ul>
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Share your code with a parent, guardian, or family member who wants to follow your journey and cheer you on!
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsAthleteCodeInfoOpen(false)} className="w-full">
+              Got It!
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Staff Promotion Celebration Modal */}
       {showStaffCelebration && staffPromotionTeam && (
