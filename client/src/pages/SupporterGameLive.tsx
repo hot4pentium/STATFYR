@@ -383,7 +383,7 @@ export default function SupporterGameLive() {
               }`}>
                 {isActive ? "LIVE" : "ENDED"}
               </div>
-              {liveSession?.status === "live" && (
+              {liveSession?.status === "live" && liveSession?.startedBy === user?.id && (
                 <Button
                   variant="outline"
                   size="sm"
