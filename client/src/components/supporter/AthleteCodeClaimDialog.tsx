@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Link2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { useUser } from "@/lib/userContext";
 
 interface AthleteCodeClaimDialogProps {
   open: boolean;
@@ -15,17 +16,22 @@ interface AthleteCodeClaimDialogProps {
   onSuccess?: (athlete: { id: string; name: string }) => void;
 }
 
-export function AthleteCodeClaimDialog({ open, onOpenChange, userId, onSuccess }: AthleteCodeClaimDialogProps) {
+export function AthleteCodeClaimDialog({ open, onOpenChange, userId: propsUserId, onSuccess }: AthleteCodeClaimDialogProps) {
   const [code, setCode] = useState("");
   const queryClient = useQueryClient();
+  const { user } = useUser();
+  const userId = propsUserId || user?.id;
 
   const claimMutation = useMutation({
     mutationFn: async (athleteCode: string) => {
+      if (!userId) {
+        throw new Error("Please log in to connect with an athlete");
+      }
       const res = await fetch("/api/supporter/claim-athlete", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          ...(userId && { "x-user-id": userId })
+          "x-user-id": userId
         },
         body: JSON.stringify({ code: athleteCode }),
         credentials: "include",
