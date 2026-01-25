@@ -5417,6 +5417,26 @@ export async function registerRoutes(
         });
       }
 
+      // Create a managed athlete entry so the athlete appears in the dropdown
+      const existingManagedAthletes = await storage.getManagedAthletes(userId);
+      const alreadyManaged = existingManagedAthletes.some(ma => ma.athleteId === athlete.id);
+      if (!alreadyManaged) {
+        // Get athlete's sport from their team if available
+        let sport = "General";
+        if (athleteTeams.length > 0) {
+          sport = athleteTeams[0].sport || "General";
+        }
+        
+        await storage.createManagedAthlete({
+          supporterId: userId,
+          athleteId: athlete.id,
+          athleteName: claimedAthlete.name || `${claimedAthlete.firstName || ''} ${claimedAthlete.lastName || ''}`.trim() || claimedAthlete.username || 'Athlete',
+          sport,
+          position: claimedAthlete.position || undefined,
+          number: claimedAthlete.number ? String(claimedAthlete.number) : undefined,
+        });
+      }
+
       res.json({ 
         success: true,
         message: "You are now connected to this athlete and can access HYPE features",
