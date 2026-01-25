@@ -2894,50 +2894,40 @@ export default function UnifiedDashboard() {
                                 <p className="text-xs text-muted-foreground">Connect with a parent/supporter to unlock</p>
                               </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-3 opacity-50 pointer-events-none mb-4">
+                            <div className="grid grid-cols-3 gap-3">
                               {/* Locked HYPE Hub Preview */}
-                              <div className="p-3 rounded-lg border border-gray-600/50 bg-gray-700/30 flex flex-col items-center gap-2">
+                              <div className="p-3 rounded-lg border border-gray-600/50 bg-gray-700/30 flex flex-col items-center gap-2 opacity-50">
                                 <div className="p-2 rounded-lg bg-gray-600/50">
                                   <img src={logoImage} alt="STATFYR" className="h-6 w-6 object-contain grayscale" />
                                 </div>
                                 <span className="text-xs text-gray-500 font-medium">HYPE Hub</span>
                               </div>
                               {/* Locked HYPE Card Preview */}
-                              <div className="p-3 rounded-lg border border-gray-600/50 bg-gray-700/30 flex flex-col items-center gap-2">
+                              <div className="p-3 rounded-lg border border-gray-600/50 bg-gray-700/30 flex flex-col items-center gap-2 opacity-50">
                                 <div className="p-2 rounded-lg bg-gray-600/50">
                                   <User className="h-6 w-6 text-gray-500" />
                                 </div>
                                 <span className="text-xs text-gray-500 font-medium">HYPE Card</span>
                               </div>
-                            </div>
-                            {/* Share Code Section - Below Grid */}
-                            <div className="pt-3 border-t border-gray-600/30">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Heart className="h-4 w-4 text-orange-400" />
-                                <span className="text-sm font-medium">Share Your Code</span>
-                              </div>
-                              <div className="flex items-center gap-2 p-2 bg-background/50 rounded-lg border border-orange-500/20">
-                                <code className="flex-1 text-lg font-mono text-orange-400 tracking-wider text-center">
-                                  {user?.athleteCode || "Loading..."}
+                              {/* Athlete Code Card */}
+                              <div 
+                                className="p-3 rounded-lg border border-orange-500/40 bg-orange-500/10 flex flex-col items-center gap-2 cursor-pointer hover:bg-orange-500/20 transition-colors"
+                                onClick={() => {
+                                  if (user?.athleteCode) {
+                                    navigator.clipboard.writeText(user.athleteCode);
+                                    toast.success("Code copied!");
+                                  }
+                                }}
+                                data-testid="card-athlete-code"
+                              >
+                                <div className="p-2 rounded-lg bg-orange-500/20">
+                                  <Hash className="h-6 w-6 text-orange-400" />
+                                </div>
+                                <code className="text-sm font-mono text-orange-400 font-bold">
+                                  {user?.athleteCode || "---"}
                                 </code>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-orange-400 hover:text-orange-300 h-8"
-                                  onClick={() => {
-                                    if (user?.athleteCode) {
-                                      navigator.clipboard.writeText(user.athleteCode);
-                                      toast.success("Athlete code copied!");
-                                    }
-                                  }}
-                                  data-testid="button-copy-athlete-code"
-                                >
-                                  <Copy className="h-4 w-4" />
-                                </Button>
+                                <span className="text-[10px] text-muted-foreground">Tap to copy</span>
                               </div>
-                              <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                                Send this code to a parent to unlock HYPE features
-                              </p>
                             </div>
                           </CardContent>
                         </Card>
