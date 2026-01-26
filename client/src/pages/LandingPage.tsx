@@ -184,11 +184,6 @@ export default function LandingPage() {
                 Log in
               </Button>
             </Link>
-            <Link href="/auth" data-testid="link-signup-header">
-              <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
-                Get Started
-              </Button>
-            </Link>
           </div>
         </div>
       </header>
@@ -504,15 +499,7 @@ export default function LandingPage() {
             Join coaches, athletes, and supporters who are already using STATFYR 
             to elevate their game day experience.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/auth" data-testid="link-cta-bottom">
-              <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-10 h-14 text-base gap-2">
-                Get Started Free
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
-          <p className="text-gray-300 text-sm mt-6">iOS & Android app coming soon</p>
+                    <p className="text-gray-300 text-sm mt-6">iOS & Android app coming soon</p>
         </div>
       </section>
 
