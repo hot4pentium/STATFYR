@@ -222,15 +222,15 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            <div className="relative flex items-center justify-start py-8" data-testid="card-role-coach">
-              <div className="rounded-xl overflow-hidden border border-blue-500/30 shadow-xl w-[45%] md:w-[40%] ml-0">
+            <div className="relative flex items-center justify-end py-8" data-testid="card-role-coach">
+              <div className="rounded-xl overflow-hidden border border-blue-500/30 shadow-xl w-[45%] md:w-[40%] mr-0">
                 <img 
                   src={playmakerPreview} 
                   alt="PlayMaker Preview" 
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute bottom-0 right-0 md:right-2 bg-black/95 backdrop-blur-sm rounded-xl border border-blue-500/40 p-4 md:p-5 shadow-2xl w-[65%] md:w-[60%]">
+              <div className="absolute bottom-0 left-0 md:left-2 bg-black/95 backdrop-blur-sm rounded-xl border border-blue-500/40 p-4 md:p-5 shadow-2xl w-[65%] md:w-[60%]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
                     <Users className="w-5 h-5 text-blue-400" />
