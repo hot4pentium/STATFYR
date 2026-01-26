@@ -125,52 +125,52 @@ html:not(.dark) {
 
 /* DARK MODE DEFAULT */
 :root {
-  /* Dark Navy Theme */
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
+  /* Deep Charcoal Theme - Modern & Sharp */
+  --background: 220 13% 8%;
+  --foreground: 0 0% 98%;
 
-  --card: 217 33% 17%;
-  --card-foreground: 210 40% 98%;
+  --card: 220 13% 12%;
+  --card-foreground: 0 0% 98%;
 
-  --popover: 222 47% 11%;
-  --popover-foreground: 210 40% 98%;
+  --popover: 220 13% 10%;
+  --popover-foreground: 0 0% 98%;
 
-  /* Electric Blue Primary */
-  --primary: 217 91% 60%;
-  --primary-foreground: 222 47% 11%;
+  /* Orange Primary - STATFYR Brand */
+  --primary: 24 95% 53%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 217 33% 17%;
-  --secondary-foreground: 210 40% 98%;
+  --secondary: 220 13% 15%;
+  --secondary-foreground: 0 0% 98%;
 
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20% 65%;
+  --muted: 220 10% 18%;
+  --muted-foreground: 220 10% 55%;
 
-  --accent: 84 81% 69%;
-  --accent-foreground: 222 47% 11%;
+  --accent: 24 95% 53%;
+  --accent-foreground: 0 0% 100%;
 
-  --destructive: 0 62% 30%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
 
-  --border: 217 33% 17%;
-  --input: 217 33% 17%;
-  --ring: 217 91% 60%;
+  --border: 220 13% 18%;
+  --input: 220 13% 15%;
+  --ring: 24 95% 53%;
 
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 
-  --chart-1: 217 91% 60%;
-  --chart-2: 84 81% 69%;
+  --chart-1: 24 95% 53%;
+  --chart-2: 199 89% 48%;
   --chart-3: 280 65% 60%;
-  --chart-4: 43 96% 64%;
+  --chart-4: 142 71% 45%;
   --chart-5: 350 89% 60%;
 
-  --sidebar: 222 47% 11%;
-  --sidebar-foreground: 215 20% 65%;
-  --sidebar-primary: 217 91% 60%;
+  --sidebar: 220 13% 6%;
+  --sidebar-foreground: 220 10% 55%;
+  --sidebar-primary: 24 95% 53%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 217 33% 17%;
-  --sidebar-accent-foreground: 210 40% 98%;
-  --sidebar-border: 217 33% 17%;
-  --sidebar-ring: 217 91% 60%;
+  --sidebar-accent: 220 13% 15%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-border: 220 13% 15%;
+  --sidebar-ring: 24 95% 53%;
 }
 
 @layer base {
@@ -191,15 +191,12 @@ html:not(.dark) {
   }
   
   html.dark body {
-    background-color: hsl(222 35% 14%);
+    background-color: hsl(220 13% 8%);
     background-image: 
-      /* Gradient overlay */
-      radial-gradient(ellipse at top, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
-      radial-gradient(ellipse at bottom right, rgba(139, 92, 246, 0.10) 0%, transparent 40%),
-      /* Grid lines */
-      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+      /* Subtle purple/blue gradient overlay for depth */
+      radial-gradient(ellipse at top left, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(59, 130, 246, 0.06) 0%, transparent 40%);
+    background-size: 100% 100%, 100% 100%;
     background-attachment: fixed;
   }
   
@@ -267,11 +264,10 @@ html:not(.dark) {
 }
 
 html.dark .dashboard-bg {
-  background-color: hsl(220 30% 8%);
+  background-color: hsl(220 13% 8%);
   background-image: 
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3Cpattern id='techlines' patternUnits='userSpaceOnUse' width='800' height='600' patternTransform='rotate(-15)'%3E%3C!-- Angular tech lines --%3E%3Cline x1='0' y1='80' x2='400' y2='80' stroke='rgba(30,40,55,0.8)' stroke-width='2'/%3E%3Cline x1='400' y1='80' x2='500' y2='0' stroke='rgba(30,40,55,0.8)' stroke-width='2'/%3E%3Cline x1='200' y1='200' x2='600' y2='200' stroke='rgba(30,40,55,0.6)' stroke-width='1.5'/%3E%3Cline x1='600' y1='200' x2='700' y2='120' stroke='rgba(30,40,55,0.6)' stroke-width='1.5'/%3E%3Cline x1='50' y1='350' x2='350' y2='350' stroke='rgba(30,40,55,0.5)' stroke-width='1'/%3E%3Cline x1='350' y1='350' x2='420' y2='280' stroke='rgba(30,40,55,0.5)' stroke-width='1'/%3E%3Cline x1='500' y1='450' x2='800' y2='450' stroke='rgba(30,40,55,0.7)' stroke-width='1.5'/%3E%3Cline x1='0' y1='520' x2='300' y2='520' stroke='rgba(30,40,55,0.4)' stroke-width='1'/%3E%3Cline x1='300' y1='520' x2='380' y2='440' stroke='rgba(30,40,55,0.4)' stroke-width='1'/%3E%3C!-- Accent lines with subtle cyan glow --%3E%3Cline x1='100' y1='150' x2='500' y2='150' stroke='rgba(56,189,248,0.12)' stroke-width='1'/%3E%3Cline x1='400' y1='380' x2='750' y2='380' stroke='rgba(56,189,248,0.08)' stroke-width='1'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23techlines)'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse at top, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at bottom right, rgba(139, 92, 246, 0.06) 0%, transparent 40%);
+    radial-gradient(ellipse at top left, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(59, 130, 246, 0.04) 0%, transparent 40%);
 }
 
 /* Dashboard Background - Bronze Theme */
