@@ -49,6 +49,7 @@ import landingBg from "@/assets/landing-bg.png";
 export default function LandingPage() {
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
   const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const toggleFlip = (cardId: string) => {
@@ -470,16 +471,18 @@ export default function LandingPage() {
                 { src: "/slideshow/playmaker-thumbnail.png", alt: "PlayMaker" },
                 { src: "/slideshow/shoutouts.png", alt: "Shoutouts" },
               ].map((image, index) => (
-                <div 
+                <button 
                   key={index}
-                  className="flex-shrink-0 w-64 md:w-80 h-40 md:h-52 rounded-xl overflow-hidden border border-orange-500/20"
+                  onClick={() => setSelectedImage(image)}
+                  className="flex-shrink-0 w-64 md:w-80 h-40 md:h-52 rounded-xl overflow-hidden border border-orange-500/20 hover:border-orange-500/50 transition-colors cursor-pointer"
+                  data-testid={`button-carousel-image-${index}`}
                 >
                   <img 
                     src={image.src} 
                     alt={image.alt}
                     className="w-full h-full object-cover"
                   />
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -780,6 +783,22 @@ export default function LandingPage() {
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-purple-400" />Earn through game participation</li>
             </ul>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={selectedImage !== null} onOpenChange={(open) => !open && setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl bg-black/90 border-orange-500/30 p-2" data-testid="dialog-image-preview">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{selectedImage?.alt}</DialogTitle>
+            <DialogDescription>Full size image preview</DialogDescription>
+          </DialogHeader>
+          {selectedImage && (
+            <img 
+              src={selectedImage.src} 
+              alt={selectedImage.alt}
+              className="w-full h-auto rounded-lg"
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
