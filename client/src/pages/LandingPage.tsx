@@ -322,165 +322,104 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="pricing" className="py-12 md:py-16 px-4 md:px-6">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-6 md:mb-10">
-            <h2 className="text-xl md:text-3xl font-bold text-white mb-2 md:mb-3">
+      <section id="pricing" className="py-10 md:py-14 px-4 md:px-6">
+        <div className="container mx-auto max-w-3xl">
+          <div className="text-center mb-5 md:mb-8">
+            <h2 className="text-lg md:text-2xl font-bold text-white mb-2">
               Simple, Transparent Pricing
             </h2>
-            <p className="text-gray-300 text-xs md:text-sm max-w-xl mx-auto px-2">
+            <p className="text-gray-300 text-[11px] md:text-xs max-w-md mx-auto">
               Start free and upgrade when you're ready. Athletes are always free.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+          <div className="grid grid-cols-3 gap-2 md:gap-3">
             <Card className="bg-white/5 border-blue-500/30" data-testid="card-pricing-coach">
-              <CardHeader className="text-center pb-2 pt-4">
-                <div className="w-10 h-10 bg-blue-500/20 rounded-xl mx-auto mb-2 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-blue-400" />
+              <CardHeader className="text-center p-2 md:p-3">
+                <div className="w-7 h-7 md:w-8 md:h-8 bg-blue-500/20 rounded-lg mx-auto mb-1 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-blue-400" />
                 </div>
-                <CardTitle className="text-white text-base">Coach</CardTitle>
+                <CardTitle className="text-white text-xs md:text-sm">Coach</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 pt-2">
-                <div>
-                  <Badge className="bg-white/10 text-gray-300 border-0 mb-2 text-xs">Free Tier</Badge>
-                  <ul className="space-y-1.5 text-xs text-gray-300">
-                    <li className="flex items-center gap-1.5">
-                      <Check className="w-3 h-3 text-green-400" />
-                      Create team & manage roster
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <Check className="w-3 h-3 text-green-400" />
-                      Schedule events
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <Check className="w-3 h-3 text-green-400" />
-                      Team chat
-                    </li>
-                  </ul>
+              <CardContent className="p-2 md:p-3 pt-0 space-y-2">
+                <div className="text-center">
+                  <span className="text-sm md:text-base font-bold text-white">$7.99</span>
+                  <span className="text-gray-400 text-[9px] md:text-[10px]">/mo</span>
                 </div>
-                <div className="border-t border-white/10 pt-4">
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-xl font-bold text-white">$7.99</span>
-                    <span className="text-gray-300 text-xs">/month</span>
-                  </div>
-                  <ul className="space-y-1.5 text-xs">
-                    <li className="flex items-center gap-1.5 text-white/90">
-                      <Crown className="w-3 h-3 text-yellow-400" />
-                      PlayMaker & Playbook
-                    </li>
-                    <li className="flex items-center gap-1.5 text-white/90">
-                      <Crown className="w-3 h-3 text-yellow-400" />
-                      Full StatTracker
-                    </li>
-                    <li className="flex items-center gap-1.5 text-white/90">
-                      <Crown className="w-3 h-3 text-yellow-400" />
-                      Season management
-                    </li>
-                    <li className="flex items-center gap-1.5 text-white/90">
-                      <Crown className="w-3 h-3 text-yellow-400" />
-                      Video highlights
-                    </li>
-                  </ul>
-                </div>
+                <ul className="space-y-1 text-[9px] md:text-[10px] text-gray-300">
+                  <li className="flex items-center gap-1">
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">Rosters & events</span>
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
+                    <span className="truncate">PlayMaker</span>
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
+                    <span className="truncate">StatTracker</span>
+                  </li>
+                </ul>
               </CardContent>
             </Card>
 
             <Card className="bg-white/5 border-green-500/30 relative" data-testid="card-pricing-athlete">
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-                <Badge className="bg-green-500 text-white border-0 text-xs">Always Free</Badge>
+              <div className="absolute -top-1.5 left-1/2 -translate-x-1/2">
+                <Badge className="bg-green-500 text-white border-0 text-[8px] md:text-[9px] px-1.5 py-0.5">Free</Badge>
               </div>
-              <CardHeader className="text-center pb-2 pt-6">
-                <div className="w-10 h-10 bg-green-500/20 rounded-xl mx-auto mb-2 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-green-400" />
+              <CardHeader className="text-center p-2 md:p-3 pt-4">
+                <div className="w-7 h-7 md:w-8 md:h-8 bg-green-500/20 rounded-lg mx-auto mb-1 flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-green-400" />
                 </div>
-                <CardTitle className="text-white text-base">Athlete</CardTitle>
+                <CardTitle className="text-white text-xs md:text-sm">Athlete</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 pt-2">
-                <ul className="space-y-1.5 text-xs text-gray-300">
-                  <li className="flex items-center gap-1.5">
-                    <Check className="w-3 h-3 text-green-400" />
-                    Join team with code
+              <CardContent className="p-2 md:p-3 pt-0 space-y-2">
+                <div className="text-center">
+                  <span className="text-sm md:text-base font-bold text-green-400">$0</span>
+                </div>
+                <ul className="space-y-1 text-[9px] md:text-[10px] text-gray-300">
+                  <li className="flex items-center gap-1">
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">Join team</span>
                   </li>
-                  <li className="flex items-center gap-1.5">
-                    <Check className="w-3 h-3 text-green-400" />
-                    View your stats
+                  <li className="flex items-center gap-1">
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">View stats</span>
                   </li>
-                  <li className="flex items-center gap-1.5">
-                    <Check className="w-3 h-3 text-green-400" />
-                    Access playbook
-                  </li>
-                  <li className="flex items-center gap-1.5">
-                    <Check className="w-3 h-3 text-green-400" />
-                    Connect with supporter
+                  <li className="flex items-center gap-1">
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">HYPE Card</span>
                   </li>
                 </ul>
-                <div className="border-t border-white/10 pt-4">
-                  <Badge className="bg-purple-500/20 text-purple-400 border-0 mb-2 text-xs">Via Supporter Pro</Badge>
-                  <p className="text-[10px] text-gray-300 mb-2">Premium features unlock when your supporter upgrades:</p>
-                  <ul className="space-y-1.5 text-xs">
-                    <li className="flex items-center gap-1.5 text-white/90">
-                      <Crown className="w-3 h-3 text-yellow-400" />
-                      Shareable HYPE Card
-                    </li>
-                    <li className="flex items-center gap-1.5 text-white/90">
-                      <Crown className="w-3 h-3 text-yellow-400" />
-                      Upload video highlights
-                    </li>
-                    <li className="flex items-center gap-1.5 text-white/90">
-                      <Crown className="w-3 h-3 text-yellow-400" />
-                      Extended profile
-                    </li>
-                  </ul>
-                </div>
               </CardContent>
             </Card>
 
             <Card className="bg-white/5 border-purple-500/30" data-testid="card-pricing-supporter">
-              <CardHeader className="text-center pb-2 pt-4">
-                <div className="w-10 h-10 bg-purple-500/20 rounded-xl mx-auto mb-2 flex items-center justify-center">
-                  <Heart className="w-5 h-5 text-purple-400" />
+              <CardHeader className="text-center p-2 md:p-3">
+                <div className="w-7 h-7 md:w-8 md:h-8 bg-purple-500/20 rounded-lg mx-auto mb-1 flex items-center justify-center">
+                  <Heart className="w-4 h-4 text-purple-400" />
                 </div>
-                <CardTitle className="text-white text-base">Supporter</CardTitle>
+                <CardTitle className="text-white text-xs md:text-sm">Supporter</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 pt-2">
-                <div>
-                  <Badge className="bg-white/10 text-gray-300 border-0 mb-2 text-xs">Free Tier</Badge>
-                  <ul className="space-y-1.5 text-xs text-gray-300">
-                    <li className="flex items-center gap-1.5">
-                      <Check className="w-3 h-3 text-green-400" />
-                      Follow team athletes
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <Check className="w-3 h-3 text-green-400" />
-                      Game Day Live engagement
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <Check className="w-3 h-3 text-green-400" />
-                      Send shoutouts
-                    </li>
-                  </ul>
+              <CardContent className="p-2 md:p-3 pt-0 space-y-2">
+                <div className="text-center">
+                  <span className="text-sm md:text-base font-bold text-white">$5.99</span>
+                  <span className="text-gray-400 text-[9px] md:text-[10px]">/mo</span>
                 </div>
-                <div className="border-t border-white/10 pt-4">
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-xl font-bold text-white">$5.99</span>
-                    <span className="text-gray-300 text-xs">/month</span>
-                  </div>
-                  <ul className="space-y-1.5 text-xs">
-                    <li className="flex items-center gap-1.5 text-white/90">
-                      <Crown className="w-3 h-3 text-yellow-400" />
-                      Manage independent athletes
-                    </li>
-                    <li className="flex items-center gap-1.5 text-white/90">
-                      <Crown className="w-3 h-3 text-yellow-400" />
-                      Custom dashboard themes
-                    </li>
-                    <li className="flex items-center gap-1.5 text-white/90">
-                      <Crown className="w-3 h-3 text-yellow-400" />
-                      Season history access
-                    </li>
-                  </ul>
-                </div>
+                <ul className="space-y-1 text-[9px] md:text-[10px] text-gray-300">
+                  <li className="flex items-center gap-1">
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">Game Day Live</span>
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
+                    <span className="truncate">Manage athletes</span>
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
+                    <span className="truncate">Themes & badges</span>
+                  </li>
+                </ul>
               </CardContent>
             </Card>
           </div>
