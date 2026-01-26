@@ -430,50 +430,32 @@ export default function LandingPage() {
             <div className="flex-1 h-px bg-gradient-to-l from-transparent to-orange-500/50" />
           </div>
 
-          {/* Platform Section */}
-          <div className="flex flex-col max-w-2xl mx-auto mt-12">
-            <div className="relative flex items-center justify-start py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-bl from-orange-950 via-orange-900/80 to-black/60 border border-orange-500/30" data-testid="card-platform">
-              <div className="rounded-xl overflow-hidden border border-orange-500/30 shadow-xl w-[50%] md:w-[45%] ml-0">
-                <img 
-                  src={dashboardPreview} 
-                  alt="Dashboard Preview" 
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-              <div className="absolute top-1/2 -translate-y-1/2 right-2 md:right-3 bg-black rounded-xl border border-orange-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
-                    <Flame className="w-5 h-5 text-orange-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-base md:text-lg font-bold text-white">Works Everywhere</h3>
-                    <p className="text-xs text-gray-400">One app, all your devices</p>
-                  </div>
+          {/* Image Carousel */}
+          <div className="mt-8 md:mt-12 overflow-hidden">
+            <div className="flex gap-4 animate-scroll">
+              {[
+                { src: "/slideshow/hype-card.png", alt: "HYPE Card" },
+                { src: "/slideshow/live-stat-tracking.png", alt: "Live Stat Tracking" },
+                { src: "/slideshow/livetaps.png", alt: "Live Taps" },
+                { src: "/slideshow/playmaker-thumbnail.png", alt: "PlayMaker" },
+                { src: "/slideshow/shoutouts.png", alt: "Shoutouts" },
+                { src: "/slideshow/hype-card.png", alt: "HYPE Card" },
+                { src: "/slideshow/live-stat-tracking.png", alt: "Live Stat Tracking" },
+                { src: "/slideshow/livetaps.png", alt: "Live Taps" },
+                { src: "/slideshow/playmaker-thumbnail.png", alt: "PlayMaker" },
+                { src: "/slideshow/shoutouts.png", alt: "Shoutouts" },
+              ].map((image, index) => (
+                <div 
+                  key={index}
+                  className="flex-shrink-0 w-64 md:w-80 h-40 md:h-52 rounded-xl overflow-hidden border border-orange-500/20"
+                >
+                  <img 
+                    src={image.src} 
+                    alt={image.alt}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <div className="flex justify-around items-center py-4 mb-3">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/30">
-                      <Smartphone className="w-6 h-6 md:w-7 md:h-7 text-orange-400" />
-                    </div>
-                    <span className="text-[10px] md:text-xs text-gray-300">Phone</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/30">
-                      <Tablet className="w-6 h-6 md:w-7 md:h-7 text-orange-400" />
-                    </div>
-                    <span className="text-[10px] md:text-xs text-gray-300">Tablet</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/30">
-                      <Monitor className="w-6 h-6 md:w-7 md:h-7 text-orange-400" />
-                    </div>
-                    <span className="text-[10px] md:text-xs text-gray-300">Desktop</span>
-                  </div>
-                </div>
-                <p className="text-[10px] md:text-xs text-gray-400 border-t border-white/10 pt-2">
-                  Access your dashboard from any device, anytime
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         </div>

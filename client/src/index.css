@@ -482,3 +482,16 @@ html:not(.dark) [class*="bg-background/40"] {
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
