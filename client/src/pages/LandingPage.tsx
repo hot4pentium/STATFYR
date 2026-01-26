@@ -787,7 +787,7 @@ export default function LandingPage() {
       </Dialog>
 
       <Dialog open={selectedImage !== null} onOpenChange={(open) => !open && setSelectedImage(null)}>
-        <DialogContent className="max-w-4xl bg-black/90 border-orange-500/30 p-2" data-testid="dialog-image-preview">
+        <DialogContent className="max-w-[90vw] md:max-w-2xl lg:max-w-4xl bg-black/90 border-orange-500/30 p-1 md:p-2" data-testid="dialog-image-preview">
           <DialogHeader className="sr-only">
             <DialogTitle>{selectedImage?.alt}</DialogTitle>
             <DialogDescription>Full size image preview</DialogDescription>
