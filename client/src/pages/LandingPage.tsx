@@ -230,13 +230,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div 
-                className="absolute bottom-0 right-0 md:right-2 bg-black/95 backdrop-blur-sm rounded-xl border border-blue-500/40 p-4 md:p-5 shadow-2xl w-[65%] md:w-[60%] animate-float"
-                style={{
-                  animation: 'float 6s ease-in-out infinite',
-                  animationDelay: '2s',
-                }}
-              >
+              <div className="absolute bottom-0 right-0 md:right-2 bg-black/95 backdrop-blur-sm rounded-xl border border-blue-500/40 p-4 md:p-5 shadow-2xl w-[65%] md:w-[60%]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
                     <Users className="w-5 h-5 text-blue-400" />
@@ -268,12 +262,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div 
-                className="absolute bottom-0 right-0 md:right-2 bg-black/95 backdrop-blur-sm rounded-xl border border-green-500/40 p-4 md:p-5 shadow-2xl w-[65%] md:w-[60%] animate-float"
-                style={{
-                  animation: 'float 6s ease-in-out infinite',
-                }}
-              >
+              <div className="absolute bottom-0 right-0 md:right-2 bg-black/95 backdrop-blur-sm rounded-xl border border-green-500/40 p-4 md:p-5 shadow-2xl w-[65%] md:w-[60%]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
                     <TrendingUp className="w-5 h-5 text-green-400" />
