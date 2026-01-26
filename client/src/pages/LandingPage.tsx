@@ -233,7 +233,7 @@ export default function LandingPage() {
           {/* Roles Container - Horizontal Layout with Flip Cards */}
           <div className="max-w-5xl mx-auto grid grid-cols-3 gap-2 md:gap-6 px-2 md:px-0">
             {/* Coach Flip Card */}
-            <div className="relative h-[220px] md:h-[280px]" style={{ perspective: '1000px' }} data-testid="card-role-coach">
+            <div className="relative h-[280px] md:h-[320px]" style={{ perspective: '1000px' }} data-testid="card-role-coach">
               <div 
                 className={`relative w-full h-full transition-transform duration-500 ${flippedCard === 'coach' ? '[transform:rotateY(180deg)]' : ''}`}
                 style={{ transformStyle: 'preserve-3d' }}
@@ -305,7 +305,7 @@ export default function LandingPage() {
             </div>
 
             {/* Athlete Flip Card */}
-            <div className="relative h-[220px] md:h-[280px]" style={{ perspective: '1000px' }} data-testid="card-role-athlete">
+            <div className="relative h-[280px] md:h-[320px]" style={{ perspective: '1000px' }} data-testid="card-role-athlete">
               <div 
                 className={`relative w-full h-full transition-transform duration-500 ${flippedCard === 'athlete' ? '[transform:rotateY(180deg)]' : ''}`}
                 style={{ transformStyle: 'preserve-3d' }}
@@ -370,7 +370,7 @@ export default function LandingPage() {
             </div>
 
             {/* Supporter Flip Card */}
-            <div className="relative h-[220px] md:h-[280px]" style={{ perspective: '1000px' }} data-testid="card-role-supporter">
+            <div className="relative h-[280px] md:h-[320px]" style={{ perspective: '1000px' }} data-testid="card-role-supporter">
               <div 
                 className={`relative w-full h-full transition-transform duration-500 ${flippedCard === 'supporter' ? '[transform:rotateY(180deg)]' : ''}`}
                 style={{ transformStyle: 'preserve-3d' }}
