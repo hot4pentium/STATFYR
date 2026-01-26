@@ -324,29 +324,68 @@ export default function LandingPage() {
 
           {/* Role Preview Modals */}
           <Dialog open={activeRoleModal === 'coach'} onOpenChange={() => setActiveRoleModal(null)}>
-            <DialogContent className="max-w-[90vw] max-h-[85vh] md:max-w-md bg-gray-900 border border-blue-500/30 p-3 md:p-6">
+            <DialogContent className="max-w-[90vw] max-h-[85vh] md:max-w-md bg-gray-900 border border-blue-500/30 p-3 md:p-6 overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-white flex items-center gap-2 text-sm md:text-base">
                   <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
                   Coach Dashboard
                 </DialogTitle>
               </DialogHeader>
-              <div className="rounded-lg overflow-hidden border border-blue-500/30">
-                <img src={stattrackerPreview} alt="StatTracker Preview" className="w-full h-auto max-h-[60vh] object-contain" />
+              <div className="rounded-lg overflow-hidden border border-blue-500/30 mb-3">
+                <img src={stattrackerPreview} alt="StatTracker Preview" className="w-full h-auto max-h-[35vh] object-contain" />
+              </div>
+              <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/20">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="text-[10px] text-gray-400 mb-1">Free features included</p>
+                    <ul className="space-y-0.5 text-[10px] text-gray-300">
+                      <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />Create team & manage rosters</li>
+                      <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />Schedule events & team chat</li>
+                    </ul>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-white">$7.99</span>
+                    <span className="text-[10px] text-gray-400">/mo</span>
+                    <p className="text-[9px] text-blue-400">Coach Pro</p>
+                  </div>
+                </div>
+                <div className="border-t border-white/10 pt-2 mt-2">
+                  <p className="text-[9px] text-gray-400 mb-1">Pro features:</p>
+                  <div className="flex flex-wrap gap-2 text-[10px]">
+                    <span className="flex items-center gap-1 text-white/90"><Crown className="w-2.5 h-2.5 text-yellow-400" />PlayMaker</span>
+                    <span className="flex items-center gap-1 text-white/90"><Crown className="w-2.5 h-2.5 text-yellow-400" />StatTracker</span>
+                    <span className="flex items-center gap-1 text-white/90"><Crown className="w-2.5 h-2.5 text-yellow-400" />Season history</span>
+                  </div>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
 
           <Dialog open={activeRoleModal === 'athlete'} onOpenChange={() => setActiveRoleModal(null)}>
-            <DialogContent className="max-w-[90vw] max-h-[85vh] md:max-w-md bg-gray-900 border border-green-500/30 p-3 md:p-6">
+            <DialogContent className="max-w-[90vw] max-h-[85vh] md:max-w-md bg-gray-900 border border-green-500/30 p-3 md:p-6 overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-white flex items-center gap-2 text-sm md:text-base">
                   <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
                   Athlete Dashboard
                 </DialogTitle>
               </DialogHeader>
-              <div className="rounded-lg overflow-hidden border border-green-500/30">
-                <img src={hypeCardPreview} alt="HYPE Card Preview" className="w-full h-auto max-h-[60vh] object-contain" />
+              <div className="rounded-lg overflow-hidden border border-green-500/30 mb-3">
+                <img src={hypeCardPreview} alt="HYPE Card Preview" className="w-full h-auto max-h-[35vh] object-contain" />
+              </div>
+              <div className="bg-green-500/10 rounded-lg p-3 border border-green-500/20">
+                <div className="flex justify-between items-center mb-2">
+                  <Badge className="bg-green-500 text-white border-0 text-[10px] px-2 py-0.5">Always Free</Badge>
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-green-400">$0</span>
+                    <span className="text-[10px] text-gray-400"> forever</span>
+                  </div>
+                </div>
+                <ul className="space-y-0.5 text-[10px] text-gray-300">
+                  <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />Chat with team & view stats</li>
+                  <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />Access playbook & receive shoutouts</li>
+                  <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />HYPE Card & video highlights*</li>
+                </ul>
+                <p className="text-[8px] text-gray-500 mt-1">*Unlocked when connected to a Supporter Pro</p>
               </div>
             </DialogContent>
           </Dialog>
@@ -359,12 +398,36 @@ export default function LandingPage() {
                   Supporter Dashboard
                 </DialogTitle>
               </DialogHeader>
-              <div className="space-y-2 md:space-y-4">
+              <div className="space-y-2 mb-3">
                 <div className="rounded-lg overflow-hidden border border-purple-500/30">
-                  <img src={livetapsPreview} alt="Live Taps Preview" className="w-full h-auto max-h-[25vh] object-contain" />
+                  <img src={livetapsPreview} alt="Live Taps Preview" className="w-full h-auto max-h-[20vh] object-contain" />
                 </div>
                 <div className="rounded-lg overflow-hidden border border-purple-500/30">
-                  <img src={shoutoutsPreview} alt="Shoutouts Preview" className="w-full h-auto max-h-[25vh] object-contain" />
+                  <img src={shoutoutsPreview} alt="Shoutouts Preview" className="w-full h-auto max-h-[20vh] object-contain" />
+                </div>
+              </div>
+              <div className="bg-purple-500/10 rounded-lg p-3 border border-purple-500/20">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="text-[10px] text-gray-400 mb-1">Free features included</p>
+                    <ul className="space-y-0.5 text-[10px] text-gray-300">
+                      <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />Follow team & Game Day Live</li>
+                      <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />Send shoutouts & HYPE Taps</li>
+                    </ul>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-white">$5.99</span>
+                    <span className="text-[10px] text-gray-400">/mo</span>
+                    <p className="text-[9px] text-purple-400">Supporter Pro</p>
+                  </div>
+                </div>
+                <div className="border-t border-white/10 pt-2 mt-2">
+                  <p className="text-[9px] text-gray-400 mb-1">Pro features:</p>
+                  <div className="flex flex-wrap gap-2 text-[10px]">
+                    <span className="flex items-center gap-1 text-white/90"><Crown className="w-2.5 h-2.5 text-yellow-400" />Manage athletes</span>
+                    <span className="flex items-center gap-1 text-white/90"><Crown className="w-2.5 h-2.5 text-yellow-400" />Themes & badges</span>
+                    <span className="flex items-center gap-1 text-white/90"><Crown className="w-2.5 h-2.5 text-yellow-400" />Season history</span>
+                  </div>
                 </div>
               </div>
             </DialogContent>
