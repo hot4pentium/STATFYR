@@ -17,6 +17,8 @@ import {
   Video, 
   Trophy, 
   Smartphone,
+  Tablet,
+  Monitor,
   Shield,
   Zap,
   Check,
@@ -37,6 +39,7 @@ import statfyrLogo from "@/assets/statfyr-fire-logo.png";
 import hypeCardPreview from "@/assets/hype-card-preview.png";
 import stattrackerPreview from "@/assets/stattracker-preview.png";
 import livetapsPreview from "@/assets/livetaps-preview.png";
+import dashboardPreview from "@/assets/dashboard-preview.png";
 
 export default function LandingPage() {
   const [activeRoleModal, setActiveRoleModal] = useState<string | null>(null);
@@ -315,6 +318,51 @@ export default function LandingPage() {
                 </ul>
                 <p className="text-[10px] md:text-xs text-gray-400 mt-3 border-t border-white/10 pt-2">
                   Game Day Live: Real-time cheering & HYPE Taps during games
+                </p>
+              </div>
+            </div>
+
+            {/* Platform Section */}
+            <div className="relative flex items-center justify-start py-8 md:py-10 px-4 md:px-6 mt-16 md:mt-12 rounded-2xl bg-gradient-to-bl from-orange-950/40 via-orange-900/20 to-transparent border border-orange-500/20" data-testid="card-platform">
+              <div className="rounded-xl overflow-hidden border border-orange-500/30 shadow-xl w-[40%] md:w-[35%] ml-0">
+                <img 
+                  src={dashboardPreview} 
+                  alt="Dashboard Preview" 
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+              <div className="absolute top-1/2 -translate-y-1/2 right-4 md:right-6 bg-black/90 backdrop-blur-sm rounded-xl border border-orange-500/40 p-4 md:p-5 shadow-2xl w-[55%] md:w-[50%]">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                    <Flame className="w-5 h-5 text-orange-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-base md:text-lg font-bold text-white">Works Everywhere</h3>
+                    <p className="text-xs text-gray-400">One app, all your devices</p>
+                  </div>
+                </div>
+                <div className="flex justify-around items-center py-4 mb-3">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/30">
+                      <Smartphone className="w-6 h-6 md:w-7 md:h-7 text-orange-400" />
+                    </div>
+                    <span className="text-[10px] md:text-xs text-gray-300">Phone</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/30">
+                      <Tablet className="w-6 h-6 md:w-7 md:h-7 text-orange-400" />
+                    </div>
+                    <span className="text-[10px] md:text-xs text-gray-300">Tablet</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/30">
+                      <Monitor className="w-6 h-6 md:w-7 md:h-7 text-orange-400" />
+                    </div>
+                    <span className="text-[10px] md:text-xs text-gray-300">Desktop</span>
+                  </div>
+                </div>
+                <p className="text-[10px] md:text-xs text-gray-400 border-t border-white/10 pt-2">
+                  Access your dashboard from any device, anytime
                 </p>
               </div>
             </div>
