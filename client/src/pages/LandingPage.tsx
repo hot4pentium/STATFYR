@@ -266,23 +266,36 @@ export default function LandingPage() {
                   </ul>
                 </div>
                 {/* Back - Pricing */}
-                <div className="absolute inset-0 bg-gradient-to-b from-blue-950/95 to-gray-900/95 rounded-xl md:rounded-2xl border border-blue-500/50 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-blue-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
                   <button 
                     onClick={() => toggleFlip('coach')}
                     className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 transition-colors"
                   >
                     <X className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
                   </button>
-                  <div className="text-center mb-3">
-                    <span className="text-xl md:text-2xl font-bold text-white">$7.99</span>
-                    <span className="text-xs text-gray-400">/mo</span>
-                    <p className="text-xs text-blue-400">Coach Pro</p>
+                  <div className="flex flex-col items-center mb-2">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-blue-500/20 flex items-center justify-center mb-1">
+                      <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
+                    </div>
+                    <h3 className="text-sm md:text-base font-bold text-white">Coach</h3>
                   </div>
-                  <p className="text-[9px] md:text-xs text-gray-400 mb-2">Pro features:</p>
-                  <ul className="space-y-1 md:space-y-2">
-                    {["PlayMaker", "StatTracker", "Season history", "Advanced analytics"].map((item) => (
-                      <li key={item} className="flex items-center gap-1.5 md:gap-2 text-white/90 text-[10px] md:text-sm">
-                        <Crown className="w-3 h-3 md:w-4 md:h-4 text-yellow-400 flex-shrink-0" />
+                  <p className="text-[9px] md:text-[10px] text-gray-400 mb-1">Free features:</p>
+                  <ul className="space-y-0.5 mb-2">
+                    {["Create team", "Manage rosters", "Schedule events", "Team chat"].map((item) => (
+                      <li key={item} className="flex items-center gap-1 text-gray-300 text-[9px] md:text-[11px]">
+                        <Check className="w-2.5 h-2.5 md:w-3 md:h-3 text-green-400 flex-shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mb-2">
+                    <span className="text-base md:text-lg font-bold text-white">$7.99</span>
+                    <span className="text-[10px] text-gray-400">/mo</span>
+                  </div>
+                  <ul className="space-y-0.5">
+                    {["PlayMaker", "StatTracker", "Season history"].map((item) => (
+                      <li key={item} className="flex items-center gap-1 text-white/90 text-[9px] md:text-[11px]">
+                        <Crown className="w-2.5 h-2.5 md:w-3 md:h-3 text-yellow-400 flex-shrink-0" />
                         <span>{item}</span>
                       </li>
                     ))}
@@ -325,27 +338,33 @@ export default function LandingPage() {
                   </ul>
                 </div>
                 {/* Back - Pricing */}
-                <div className="absolute inset-0 bg-gradient-to-b from-green-950/95 to-gray-900/95 rounded-xl md:rounded-2xl border border-green-500/50 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-green-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
                   <button 
                     onClick={() => toggleFlip('athlete')}
                     className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-green-500/20 hover:bg-green-500/30 transition-colors"
                   >
                     <X className="w-3 h-3 md:w-4 md:h-4 text-green-400" />
                   </button>
-                  <Badge className="bg-green-500 text-white border-0 text-[10px] md:text-xs px-2 py-0.5 mb-2">Always Free</Badge>
-                  <div className="text-center mb-3">
-                    <span className="text-xl md:text-2xl font-bold text-green-400">$0</span>
-                    <span className="text-xs text-gray-400"> forever</span>
+                  <div className="flex flex-col items-center mb-2">
+                    <Badge className="bg-green-500 text-white border-0 text-[8px] md:text-[10px] px-2 py-0.5 mb-1">Always Free</Badge>
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-green-500/20 flex items-center justify-center mb-1">
+                      <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
+                    </div>
+                    <h3 className="text-sm md:text-base font-bold text-white">Athlete</h3>
+                    <div className="mt-1">
+                      <span className="text-base md:text-lg font-bold text-green-400">$0</span>
+                      <span className="text-[10px] text-gray-400"> forever</span>
+                    </div>
                   </div>
-                  <ul className="space-y-1 md:space-y-2">
-                    {["HYPE Card*", "Video highlights*", "Share profile", "Season stats"].map((item) => (
-                      <li key={item} className="flex items-center gap-1.5 md:gap-2 text-white/90 text-[10px] md:text-sm">
-                        <Check className="w-3 h-3 md:w-4 md:h-4 text-green-400 flex-shrink-0" />
+                  <ul className="space-y-0.5">
+                    {["Chat with team", "View your stats", "Access playbook", "Receive shoutouts", "HYPE Card*", "Video highlights*"].map((item) => (
+                      <li key={item} className="flex items-center gap-1 text-gray-300 text-[9px] md:text-[11px]">
+                        <Check className="w-2.5 h-2.5 md:w-3 md:h-3 text-green-400 flex-shrink-0" />
                         <span>{item}</span>
                       </li>
                     ))}
                   </ul>
-                  <p className="text-[8px] md:text-[10px] text-gray-500 mt-2">*Requires Supporter Pro</p>
+                  <p className="text-[7px] md:text-[9px] text-gray-500 mt-1">*Requires Supporter Pro</p>
                 </div>
               </div>
             </div>
@@ -384,23 +403,36 @@ export default function LandingPage() {
                   </ul>
                 </div>
                 {/* Back - Pricing */}
-                <div className="absolute inset-0 bg-gradient-to-b from-purple-950/95 to-gray-900/95 rounded-xl md:rounded-2xl border border-purple-500/50 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-purple-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
                   <button 
                     onClick={() => toggleFlip('supporter')}
                     className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 transition-colors"
                   >
                     <X className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
                   </button>
-                  <div className="text-center mb-3">
-                    <span className="text-xl md:text-2xl font-bold text-white">$5.99</span>
-                    <span className="text-xs text-gray-400">/mo</span>
-                    <p className="text-xs text-purple-400">Supporter Pro</p>
+                  <div className="flex flex-col items-center mb-2">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-purple-500/20 flex items-center justify-center mb-1">
+                      <Heart className="w-4 h-4 md:w-5 md:h-5 text-purple-400" />
+                    </div>
+                    <h3 className="text-sm md:text-base font-bold text-white">Supporter</h3>
                   </div>
-                  <p className="text-[9px] md:text-xs text-gray-400 mb-2">Pro features:</p>
-                  <ul className="space-y-1 md:space-y-2">
-                    {["Manage athletes", "Unlock HYPE features", "Themes & badges", "Season history"].map((item) => (
-                      <li key={item} className="flex items-center gap-1.5 md:gap-2 text-white/90 text-[10px] md:text-sm">
-                        <Crown className="w-3 h-3 md:w-4 md:h-4 text-yellow-400 flex-shrink-0" />
+                  <p className="text-[9px] md:text-[10px] text-gray-400 mb-1">Free features:</p>
+                  <ul className="space-y-0.5 mb-2">
+                    {["Follow team", "Game Day Live", "Send shoutouts", "HYPE Taps"].map((item) => (
+                      <li key={item} className="flex items-center gap-1 text-gray-300 text-[9px] md:text-[11px]">
+                        <Check className="w-2.5 h-2.5 md:w-3 md:h-3 text-green-400 flex-shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mb-2">
+                    <span className="text-base md:text-lg font-bold text-white">$5.99</span>
+                    <span className="text-[10px] text-gray-400">/mo</span>
+                  </div>
+                  <ul className="space-y-0.5">
+                    {["Manage athletes", "Themes & badges", "Season history"].map((item) => (
+                      <li key={item} className="flex items-center gap-1 text-white/90 text-[9px] md:text-[11px]">
+                        <Crown className="w-2.5 h-2.5 md:w-3 md:h-3 text-yellow-400 flex-shrink-0" />
                         <span>{item}</span>
                       </li>
                     ))}
