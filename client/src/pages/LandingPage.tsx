@@ -191,20 +191,7 @@ export default function LandingPage() {
               for team management, live stat tracking, and game day engagement.
             </p>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8 md:mb-12">
-              <Link href="/auth" data-testid="link-hero-cta">
-                <Button size="default" className="bg-orange-500 hover:bg-orange-600 text-white px-6 md:px-8 h-10 md:h-12 text-sm md:text-base gap-2">
-                  Get Started Free
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-              <Button size="default" variant="outline" className="border-white/20 text-white hover:bg-white/10 px-6 md:px-8 h-10 md:h-12 text-sm md:text-base" asChild data-testid="button-explore-features">
-                <a href="#features">
-                  Explore Features
-                </a>
-              </Button>
-            </div>
-
+            
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-xs md:text-sm text-gray-400" data-testid="text-coming-soon">
               <div className="flex items-center gap-1.5">
                 <Smartphone className="w-3 h-3 md:w-4 md:h-4" />
