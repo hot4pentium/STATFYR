@@ -222,8 +222,8 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            <div className="relative flex items-center justify-end py-8" data-testid="card-role-coach">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16">
+            <div className="relative flex items-center justify-end py-8 md:py-10" data-testid="card-role-coach">
               <div className="rounded-xl overflow-hidden border border-blue-500/30 shadow-xl w-[45%] md:w-[40%] mr-0">
                 <img 
                   src={playmakerPreview} 
@@ -255,7 +255,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative flex items-center justify-start py-8" data-testid="card-role-athlete">
+            <div className="relative flex items-center justify-start py-8 md:py-10" data-testid="card-role-athlete">
               <div className="rounded-xl overflow-hidden border border-green-500/30 shadow-xl w-[45%] md:w-[40%] ml-0">
                 <img 
                   src={hypeCardPreview} 
@@ -287,7 +287,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative flex items-center justify-end py-8" data-testid="card-role-supporter">
+            <div className="relative flex items-center justify-end py-8 md:py-10" data-testid="card-role-supporter">
               <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl w-[45%] md:w-[40%] mr-0">
                 <img 
                   src={livetapsPreview} 
