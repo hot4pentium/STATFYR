@@ -324,47 +324,47 @@ export default function LandingPage() {
 
           {/* Role Preview Modals */}
           <Dialog open={activeRoleModal === 'coach'} onOpenChange={() => setActiveRoleModal(null)}>
-            <DialogContent className="max-w-2xl bg-gray-900 border border-blue-500/30">
+            <DialogContent className="max-w-[90vw] max-h-[85vh] md:max-w-md bg-gray-900 border border-blue-500/30 p-3 md:p-6">
               <DialogHeader>
-                <DialogTitle className="text-white flex items-center gap-2">
-                  <Users className="w-5 h-5 text-blue-400" />
+                <DialogTitle className="text-white flex items-center gap-2 text-sm md:text-base">
+                  <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
                   Coach Dashboard
                 </DialogTitle>
               </DialogHeader>
-              <div className="rounded-xl overflow-hidden border border-blue-500/30">
-                <img src={stattrackerPreview} alt="StatTracker Preview" className="w-full h-auto" />
+              <div className="rounded-lg overflow-hidden border border-blue-500/30">
+                <img src={stattrackerPreview} alt="StatTracker Preview" className="w-full h-auto max-h-[60vh] object-contain" />
               </div>
             </DialogContent>
           </Dialog>
 
           <Dialog open={activeRoleModal === 'athlete'} onOpenChange={() => setActiveRoleModal(null)}>
-            <DialogContent className="max-w-2xl bg-gray-900 border border-green-500/30">
+            <DialogContent className="max-w-[90vw] max-h-[85vh] md:max-w-md bg-gray-900 border border-green-500/30 p-3 md:p-6">
               <DialogHeader>
-                <DialogTitle className="text-white flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-green-400" />
+                <DialogTitle className="text-white flex items-center gap-2 text-sm md:text-base">
+                  <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
                   Athlete Dashboard
                 </DialogTitle>
               </DialogHeader>
-              <div className="rounded-xl overflow-hidden border border-green-500/30">
-                <img src={hypeCardPreview} alt="HYPE Card Preview" className="w-full h-auto" />
+              <div className="rounded-lg overflow-hidden border border-green-500/30">
+                <img src={hypeCardPreview} alt="HYPE Card Preview" className="w-full h-auto max-h-[60vh] object-contain" />
               </div>
             </DialogContent>
           </Dialog>
 
           <Dialog open={activeRoleModal === 'supporter'} onOpenChange={() => setActiveRoleModal(null)}>
-            <DialogContent className="max-w-2xl bg-gray-900 border border-purple-500/30">
+            <DialogContent className="max-w-[90vw] max-h-[85vh] md:max-w-md bg-gray-900 border border-purple-500/30 p-3 md:p-6 overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-white flex items-center gap-2">
-                  <Heart className="w-5 h-5 text-purple-400" />
+                <DialogTitle className="text-white flex items-center gap-2 text-sm md:text-base">
+                  <Heart className="w-4 h-4 md:w-5 md:h-5 text-purple-400" />
                   Supporter Dashboard
                 </DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <div className="rounded-xl overflow-hidden border border-purple-500/30">
-                  <img src={livetapsPreview} alt="Live Taps Preview" className="w-full h-auto" />
+              <div className="space-y-2 md:space-y-4">
+                <div className="rounded-lg overflow-hidden border border-purple-500/30">
+                  <img src={livetapsPreview} alt="Live Taps Preview" className="w-full h-auto max-h-[25vh] object-contain" />
                 </div>
-                <div className="rounded-xl overflow-hidden border border-purple-500/30">
-                  <img src={shoutoutsPreview} alt="Shoutouts Preview" className="w-full h-auto" />
+                <div className="rounded-lg overflow-hidden border border-purple-500/30">
+                  <img src={shoutoutsPreview} alt="Shoutouts Preview" className="w-full h-auto max-h-[25vh] object-contain" />
                 </div>
               </div>
             </DialogContent>
