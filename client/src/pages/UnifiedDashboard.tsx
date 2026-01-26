@@ -3504,15 +3504,15 @@ export default function UnifiedDashboard() {
 
         {/* Event Modal */}
         <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-[95vw] md:max-w-lg max-h-[85vh] overflow-y-auto p-4 md:p-6">
             <DialogHeader>
-              <DialogTitle>{editingEvent ? "Edit Event" : "Create Event"}</DialogTitle>
+              <DialogTitle className="text-base md:text-lg">{editingEvent ? "Edit Event" : "Create Event"}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               <div>
-                <Label>Event Type</Label>
+                <Label className="text-xs md:text-sm">Event Type</Label>
                 <Select value={eventForm.type} onValueChange={(v) => setEventForm({ ...eventForm, type: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9 md:h-10"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Practice">Practice</SelectItem>
                     <SelectItem value="Game">Game</SelectItem>
@@ -3522,14 +3522,14 @@ export default function UnifiedDashboard() {
                 </Select>
               </div>
               <div>
-                <Label>Date</Label>
-                <Input type="date" value={eventForm.date} onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })} />
+                <Label className="text-xs md:text-sm">Date</Label>
+                <Input type="date" className="h-9 md:h-10" value={eventForm.date} onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })} />
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <Label>Hour</Label>
+                  <Label className="text-xs md:text-sm">Hour</Label>
                   <Select value={eventForm.hour} onValueChange={(v) => setEventForm({ ...eventForm, hour: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-9 md:h-10"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
                         <SelectItem key={h} value={h}>{h}</SelectItem>
@@ -3538,9 +3538,9 @@ export default function UnifiedDashboard() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Min</Label>
+                  <Label className="text-xs md:text-sm">Min</Label>
                   <Select value={eventForm.minute} onValueChange={(v) => setEventForm({ ...eventForm, minute: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-9 md:h-10"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {["00", "15", "30", "45"].map((m) => (
                         <SelectItem key={m} value={m}>{m}</SelectItem>
@@ -3549,9 +3549,9 @@ export default function UnifiedDashboard() {
                   </Select>
                 </div>
                 <div>
-                  <Label>AM/PM</Label>
+                  <Label className="text-xs md:text-sm">AM/PM</Label>
                   <Select value={eventForm.ampm} onValueChange={(v) => setEventForm({ ...eventForm, ampm: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-9 md:h-10"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="AM">AM</SelectItem>
                       <SelectItem value="PM">PM</SelectItem>
@@ -3560,19 +3560,19 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
               <div>
-                <Label>Location</Label>
-                <Input value={eventForm.location} onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })} placeholder="Event location" />
+                <Label className="text-xs md:text-sm">Location</Label>
+                <Input className="h-9 md:h-10" value={eventForm.location} onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })} placeholder="Event location" />
               </div>
               {eventForm.type === "Game" && (
                 <div>
-                  <Label>Opponent</Label>
-                  <Input value={eventForm.opponent} onChange={(e) => setEventForm({ ...eventForm, opponent: e.target.value })} placeholder="Opponent team" />
+                  <Label className="text-xs md:text-sm">Opponent</Label>
+                  <Input className="h-9 md:h-10" value={eventForm.opponent} onChange={(e) => setEventForm({ ...eventForm, opponent: e.target.value })} placeholder="Opponent team" />
                 </div>
               )}
               <div>
-                <Label>Bringing Drinks</Label>
+                <Label className="text-xs md:text-sm">Bringing Drinks</Label>
                 <Select value={eventForm.drinksAthleteId || "none"} onValueChange={(v) => setEventForm({ ...eventForm, drinksAthleteId: v === "none" ? "" : v })}>
-                  <SelectTrigger data-testid="select-event-drinks">
+                  <SelectTrigger className="h-9 md:h-10" data-testid="select-event-drinks">
                     <SelectValue placeholder="Select athlete..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -3586,9 +3586,9 @@ export default function UnifiedDashboard() {
                 </Select>
               </div>
               <div>
-                <Label>Bringing Snacks</Label>
+                <Label className="text-xs md:text-sm">Bringing Snacks</Label>
                 <Select value={eventForm.snacksAthleteId || "none"} onValueChange={(v) => setEventForm({ ...eventForm, snacksAthleteId: v === "none" ? "" : v })}>
-                  <SelectTrigger data-testid="select-event-snacks">
+                  <SelectTrigger className="h-9 md:h-10" data-testid="select-event-snacks">
                     <SelectValue placeholder="Select athlete..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -3602,11 +3602,11 @@ export default function UnifiedDashboard() {
                 </Select>
               </div>
               <div>
-                <Label>Details</Label>
-                <Textarea value={eventForm.details} onChange={(e) => setEventForm({ ...eventForm, details: e.target.value })} placeholder="Additional details" />
+                <Label className="text-xs md:text-sm">Details</Label>
+                <Textarea className="min-h-[60px] md:min-h-[80px]" value={eventForm.details} onChange={(e) => setEventForm({ ...eventForm, details: e.target.value })} placeholder="Additional details" />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="gap-2">
               <Button variant="outline" onClick={() => { setIsEventModalOpen(false); resetEventForm(); }}>Cancel</Button>
               <Button onClick={() => {
                 if (!eventForm.date) {
