@@ -223,7 +223,7 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col gap-10 md:gap-16">
-            <div className="relative flex items-center justify-end py-8 md:py-10" data-testid="card-role-coach">
+            <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-transparent border border-blue-500/20" data-testid="card-role-coach">
               <div className="rounded-xl overflow-hidden border border-blue-500/30 shadow-xl w-[45%] md:w-[40%] mr-0">
                 <img 
                   src={stattrackerPreview} 
@@ -231,7 +231,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute top-1/2 -translate-y-1/2 left-0 md:left-2 bg-black/95 backdrop-blur-sm rounded-xl border border-blue-500/40 p-4 md:p-5 shadow-2xl w-[65%] md:w-[60%]">
+              <div className="absolute top-1/2 -translate-y-1/2 left-4 md:left-6 bg-black/90 backdrop-blur-sm rounded-xl border border-blue-500/40 p-4 md:p-5 shadow-2xl w-[60%] md:w-[55%]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
                     <Users className="w-5 h-5 text-blue-400" />
@@ -255,7 +255,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative flex items-center justify-start py-8 md:py-10" data-testid="card-role-athlete">
+            <div className="relative flex items-center justify-start py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-bl from-green-950/40 via-green-900/20 to-transparent border border-green-500/20" data-testid="card-role-athlete">
               <div className="rounded-xl overflow-hidden border border-green-500/30 shadow-xl w-[45%] md:w-[40%] ml-0">
                 <img 
                   src={hypeCardPreview} 
@@ -263,7 +263,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute bottom-0 right-0 md:right-2 bg-black/95 backdrop-blur-sm rounded-xl border border-green-500/40 p-4 md:p-5 shadow-2xl w-[65%] md:w-[60%]">
+              <div className="absolute bottom-4 right-4 md:right-6 bg-black/90 backdrop-blur-sm rounded-xl border border-green-500/40 p-4 md:p-5 shadow-2xl w-[60%] md:w-[55%]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
                     <TrendingUp className="w-5 h-5 text-green-400" />
@@ -287,7 +287,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative flex items-center justify-end py-8 md:py-10 mt-12 md:mt-8" data-testid="card-role-supporter">
+            <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 mt-12 md:mt-8 rounded-2xl bg-gradient-to-br from-purple-950/40 via-purple-900/20 to-transparent border border-purple-500/20" data-testid="card-role-supporter">
               <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl w-[45%] md:w-[40%] mr-0">
                 <img 
                   src={livetapsPreview} 
@@ -295,7 +295,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute bottom-0 left-0 md:left-2 bg-black/95 backdrop-blur-sm rounded-xl border border-purple-500/40 p-4 md:p-5 shadow-2xl w-[65%] md:w-[60%]">
+              <div className="absolute bottom-4 left-4 md:left-6 bg-black/90 backdrop-blur-sm rounded-xl border border-purple-500/40 p-4 md:p-5 shadow-2xl w-[60%] md:w-[55%]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
                     <Heart className="w-5 h-5 text-purple-400" />
