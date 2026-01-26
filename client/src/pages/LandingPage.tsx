@@ -322,7 +322,7 @@ export default function LandingPage() {
                     className="w-full h-auto object-cover"
                   />
                 </div>
-                <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl">
+                <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl relative z-20">
                   <img 
                     src={shoutoutsPreview} 
                     alt="Shoutouts Preview" 
