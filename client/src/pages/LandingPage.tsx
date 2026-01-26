@@ -225,6 +225,11 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Section Divider */}
+      <div className="container mx-auto max-w-4xl px-8">
+        <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      </div>
+
       <section id="features" className="py-16 md:py-24 px-4 md:px-6 relative">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-8 md:mb-16">
