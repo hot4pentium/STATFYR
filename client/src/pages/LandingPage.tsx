@@ -211,243 +211,109 @@ export default function LandingPage() {
 
       <section id="features" className="py-24 px-6 relative">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid lg:grid-cols-2 gap-16 items-center mb-32">
-            <div>
-              <div className="inline-flex items-center gap-2 text-orange-400 text-sm font-medium mb-4">
-                <BarChart3 className="w-4 h-4" />
-                STAT TRACKING
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-                Track Every Play With Precision
-              </h2>
-              <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-                Real-time stat tracking designed for coaches. Move players in and out of game, 
-                track individual and team stats, and watch performance data come alive.
-              </p>
-              <ul className="space-y-4">
-                {["Live game tracking", "Individual & team modes", "Sport-specific presets", "Season analytics"].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-gray-200">
-                    <div className="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-orange-400" />
-                    </div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="relative" data-testid="card-feature-stattracker">
-              <div className="bg-white/5 rounded-2xl border border-white/10 p-8 shadow-2xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
-                    <BarChart3 className="w-5 h-5 text-orange-400" />
-                  </div>
-                  <span className="text-white font-semibold">StatTracker</span>
-                  <Badge className="ml-auto bg-green-500/20 text-green-400 border-0">Live</Badge>
-                </div>
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  {[
-                    { label: "Points", value: "24" },
-                    { label: "Rebounds", value: "8" },
-                    { label: "Assists", value: "6" }
-                  ].map((stat) => (
-                    <div key={stat.label} className="bg-white/10 rounded-xl p-4 text-center">
-                      <div className="text-2xl font-bold text-white">{stat.value}</div>
-                      <div className="text-xs text-gray-300">{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="h-32 bg-white/5 rounded-xl flex items-end justify-around p-4">
-                  {[60, 80, 45, 90, 70, 85, 55].map((height, i) => (
-                    <div 
-                      key={i} 
-                      className="w-6 bg-gradient-to-t from-orange-500 to-orange-400 rounded-t"
-                      style={{ height: `${height}%` }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-orange-500/20 rounded-full blur-2xl" />
-            </div>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-16 items-center mb-32">
-            <div className="order-2 lg:order-1 relative" data-testid="card-feature-playmaker">
-              <div className="bg-white/5 rounded-2xl border border-white/10 p-8 shadow-2xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <span className="text-white font-semibold">PlayMaker</span>
-                </div>
-                <div className="aspect-video bg-background rounded-xl border border-white/10 relative overflow-hidden">
-                  <div className="absolute inset-4 border-2 border-white/20 rounded-lg">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 border-2 border-white/20 rounded-full" />
-                    <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-8 border-2 border-white/20 rounded" />
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-20 h-8 border-2 border-white/20 rounded" />
-                  </div>
-                  <div className="absolute top-1/3 left-1/4 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">1</div>
-                  <div className="absolute top-1/2 left-1/3 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">2</div>
-                  <div className="absolute top-1/3 right-1/3 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">3</div>
-                  <svg className="absolute inset-0 w-full h-full">
-                    <path d="M90 80 Q120 100 130 130" stroke="rgba(249,115,22,0.5)" strokeWidth="2" fill="none" strokeDasharray="5,5" />
-                    <path d="M130 130 L160 110" stroke="rgba(249,115,22,0.5)" strokeWidth="2" fill="none" />
-                  </svg>
-                </div>
-              </div>
-              <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl" />
-            </div>
-            <div className="order-1 lg:order-2">
-              <div className="inline-flex items-center gap-2 text-purple-400 text-sm font-medium mb-4">
-                <Shield className="w-4 h-4" />
-                PLAYMAKER
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-                Design Plays That Win Games
-              </h2>
-              <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-                Interactive canvas-based play designer built for coaches. Create, save, and share 
-                plays with your team. Access your playbook anytime, anywhere.
-              </p>
-              <ul className="space-y-4">
-                {["Drag-and-drop play builder", "Multiple sport templates", "Share with team instantly", "Organize into playbooks"].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-white/80">
-                    <div className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-purple-400" />
-                    </div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 text-cyan-400 text-sm font-medium mb-4">
-                <Zap className="w-4 h-4" />
-                GAME DAY LIVE
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-                Engage Your Supporters In Real-Time
-              </h2>
-              <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-                Supporters can tap live during games, send shoutouts, and earn badges. 
-                Athletes feel the energy from the stands right on their device.
-              </p>
-              <ul className="space-y-4">
-                {["Live tap engagement", "Personalized shoutouts", "Badge rewards system", "Guest access via QR"].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-white/80">
-                    <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-cyan-400" />
-                    </div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="relative" data-testid="card-feature-gamedaylive">
-              <div className="bg-white/5 rounded-2xl border border-white/10 p-8 shadow-2xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-cyan-400" />
-                  </div>
-                  <span className="text-white font-semibold">Game Day Live</span>
-                  <Badge className="ml-auto bg-orange-500/20 text-orange-400 border-0">Active</Badge>
-                </div>
-                <div className="space-y-4">
-                  <div className="bg-white/10 rounded-xl p-4 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
-                      <Hand className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-white font-medium">HYPE Taps</div>
-                      <div className="text-gray-300 text-sm">Tap to show support!</div>
-                    </div>
-                    <div className="text-3xl font-bold text-orange-400">127</div>
-                  </div>
-                  <div className="bg-white/10 rounded-xl p-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      <MessageCircle className="w-4 h-4 text-cyan-400" />
-                      <span className="text-gray-300 text-sm">Latest Shoutout</span>
-                    </div>
-                    <p className="text-white">"Great hustle out there! Keep it up! 🔥"</p>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-cyan-500/20 rounded-full blur-2xl" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="roles" className="py-24 px-6 bg-gradient-to-b from-transparent via-white/[0.02] to-transparent">
-        <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Built For Every Role
+              Built For Everyone On Your Team
             </h2>
             <p className="text-gray-300 text-lg max-w-2xl mx-auto">
               Whether you're leading the team, playing the game, or cheering from the sidelines
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                title: "Coaches",
-                icon: Users,
-                color: "blue",
-                description: "Full control over team management, stats, playbooks, and season tracking.",
-                features: ["Team roster management", "Live stat tracking", "PlayMaker canvas", "Season archives"]
-              },
-              {
-                title: "Athletes",
-                icon: TrendingUp,
-                color: "green",
-                description: "View your stats, access plays, and build your shareable HYPE card.",
-                features: ["Personal HYPE Card", "Stats dashboard", "Playbook access", "Video highlights"]
-              },
-              {
-                title: "Supporters",
-                icon: Heart,
-                color: "purple",
-                description: "Follow your athletes, send shoutouts, and engage on game day.",
-                features: ["Game Day Live", "Send shoutouts", "Earn badges", "Manage athletes"]
-              }
-            ].map((role) => (
-              <Card 
-                key={role.title}
-                className="bg-white/5 border-white/10 hover:border-primary/30 transition-all cursor-pointer group"
-                onClick={() => setActiveRoleModal(role.title)}
-                data-testid={`card-role-${role.title.toLowerCase()}`}
-              >
-                <CardContent className="pt-8 pb-6">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${
-                    role.color === 'blue' ? 'bg-blue-500/20' : 
-                    role.color === 'green' ? 'bg-green-500/20' : 'bg-purple-500/20'
-                  }`}>
-                    <role.icon className={`w-7 h-7 ${
-                      role.color === 'blue' ? 'text-blue-400' : 
-                      role.color === 'green' ? 'text-green-400' : 'text-purple-400'
-                    }`} />
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="bg-white/5 rounded-2xl border border-blue-500/30 p-8 shadow-2xl hover:border-blue-500/50 transition-all" data-testid="card-role-coach">
+              <div className="w-16 h-16 rounded-2xl bg-blue-500/20 flex items-center justify-center mb-6">
+                <Users className="w-8 h-8 text-blue-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">Coaches</h3>
+              <p className="text-gray-300 mb-6">Lead your team with powerful management tools designed for game day success.</p>
+              
+              <div className="bg-white/5 rounded-xl p-4 mb-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <BarChart3 className="w-5 h-5 text-blue-400" />
+                  <span className="text-white font-medium">StatTracker</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[{ label: "PTS", value: "24" }, { label: "REB", value: "8" }, { label: "AST", value: "6" }].map((stat) => (
+                    <div key={stat.label} className="bg-white/10 rounded-lg p-2 text-center">
+                      <div className="text-lg font-bold text-white">{stat.value}</div>
+                      <div className="text-xs text-gray-400">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <ul className="space-y-3">
+                {["Create & manage team rosters", "Track stats in real-time", "Design plays with PlayMaker", "Schedule games & practices", "Manage season history"].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-gray-200 text-sm">
+                    <Check className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="bg-white/5 rounded-2xl border border-green-500/30 p-8 shadow-2xl hover:border-green-500/50 transition-all" data-testid="card-role-athlete">
+              <div className="w-16 h-16 rounded-2xl bg-green-500/20 flex items-center justify-center mb-6">
+                <TrendingUp className="w-8 h-8 text-green-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">Athletes</h3>
+              <p className="text-gray-300 mb-6">Track your progress and showcase your talent with your personal HYPE Card.</p>
+              
+              <div className="bg-white/5 rounded-xl p-4 mb-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <Star className="w-5 h-5 text-green-400" />
+                  <span className="text-white font-medium">HYPE Card</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-bold">JD</div>
+                  <div>
+                    <div className="text-white font-medium">Jordan Davis</div>
+                    <div className="text-xs text-gray-400">Basketball • #23</div>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">{role.title}</h3>
-                  <p className="text-gray-300 text-sm mb-6">{role.description}</p>
-                  <ul className="space-y-2">
-                    {role.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-sm text-gray-300">
-                        <Check className="w-4 h-4 text-orange-400" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-6 flex items-center gap-2 text-orange-400 text-sm font-medium group-hover:gap-3 transition-all">
-                    View details
-                    <ArrowRight className="w-4 h-4" />
+                </div>
+              </div>
+
+              <ul className="space-y-3">
+                {["View your personal stats", "Access team playbook", "Build shareable HYPE Card", "Upload video highlights", "Connect with your supporter"].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-gray-200 text-sm">
+                    <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="bg-white/5 rounded-2xl border border-purple-500/30 p-8 shadow-2xl hover:border-purple-500/50 transition-all" data-testid="card-role-supporter">
+              <div className="w-16 h-16 rounded-2xl bg-purple-500/20 flex items-center justify-center mb-6">
+                <Heart className="w-8 h-8 text-purple-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">Supporters</h3>
+              <p className="text-gray-300 mb-6">Cheer on your athletes and engage with the team on game day.</p>
+              
+              <div className="bg-white/5 rounded-xl p-4 mb-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <Zap className="w-5 h-5 text-purple-400" />
+                  <span className="text-white font-medium">Game Day Live</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Hand className="w-5 h-5 text-orange-400" />
+                    <span className="text-gray-300 text-sm">HYPE Taps</span>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <span className="text-2xl font-bold text-orange-400">127</span>
+                </div>
+              </div>
+
+              <ul className="space-y-3">
+                {["Send live shoutouts", "Tap to show support", "Earn badges & unlock themes", "Manage your athletes", "View stats & highlights"].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-gray-200 text-sm">
+                    <Check className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </section>
