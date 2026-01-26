@@ -324,37 +324,37 @@ export default function LandingPage() {
 
           {/* Role Preview Modals */}
           <Dialog open={activeRoleModal === 'coach'} onOpenChange={() => setActiveRoleModal(null)}>
-            <DialogContent className="max-w-[90vw] max-h-[85vh] md:max-w-md bg-gray-900 border border-blue-500/30 p-3 md:p-6 overflow-y-auto">
+            <DialogContent className="max-w-[95vw] max-h-[90vh] md:max-w-3xl bg-gray-900 border border-blue-500/30 p-4 md:p-6 overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-white flex items-center gap-2 text-sm md:text-base">
-                  <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
-                  Coach Dashboard
+                <DialogTitle className="text-white flex items-center gap-2 text-base md:text-lg">
+                  <Users className="w-5 h-5 text-blue-400" />
+                  COACH DASHBOARD
                 </DialogTitle>
               </DialogHeader>
-              <div className="rounded-lg overflow-hidden border border-blue-500/30 mb-3">
-                <img src={stattrackerPreview} alt="StatTracker Preview" className="w-full h-auto max-h-[35vh] object-contain" />
-              </div>
-              <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/20">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="text-[10px] text-gray-400 mb-1">Free features included</p>
-                    <ul className="space-y-0.5 text-[10px] text-gray-300">
-                      <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />Create team & manage rosters</li>
-                      <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />Schedule events & team chat</li>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 rounded-lg overflow-hidden border border-blue-500/30">
+                  <img src={stattrackerPreview} alt="StatTracker Preview" className="w-full h-auto object-contain" />
+                </div>
+                <div className="flex-1 bg-blue-500/10 rounded-lg p-4 border border-blue-500/20">
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-400 mb-2">Free features included</p>
+                    <ul className="space-y-1.5 text-sm text-gray-300">
+                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Create team & manage rosters</li>
+                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Schedule events & team chat</li>
                     </ul>
                   </div>
-                  <div className="text-right">
-                    <span className="text-lg font-bold text-white">$7.99</span>
-                    <span className="text-[10px] text-gray-400">/mo</span>
-                    <p className="text-[9px] text-blue-400">Coach Pro</p>
-                  </div>
-                </div>
-                <div className="border-t border-white/10 pt-2 mt-2">
-                  <p className="text-[9px] text-gray-400 mb-1">Pro features:</p>
-                  <div className="flex flex-wrap gap-2 text-[10px]">
-                    <span className="flex items-center gap-1 text-white/90"><Crown className="w-2.5 h-2.5 text-yellow-400" />PlayMaker</span>
-                    <span className="flex items-center gap-1 text-white/90"><Crown className="w-2.5 h-2.5 text-yellow-400" />StatTracker</span>
-                    <span className="flex items-center gap-1 text-white/90"><Crown className="w-2.5 h-2.5 text-yellow-400" />Season history</span>
+                  <div className="border-t border-white/10 pt-4">
+                    <div className="flex items-baseline gap-1 mb-3">
+                      <span className="text-2xl font-bold text-white">$7.99</span>
+                      <span className="text-sm text-gray-400">/mo</span>
+                      <span className="text-sm text-blue-400 ml-2">Coach Pro</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-2">Pro features:</p>
+                    <ul className="space-y-1.5 text-sm">
+                      <li className="flex items-center gap-2 text-white/90"><Crown className="w-4 h-4 text-yellow-400" />PlayMaker</li>
+                      <li className="flex items-center gap-2 text-white/90"><Crown className="w-4 h-4 text-yellow-400" />StatTracker</li>
+                      <li className="flex items-center gap-2 text-white/90"><Crown className="w-4 h-4 text-yellow-400" />Season history</li>
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -362,71 +362,78 @@ export default function LandingPage() {
           </Dialog>
 
           <Dialog open={activeRoleModal === 'athlete'} onOpenChange={() => setActiveRoleModal(null)}>
-            <DialogContent className="max-w-[90vw] max-h-[85vh] md:max-w-md bg-gray-900 border border-green-500/30 p-3 md:p-6 overflow-y-auto">
+            <DialogContent className="max-w-[95vw] max-h-[90vh] md:max-w-3xl bg-gray-900 border border-green-500/30 p-4 md:p-6 overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-white flex items-center gap-2 text-sm md:text-base">
-                  <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
-                  Athlete Dashboard
+                <DialogTitle className="text-white flex items-center gap-2 text-base md:text-lg">
+                  <TrendingUp className="w-5 h-5 text-green-400" />
+                  ATHLETE DASHBOARD
                 </DialogTitle>
               </DialogHeader>
-              <div className="rounded-lg overflow-hidden border border-green-500/30 mb-3">
-                <img src={hypeCardPreview} alt="HYPE Card Preview" className="w-full h-auto max-h-[35vh] object-contain" />
-              </div>
-              <div className="bg-green-500/10 rounded-lg p-3 border border-green-500/20">
-                <div className="flex justify-between items-center mb-2">
-                  <Badge className="bg-green-500 text-white border-0 text-[10px] px-2 py-0.5">Always Free</Badge>
-                  <div className="text-right">
-                    <span className="text-lg font-bold text-green-400">$0</span>
-                    <span className="text-[10px] text-gray-400"> forever</span>
-                  </div>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 rounded-lg overflow-hidden border border-green-500/30">
+                  <img src={hypeCardPreview} alt="HYPE Card Preview" className="w-full h-auto object-contain" />
                 </div>
-                <ul className="space-y-0.5 text-[10px] text-gray-300">
-                  <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />Chat with team & view stats</li>
-                  <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />Access playbook & receive shoutouts</li>
-                  <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />HYPE Card & video highlights*</li>
-                </ul>
-                <p className="text-[8px] text-gray-500 mt-1">*Unlocked when connected to a Supporter Pro</p>
+                <div className="flex-1 bg-green-500/10 rounded-lg p-4 border border-green-500/20">
+                  <div className="flex items-center justify-between mb-4">
+                    <Badge className="bg-green-500 text-white border-0 text-sm px-3 py-1">Always Free</Badge>
+                    <div className="text-right">
+                      <span className="text-2xl font-bold text-green-400">$0</span>
+                      <span className="text-sm text-gray-400"> forever</span>
+                    </div>
+                  </div>
+                  <ul className="space-y-1.5 text-sm text-gray-300">
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Chat with team</li>
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />View your stats</li>
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Access playbook</li>
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Receive shoutouts</li>
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />HYPE Card*</li>
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Video highlights*</li>
+                  </ul>
+                  <p className="text-xs text-gray-500 mt-3">*Unlocked when connected to a Supporter Pro</p>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
 
           <Dialog open={activeRoleModal === 'supporter'} onOpenChange={() => setActiveRoleModal(null)}>
-            <DialogContent className="max-w-[90vw] max-h-[85vh] md:max-w-md bg-gray-900 border border-purple-500/30 p-3 md:p-6 overflow-y-auto">
+            <DialogContent className="max-w-[95vw] max-h-[90vh] md:max-w-3xl bg-gray-900 border border-purple-500/30 p-4 md:p-6 overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-white flex items-center gap-2 text-sm md:text-base">
-                  <Heart className="w-4 h-4 md:w-5 md:h-5 text-purple-400" />
-                  Supporter Dashboard
+                <DialogTitle className="text-white flex items-center gap-2 text-base md:text-lg">
+                  <Heart className="w-5 h-5 text-purple-400" />
+                  SUPPORTER DASHBOARD
                 </DialogTitle>
               </DialogHeader>
-              <div className="space-y-2 mb-3">
-                <div className="rounded-lg overflow-hidden border border-purple-500/30">
-                  <img src={livetapsPreview} alt="Live Taps Preview" className="w-full h-auto max-h-[20vh] object-contain" />
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 space-y-2">
+                  <div className="rounded-lg overflow-hidden border border-purple-500/30">
+                    <img src={livetapsPreview} alt="Live Taps Preview" className="w-full h-auto object-contain" />
+                  </div>
+                  <div className="rounded-lg overflow-hidden border border-purple-500/30">
+                    <img src={shoutoutsPreview} alt="Shoutouts Preview" className="w-full h-auto object-contain" />
+                  </div>
                 </div>
-                <div className="rounded-lg overflow-hidden border border-purple-500/30">
-                  <img src={shoutoutsPreview} alt="Shoutouts Preview" className="w-full h-auto max-h-[20vh] object-contain" />
-                </div>
-              </div>
-              <div className="bg-purple-500/10 rounded-lg p-3 border border-purple-500/20">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="text-[10px] text-gray-400 mb-1">Free features included</p>
-                    <ul className="space-y-0.5 text-[10px] text-gray-300">
-                      <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />Follow team & Game Day Live</li>
-                      <li className="flex items-center gap-1"><Check className="w-2.5 h-2.5 text-green-400" />Send shoutouts & HYPE Taps</li>
+                <div className="flex-1 bg-purple-500/10 rounded-lg p-4 border border-purple-500/20">
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-400 mb-2">Free features included</p>
+                    <ul className="space-y-1.5 text-sm text-gray-300">
+                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Follow team</li>
+                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Game Day Live</li>
+                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Send shoutouts</li>
+                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />HYPE Taps</li>
                     </ul>
                   </div>
-                  <div className="text-right">
-                    <span className="text-lg font-bold text-white">$5.99</span>
-                    <span className="text-[10px] text-gray-400">/mo</span>
-                    <p className="text-[9px] text-purple-400">Supporter Pro</p>
-                  </div>
-                </div>
-                <div className="border-t border-white/10 pt-2 mt-2">
-                  <p className="text-[9px] text-gray-400 mb-1">Pro features:</p>
-                  <div className="flex flex-wrap gap-2 text-[10px]">
-                    <span className="flex items-center gap-1 text-white/90"><Crown className="w-2.5 h-2.5 text-yellow-400" />Manage athletes</span>
-                    <span className="flex items-center gap-1 text-white/90"><Crown className="w-2.5 h-2.5 text-yellow-400" />Themes & badges</span>
-                    <span className="flex items-center gap-1 text-white/90"><Crown className="w-2.5 h-2.5 text-yellow-400" />Season history</span>
+                  <div className="border-t border-white/10 pt-4">
+                    <div className="flex items-baseline gap-1 mb-3">
+                      <span className="text-2xl font-bold text-white">$5.99</span>
+                      <span className="text-sm text-gray-400">/mo</span>
+                      <span className="text-sm text-purple-400 ml-2">Supporter Pro</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-2">Pro features:</p>
+                    <ul className="space-y-1.5 text-sm">
+                      <li className="flex items-center gap-2 text-white/90"><Crown className="w-4 h-4 text-yellow-400" />Manage athletes</li>
+                      <li className="flex items-center gap-2 text-white/90"><Crown className="w-4 h-4 text-yellow-400" />Themes & badges</li>
+                      <li className="flex items-center gap-2 text-white/90"><Crown className="w-4 h-4 text-yellow-400" />Season history</li>
+                    </ul>
                   </div>
                 </div>
               </div>
