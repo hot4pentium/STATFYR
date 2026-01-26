@@ -245,8 +245,10 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-10 md:gap-16 max-w-2xl mx-auto">
-            <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-br from-blue-950 via-blue-900/80 to-black/60 border border-blue-500/30" data-testid="card-role-coach">
+          {/* Roles Container */}
+          <div className="max-w-2xl mx-auto rounded-3xl bg-gradient-to-b from-gray-900/80 via-gray-800/50 to-gray-900/80 border border-white/10 p-6 md:p-10">
+            <div className="flex flex-col gap-10 md:gap-12">
+              <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-br from-blue-950 via-blue-900/80 to-black/60 border border-blue-500/30" data-testid="card-role-coach">
               <div className="rounded-xl overflow-hidden border border-blue-500/30 shadow-xl w-[55%] md:w-[50%] mr-0">
                 <img 
                   src={stattrackerPreview} 
@@ -310,7 +312,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 mt-16 md:mt-12 rounded-2xl bg-gradient-to-br from-purple-950 via-purple-900/80 to-black/60 border border-purple-500/30" data-testid="card-role-supporter">
+            <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-br from-purple-950 via-purple-900/80 to-black/60 border border-purple-500/30" data-testid="card-role-supporter">
               <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl w-[55%] md:w-[50%] mr-0">
                 <img 
                   src={livetapsPreview} 
@@ -340,10 +342,13 @@ export default function LandingPage() {
                   Game Day Live: Real-time cheering & HYPE Taps during games
                 </p>
               </div>
+              </div>
             </div>
+          </div>
 
-            {/* Platform Section */}
-            <div className="relative flex items-center justify-start py-8 md:py-10 px-4 md:px-6 mt-16 md:mt-12 rounded-2xl bg-gradient-to-bl from-orange-950 via-orange-900/80 to-black/60 border border-orange-500/30" data-testid="card-platform">
+          {/* Platform Section */}
+          <div className="flex flex-col max-w-2xl mx-auto mt-12">
+            <div className="relative flex items-center justify-start py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-bl from-orange-950 via-orange-900/80 to-black/60 border border-orange-500/30" data-testid="card-platform">
               <div className="rounded-xl overflow-hidden border border-orange-500/30 shadow-xl w-[50%] md:w-[45%] ml-0">
                 <img 
                   src={dashboardPreview} 
