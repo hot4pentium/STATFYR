@@ -188,7 +188,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <section className="pt-16 md:pt-24 pb-10 md:pb-16 px-4 md:px-6 relative overflow-hidden">
+      <section className="pt-24 md:pt-32 pb-10 md:pb-16 px-4 md:px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 via-transparent to-transparent" />
         <div className="absolute top-20 left-1/4 w-48 md:w-96 h-48 md:h-96 bg-orange-500/10 rounded-full blur-3xl" />
         <div className="absolute top-40 right-1/4 w-36 md:w-72 h-36 md:h-72 bg-purple-500/10 rounded-full blur-3xl" />
