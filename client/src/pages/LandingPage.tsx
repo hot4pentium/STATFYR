@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import statfyrLogo from "@/assets/statfyr-fire-logo.png";
 import hypeCardPreview from "@/assets/hype-card-preview.png";
-import playmakerPreview from "@/assets/playmaker-preview.png";
+import stattrackerPreview from "@/assets/stattracker-preview.png";
 import livetapsPreview from "@/assets/livetaps-preview.png";
 
 export default function LandingPage() {
@@ -226,8 +226,8 @@ export default function LandingPage() {
             <div className="relative flex items-center justify-end py-8 md:py-10" data-testid="card-role-coach">
               <div className="rounded-xl overflow-hidden border border-blue-500/30 shadow-xl w-[45%] md:w-[40%] mr-0">
                 <img 
-                  src={playmakerPreview} 
-                  alt="PlayMaker Preview" 
+                  src={stattrackerPreview} 
+                  alt="StatTracker Preview" 
                   className="w-full h-auto object-cover"
                 />
               </div>
