@@ -181,11 +181,6 @@ export default function LandingPage() {
         
         <div className="container mx-auto max-w-5xl relative z-10">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 text-orange-400 px-3 py-1.5 rounded-full text-xs md:text-sm font-medium mb-6 md:mb-8">
-              <Flame className="w-3 h-3 md:w-4 md:h-4" />
-              <span>The Ultimate Sports Team Platform</span>
-            </div>
-            
             <h1 className="text-3xl md:text-7xl font-bold tracking-tight text-white mb-4 md:mb-6 leading-[1.1]">
               Ignite Your Team's
               <span className="block text-orange-500">Full Potential</span>
