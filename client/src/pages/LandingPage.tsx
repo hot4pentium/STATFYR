@@ -312,7 +312,16 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
+          </div>
+          
+          {/* Section Divider */}
+          <div className="flex items-center gap-4 my-8 md:my-12">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent to-orange-500/50" />
+            <img src={statfyrLogo} alt="STATFYR" className="w-8 h-8" />
+            <div className="flex-1 h-px bg-gradient-to-l from-transparent to-orange-500/50" />
+          </div>
 
+          <div className="space-y-16 md:space-y-20">
             <div className="relative flex items-center justify-end py-16 md:py-20 px-4 md:px-6 rounded-2xl bg-gradient-to-br from-purple-950 via-purple-900/80 to-black/60 border border-purple-500/30" data-testid="card-role-supporter">
               <div className="flex flex-col gap-3 w-[55%] md:w-[50%] mr-0">
                 <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl">
