@@ -180,7 +180,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <section className="pt-24 md:pt-32 pb-16 md:pb-24 px-4 md:px-6 relative overflow-hidden">
+      <section className="pt-16 md:pt-24 pb-10 md:pb-16 px-4 md:px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 via-transparent to-transparent" />
         <div className="absolute top-20 left-1/4 w-48 md:w-96 h-48 md:h-96 bg-orange-500/10 rounded-full blur-3xl" />
         <div className="absolute top-40 right-1/4 w-36 md:w-72 h-36 md:h-72 bg-purple-500/10 rounded-full blur-3xl" />
@@ -198,20 +198,16 @@ export default function LandingPage() {
             </p>
             
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-xs md:text-sm text-gray-400" data-testid="text-coming-soon">
-              <div className="flex items-center gap-1.5">
-                <Smartphone className="w-3 h-3 md:w-4 md:h-4" />
-                <span>iOS & Android Coming Soon</span>
-              </div>
-              <span className="hidden sm:block w-1 h-1 bg-white/20 rounded-full" />
-              <span>No credit card required</span>
+            <div className="flex items-center justify-center gap-1.5 text-xs md:text-sm text-gray-400" data-testid="text-coming-soon">
+              <Smartphone className="w-3 h-3 md:w-4 md:h-4" />
+              <span>iOS & Android Coming Soon</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Section Divider */}
-      <div className="container mx-auto max-w-3xl px-8 py-8">
+      <div className="container mx-auto max-w-3xl px-8 py-4">
         <div className="flex items-center gap-4">
           <div className="flex-1 h-px bg-gradient-to-r from-transparent to-orange-500/50" />
           <img src={statfyrLogo} alt="STATFYR" className="w-8 h-8" />
@@ -219,7 +215,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <section id="features" className="py-16 md:py-24 px-4 md:px-6 relative">
+      <section id="features" className="py-10 md:py-16 px-4 md:px-6 relative">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-2xl md:text-5xl font-bold text-white mb-3 md:mb-4">
