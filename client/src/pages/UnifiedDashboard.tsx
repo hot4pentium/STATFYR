@@ -3530,7 +3530,7 @@ export default function UnifiedDashboard() {
                   <Label className="text-xs md:text-sm">Hour</Label>
                   <Select value={eventForm.hour} onValueChange={(v) => setEventForm({ ...eventForm, hour: v })}>
                     <SelectTrigger className="h-9 md:h-10"><SelectValue /></SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper" side="bottom" className="max-h-[200px]">
                       {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
                         <SelectItem key={h} value={h}>{h}</SelectItem>
                       ))}
@@ -3541,7 +3541,7 @@ export default function UnifiedDashboard() {
                   <Label className="text-xs md:text-sm">Min</Label>
                   <Select value={eventForm.minute} onValueChange={(v) => setEventForm({ ...eventForm, minute: v })}>
                     <SelectTrigger className="h-9 md:h-10"><SelectValue /></SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper" side="bottom" className="max-h-[200px]">
                       {["00", "15", "30", "45"].map((m) => (
                         <SelectItem key={m} value={m}>{m}</SelectItem>
                       ))}
@@ -3552,7 +3552,7 @@ export default function UnifiedDashboard() {
                   <Label className="text-xs md:text-sm">AM/PM</Label>
                   <Select value={eventForm.ampm} onValueChange={(v) => setEventForm({ ...eventForm, ampm: v })}>
                     <SelectTrigger className="h-9 md:h-10"><SelectValue /></SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper" side="bottom">
                       <SelectItem value="AM">AM</SelectItem>
                       <SelectItem value="PM">PM</SelectItem>
                     </SelectContent>
