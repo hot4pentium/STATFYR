@@ -229,7 +229,7 @@ export default function LandingPage() {
       <div className="container mx-auto max-w-3xl px-8 py-8">
         <div className="flex items-center gap-4">
           <div className="flex-1 h-px bg-gradient-to-r from-transparent to-orange-500/50" />
-          <Flame className="w-6 h-6 text-orange-500" />
+          <img src={statfyrLogo} alt="STATFYR" className="w-8 h-8" />
           <div className="flex-1 h-px bg-gradient-to-l from-transparent to-orange-500/50" />
         </div>
       </div>
