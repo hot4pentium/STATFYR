@@ -341,7 +341,6 @@ export default function LandingPage() {
                     <h3 className="text-sm md:text-base font-bold text-white">Athlete</h3>
                     <div className="mt-1">
                       <span className="text-base md:text-lg font-bold text-green-400">$0</span>
-                      <span className="text-[10px] text-gray-400"> forever</span>
                     </div>
                   </div>
                   <ul className="space-y-0.5 flex-1">
