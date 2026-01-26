@@ -239,24 +239,12 @@ export default function LandingPage() {
                 style={{ transformStyle: 'preserve-3d' }}
               >
                 {/* Front */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-blue-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden]">
-                  <button 
-                    onClick={() => toggleFlip('coach')}
-                    className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 transition-colors"
-                    data-testid="button-expand-coach"
-                  >
-                    <Expand className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
-                  </button>
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-3 md:mb-4">
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-blue-500/20 flex items-center justify-center">
-                      <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm md:text-lg font-bold text-white">COACHES</h3>
-                      <p className="text-[10px] md:text-xs text-gray-400 hidden md:block">Lead your team to victory</p>
-                    </div>
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-blue-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] flex flex-col">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-blue-500/20 flex items-center justify-center mb-3">
+                    <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
                   </div>
-                  <ul className="space-y-1 md:space-y-2">
+                  <h3 className="text-sm md:text-lg font-bold text-white mb-3">COACHES</h3>
+                  <ul className="space-y-1 md:space-y-2 flex-1">
                     {["Create & manage rosters", "Track stats in real-time", "Design plays with PlayMaker", "Schedule games & practices"].map((item) => (
                       <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-[10px] md:text-sm">
                         <Check className="w-3 h-3 md:w-4 md:h-4 text-blue-400 flex-shrink-0" />
@@ -264,6 +252,13 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
+                  <button 
+                    onClick={() => toggleFlip('coach')}
+                    className="text-blue-400 text-xs md:text-sm hover:text-blue-300 transition-colors mt-3"
+                    data-testid="button-expand-coach"
+                  >
+                    More...
+                  </button>
                 </div>
                 {/* Back - Pricing */}
                 <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-blue-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
@@ -311,24 +306,12 @@ export default function LandingPage() {
                 style={{ transformStyle: 'preserve-3d' }}
               >
                 {/* Front */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-green-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden]">
-                  <button 
-                    onClick={() => toggleFlip('athlete')}
-                    className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-green-500/20 hover:bg-green-500/30 transition-colors"
-                    data-testid="button-expand-athlete"
-                  >
-                    <Expand className="w-3 h-3 md:w-4 md:h-4 text-green-400" />
-                  </button>
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-3 md:mb-4">
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-green-500/20 flex items-center justify-center">
-                      <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm md:text-lg font-bold text-white">ATHLETES</h3>
-                      <p className="text-[10px] md:text-xs text-gray-400 hidden md:block">Your personal sports hub</p>
-                    </div>
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-green-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] flex flex-col">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-green-500/20 flex items-center justify-center mb-3">
+                    <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
                   </div>
-                  <ul className="space-y-1 md:space-y-2">
+                  <h3 className="text-sm md:text-lg font-bold text-white mb-3">ATHLETES</h3>
+                  <ul className="space-y-1 md:space-y-2 flex-1">
                     {["Chat with team", "View your stats", "Access team playbook", "Receive shoutouts"].map((item) => (
                       <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-[10px] md:text-sm">
                         <Check className="w-3 h-3 md:w-4 md:h-4 text-green-400 flex-shrink-0" />
@@ -336,6 +319,13 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
+                  <button 
+                    onClick={() => toggleFlip('athlete')}
+                    className="text-green-400 text-xs md:text-sm hover:text-green-300 transition-colors mt-3"
+                    data-testid="button-expand-athlete"
+                  >
+                    More...
+                  </button>
                 </div>
                 {/* Back - Pricing */}
                 <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-green-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
@@ -376,24 +366,12 @@ export default function LandingPage() {
                 style={{ transformStyle: 'preserve-3d' }}
               >
                 {/* Front */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-purple-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden]">
-                  <button 
-                    onClick={() => toggleFlip('supporter')}
-                    className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 transition-colors"
-                    data-testid="button-expand-supporter"
-                  >
-                    <Expand className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
-                  </button>
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-3 md:mb-4">
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-purple-500/20 flex items-center justify-center">
-                      <Heart className="w-4 h-4 md:w-5 md:h-5 text-purple-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm md:text-lg font-bold text-white">SUPPORTERS</h3>
-                      <p className="text-[10px] md:text-xs text-gray-400 hidden md:block">Cheer on your athletes</p>
-                    </div>
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-purple-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] flex flex-col">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-purple-500/20 flex items-center justify-center mb-3">
+                    <Heart className="w-4 h-4 md:w-5 md:h-5 text-purple-400" />
                   </div>
-                  <ul className="space-y-1 md:space-y-2">
+                  <h3 className="text-sm md:text-lg font-bold text-white mb-3">SUPPORTERS</h3>
+                  <ul className="space-y-1 md:space-y-2 flex-1">
                     {["Send shoutouts", "Tap to support", "Earn badges", "Manage athletes"].map((item) => (
                       <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-[10px] md:text-sm">
                         <Check className="w-3 h-3 md:w-4 md:h-4 text-purple-400 flex-shrink-0" />
@@ -401,6 +379,13 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
+                  <button 
+                    onClick={() => toggleFlip('supporter')}
+                    className="text-purple-400 text-xs md:text-sm hover:text-purple-300 transition-colors mt-3"
+                    data-testid="button-expand-supporter"
+                  >
+                    More...
+                  </button>
                 </div>
                 {/* Back - Pricing */}
                 <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-purple-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
