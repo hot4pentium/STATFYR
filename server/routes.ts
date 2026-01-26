@@ -5258,6 +5258,19 @@ export async function registerRoutes(
       const hasAthleteRole = user?.role === 'athlete' || teams.some((t: any) => t.role === 'athlete');
 
       const entitlements = computeEntitlements(tier, hasCoachRole, hasStaffRole, hasAthleteRole);
+      
+      // For athletes with a connected supporter, check if supporter has pro subscription
+      // to grant extended profile editing access
+      if (hasAthleteRole && user.claimedBySupporterId) {
+        const supporterSubscription = await stripeService.getUserSubscription(user.claimedBySupporterId);
+        const supporterTier = supporterSubscription?.status === 'active' ? supporterSubscription.tier : 'free';
+        if (supporterTier === 'supporter_pro') {
+          entitlements.canEditExtendedProfile = true;
+          entitlements.canViewHighlights = true;
+          entitlements.canUploadHighlights = true;
+        }
+      }
+      
       res.json({ entitlements, tier, subscription });
     } catch (error) {
       console.error("Failed to get entitlements:", error);
