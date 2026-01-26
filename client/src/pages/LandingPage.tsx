@@ -236,16 +236,16 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-10 md:gap-16 max-w-4xl mx-auto">
+          <div className="flex flex-col gap-10 md:gap-16 max-w-2xl mx-auto">
             <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-br from-blue-950 via-blue-900/80 to-black/60 border border-blue-500/30" data-testid="card-role-coach">
-              <div className="rounded-xl overflow-hidden border border-blue-500/30 shadow-xl w-[55%] md:w-[45%] mr-0">
+              <div className="rounded-xl overflow-hidden border border-blue-500/30 shadow-xl w-[55%] md:w-[50%] mr-0">
                 <img 
                   src={stattrackerPreview} 
                   alt="StatTracker Preview" 
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute top-1/2 -translate-y-1/2 left-2 md:left-4 bg-black rounded-xl border border-blue-500/40 p-3 md:p-5 shadow-2xl w-auto max-w-[200px] md:max-w-xs">
+              <div className="absolute top-1/2 -translate-y-1/2 left-2 md:left-4 bg-black rounded-xl border border-blue-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
                     <Users className="w-5 h-5 text-blue-400" />
@@ -270,14 +270,14 @@ export default function LandingPage() {
             </div>
 
             <div className="relative flex items-center justify-start py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-bl from-green-950 via-green-900/80 to-black/60 border border-green-500/30" data-testid="card-role-athlete">
-              <div className="rounded-xl overflow-hidden border border-green-500/30 shadow-xl w-[55%] md:w-[45%] ml-0">
+              <div className="rounded-xl overflow-hidden border border-green-500/30 shadow-xl w-[55%] md:w-[50%] ml-0">
                 <img 
                   src={hypeCardPreview} 
                   alt="HYPE Card Preview" 
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute bottom-4 right-2 md:right-4 bg-black rounded-xl border border-green-500/40 p-3 md:p-5 shadow-2xl w-auto max-w-[200px] md:max-w-xs">
+              <div className="absolute bottom-4 right-2 md:right-4 bg-black rounded-xl border border-green-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
                     <TrendingUp className="w-5 h-5 text-green-400" />
@@ -302,14 +302,14 @@ export default function LandingPage() {
             </div>
 
             <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 mt-16 md:mt-12 rounded-2xl bg-gradient-to-br from-purple-950 via-purple-900/80 to-black/60 border border-purple-500/30" data-testid="card-role-supporter">
-              <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl w-[55%] md:w-[45%] mr-0">
+              <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl w-[55%] md:w-[50%] mr-0">
                 <img 
                   src={livetapsPreview} 
                   alt="Live Taps Preview" 
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute bottom-4 left-2 md:left-4 bg-black rounded-xl border border-purple-500/40 p-3 md:p-5 shadow-2xl w-auto max-w-[200px] md:max-w-xs">
+              <div className="absolute bottom-4 left-2 md:left-4 bg-black rounded-xl border border-purple-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
                     <Heart className="w-5 h-5 text-purple-400" />
@@ -335,14 +335,14 @@ export default function LandingPage() {
 
             {/* Platform Section */}
             <div className="relative flex items-center justify-start py-8 md:py-10 px-4 md:px-6 mt-16 md:mt-12 rounded-2xl bg-gradient-to-bl from-orange-950 via-orange-900/80 to-black/60 border border-orange-500/30" data-testid="card-platform">
-              <div className="rounded-xl overflow-hidden border border-orange-500/30 shadow-xl w-[50%] md:w-[40%] ml-0">
+              <div className="rounded-xl overflow-hidden border border-orange-500/30 shadow-xl w-[50%] md:w-[45%] ml-0">
                 <img 
                   src={dashboardPreview} 
                   alt="Dashboard Preview" 
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute top-1/2 -translate-y-1/2 right-2 md:right-4 bg-black rounded-xl border border-orange-500/40 p-3 md:p-5 shadow-2xl w-auto max-w-[200px] md:max-w-xs">
+              <div className="absolute top-1/2 -translate-y-1/2 right-2 md:right-4 bg-black rounded-xl border border-orange-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
                     <Flame className="w-5 h-5 text-orange-400" />
