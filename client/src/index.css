@@ -449,3 +449,23 @@ html:not(.dark) [class*="bg-background/40"] {
 .flip-card-inner.flipped .flip-card-back {
   z-index: 2;
 }
+
+/* Parallax float animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  25% {
+    transform: translateY(-8px) translateX(4px);
+  }
+  50% {
+    transform: translateY(-4px) translateX(-2px);
+  }
+  75% {
+    transform: translateY(-12px) translateX(2px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}

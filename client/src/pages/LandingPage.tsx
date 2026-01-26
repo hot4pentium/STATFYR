@@ -257,25 +257,33 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            <div className="relative" data-testid="card-role-athlete">
-              <div className="rounded-xl overflow-hidden border border-green-500/30 shadow-xl">
+            <div className="relative flex items-center justify-center py-8" data-testid="card-role-athlete">
+              <div className="rounded-xl overflow-hidden border border-green-500/30 shadow-xl w-[50%] md:w-[45%]">
                 <img 
                   src={hypeCardPreview} 
                   alt="HYPE Card Preview" 
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute -bottom-4 -right-2 md:right-4 bg-black/90 backdrop-blur-sm rounded-xl border border-green-500/40 p-3 md:p-4 shadow-2xl max-w-[200px] md:max-w-[220px]">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-green-400" />
+              <div 
+                className="absolute bottom-0 right-0 md:right-2 bg-black/95 backdrop-blur-sm rounded-xl border border-green-500/40 p-4 md:p-5 shadow-2xl w-[65%] md:w-[60%] animate-float"
+                style={{
+                  animation: 'float 6s ease-in-out infinite',
+                }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-green-400" />
                   </div>
-                  <h3 className="text-sm md:text-base font-bold text-white">Athletes</h3>
+                  <div>
+                    <h3 className="text-base md:text-lg font-bold text-white">Athletes</h3>
+                    <p className="text-xs text-gray-400">Your personal sports hub</p>
+                  </div>
                 </div>
-                <ul className="space-y-1.5">
-                  {["View your stats", "Share HYPE Card", "Upload highlights"].map((item) => (
-                    <li key={item} className="flex items-center gap-1.5 text-gray-200 text-[10px] md:text-xs">
-                      <Check className="w-3 h-3 text-green-400 flex-shrink-0" />
+                <ul className="space-y-2">
+                  {["View your personal stats", "Build shareable HYPE Card", "Upload video highlights", "Access team playbook"].map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-gray-200 text-xs md:text-sm">
+                      <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
                       {item}
                     </li>
                   ))}
