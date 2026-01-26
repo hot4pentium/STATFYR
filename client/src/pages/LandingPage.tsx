@@ -257,8 +257,8 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            <div className="relative flex items-center justify-center py-8" data-testid="card-role-athlete">
-              <div className="rounded-xl overflow-hidden border border-green-500/30 shadow-xl w-[50%] md:w-[45%]">
+            <div className="relative flex items-center justify-start py-8" data-testid="card-role-athlete">
+              <div className="rounded-xl overflow-hidden border border-green-500/30 shadow-xl w-[45%] md:w-[40%] ml-0">
                 <img 
                   src={hypeCardPreview} 
                   alt="HYPE Card Preview" 
