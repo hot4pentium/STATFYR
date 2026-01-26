@@ -478,6 +478,7 @@ export default function LandingPage() {
                 { src: "/slideshow/PlayMaker.png", alt: "PlayMaker" },
                 { src: "/slideshow/StatTracker.png", alt: "StatTracker" },
                 { src: "/slideshow/supporter_dashboard.png", alt: "Supporter Dashboard" },
+                { src: "/slideshow/LvieTaps.png", alt: "Live Taps" },
                 { src: "/slideshow/statfyr-overview.png", alt: "STATFYR Overview" },
               ].map((image, index) => (
                 <button 
