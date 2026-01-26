@@ -60,24 +60,17 @@ export default function SubscriptionPage() {
               </CardContent>
             </Card>
           ) : (
-            <Card data-testid="card-get-app">
+            <Card data-testid="card-upgrade-pro">
               <CardHeader className="text-center">
                 <div className="mx-auto mb-4 p-4 rounded-full bg-orange-500/10">
-                  <Smartphone className="w-12 h-12 text-orange-500" />
+                  <Crown className="w-12 h-12 text-orange-500" />
                 </div>
                 <CardTitle className="text-2xl">Upgrade to Pro</CardTitle>
                 <CardDescription>
-                  Download the STATFYR app to subscribe and unlock premium features
+                  Unlock premium features and take your experience to the next level
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="text-center">
-                  <p className="text-muted-foreground mb-6">
-                    This is the STATFYR companion website. To subscribe to Pro features, 
-                    download our app from the App Store or Google Play.
-                  </p>
-                </div>
-
                 <div className="grid gap-4">
                   <Card className="bg-muted/50">
                     <CardHeader className="pb-2">
@@ -115,7 +108,11 @@ export default function SubscriptionPage() {
                       <ul className="space-y-1 text-sm">
                         <li className="flex items-center gap-2">
                           <Check className="w-4 h-4 text-green-500" />
-                          Manage independent athletes
+                          Manage unlimited athletes
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Check className="w-4 h-4 text-green-500" />
+                          Upload video highlights
                         </li>
                         <li className="flex items-center gap-2">
                           <Check className="w-4 h-4 text-green-500" />
@@ -130,26 +127,11 @@ export default function SubscriptionPage() {
                   </Card>
                 </div>
 
-                <div className="flex flex-col gap-3 pt-4">
-                  <Button 
-                    size="lg" 
-                    className="w-full bg-black hover:bg-gray-800 text-white"
-                    onClick={() => window.open('https://apps.apple.com/app/statfyr', '_blank')}
-                    data-testid="button-app-store"
-                  >
-                    <Apple className="w-5 h-5 mr-2" />
-                    Download on App Store
-                  </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => window.open('https://play.google.com/store/apps/details?id=com.statfyr.app', '_blank')}
-                    data-testid="button-play-store"
-                  >
-                    <Play className="w-5 h-5 mr-2" />
-                    Get it on Google Play
-                  </Button>
+                <div className="text-center pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Subscriptions are managed through your device's app store. 
+                    Open STATFYR on your mobile device to subscribe.
+                  </p>
                 </div>
               </CardContent>
             </Card>
