@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, Copy, Check, ArrowLeft } from "lucide-react";
+import { Shield, Copy, Check, ArrowLeft, Crown } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 import { HibernateTeamDialog } from "@/components/HibernateTeamDialog";
 import { useState, useEffect } from "react";
@@ -13,6 +13,7 @@ import { Link } from "wouter";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
+import { useEntitlements } from "@/lib/entitlementsContext";
 import { updateUser, updateTeam } from "@/lib/api";
 import { TEAM_BADGES } from "@shared/badges";
 import { TeamBadge } from "@/components/TeamBadge";
@@ -64,6 +65,7 @@ const TEAM_COLORS = [
 
 export default function CoachSettings() {
   const { user, setUser, currentTeam, setCurrentTeam } = useUser();
+  const { tier, subscription } = useEntitlements();
   const [selectedBadge, setSelectedBadge] = useState(currentTeam?.badgeId || "");
   const [selectedColor, setSelectedColor] = useState(currentTeam?.teamColor || "");
   const [copied, setCopied] = useState(false);
@@ -455,6 +457,38 @@ export default function CoachSettings() {
             </TabsContent>
 
           </Tabs>
+
+          <Card className="bg-card/80 backdrop-blur-sm border-white/5">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <Crown className="w-4 h-4" />
+                Subscription
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Current Plan</span>
+                <span className="font-semibold text-primary" data-testid="text-subscription-tier">
+                  {tier === 'coach' ? 'Coach Pro' : 'Free'}
+                </span>
+              </div>
+              {subscription && subscription.status === 'active' && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Renews</span>
+                  <span className="text-sm" data-testid="text-subscription-renewal">
+                    {subscription.currentPeriodEnd 
+                      ? new Date(subscription.currentPeriodEnd).toLocaleDateString() 
+                      : 'N/A'}
+                  </span>
+                </div>
+              )}
+              <Link href="/subscription">
+                <Button variant="outline" size="sm" className="w-full mt-2" data-testid="button-manage-subscription">
+                  {tier === 'coach' ? 'Manage Subscription' : 'Upgrade to Pro'}
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
 
           <Card className="bg-card/80 backdrop-blur-sm border-white/5">
             <CardHeader>

@@ -2,13 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, Users, Plus, Camera, Trash2 } from "lucide-react";
+import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, Users, Plus, Camera, Trash2, Crown } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
+import { useEntitlements } from "@/lib/entitlementsContext";
 import { joinTeamByCode, getUserTeams } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNativeCamera } from "@/hooks/useNativeCamera";
@@ -16,6 +17,7 @@ import { isNative } from "@/lib/capacitor";
 
 export default function AthleteSettings() {
   const { user: contextUser, updateUser } = useUser();
+  const { tier } = useEntitlements();
   const queryClient = useQueryClient();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -421,6 +423,26 @@ export default function AthleteSettings() {
                   </Button>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/80 backdrop-blur-sm border-white/5">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <Crown className="w-4 h-4" />
+                Subscription
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Current Plan</span>
+                <span className="font-semibold text-green-500" data-testid="text-subscription-tier">
+                  Free (Always)
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Athletes always have free access. Pro features are unlocked by your connected supporter.
+              </p>
             </CardContent>
           </Card>
 

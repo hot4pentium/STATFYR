@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, UserPlus, Trash2, Camera, Pencil } from "lucide-react";
+import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, UserPlus, Trash2, Camera, Pencil, Crown } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import generatedImage from '@assets/generated_images/minimal_tech_sports_background.png';
 import { useUser } from "@/lib/userContext";
+import { useEntitlements } from "@/lib/entitlementsContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getManagedAthletes, createManagedAthlete, deleteManagedAthlete, type ManagedAthlete } from "@/lib/api";
 import { useNativeCamera } from "@/hooks/useNativeCamera";
@@ -18,6 +19,7 @@ import { isNative } from "@/lib/capacitor";
 export default function SupporterSettings() {
   const [, setLocation] = useLocation();
   const { user: contextUser, updateUser, currentTeam } = useUser();
+  const { tier, subscription } = useEntitlements();
   const queryClient = useQueryClient();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -907,6 +909,38 @@ export default function SupporterSettings() {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="bg-card/80 backdrop-blur-sm border-white/5">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <Crown className="w-4 h-4" />
+                Subscription
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Current Plan</span>
+                <span className="font-semibold text-primary" data-testid="text-subscription-tier">
+                  {tier === 'supporter' ? 'Supporter Pro' : 'Free'}
+                </span>
+              </div>
+              {subscription && subscription.status === 'active' && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Renews</span>
+                  <span className="text-sm" data-testid="text-subscription-renewal">
+                    {subscription.currentPeriodEnd 
+                      ? new Date(subscription.currentPeriodEnd).toLocaleDateString() 
+                      : 'N/A'}
+                  </span>
+                </div>
+              )}
+              <Link href="/subscription">
+                <Button variant="outline" size="sm" className="w-full mt-2" data-testid="button-manage-subscription">
+                  {tier === 'supporter' ? 'Manage Subscription' : 'Upgrade to Pro'}
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
 
           <Card className="bg-card/80 backdrop-blur-sm border-white/5">
             <CardHeader>
