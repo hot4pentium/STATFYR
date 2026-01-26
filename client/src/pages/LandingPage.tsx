@@ -468,9 +468,8 @@ export default function LandingPage() {
                 { src: "/slideshow/hype-card.png", alt: "HYPE Card" },
                 { src: "/slideshow/PlayMaker.png", alt: "PlayMaker" },
                 { src: "/slideshow/StatTracker.png", alt: "StatTracker" },
-                { src: "/slideshow/Screenshot%202026-01-26%20at%204.06.16%20PM.png", alt: "Dashboard" },
-                { src: "/slideshow/Screenshot%202026-01-26%20at%204.11.41%20PM.png", alt: "App Preview" },
-                { src: "/slideshow/STATFYR%20-%20Sports%20Stats%20%26%20Team%20Management%20(copy).png", alt: "STATFYR Overview" },
+                { src: "/slideshow/dashboard-4.png", alt: "Dashboard" },
+                { src: "/slideshow/statfyr-overview.png", alt: "STATFYR Overview" },
               ].map((image, index) => (
                 <button 
                   key={index}
