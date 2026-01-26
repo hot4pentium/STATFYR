@@ -265,13 +265,7 @@ export default function LandingPage() {
                   </button>
                 </div>
                 {/* Back - Pricing */}
-                <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-blue-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                  <button 
-                    onClick={() => toggleFlip('coach')}
-                    className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 transition-colors"
-                  >
-                    <X className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
-                  </button>
+                <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-blue-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex flex-col">
                   <div className="flex flex-col items-center mb-2">
                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-blue-500/20 flex items-center justify-center mb-1">
                       <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
@@ -291,7 +285,7 @@ export default function LandingPage() {
                     <span className="text-base md:text-lg font-bold text-white">$7.99</span>
                     <span className="text-[10px] text-gray-400">/mo</span>
                   </div>
-                  <ul className="space-y-0.5">
+                  <ul className="space-y-0.5 flex-1">
                     {["PlayMaker", "StatTracker", "Season history"].map((item) => (
                       <li key={item} className="flex items-center gap-1 text-white/90 text-[9px] md:text-[11px]">
                         <Crown className="w-2.5 h-2.5 md:w-3 md:h-3 text-yellow-400 flex-shrink-0" />
@@ -299,6 +293,12 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
+                  <button 
+                    onClick={() => toggleFlip('coach')}
+                    className="text-blue-400 text-xs md:text-sm hover:text-blue-300 transition-colors mt-3"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </div>
@@ -332,13 +332,7 @@ export default function LandingPage() {
                   </button>
                 </div>
                 {/* Back - Pricing */}
-                <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-green-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                  <button 
-                    onClick={() => toggleFlip('athlete')}
-                    className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-green-500/20 hover:bg-green-500/30 transition-colors"
-                  >
-                    <X className="w-3 h-3 md:w-4 md:h-4 text-green-400" />
-                  </button>
+                <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-green-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex flex-col">
                   <div className="flex flex-col items-center mb-2">
                     <Badge className="bg-green-500 text-white border-0 text-[8px] md:text-[10px] px-2 py-0.5 mb-1">Always Free</Badge>
                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-green-500/20 flex items-center justify-center mb-1">
@@ -350,7 +344,7 @@ export default function LandingPage() {
                       <span className="text-[10px] text-gray-400"> forever</span>
                     </div>
                   </div>
-                  <ul className="space-y-0.5">
+                  <ul className="space-y-0.5 flex-1">
                     {["Chat with team", "View your stats", "Access playbook", "Receive shoutouts", "HYPE Card*", "Video highlights*"].map((item) => (
                       <li key={item} className="flex items-center gap-1 text-gray-300 text-[9px] md:text-[11px]">
                         <Check className="w-2.5 h-2.5 md:w-3 md:h-3 text-green-400 flex-shrink-0" />
@@ -359,6 +353,12 @@ export default function LandingPage() {
                     ))}
                   </ul>
                   <p className="text-[7px] md:text-[9px] text-gray-500 mt-1">*Requires Supporter Pro</p>
+                  <button 
+                    onClick={() => toggleFlip('athlete')}
+                    className="text-green-400 text-xs md:text-sm hover:text-green-300 transition-colors mt-2"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </div>
@@ -392,13 +392,7 @@ export default function LandingPage() {
                   </button>
                 </div>
                 {/* Back - Pricing */}
-                <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-purple-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                  <button 
-                    onClick={() => toggleFlip('supporter')}
-                    className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 transition-colors"
-                  >
-                    <X className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
-                  </button>
+                <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-purple-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex flex-col">
                   <div className="flex flex-col items-center mb-2">
                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-purple-500/20 flex items-center justify-center mb-1">
                       <Heart className="w-4 h-4 md:w-5 md:h-5 text-purple-400" />
@@ -418,7 +412,7 @@ export default function LandingPage() {
                     <span className="text-base md:text-lg font-bold text-white">$5.99</span>
                     <span className="text-[10px] text-gray-400">/mo</span>
                   </div>
-                  <ul className="space-y-0.5">
+                  <ul className="space-y-0.5 flex-1">
                     {["Manage athletes", "Themes & badges", "Season history"].map((item) => (
                       <li key={item} className="flex items-center gap-1 text-white/90 text-[9px] md:text-[11px]">
                         <Crown className="w-2.5 h-2.5 md:w-3 md:h-3 text-yellow-400 flex-shrink-0" />
@@ -426,6 +420,12 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
+                  <button 
+                    onClick={() => toggleFlip('supporter')}
+                    className="text-purple-400 text-xs md:text-sm hover:text-purple-300 transition-colors mt-3"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </div>
