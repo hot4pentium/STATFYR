@@ -281,13 +281,16 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <ul className="space-y-2">
-                  {["View your personal stats", "Build shareable HYPE Card", "Upload video highlights", "Access team playbook"].map((item) => (
+                  {["Join team with code", "View your stats", "Access team playbook", "Receive shoutouts"].map((item) => (
                     <li key={item} className="flex items-center gap-2 text-gray-200 text-xs md:text-sm">
                       <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
                       {item}
                     </li>
                   ))}
                 </ul>
+                <p className="text-[10px] md:text-xs text-gray-400 mt-3 border-t border-white/10 pt-2">
+                  Connect with a supporter to unlock HYPE Card & video highlights
+                </p>
               </div>
             </div>
 
