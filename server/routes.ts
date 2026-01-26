@@ -5259,16 +5259,14 @@ export async function registerRoutes(
 
       const entitlements = computeEntitlements(tier, hasCoachRole, hasStaffRole, hasAthleteRole);
       
-      // For athletes with a connected supporter, grant extended profile and HYPE features
-      // These features are unlocked when ANY supporter claims the athlete
+      // For athletes with a connected supporter, check if supporter has Pro subscription
+      // HYPE features (HYPE Hub, HYPE Card, extended profile, highlights) require Supporter Pro
       if (hasAthleteRole && user.claimedBySupporterId) {
-        entitlements.canEditExtendedProfile = true;
-        entitlements.canViewHighlights = true;
-        // Note: canUploadHighlights is controlled by supporter's subscription tier
-        // Check if the connected supporter has pro for upload access
         const supporterSubscription = await stripeService.getUserSubscription(user.claimedBySupporterId);
         const supporterTier = supporterSubscription?.status === 'active' ? supporterSubscription.tier : 'free';
         if (supporterTier === 'supporter_pro') {
+          entitlements.canEditExtendedProfile = true;
+          entitlements.canViewHighlights = true;
           entitlements.canUploadHighlights = true;
         }
       }
