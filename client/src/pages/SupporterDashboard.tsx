@@ -799,6 +799,7 @@ export default function SupporterDashboard() {
                       >
                         Edit Profile
                       </Button>
+                      {managedAthletes.length < entitlements.maxManagedAthletes ? (
                       <Button 
                         variant="outline" 
                         className="w-full"
@@ -807,6 +808,17 @@ export default function SupporterDashboard() {
                       >
                         Add Another Athlete
                       </Button>
+                      ) : (
+                      <Button 
+                        variant="outline" 
+                        className="w-full opacity-75"
+                        onClick={() => setLocation("/subscription")}
+                        data-testid="button-upgrade-for-athletes"
+                      >
+                        <Lock className="h-4 w-4 mr-2" />
+                        Upgrade for More Athletes
+                      </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

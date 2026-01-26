@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, UserPlus, Link2, ChevronRight, ArrowLeft, Heart, Sparkles, Loader2 } from "lucide-react";
+import { Users, UserPlus, Link2, ChevronRight, ArrowLeft, Heart, Sparkles, Loader2, Lock, Crown } from "lucide-react";
 import { AthleteCodeClaimDialog } from "./AthleteCodeClaimDialog";
 import { useUser } from "@/lib/userContext";
+import { useEntitlements } from "@/lib/entitlementsContext";
 import { createManagedAthlete, joinTeamByCode } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -17,6 +18,7 @@ interface AthleteManagementDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAthleteAdded?: () => void;
+  managedAthletesCount?: number;
 }
 
 type ConnectionPath = "team-follower" | "independent" | "claim-code" | null;
@@ -24,12 +26,15 @@ type ViewState = "main" | "detail" | "add-form" | "join-team-form";
 
 const SPORTS_LIST = ["Basketball", "Baseball", "Football", "Soccer", "Volleyball"];
 
-export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: AthleteManagementDialogProps) {
+export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded, managedAthletesCount = 0 }: AthleteManagementDialogProps) {
   const [selectedPath, setSelectedPath] = useState<ConnectionPath>(null);
   const [viewState, setViewState] = useState<ViewState>("main");
   const [showClaimDialog, setShowClaimDialog] = useState(false);
   const { user } = useUser();
+  const { entitlements } = useEntitlements();
   const [, setLocation] = useLocation();
+  
+  const hasReachedAthleteLimit = managedAthletesCount >= entitlements.maxManagedAthletes;
 
   // Add athlete form state
   const [firstName, setFirstName] = useState("");
@@ -170,42 +175,68 @@ export function AthleteManagementDialog({ open, onOpenChange, onAthleteAdded }: 
       id: "independent" as const,
       title: "Add Your Athlete",
       icon: UserPlus,
-      badge: "Parent Mode",
-      badgeVariant: "default" as const,
-      description: "Create a profile for your child and track their sports journey",
-      features: [
+      badge: hasReachedAthleteLimit ? "Upgrade Required" : "Parent Mode",
+      badgeVariant: hasReachedAthleteLimit ? "secondary" as const : "default" as const,
+      description: hasReachedAthleteLimit 
+        ? "You've reached your athlete limit. Upgrade to Pro for unlimited athletes."
+        : "Create a profile for your child and track their sports journey",
+      features: hasReachedAthleteLimit ? [
+        "Upgrade to manage unlimited athletes",
+        "Video uploads for all your athletes",
+        "Extended profile editing",
+      ] : [
         "Create and manage your athlete's profile",
         "Track stats and record game performances",
         "Upload highlight videos and photos",
         "Share their shareable athlete profile",
         "Manage their schedule and events",
       ],
-      note: "Perfect for parents of young athletes who may not have their own account or aren't on a team using STATFYR yet.",
+      note: hasReachedAthleteLimit 
+        ? undefined
+        : "Perfect for parents of young athletes who may not have their own account or aren't on a team using STATFYR yet.",
       action: () => {
-        setViewState("add-form");
+        if (hasReachedAthleteLimit) {
+          setLocation("/subscription");
+          handleClose();
+        } else {
+          setViewState("add-form");
+        }
       },
-      actionLabel: "Add Athlete Profile",
+      actionLabel: hasReachedAthleteLimit ? "Upgrade to Pro" : "Add Athlete Profile",
     },
     {
       id: "claim-code" as const,
       title: "Connect via Code",
       icon: Link2,
-      badge: "HYPE Mode",
-      badgeVariant: "default" as const,
-      description: "Link with your athlete who already has a STATFYR account",
-      features: [
+      badge: hasReachedAthleteLimit ? "Upgrade Required" : "HYPE Mode",
+      badgeVariant: hasReachedAthleteLimit ? "secondary" as const : "default" as const,
+      description: hasReachedAthleteLimit 
+        ? "You've reached your athlete limit. Upgrade to Pro for unlimited athletes."
+        : "Link with your athlete who already has a STATFYR account",
+      features: hasReachedAthleteLimit ? [
+        "Upgrade to manage unlimited athletes",
+        "Video uploads for all your athletes",
+        "Extended profile editing",
+      ] : [
         "Unlock HYPE features for your athlete",
         "Send shoutouts and hype during games",
         "Upload highlights to their profile",
         "View their stats and game history",
         "Access their shareable athlete profile",
       ],
-      note: "Your athlete shares their unique code from their Settings page. Only one supporter can claim each athlete's code.",
+      note: hasReachedAthleteLimit 
+        ? undefined
+        : "Your athlete shares their unique code from their Settings page. Only one supporter can claim each athlete's code.",
       action: () => {
-        setShowClaimDialog(true);
-        handleClose();
+        if (hasReachedAthleteLimit) {
+          setLocation("/subscription");
+          handleClose();
+        } else {
+          setShowClaimDialog(true);
+          handleClose();
+        }
       },
-      actionLabel: "Enter Athlete Code",
+      actionLabel: hasReachedAthleteLimit ? "Upgrade to Pro" : "Enter Athlete Code",
     },
   ];
 

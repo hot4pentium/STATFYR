@@ -4248,6 +4248,7 @@ export default function UnifiedDashboard() {
       <AthleteManagementDialog
         open={isAthleteManagementOpen}
         onOpenChange={setIsAthleteManagementOpen}
+        managedAthletesCount={managedAthletes.length}
         onAthleteAdded={() => {
           queryClient.invalidateQueries({ queryKey: ["/api/supporter/managed-athletes"] });
           queryClient.invalidateQueries({ queryKey: ["/api/supporters", user?.id, "managed-athletes"] });

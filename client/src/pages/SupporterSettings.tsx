@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, UserPlus, Trash2, Camera, Pencil, Crown } from "lucide-react";
+import { User, Upload, ArrowLeft, LogOut, Settings, Loader2, Check, UserPlus, Trash2, Camera, Pencil, Crown, Lock } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
@@ -19,7 +19,7 @@ import { isNative } from "@/lib/capacitor";
 export default function SupporterSettings() {
   const [, setLocation] = useLocation();
   const { user: contextUser, updateUser, currentTeam } = useUser();
-  const { tier, subscription } = useEntitlements();
+  const { tier, subscription, entitlements } = useEntitlements();
   const queryClient = useQueryClient();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -770,6 +770,27 @@ export default function SupporterSettings() {
                   </div>
                 )}
 
+                {managedAthletes.length >= entitlements.maxManagedAthletes ? (
+                  <div className="p-4 bg-background/30 rounded-lg border border-primary/30">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 rounded-full bg-primary/20">
+                        <Lock className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium">Athlete Limit Reached</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Free accounts can manage {entitlements.maxManagedAthletes} athlete. Upgrade to Pro for unlimited athletes.
+                        </p>
+                      </div>
+                    </div>
+                    <Link href="/subscription">
+                      <Button variant="default" size="sm" className="w-full" data-testid="button-upgrade-for-athletes">
+                        <Crown className="h-4 w-4 mr-2" />
+                        Upgrade to Pro
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
                 <div className="space-y-4 p-4 bg-background/30 rounded-lg border border-white/10">
                   <h4 className="text-sm font-medium uppercase tracking-wider">Add New Athlete</h4>
                   
@@ -906,6 +927,7 @@ export default function SupporterSettings() {
                     )}
                   </Button>
                 </div>
+                )}
               </CardContent>
             </Card>
           </div>
