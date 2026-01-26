@@ -46,8 +46,12 @@ import shoutoutsPreview from "@/assets/shoutouts-preview.png";
 import landingBg from "@/assets/landing-bg.png";
 
 export default function LandingPage() {
-  const [activeRoleModal, setActiveRoleModal] = useState<string | null>(null);
+  const [flippedCard, setFlippedCard] = useState<string | null>(null);
   const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(null);
+
+  const toggleFlip = (cardId: string) => {
+    setFlippedCard(flippedCard === cardId ? null : cardId);
+  };
 
   const roleFeatures = {
     coaches: {
@@ -226,220 +230,186 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Roles Container - Horizontal Layout */}
+          {/* Roles Container - Horizontal Layout with Flip Cards */}
           <div className="max-w-5xl mx-auto grid grid-cols-3 gap-2 md:gap-6 px-2 md:px-0">
-            {/* Coach Card */}
-            <div className="relative bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-blue-500/30 p-3 md:p-5 backdrop-blur-sm" data-testid="card-role-coach">
-              <button 
-                onClick={() => setActiveRoleModal('coach')}
-                className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 transition-colors"
-                data-testid="button-expand-coach"
+            {/* Coach Flip Card */}
+            <div className="relative h-[220px] md:h-[280px]" style={{ perspective: '1000px' }} data-testid="card-role-coach">
+              <div 
+                className={`relative w-full h-full transition-transform duration-500 ${flippedCard === 'coach' ? '[transform:rotateY(180deg)]' : ''}`}
+                style={{ transformStyle: 'preserve-3d' }}
               >
-                <Expand className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
-              </button>
-              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-3 md:mb-4">
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-blue-500/20 flex items-center justify-center">
-                  <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
+                {/* Front */}
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-blue-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden]">
+                  <button 
+                    onClick={() => toggleFlip('coach')}
+                    className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 transition-colors"
+                    data-testid="button-expand-coach"
+                  >
+                    <Expand className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
+                  </button>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-blue-500/20 flex items-center justify-center">
+                      <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm md:text-lg font-bold text-white">COACHES</h3>
+                      <p className="text-[10px] md:text-xs text-gray-400 hidden md:block">Lead your team to victory</p>
+                    </div>
+                  </div>
+                  <ul className="space-y-1 md:space-y-2">
+                    {["Create & manage rosters", "Track stats in real-time", "Design plays with PlayMaker", "Schedule games & practices"].map((item) => (
+                      <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-[10px] md:text-sm">
+                        <Check className="w-3 h-3 md:w-4 md:h-4 text-blue-400 flex-shrink-0" />
+                        <span className="leading-tight">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div>
-                  <h3 className="text-sm md:text-lg font-bold text-white">COACHES</h3>
-                  <p className="text-[10px] md:text-xs text-gray-400 hidden md:block">Lead your team to victory</p>
+                {/* Back - Pricing */}
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-950/95 to-gray-900/95 rounded-xl md:rounded-2xl border border-blue-500/50 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                  <button 
+                    onClick={() => toggleFlip('coach')}
+                    className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 transition-colors"
+                  >
+                    <X className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
+                  </button>
+                  <div className="text-center mb-3">
+                    <span className="text-xl md:text-2xl font-bold text-white">$7.99</span>
+                    <span className="text-xs text-gray-400">/mo</span>
+                    <p className="text-xs text-blue-400">Coach Pro</p>
+                  </div>
+                  <p className="text-[9px] md:text-xs text-gray-400 mb-2">Pro features:</p>
+                  <ul className="space-y-1 md:space-y-2">
+                    {["PlayMaker", "StatTracker", "Season history", "Advanced analytics"].map((item) => (
+                      <li key={item} className="flex items-center gap-1.5 md:gap-2 text-white/90 text-[10px] md:text-sm">
+                        <Crown className="w-3 h-3 md:w-4 md:h-4 text-yellow-400 flex-shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
-              <ul className="space-y-1 md:space-y-2 mb-3 md:mb-4">
-                {["Create & manage rosters", "Track stats in real-time", "Design plays with PlayMaker", "Schedule games & practices"].map((item) => (
-                  <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-[10px] md:text-sm">
-                    <Check className="w-3 h-3 md:w-4 md:h-4 text-blue-400 flex-shrink-0" />
-                    <span className="leading-tight">{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="text-[9px] md:text-xs text-gray-400 border-t border-white/10 pt-2 md:pt-3 hidden md:block">
-                Upgrade to Pro for PlayMaker, StatTracker & more
-              </p>
             </div>
 
-            {/* Athlete Card */}
-            <div className="relative bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-green-500/30 p-3 md:p-5 backdrop-blur-sm" data-testid="card-role-athlete">
-              <button 
-                onClick={() => setActiveRoleModal('athlete')}
-                className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-green-500/20 hover:bg-green-500/30 transition-colors"
-                data-testid="button-expand-athlete"
+            {/* Athlete Flip Card */}
+            <div className="relative h-[220px] md:h-[280px]" style={{ perspective: '1000px' }} data-testid="card-role-athlete">
+              <div 
+                className={`relative w-full h-full transition-transform duration-500 ${flippedCard === 'athlete' ? '[transform:rotateY(180deg)]' : ''}`}
+                style={{ transformStyle: 'preserve-3d' }}
               >
-                <Expand className="w-3 h-3 md:w-4 md:h-4 text-green-400" />
-              </button>
-              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-3 md:mb-4">
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-green-500/20 flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
+                {/* Front */}
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-green-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden]">
+                  <button 
+                    onClick={() => toggleFlip('athlete')}
+                    className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-green-500/20 hover:bg-green-500/30 transition-colors"
+                    data-testid="button-expand-athlete"
+                  >
+                    <Expand className="w-3 h-3 md:w-4 md:h-4 text-green-400" />
+                  </button>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-green-500/20 flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm md:text-lg font-bold text-white">ATHLETES</h3>
+                      <p className="text-[10px] md:text-xs text-gray-400 hidden md:block">Your personal sports hub</p>
+                    </div>
+                  </div>
+                  <ul className="space-y-1 md:space-y-2">
+                    {["Chat with team", "View your stats", "Access team playbook", "Receive shoutouts"].map((item) => (
+                      <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-[10px] md:text-sm">
+                        <Check className="w-3 h-3 md:w-4 md:h-4 text-green-400 flex-shrink-0" />
+                        <span className="leading-tight">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div>
-                  <h3 className="text-sm md:text-lg font-bold text-white">ATHLETES</h3>
-                  <p className="text-[10px] md:text-xs text-gray-400 hidden md:block">Your personal sports hub</p>
+                {/* Back - Pricing */}
+                <div className="absolute inset-0 bg-gradient-to-b from-green-950/95 to-gray-900/95 rounded-xl md:rounded-2xl border border-green-500/50 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                  <button 
+                    onClick={() => toggleFlip('athlete')}
+                    className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-green-500/20 hover:bg-green-500/30 transition-colors"
+                  >
+                    <X className="w-3 h-3 md:w-4 md:h-4 text-green-400" />
+                  </button>
+                  <Badge className="bg-green-500 text-white border-0 text-[10px] md:text-xs px-2 py-0.5 mb-2">Always Free</Badge>
+                  <div className="text-center mb-3">
+                    <span className="text-xl md:text-2xl font-bold text-green-400">$0</span>
+                    <span className="text-xs text-gray-400"> forever</span>
+                  </div>
+                  <ul className="space-y-1 md:space-y-2">
+                    {["HYPE Card*", "Video highlights*", "Share profile", "Season stats"].map((item) => (
+                      <li key={item} className="flex items-center gap-1.5 md:gap-2 text-white/90 text-[10px] md:text-sm">
+                        <Check className="w-3 h-3 md:w-4 md:h-4 text-green-400 flex-shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-[8px] md:text-[10px] text-gray-500 mt-2">*Requires Supporter Pro</p>
                 </div>
               </div>
-              <ul className="space-y-1 md:space-y-2 mb-3 md:mb-4">
-                {["Chat with team", "View your stats", "Access team playbook", "Receive shoutouts"].map((item) => (
-                  <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-[10px] md:text-sm">
-                    <Check className="w-3 h-3 md:w-4 md:h-4 text-green-400 flex-shrink-0" />
-                    <span className="leading-tight">{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="text-[9px] md:text-xs text-gray-400 border-t border-white/10 pt-2 md:pt-3 hidden md:block">
-                Connect with a supporter to unlock HYPE Card & video highlights
-              </p>
             </div>
 
-            {/* Supporter Card */}
-            <div className="relative bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-purple-500/30 p-3 md:p-5 backdrop-blur-sm" data-testid="card-role-supporter">
-              <button 
-                onClick={() => setActiveRoleModal('supporter')}
-                className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 transition-colors"
-                data-testid="button-expand-supporter"
+            {/* Supporter Flip Card */}
+            <div className="relative h-[220px] md:h-[280px]" style={{ perspective: '1000px' }} data-testid="card-role-supporter">
+              <div 
+                className={`relative w-full h-full transition-transform duration-500 ${flippedCard === 'supporter' ? '[transform:rotateY(180deg)]' : ''}`}
+                style={{ transformStyle: 'preserve-3d' }}
               >
-                <Expand className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
-              </button>
-              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-3 md:mb-4">
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-purple-500/20 flex items-center justify-center">
-                  <Heart className="w-4 h-4 md:w-5 md:h-5 text-purple-400" />
+                {/* Front */}
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-purple-500/30 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden]">
+                  <button 
+                    onClick={() => toggleFlip('supporter')}
+                    className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 transition-colors"
+                    data-testid="button-expand-supporter"
+                  >
+                    <Expand className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
+                  </button>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-purple-500/20 flex items-center justify-center">
+                      <Heart className="w-4 h-4 md:w-5 md:h-5 text-purple-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm md:text-lg font-bold text-white">SUPPORTERS</h3>
+                      <p className="text-[10px] md:text-xs text-gray-400 hidden md:block">Cheer on your athletes</p>
+                    </div>
+                  </div>
+                  <ul className="space-y-1 md:space-y-2">
+                    {["Send shoutouts", "Tap to support", "Earn badges", "Manage athletes"].map((item) => (
+                      <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-[10px] md:text-sm">
+                        <Check className="w-3 h-3 md:w-4 md:h-4 text-purple-400 flex-shrink-0" />
+                        <span className="leading-tight">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div>
-                  <h3 className="text-sm md:text-lg font-bold text-white">SUPPORTERS</h3>
-                  <p className="text-[10px] md:text-xs text-gray-400 hidden md:block">Cheer on your athletes</p>
+                {/* Back - Pricing */}
+                <div className="absolute inset-0 bg-gradient-to-b from-purple-950/95 to-gray-900/95 rounded-xl md:rounded-2xl border border-purple-500/50 p-3 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                  <button 
+                    onClick={() => toggleFlip('supporter')}
+                    className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 transition-colors"
+                  >
+                    <X className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
+                  </button>
+                  <div className="text-center mb-3">
+                    <span className="text-xl md:text-2xl font-bold text-white">$5.99</span>
+                    <span className="text-xs text-gray-400">/mo</span>
+                    <p className="text-xs text-purple-400">Supporter Pro</p>
+                  </div>
+                  <p className="text-[9px] md:text-xs text-gray-400 mb-2">Pro features:</p>
+                  <ul className="space-y-1 md:space-y-2">
+                    {["Manage athletes", "Unlock HYPE features", "Themes & badges", "Season history"].map((item) => (
+                      <li key={item} className="flex items-center gap-1.5 md:gap-2 text-white/90 text-[10px] md:text-sm">
+                        <Crown className="w-3 h-3 md:w-4 md:h-4 text-yellow-400 flex-shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
-              <ul className="space-y-1 md:space-y-2 mb-3 md:mb-4">
-                {["Send shoutouts", "Tap to support", "Earn badges", "Manage athletes"].map((item) => (
-                  <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-[10px] md:text-sm">
-                    <Check className="w-3 h-3 md:w-4 md:h-4 text-purple-400 flex-shrink-0" />
-                    <span className="leading-tight">{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="text-[9px] md:text-xs text-gray-400 border-t border-white/10 pt-2 md:pt-3 hidden md:block">
-                Game Day Live: Real-time cheering & HYPE Taps during games
-              </p>
             </div>
           </div>
 
-          {/* Role Preview Modals */}
-          <Dialog open={activeRoleModal === 'coach'} onOpenChange={() => setActiveRoleModal(null)}>
-            <DialogContent className="max-w-[95vw] max-h-[90vh] md:max-w-3xl bg-gray-900 border border-blue-500/30 p-4 md:p-6 overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-white flex items-center gap-2 text-base md:text-lg">
-                  <Users className="w-5 h-5 text-blue-400" />
-                  COACH DASHBOARD
-                </DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 rounded-lg overflow-hidden border border-blue-500/30">
-                  <img src={stattrackerPreview} alt="StatTracker Preview" className="w-full h-auto object-contain" />
-                </div>
-                <div className="flex-1 bg-blue-500/10 rounded-lg p-4 border border-blue-500/20">
-                  <div className="mb-4">
-                    <p className="text-xs text-gray-400 mb-2">Free features included</p>
-                    <ul className="space-y-1.5 text-sm text-gray-300">
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Create team & manage rosters</li>
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Schedule events & team chat</li>
-                    </ul>
-                  </div>
-                  <div className="border-t border-white/10 pt-4">
-                    <div className="flex items-baseline gap-1 mb-3">
-                      <span className="text-2xl font-bold text-white">$7.99</span>
-                      <span className="text-sm text-gray-400">/mo</span>
-                      <span className="text-sm text-blue-400 ml-2">Coach Pro</span>
-                    </div>
-                    <p className="text-xs text-gray-400 mb-2">Pro features:</p>
-                    <ul className="space-y-1.5 text-sm">
-                      <li className="flex items-center gap-2 text-white/90"><Crown className="w-4 h-4 text-yellow-400" />PlayMaker</li>
-                      <li className="flex items-center gap-2 text-white/90"><Crown className="w-4 h-4 text-yellow-400" />StatTracker</li>
-                      <li className="flex items-center gap-2 text-white/90"><Crown className="w-4 h-4 text-yellow-400" />Season history</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={activeRoleModal === 'athlete'} onOpenChange={() => setActiveRoleModal(null)}>
-            <DialogContent className="max-w-[95vw] max-h-[90vh] md:max-w-3xl bg-gray-900 border border-green-500/30 p-4 md:p-6 overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-white flex items-center gap-2 text-base md:text-lg">
-                  <TrendingUp className="w-5 h-5 text-green-400" />
-                  ATHLETE DASHBOARD
-                </DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 rounded-lg overflow-hidden border border-green-500/30">
-                  <img src={hypeCardPreview} alt="HYPE Card Preview" className="w-full h-auto object-contain" />
-                </div>
-                <div className="flex-1 bg-green-500/10 rounded-lg p-4 border border-green-500/20">
-                  <div className="flex items-center justify-between mb-4">
-                    <Badge className="bg-green-500 text-white border-0 text-sm px-3 py-1">Always Free</Badge>
-                    <div className="text-right">
-                      <span className="text-2xl font-bold text-green-400">$0</span>
-                      <span className="text-sm text-gray-400"> forever</span>
-                    </div>
-                  </div>
-                  <ul className="space-y-1.5 text-sm text-gray-300">
-                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Chat with team</li>
-                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />View your stats</li>
-                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Access playbook</li>
-                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Receive shoutouts</li>
-                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />HYPE Card*</li>
-                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Video highlights*</li>
-                  </ul>
-                  <p className="text-xs text-gray-500 mt-3">*Unlocked when connected to a Supporter Pro</p>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={activeRoleModal === 'supporter'} onOpenChange={() => setActiveRoleModal(null)}>
-            <DialogContent className="max-w-[95vw] max-h-[90vh] md:max-w-3xl bg-gray-900 border border-purple-500/30 p-4 md:p-6 overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-white flex items-center gap-2 text-base md:text-lg">
-                  <Heart className="w-5 h-5 text-purple-400" />
-                  SUPPORTER DASHBOARD
-                </DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 space-y-2">
-                  <div className="rounded-lg overflow-hidden border border-purple-500/30">
-                    <img src={livetapsPreview} alt="Live Taps Preview" className="w-full h-auto object-contain" />
-                  </div>
-                  <div className="rounded-lg overflow-hidden border border-purple-500/30">
-                    <img src={shoutoutsPreview} alt="Shoutouts Preview" className="w-full h-auto object-contain" />
-                  </div>
-                </div>
-                <div className="flex-1 bg-purple-500/10 rounded-lg p-4 border border-purple-500/20">
-                  <div className="mb-4">
-                    <p className="text-xs text-gray-400 mb-2">Free features included</p>
-                    <ul className="space-y-1.5 text-sm text-gray-300">
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Follow team</li>
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Game Day Live</li>
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />Send shoutouts</li>
-                      <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" />HYPE Taps</li>
-                    </ul>
-                  </div>
-                  <div className="border-t border-white/10 pt-4">
-                    <div className="flex items-baseline gap-1 mb-3">
-                      <span className="text-2xl font-bold text-white">$5.99</span>
-                      <span className="text-sm text-gray-400">/mo</span>
-                      <span className="text-sm text-purple-400 ml-2">Supporter Pro</span>
-                    </div>
-                    <p className="text-xs text-gray-400 mb-2">Pro features:</p>
-                    <ul className="space-y-1.5 text-sm">
-                      <li className="flex items-center gap-2 text-white/90"><Crown className="w-4 h-4 text-yellow-400" />Manage athletes</li>
-                      <li className="flex items-center gap-2 text-white/90"><Crown className="w-4 h-4 text-yellow-400" />Themes & badges</li>
-                      <li className="flex items-center gap-2 text-white/90"><Crown className="w-4 h-4 text-yellow-400" />Season history</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-          
           {/* Section Divider */}
           <div className="flex items-center gap-4 my-8 md:my-12">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent to-orange-500/50" />
@@ -705,93 +675,6 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-
-      <Dialog open={activeRoleModal === "Coaches"} onOpenChange={(open) => !open && setActiveRoleModal(null)}>
-        <DialogContent className="max-w-2xl bg-white/5 border-white/10" data-testid="dialog-coaches">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-white">
-              <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                <Users className="w-5 h-5 text-blue-400" />
-              </div>
-              Coach Dashboard
-            </DialogTitle>
-            <DialogDescription className="text-gray-300">
-              Full control over your team's success
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {roleFeatures.coaches.features.map((feature) => (
-              <div key={feature.title} className="flex items-start gap-4 p-4 bg-white/10 rounded-xl">
-                <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <feature.icon className="w-5 h-5 text-blue-400" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-white mb-1">{feature.title}</h4>
-                  <p className="text-sm text-gray-300">{feature.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={activeRoleModal === "Athletes"} onOpenChange={(open) => !open && setActiveRoleModal(null)}>
-        <DialogContent className="max-w-2xl bg-white/5 border-white/10" data-testid="dialog-athletes">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-white">
-              <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-green-400" />
-              </div>
-              Athlete Dashboard
-            </DialogTitle>
-            <DialogDescription className="text-gray-300">
-              Your personal sports hub
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {roleFeatures.athletes.features.map((feature) => (
-              <div key={feature.title} className="flex items-start gap-4 p-4 bg-white/10 rounded-xl">
-                <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <feature.icon className="w-5 h-5 text-green-400" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-white mb-1">{feature.title}</h4>
-                  <p className="text-sm text-gray-300">{feature.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={activeRoleModal === "Supporters"} onOpenChange={(open) => !open && setActiveRoleModal(null)}>
-        <DialogContent className="max-w-2xl bg-white/5 border-white/10" data-testid="dialog-supporters">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-white">
-              <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                <Heart className="w-5 h-5 text-purple-400" />
-              </div>
-              Supporter Dashboard
-            </DialogTitle>
-            <DialogDescription className="text-gray-300">
-              Cheer on your favorite athletes
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {roleFeatures.supporters.features.map((feature) => (
-              <div key={feature.title} className="flex items-start gap-4 p-4 bg-white/10 rounded-xl">
-                <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <feature.icon className="w-5 h-5 text-purple-400" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-white mb-1">{feature.title}</h4>
-                  <p className="text-sm text-gray-300">{feature.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={activeFeatureModal === "Live Stat Tracking"} onOpenChange={(open) => !open && setActiveFeatureModal(null)}>
         <DialogContent className="max-w-lg bg-white/5 border-white/10" data-testid="dialog-stattracking">
