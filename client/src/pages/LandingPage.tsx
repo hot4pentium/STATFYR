@@ -226,8 +226,12 @@ export default function LandingPage() {
       </section>
 
       {/* Section Divider */}
-      <div className="container mx-auto max-w-4xl px-8">
-        <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      <div className="container mx-auto max-w-3xl px-8 py-8">
+        <div className="flex items-center gap-4">
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent to-orange-500/50" />
+          <Flame className="w-6 h-6 text-orange-500" />
+          <div className="flex-1 h-px bg-gradient-to-l from-transparent to-orange-500/50" />
+        </div>
       </div>
 
       <section id="features" className="py-16 md:py-24 px-4 md:px-6 relative">
