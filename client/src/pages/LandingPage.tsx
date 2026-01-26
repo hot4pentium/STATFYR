@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +34,7 @@ import {
   ThumbsUp,
   ArrowRight,
   ChevronRight,
+  ChevronLeft,
   Expand,
   X
 } from "lucide-react";
@@ -48,9 +49,20 @@ import landingBg from "@/assets/landing-bg.png";
 export default function LandingPage() {
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
   const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   const toggleFlip = (cardId: string) => {
     setFlippedCard(flippedCard === cardId ? null : cardId);
+  };
+
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = 300;
+      carouselRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
   };
 
   const roleFeatures = {
@@ -431,14 +443,27 @@ export default function LandingPage() {
           </div>
 
           {/* Image Carousel */}
-          <div className="mt-8 md:mt-12 overflow-hidden">
-            <div className="flex gap-4 animate-scroll">
+          <div className="mt-8 md:mt-12 relative">
+            <button
+              onClick={() => scrollCarousel('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center border border-orange-500/30 transition-colors"
+              data-testid="button-carousel-left"
+            >
+              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-orange-400" />
+            </button>
+            <button
+              onClick={() => scrollCarousel('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center border border-orange-500/30 transition-colors"
+              data-testid="button-carousel-right"
+            >
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-orange-400" />
+            </button>
+            <div 
+              ref={carouselRef}
+              className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-12"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {[
-                { src: "/slideshow/hype-card.png", alt: "HYPE Card" },
-                { src: "/slideshow/live-stat-tracking.png", alt: "Live Stat Tracking" },
-                { src: "/slideshow/livetaps.png", alt: "Live Taps" },
-                { src: "/slideshow/playmaker-thumbnail.png", alt: "PlayMaker" },
-                { src: "/slideshow/shoutouts.png", alt: "Shoutouts" },
                 { src: "/slideshow/hype-card.png", alt: "HYPE Card" },
                 { src: "/slideshow/live-stat-tracking.png", alt: "Live Stat Tracking" },
                 { src: "/slideshow/livetaps.png", alt: "Live Taps" },
