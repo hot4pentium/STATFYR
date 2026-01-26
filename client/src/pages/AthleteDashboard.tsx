@@ -700,27 +700,23 @@ export default function AthleteDashboard() {
             </Card>
           )}
 
-          {/* Extended Profile Card - Shown when athlete has Pro OR connected supporter has Pro */}
-          {(tier === 'athlete' || tier === 'coach' || (isSupporterConnected && hasSupporterProAccess)) && (
-          <Card className={`mb-6 border-yellow-500/30 ${tier === 'athlete' || tier === 'coach' ? 'bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-yellow-500/10' : 'bg-card/50'}`}>
+          {/* Extended Profile Card - Only shown when connected supporter has Pro access */}
+          {isSupporterConnected && hasSupporterProAccess && (
+          <Card className="mb-6 border-yellow-500/30 bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-yellow-500/10">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Crown className="h-5 w-5 text-yellow-500" />
                   <h3 className="font-display font-bold text-sm uppercase tracking-wide">Extended Profile</h3>
                 </div>
-                {tier === 'athlete' || tier === 'coach' ? (
-                  <Link href="/athlete/settings">
-                    <Button variant="ghost" size="sm" className="text-yellow-500 hover:text-yellow-400 h-7 text-xs" data-testid="button-edit-extended-profile">
-                      Edit
-                    </Button>
-                  </Link>
-                ) : (
-                  <Badge variant="secondary" className="text-xs">Pro Feature</Badge>
-                )}
+                <Link href="/athlete/settings">
+                  <Button variant="ghost" size="sm" className="text-yellow-500 hover:text-yellow-400 h-7 text-xs" data-testid="button-edit-extended-profile">
+                    Edit
+                  </Button>
+                </Link>
               </div>
               
-              {tier === 'athlete' || tier === 'coach' ? (
+              {((user as any)?.height || (user as any)?.weight || (user as any)?.handedness || (user as any)?.footedness || (user as any)?.gpa || (user as any)?.graduationYear || (user as any)?.teamAwards?.length > 0) ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {(user as any)?.height && (
                     <div className="text-center p-2 rounded-lg bg-background/50 border border-white/5">
@@ -773,19 +769,6 @@ export default function AthleteDashboard() {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-4">
-                  <p className="text-sm text-muted-foreground mb-3">Unlock extended profile features with Athlete Pro</p>
-                  <Link href="/subscription">
-                    <Button variant="outline" size="sm" className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10" data-testid="button-upgrade-extended-profile">
-                      <Crown className="h-4 w-4 mr-2" />
-                      Upgrade to Pro
-                    </Button>
-                  </Link>
-                </div>
-              )}
-              
-              {(tier === 'athlete' || tier === 'coach') && 
-               !((user as any)?.height || (user as any)?.weight || (user as any)?.handedness || (user as any)?.footedness || (user as any)?.gpa) && (
                 <div className="text-center py-4">
                   <p className="text-sm text-muted-foreground mb-3">No profile details yet. Add your info to enhance your HYPE Card!</p>
                   <Link href="/athlete/settings">
