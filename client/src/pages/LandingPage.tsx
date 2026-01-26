@@ -41,6 +41,7 @@ import stattrackerPreview from "@/assets/stattracker-preview.png";
 import livetapsPreview from "@/assets/livetaps-preview.png";
 import dashboardPreview from "@/assets/dashboard-preview.png";
 import shoutoutsPreview from "@/assets/shoutouts-preview.png";
+import landingBg from "@/assets/landing-bg.png";
 
 export default function LandingPage() {
   const [activeRoleModal, setActiveRoleModal] = useState<string | null>(null);
@@ -140,17 +141,12 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black" style={{ 
-      background: `
-        repeating-linear-gradient(
-          -45deg,
-          transparent,
-          transparent 8px,
-          rgba(255, 255, 255, 0.06) 8px,
-          rgba(255, 255, 255, 0.06) 9px
-        ),
-        linear-gradient(180deg, #000000 0%, #0a0a0a 50%, #050505 100%)
-      `
+    <div className="min-h-screen" style={{ 
+      backgroundImage: `url(${landingBg})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed'
     }}>
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
