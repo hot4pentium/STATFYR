@@ -257,7 +257,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute top-1/2 -translate-y-1/2 left-2 md:left-4 bg-black rounded-xl border border-blue-500/40 p-2.5 md:p-3.5 shadow-2xl w-auto max-w-[180px] md:max-w-[220px]">
+              <div className="absolute top-1/2 -translate-y-1/2 left-2 md:left-3 bg-black rounded-xl border border-blue-500/40 p-2.5 md:p-3.5 shadow-2xl w-auto max-w-[180px] md:max-w-[220px]">
                 <div className="flex items-center gap-2.5 mb-2.5">
                   <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
                     <Users className="w-4 h-4 text-blue-400" />
@@ -289,7 +289,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute bottom-4 right-2 md:right-4 bg-black rounded-xl border border-green-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
+              <div className="absolute bottom-4 right-2 md:right-3 bg-black rounded-xl border border-green-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
                     <TrendingUp className="w-5 h-5 text-green-400" />
@@ -333,7 +333,7 @@ export default function LandingPage() {
                   />
                 </div>
               </div>
-              <div className="absolute top-1/2 -translate-y-1/2 left-2 md:left-4 bg-black rounded-xl border border-purple-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
+              <div className="absolute top-1/2 -translate-y-1/2 left-2 md:left-3 bg-black rounded-xl border border-purple-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
                     <Heart className="w-5 h-5 text-purple-400" />
@@ -375,7 +375,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute top-1/2 -translate-y-1/2 right-2 md:right-4 bg-black rounded-xl border border-orange-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
+              <div className="absolute top-1/2 -translate-y-1/2 right-2 md:right-3 bg-black rounded-xl border border-orange-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
                     <Flame className="w-5 h-5 text-orange-400" />

@@ -136,9 +136,11 @@ export default function AthleteDashboard() {
   
   // Helper to check if supporter is connected (defaults to false during loading)
   const isSupporterConnected = connectedSupporterData?.connected === true;
+  // Check if connected supporter has Pro access for HYPE features
+  const hasSupporterProAccess = connectedSupporterData?.supporter?.hasProAccess === true;
   
   // Debug logging
-  console.log('[AthleteDashboard] connectedSupporterData:', connectedSupporterData, 'isSupporterConnected:', isSupporterConnected);
+  console.log('[AthleteDashboard] connectedSupporterData:', connectedSupporterData, 'isSupporterConnected:', isSupporterConnected, 'hasSupporterProAccess:', hasSupporterProAccess);
 
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const handleDisconnectSupporter = async () => {
@@ -320,8 +322,8 @@ export default function AthleteDashboard() {
     }
   ];
 
-  // Filter nav cards based on supporter connection - highlights only when connected
-  const filteredNavCards = isSupporterConnected 
+  // Filter nav cards based on supporter connection with Pro - highlights only when supporter has Pro
+  const filteredNavCards = isSupporterConnected && hasSupporterProAccess
     ? [...navCards.slice(0, 2), { id: "highlights", name: "Highlights", icon: Video, description: "Watch team highlight videos." }, navCards[2]]
     : navCards;
 
@@ -605,8 +607,8 @@ export default function AthleteDashboard() {
             </div>
           </div>
 
-          {/* HYPE Cards - Only shown when connected to a supporter */}
-          {isSupporterConnected ? (
+          {/* HYPE Cards - Only shown when connected to a supporter with Pro access */}
+          {isSupporterConnected && hasSupporterProAccess ? (
             <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
               {/* HYPE Hub Card */}
               <Card 
@@ -650,6 +652,22 @@ export default function AthleteDashboard() {
                 </CardContent>
               </Card>
             </div>
+          ) : isSupporterConnected && !hasSupporterProAccess ? (
+            <Card className="mb-6 border-orange-500/30 bg-gradient-to-r from-orange-500/5 via-red-500/5 to-orange-500/5">
+              <CardContent className="p-4 text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Lock className="h-5 w-5 text-orange-500" />
+                  <h3 className="font-display font-bold text-sm uppercase tracking-wide text-orange-500">HYPE Features Locked</h3>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Ask your connected supporter to upgrade to Pro to unlock HYPE Hub, HYPE Card, and more!
+                </p>
+                <div className="flex items-center gap-2 justify-center text-xs text-muted-foreground">
+                  <span>Connected to:</span>
+                  <span className="font-medium text-foreground">{connectedSupporterData?.supporter?.name}</span>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <Card className="mb-6 border-orange-500/30 bg-gradient-to-r from-orange-500/5 via-red-500/5 to-orange-500/5">
               <CardContent className="p-4 text-center">
@@ -682,8 +700,8 @@ export default function AthleteDashboard() {
             </Card>
           )}
 
-          {/* Extended Profile Card - Pro Feature (only shown when connected to supporter) */}
-          {isSupporterConnected && (
+          {/* Extended Profile Card - Only shown when connected to supporter with Pro access */}
+          {isSupporterConnected && hasSupporterProAccess && (
           <Card className={`mb-6 border-yellow-500/30 ${tier === 'athlete_pro' || tier === 'coach_pro' ? 'bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-yellow-500/10' : 'bg-card/50'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">

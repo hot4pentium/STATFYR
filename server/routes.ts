@@ -5666,7 +5666,7 @@ export async function registerRoutes(
       // Check if supporter has Pro subscription
       const { stripeService } = await import("./stripeService");
       const subscription = await stripeService.getUserSubscription(link.supporter.id);
-      const hasProAccess = subscription?.status === 'active' && subscription?.tier === 'supporter';
+      const hasProAccess = subscription?.status === 'active' && subscription?.tier === 'supporter_pro';
 
       res.json({
         connected: true,
