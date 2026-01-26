@@ -34,6 +34,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import statfyrLogo from "@/assets/statfyr-fire-logo.png";
+import hypeCardPreview from "@/assets/hype-card-preview.png";
 
 export default function LandingPage() {
   const [activeRoleModal, setActiveRoleModal] = useState<string | null>(null);
@@ -256,39 +257,30 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            <div className="bg-white/5 rounded-xl border border-green-500/30 p-4 md:p-6 shadow-xl hover:border-green-500/50 transition-all" data-testid="card-role-athlete">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-green-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg md:text-xl font-bold text-white">Athletes</h3>
-                  <p className="text-xs text-gray-400 hidden md:block">Your personal sports hub</p>
-                </div>
+            <div className="relative" data-testid="card-role-athlete">
+              <div className="rounded-xl overflow-hidden border border-green-500/30 shadow-xl">
+                <img 
+                  src={hypeCardPreview} 
+                  alt="HYPE Card Preview" 
+                  className="w-full h-auto object-cover"
+                />
               </div>
-              
-              <div className="bg-white/5 rounded-lg p-3 mb-4 hidden md:block">
+              <div className="absolute -bottom-4 -right-2 md:right-4 bg-black/90 backdrop-blur-sm rounded-xl border border-green-500/40 p-3 md:p-4 shadow-2xl max-w-[200px] md:max-w-[220px]">
                 <div className="flex items-center gap-2 mb-2">
-                  <Star className="w-4 h-4 text-green-400" />
-                  <span className="text-white text-sm font-medium">HYPE Card</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white text-xs font-bold">JD</div>
-                  <div>
-                    <div className="text-white text-sm">Jordan Davis</div>
-                    <div className="text-[10px] text-gray-400">Basketball • #23</div>
+                  <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-green-400" />
                   </div>
+                  <h3 className="text-sm md:text-base font-bold text-white">Athletes</h3>
                 </div>
+                <ul className="space-y-1.5">
+                  {["View your stats", "Share HYPE Card", "Upload highlights"].map((item) => (
+                    <li key={item} className="flex items-center gap-1.5 text-gray-200 text-[10px] md:text-xs">
+                      <Check className="w-3 h-3 text-green-400 flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
-
-              <ul className="space-y-2">
-                {["View your stats", "Access playbook", "Share HYPE Card", "Upload highlights"].map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-gray-200 text-xs md:text-sm">
-                    <Check className="w-3 h-3 md:w-4 md:h-4 text-green-400 flex-shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
             </div>
 
             <div className="bg-white/5 rounded-xl border border-purple-500/30 p-4 md:p-6 shadow-xl hover:border-purple-500/50 transition-all" data-testid="card-role-supporter">
