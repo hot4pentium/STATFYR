@@ -256,25 +256,25 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute top-1/2 -translate-y-1/2 left-2 md:left-4 bg-black rounded-xl border border-blue-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-blue-400" />
+              <div className="absolute top-1/2 -translate-y-1/2 left-2 md:left-4 bg-black rounded-xl border border-blue-500/40 p-2.5 md:p-3.5 shadow-2xl w-auto max-w-[180px] md:max-w-[220px]">
+                <div className="flex items-center gap-2.5 mb-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                    <Users className="w-4 h-4 text-blue-400" />
                   </div>
                   <div>
-                    <h3 className="text-base md:text-lg font-bold text-white">Coaches</h3>
-                    <p className="text-xs text-gray-400">Lead your team to victory</p>
+                    <h3 className="text-sm md:text-base font-bold text-white">Coaches</h3>
+                    <p className="text-[10px] text-gray-400">Lead your team to victory</p>
                   </div>
                 </div>
-                <ul className="space-y-2">
+                <ul className="space-y-1.5">
                   {["Create & manage rosters", "Track stats in real-time", "Design plays with PlayMaker", "Schedule games & practices"].map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-gray-200 text-xs md:text-sm">
-                      <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                    <li key={item} className="flex items-center gap-1.5 text-gray-200 text-[10px] md:text-xs">
+                      <Check className="w-3 h-3 text-blue-400 flex-shrink-0" />
                       {item}
                     </li>
                   ))}
                 </ul>
-                <p className="text-[10px] md:text-xs text-gray-400 mt-3 border-t border-white/10 pt-2">
+                <p className="text-[9px] md:text-[10px] text-gray-400 mt-2.5 border-t border-white/10 pt-1.5">
                   Upgrade to Pro for PlayMaker, StatTracker & more
                 </p>
               </div>
