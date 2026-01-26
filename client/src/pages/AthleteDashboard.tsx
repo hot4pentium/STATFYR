@@ -19,6 +19,7 @@ import { useAppBadge } from "@/hooks/useAppBadge";
 import { format, isSameDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { VideoUploader } from "@/components/VideoUploader";
 import logoImage from "@assets/red_logo-removebg-preview_1766973716904.png";
 import { parseTextDate, formatTextDate } from "@/lib/dateUtils";
@@ -143,6 +144,8 @@ export default function AthleteDashboard() {
   console.log('[AthleteDashboard] connectedSupporterData:', connectedSupporterData, 'isSupporterConnected:', isSupporterConnected, 'hasSupporterProAccess:', hasSupporterProAccess);
 
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
+  
   const handleDisconnectSupporter = async () => {
     if (!user?.id) return;
     setIsDisconnecting(true);
@@ -155,6 +158,7 @@ export default function AthleteDashboard() {
       toast.error("Failed to disconnect supporter");
     } finally {
       setIsDisconnecting(false);
+      setShowDisconnectConfirm(false);
     }
   };
 
@@ -572,12 +576,12 @@ export default function AthleteDashboard() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={handleDisconnectSupporter}
+                      onClick={() => setShowDisconnectConfirm(true)}
                       disabled={isDisconnecting}
                       className="h-5 px-1.5 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
                       data-testid="button-disconnect-supporter"
                     >
-                      {isDisconnecting ? <Loader2 className="h-3 w-3 animate-spin" /> : "Disconnect"}
+                      Disconnect
                     </Button>
                   </div>
                 )}
@@ -1352,6 +1356,31 @@ export default function AthleteDashboard() {
           )}
         </button>
       </Link>
+
+      {/* Disconnect Supporter Confirmation Dialog */}
+      <AlertDialog open={showDisconnectConfirm} onOpenChange={setShowDisconnectConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Disconnect from Supporter?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to disconnect from {connectedSupporterData?.supporter?.name}? 
+              You will lose access to HYPE features until you connect with a new supporter who has Pro.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDisconnecting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDisconnectSupporter}
+              disabled={isDisconnecting}
+              className="bg-red-500 hover:bg-red-600"
+              data-testid="button-confirm-disconnect"
+            >
+              {isDisconnecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Disconnect
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
