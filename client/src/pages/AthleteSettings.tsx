@@ -437,11 +437,11 @@ export default function AthleteSettings() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Current Plan</span>
                 <span className="font-semibold text-green-500" data-testid="text-subscription-tier">
-                  Free (Always)
+                  Free
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Athletes always have free access. Pro features are unlocked by your connected supporter.
+                Pro features are unlocked when a supporter connects with you.
               </p>
             </CardContent>
           </Card>
