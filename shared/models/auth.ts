@@ -76,6 +76,8 @@ export const users = pgTable("users", {
   loginDisabled: boolean("login_disabled").notNull().default(false),
   // Calendar subscription token for iCal feed
   calendarToken: varchar("calendar_token", { length: 64 }).unique(),
+  // Birth date for age verification (must be 13+ to use the platform)
+  birthDate: timestamp("birth_date"),
 });
 
 export type UpsertUser = typeof users.$inferInsert;
