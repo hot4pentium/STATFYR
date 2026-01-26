@@ -312,8 +312,10 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
+            </div>
           </div>
 
+          <div className="max-w-2xl mx-auto mt-16 md:mt-20">
             <div className="relative flex items-center justify-end py-16 md:py-20 px-4 md:px-6 rounded-2xl bg-gradient-to-br from-purple-950 via-purple-900/80 to-black/60 border border-purple-500/30" data-testid="card-role-supporter">
               <div className="flex flex-col gap-3 w-[55%] md:w-[50%] mr-0">
                 <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl">
