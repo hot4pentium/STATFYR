@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import statfyrLogo from "@/assets/statfyr-fire-logo.png";
 import hypeCardPreview from "@/assets/hype-card-preview.png";
+import playmakerPreview from "@/assets/playmaker-preview.png";
 
 export default function LandingPage() {
   const [activeRoleModal, setActiveRoleModal] = useState<string | null>(null);
@@ -221,40 +222,42 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            <div className="bg-white/5 rounded-xl border border-blue-500/30 p-4 md:p-6 shadow-xl hover:border-blue-500/50 transition-all" data-testid="card-role-coach">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                  <Users className="w-5 h-5 md:w-6 md:h-6 text-blue-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg md:text-xl font-bold text-white">Coaches</h3>
-                  <p className="text-xs text-gray-400 hidden md:block">Team management tools</p>
-                </div>
+            <div className="relative flex items-center justify-start py-8" data-testid="card-role-coach">
+              <div className="rounded-xl overflow-hidden border border-blue-500/30 shadow-xl w-[45%] md:w-[40%] ml-0">
+                <img 
+                  src={playmakerPreview} 
+                  alt="PlayMaker Preview" 
+                  className="w-full h-auto object-cover"
+                />
               </div>
-              
-              <div className="bg-white/5 rounded-lg p-3 mb-4 hidden md:block">
-                <div className="flex items-center gap-2 mb-2">
-                  <BarChart3 className="w-4 h-4 text-blue-400" />
-                  <span className="text-white text-sm font-medium">StatTracker</span>
+              <div 
+                className="absolute bottom-0 right-0 md:right-2 bg-black/95 backdrop-blur-sm rounded-xl border border-blue-500/40 p-4 md:p-5 shadow-2xl w-[65%] md:w-[60%] animate-float"
+                style={{
+                  animation: 'float 6s ease-in-out infinite',
+                  animationDelay: '2s',
+                }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-base md:text-lg font-bold text-white">Coaches</h3>
+                    <p className="text-xs text-gray-400">Lead your team to victory</p>
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {[{ label: "PTS", value: "24" }, { label: "REB", value: "8" }, { label: "AST", value: "6" }].map((stat) => (
-                    <div key={stat.label} className="bg-white/10 rounded p-1.5 text-center">
-                      <div className="text-sm font-bold text-white">{stat.value}</div>
-                      <div className="text-[10px] text-gray-400">{stat.label}</div>
-                    </div>
+                <ul className="space-y-2">
+                  {["Create & manage rosters", "Track stats in real-time", "Design plays with PlayMaker", "Schedule games & practices"].map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-gray-200 text-xs md:text-sm">
+                      <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                      {item}
+                    </li>
                   ))}
-                </div>
+                </ul>
+                <p className="text-[10px] md:text-xs text-gray-400 mt-3 border-t border-white/10 pt-2">
+                  Upgrade to Pro for PlayMaker, StatTracker & more
+                </p>
               </div>
-
-              <ul className="space-y-2">
-                {["Manage team rosters", "Track stats live", "Design plays", "Schedule events"].map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-gray-200 text-xs md:text-sm">
-                    <Check className="w-3 h-3 md:w-4 md:h-4 text-blue-400 flex-shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
             </div>
 
             <div className="relative flex items-center justify-start py-8" data-testid="card-role-athlete">
