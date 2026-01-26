@@ -359,7 +359,7 @@ export default function LandingPage() {
                         </li>
                       ))}
                     </ul>
-                    <p className="text-[8px] md:text-[9px] text-gray-500 mt-1">*Requires Supporter Pro</p>
+                    <p className="text-[10px] md:text-[11px] text-gray-400 mt-2">*Requires Supporter Pro</p>
                     <button 
                       onClick={() => toggleFlip('athlete')}
                       className="text-green-400 text-xs hover:text-green-300 transition-colors mt-1 text-left"
