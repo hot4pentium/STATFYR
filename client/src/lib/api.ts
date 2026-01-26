@@ -16,6 +16,7 @@ export interface User {
   mustChangePassword?: boolean;
   isSuperAdmin?: boolean;
   athleteCode?: string | null;
+  hasCompletedOnboarding?: boolean;
 }
 
 export interface Team {
