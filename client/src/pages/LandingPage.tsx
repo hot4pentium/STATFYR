@@ -533,7 +533,7 @@ export default function LandingPage() {
                 <ul className="space-y-1 text-[9px] md:text-[10px] text-gray-300">
                   <li className="flex items-center gap-1">
                     <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
-                    <span className="truncate">Follow athletes</span>
+                    <span className="truncate">Follow team</span>
                   </li>
                   <li className="flex items-center gap-1">
                     <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
