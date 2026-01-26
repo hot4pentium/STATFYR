@@ -477,7 +477,7 @@ export default function LandingPage() {
                 { src: "/slideshow/hype-card.png", alt: "HYPE Card" },
                 { src: "/slideshow/PlayMaker.png", alt: "PlayMaker" },
                 { src: "/slideshow/StatTracker.png", alt: "StatTracker" },
-                { src: "/slideshow/dashboard-4.png", alt: "Dashboard" },
+                { src: "/slideshow/supporter_dashboard.png", alt: "Supporter Dashboard" },
                 { src: "/slideshow/statfyr-overview.png", alt: "STATFYR Overview" },
               ].map((image, index) => (
                 <button 
