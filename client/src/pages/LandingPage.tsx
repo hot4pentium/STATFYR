@@ -300,7 +300,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <ul className="space-y-2">
-                  {["Join team with code", "View your stats", "Access team playbook", "Receive shoutouts"].map((item) => (
+                  {["Chat with team", "View your stats", "Access team playbook", "Receive shoutouts"].map((item) => (
                     <li key={item} className="flex items-center gap-2 text-gray-200 text-xs md:text-sm">
                       <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
                       {item}
@@ -494,7 +494,7 @@ export default function LandingPage() {
                 <ul className="space-y-1 text-[9px] md:text-[10px] text-gray-300">
                   <li className="flex items-center gap-1">
                     <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
-                    <span className="truncate">Join team with code</span>
+                    <span className="truncate">Chat with team</span>
                   </li>
                   <li className="flex items-center gap-1">
                     <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
@@ -510,13 +510,14 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-center gap-1">
                     <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
-                    <span className="truncate">HYPE Card</span>
+                    <span className="truncate">HYPE Card*</span>
                   </li>
                   <li className="flex items-center gap-1">
                     <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
-                    <span className="truncate">Video highlights</span>
+                    <span className="truncate">Video highlights*</span>
                   </li>
                 </ul>
+                <p className="text-[7px] md:text-[8px] text-gray-500 mt-1">*Requires Supporter Pro</p>
               </CardContent>
             </Card>
 
