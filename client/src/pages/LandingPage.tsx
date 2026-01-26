@@ -466,10 +466,11 @@ export default function LandingPage() {
             >
               {[
                 { src: "/slideshow/hype-card.png", alt: "HYPE Card" },
-                { src: "/slideshow/live-stat-tracking.png", alt: "Live Stat Tracking" },
-                { src: "/slideshow/livetaps.png", alt: "Live Taps" },
-                { src: "/slideshow/playmaker-thumbnail.png", alt: "PlayMaker" },
-                { src: "/slideshow/shoutouts.png", alt: "Shoutouts" },
+                { src: "/slideshow/PlayMaker.png", alt: "PlayMaker" },
+                { src: "/slideshow/StatTracker.png", alt: "StatTracker" },
+                { src: "/slideshow/Screenshot 2026-01-26 at 4.06.16 PM.png", alt: "Dashboard" },
+                { src: "/slideshow/Screenshot 2026-01-26 at 4.11.41 PM.png", alt: "App Preview" },
+                { src: "/slideshow/STATFYR - Sports Stats & Team Management (copy).png", alt: "STATFYR Overview" },
               ].map((image, index) => (
                 <button 
                   key={index}
