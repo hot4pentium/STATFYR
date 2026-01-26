@@ -287,7 +287,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 mt-12 md:mt-8 rounded-2xl bg-gradient-to-br from-purple-950/40 via-purple-900/20 to-transparent border border-purple-500/20" data-testid="card-role-supporter">
+            <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 mt-16 md:mt-12 rounded-2xl bg-gradient-to-br from-purple-950/40 via-purple-900/20 to-transparent border border-purple-500/20" data-testid="card-role-supporter">
               <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl w-[45%] md:w-[40%] mr-0">
                 <img 
                   src={livetapsPreview} 
