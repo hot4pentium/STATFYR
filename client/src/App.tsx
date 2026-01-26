@@ -55,6 +55,7 @@ import GuestGameDayLive from "@/pages/GuestGameDayLive";
 import PrivacyPage from "@/pages/PrivacyPage";
 import CookiesPage from "@/pages/CookiesPage";
 import ContactPage from "@/pages/ContactPage";
+import TermsPage from "@/pages/TermsPage";
 import RoleSelectionPage from "@/pages/RoleSelectionPage";
 
 function Router() {
@@ -67,6 +68,7 @@ function Router() {
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/privacy" component={PrivacyPage} />
+      <Route path="/terms" component={TermsPage} />
       <Route path="/cookies" component={CookiesPage} />
       <Route path="/contact" component={ContactPage} />
       <Route path="/auth" component={AuthPage} />

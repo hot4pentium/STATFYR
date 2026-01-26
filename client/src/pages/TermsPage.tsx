@@ -4,9 +4,9 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import statfyrLogo from "@/assets/statfyr-fire-logo.png";
 
-const TERMLY_PRIVACY_URL = "https://app.termly.io/policy-viewer/policy.html?policyUUID=b44f5182-a21b-4288-93de-f8c01023068e";
+const TERMLY_TERMS_URL = "https://app.termly.io/policy-viewer/policy.html?policyUUID=d516884d-de24-4622-9c55-1d03d840de0f";
 
-export default function PrivacyPage() {
+export default function TermsPage() {
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [iframeError, setIframeError] = useState(false);
 
@@ -30,34 +30,34 @@ export default function PrivacyPage() {
       </header>
 
       <main className="container mx-auto px-4 py-12 max-w-4xl">
-        <h1 className="text-4xl font-display font-bold mb-4" data-testid="text-privacy-title">Privacy Policy</h1>
+        <h1 className="text-4xl font-display font-bold mb-4" data-testid="text-terms-title">Terms and Conditions</h1>
         <p className="text-muted-foreground mb-6">
-          Last updated: January 25, 2026
+          Last updated: January 26, 2026
         </p>
         
-        <div className="bg-white rounded-lg overflow-hidden relative" data-testid="container-privacy-policy">
+        <div className="bg-white rounded-lg overflow-hidden relative" data-testid="container-terms">
           {!iframeLoaded && !iframeError && (
             <div className="absolute inset-0 flex items-center justify-center bg-white">
-              <p className="text-gray-500">Loading privacy policy...</p>
+              <p className="text-gray-500">Loading terms and conditions...</p>
             </div>
           )}
           
           {iframeError ? (
             <div className="p-8 text-center">
-              <p className="text-gray-700 mb-4">Unable to load the privacy policy inline.</p>
+              <p className="text-gray-700 mb-4">Unable to load the terms and conditions inline.</p>
               <a 
-                href={TERMLY_PRIVACY_URL}
+                href={TERMLY_TERMS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-blue-600 hover:underline"
               >
-                View Privacy Policy <ExternalLink className="h-4 w-4" />
+                View Terms and Conditions <ExternalLink className="h-4 w-4" />
               </a>
             </div>
           ) : (
             <iframe
-              src={TERMLY_PRIVACY_URL}
-              title="Privacy Policy"
+              src={TERMLY_TERMS_URL}
+              title="Terms and Conditions"
               className="w-full border-0"
               style={{ minHeight: "80vh", height: "800px" }}
               onLoad={() => setIframeLoaded(true)}
@@ -68,11 +68,11 @@ export default function PrivacyPage() {
         
         <div className="mt-6 text-center">
           <a 
-            href={TERMLY_PRIVACY_URL}
+            href={TERMLY_TERMS_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-white transition-colors"
-            data-testid="link-privacy-external"
+            data-testid="link-terms-external"
           >
             Open in new tab <ExternalLink className="h-3 w-3" />
           </a>

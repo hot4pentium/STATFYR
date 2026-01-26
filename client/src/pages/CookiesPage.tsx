@@ -71,6 +71,7 @@ export default function CookiesPage() {
       <footer className="container mx-auto px-4 py-8 border-t border-white/10 mt-12">
         <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
           <Link href="/privacy" className="hover:text-white transition-colors" data-testid="link-footer-privacy">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-white transition-colors" data-testid="link-footer-terms">Terms and Conditions</Link>
           <Link href="/cookies" className="hover:text-white transition-colors" data-testid="link-footer-cookies">Cookie Policy</Link>
           <Link href="/contact" className="hover:text-white transition-colors" data-testid="link-footer-contact">Contact</Link>
         </div>
