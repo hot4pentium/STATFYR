@@ -344,7 +344,6 @@ export default function LandingPage() {
                 {/* Back - Pricing */}
                 <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-green-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex md:flex-col">
                   <div className="flex flex-col items-center mr-4 md:mr-0 md:mb-2">
-                    <Badge className="bg-green-500 text-white border-0 text-[9px] md:text-[10px] px-2 py-0.5 mb-1">Always Free</Badge>
                     <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center mb-1">
                       <TrendingUp className="w-5 h-5 text-green-400" />
                     </div>
