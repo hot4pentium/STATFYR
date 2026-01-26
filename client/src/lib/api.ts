@@ -89,6 +89,7 @@ export async function syncFirebaseUser(data: {
   displayName: string | null;
   photoURL: string | null;
   role?: string;
+  birthDate?: string;
 }): Promise<FirebaseSyncResponse> {
   const res = await apiRequest("POST", "/api/auth/firebase-sync", data);
   return res.json();

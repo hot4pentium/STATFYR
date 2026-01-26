@@ -504,6 +504,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
   footedness: true,
   favoritePlayer: true,
   favoriteTeam: true,
+  // Age verification
+  birthDate: true,
 });
 
 export const insertTeamSchema = createInsertSchema(teams).pick({

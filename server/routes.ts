@@ -125,6 +125,28 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Password is required" });
       }
       
+      // Age verification: birth date required and must be 13+
+      if (!parsed.birthDate) {
+        return res.status(400).json({ error: "Birth date is required to create an account" });
+      }
+      
+      const birthDateObj = new Date(parsed.birthDate);
+      if (isNaN(birthDateObj.getTime())) {
+        return res.status(400).json({ error: "Invalid birth date format" });
+      }
+      
+      // Calculate age
+      const today = new Date();
+      let age = today.getFullYear() - birthDateObj.getFullYear();
+      const monthDiff = today.getMonth() - birthDateObj.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+        age--;
+      }
+      
+      if (age < 13) {
+        return res.status(403).json({ error: "You must be at least 13 years old to create an account" });
+      }
+      
       // Check if username already exists (with retry for db wake-up)
       const existingUsername = await withRetry(() => storage.getUserByUsername(parsed.username!));
       if (existingUsername) {
@@ -231,12 +253,35 @@ export async function registerRoutes(
         return res.json(safeUser);
       }
       
-      // No existing user found - require role selection before creating account
+      // No existing user found - require role selection and birth date before creating account
       if (!role) {
         return res.status(200).json({ 
           needsRoleSelection: true,
           message: "Please select your role to continue"
         });
+      }
+      
+      // Validate birth date for age verification (must be 13+)
+      const { birthDate } = req.body;
+      if (!birthDate) {
+        return res.status(400).json({ error: "Birth date is required to create an account" });
+      }
+      
+      const birthDateObj = new Date(birthDate);
+      if (isNaN(birthDateObj.getTime())) {
+        return res.status(400).json({ error: "Invalid birth date format" });
+      }
+      
+      // Calculate age
+      const today = new Date();
+      let age = today.getFullYear() - birthDateObj.getFullYear();
+      const monthDiff = today.getMonth() - birthDateObj.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+        age--;
+      }
+      
+      if (age < 13) {
+        return res.status(403).json({ error: "You must be at least 13 years old to create an account" });
       }
       
       // Create new user from Firebase data with selected role
@@ -252,6 +297,7 @@ export async function registerRoutes(
         name: displayName || '',
         role: role,
         profileImageUrl: photoURL || undefined,
+        birthDate: birthDateObj,
         // No password for social login users
       }));
       

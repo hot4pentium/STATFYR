@@ -91,11 +91,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
         
         // Check if this is a new user needing role selection
         if ('needsRoleSelection' in syncResult && syncResult.needsRoleSelection) {
-          console.log('[UserContext] New user needs role selection');
+          console.log('[UserContext] New user needs role selection, redirecting...');
           if (isMounted) {
             setRedirectNeedsRoleSelection(true);
+            // Redirect to role selection page
+            window.location.href = '/select-role';
           }
-          return null; // Let AuthPage handle role selection
+          return null; // Let RoleSelectionPage handle role selection
         }
         
         // syncResult is a User object

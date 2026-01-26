@@ -55,6 +55,7 @@ import GuestGameDayLive from "@/pages/GuestGameDayLive";
 import PrivacyPage from "@/pages/PrivacyPage";
 import CookiesPage from "@/pages/CookiesPage";
 import ContactPage from "@/pages/ContactPage";
+import RoleSelectionPage from "@/pages/RoleSelectionPage";
 
 function Router() {
   // Handle Replit internal iframe paths - treat them as root
@@ -69,6 +70,7 @@ function Router() {
       <Route path="/cookies" component={CookiesPage} />
       <Route path="/contact" component={ContactPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/select-role" component={RoleSelectionPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/dashboard" component={UnifiedDashboard} />
