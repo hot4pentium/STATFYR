@@ -245,7 +245,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute top-1/2 -translate-y-1/2 left-4 md:left-6 bg-black/90 backdrop-blur-sm rounded-xl border border-blue-500/40 p-4 md:p-5 shadow-2xl w-[60%] md:w-[55%]">
+              <div className="absolute top-1/2 -translate-y-1/2 left-4 md:left-6 bg-black rounded-xl border border-blue-500/40 p-4 md:p-5 shadow-2xl w-[60%] md:w-[55%]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
                     <Users className="w-5 h-5 text-blue-400" />
@@ -277,7 +277,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute bottom-4 right-4 md:right-6 bg-black/90 backdrop-blur-sm rounded-xl border border-green-500/40 p-4 md:p-5 shadow-2xl w-[60%] md:w-[55%]">
+              <div className="absolute bottom-4 right-4 md:right-6 bg-black rounded-xl border border-green-500/40 p-4 md:p-5 shadow-2xl w-[60%] md:w-[55%]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
                     <TrendingUp className="w-5 h-5 text-green-400" />
@@ -309,7 +309,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute bottom-4 left-4 md:left-6 bg-black/90 backdrop-blur-sm rounded-xl border border-purple-500/40 p-4 md:p-5 shadow-2xl w-[60%] md:w-[55%]">
+              <div className="absolute bottom-4 left-4 md:left-6 bg-black rounded-xl border border-purple-500/40 p-4 md:p-5 shadow-2xl w-[60%] md:w-[55%]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
                     <Heart className="w-5 h-5 text-purple-400" />
@@ -342,7 +342,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute top-1/2 -translate-y-1/2 right-4 md:right-6 bg-black/90 backdrop-blur-sm rounded-xl border border-orange-500/40 p-4 md:p-5 shadow-2xl w-[55%] md:w-[50%]">
+              <div className="absolute top-1/2 -translate-y-1/2 right-4 md:right-6 bg-black rounded-xl border border-orange-500/40 p-4 md:p-5 shadow-2xl w-[55%] md:w-[50%]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
                     <Flame className="w-5 h-5 text-orange-400" />
