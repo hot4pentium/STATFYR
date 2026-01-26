@@ -72,59 +72,83 @@ export default function SubscriptionPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-4">
-                  <Card className="bg-muted/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Crown className="w-5 h-5 text-blue-500" />
-                        Coach Pro - $7.99/mo
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-1 text-sm">
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-green-500" />
-                          PlayMaker & Playbook
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-green-500" />
-                          Full StatTracker access
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-green-500" />
-                          Season management
-                        </li>
-                      </ul>
-                    </CardContent>
-                  </Card>
+                  {user.role === 'coach' && (
+                    <Card className="bg-muted/50 border-blue-500/30">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Crown className="w-5 h-5 text-blue-500" />
+                          Coach Pro - $7.99/mo
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2 text-sm">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            PlayMaker & Playbook
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Full StatTracker access
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Season management
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Advanced analytics
+                          </li>
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
 
-                  <Card className="bg-muted/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Star className="w-5 h-5 text-purple-500" />
-                        Supporter Pro - $5.99/mo
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-1 text-sm">
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-green-500" />
-                          Manage unlimited athletes
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-green-500" />
-                          Upload video highlights
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-green-500" />
-                          Custom dashboard themes
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-green-500" />
-                          Season history access
-                        </li>
-                      </ul>
-                    </CardContent>
-                  </Card>
+                  {user.role === 'supporter' && (
+                    <Card className="bg-muted/50 border-purple-500/30">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Star className="w-5 h-5 text-purple-500" />
+                          Supporter Pro - $5.99/mo
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2 text-sm">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Manage unlimited athletes
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Upload video highlights
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Custom dashboard themes
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Season history access
+                          </li>
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {user.role === 'athlete' && (
+                    <Card className="bg-muted/50 border-green-500/30">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Star className="w-5 h-5 text-green-500" />
+                          Athletes are Always Free!
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">
+                          As an athlete, you have free access to all features. Pro features like video highlights are unlocked by your connected supporter.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
 
                 <div className="text-center pt-4">
