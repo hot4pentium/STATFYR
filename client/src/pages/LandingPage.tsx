@@ -237,7 +237,7 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col gap-10 md:gap-16">
-            <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-transparent border border-blue-500/20" data-testid="card-role-coach">
+            <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-br from-blue-950 via-blue-900/80 to-black/60 border border-blue-500/30" data-testid="card-role-coach">
               <div className="rounded-xl overflow-hidden border border-blue-500/30 shadow-xl w-[45%] md:w-[40%] mr-0">
                 <img 
                   src={stattrackerPreview} 
@@ -269,7 +269,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative flex items-center justify-start py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-bl from-green-950/40 via-green-900/20 to-transparent border border-green-500/20" data-testid="card-role-athlete">
+            <div className="relative flex items-center justify-start py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-bl from-green-950 via-green-900/80 to-black/60 border border-green-500/30" data-testid="card-role-athlete">
               <div className="rounded-xl overflow-hidden border border-green-500/30 shadow-xl w-[45%] md:w-[40%] ml-0">
                 <img 
                   src={hypeCardPreview} 
@@ -301,7 +301,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 mt-16 md:mt-12 rounded-2xl bg-gradient-to-br from-purple-950/40 via-purple-900/20 to-transparent border border-purple-500/20" data-testid="card-role-supporter">
+            <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 mt-16 md:mt-12 rounded-2xl bg-gradient-to-br from-purple-950 via-purple-900/80 to-black/60 border border-purple-500/30" data-testid="card-role-supporter">
               <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl w-[45%] md:w-[40%] mr-0">
                 <img 
                   src={livetapsPreview} 
@@ -334,7 +334,7 @@ export default function LandingPage() {
             </div>
 
             {/* Platform Section */}
-            <div className="relative flex items-center justify-start py-8 md:py-10 px-4 md:px-6 mt-16 md:mt-12 rounded-2xl bg-gradient-to-bl from-orange-950/40 via-orange-900/20 to-transparent border border-orange-500/20" data-testid="card-platform">
+            <div className="relative flex items-center justify-start py-8 md:py-10 px-4 md:px-6 mt-16 md:mt-12 rounded-2xl bg-gradient-to-bl from-orange-950 via-orange-900/80 to-black/60 border border-orange-500/30" data-testid="card-platform">
               <div className="rounded-xl overflow-hidden border border-orange-500/30 shadow-xl w-[40%] md:w-[35%] ml-0">
                 <img 
                   src={dashboardPreview} 
