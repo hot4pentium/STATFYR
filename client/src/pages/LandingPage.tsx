@@ -480,6 +480,9 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
+          <p className="text-center text-gray-400 text-sm mt-6">
+            Supported Sports: Baseball, Basketball, Football, Soccer, and Volleyball
+          </p>
         </div>
       </section>
 
