@@ -3092,9 +3092,6 @@ export default function UnifiedDashboard() {
                                 }}
                                 data-testid="card-athlete-code"
                               >
-                                <div className="p-2 rounded-lg bg-orange-500/20">
-                                  <Hash className="h-6 w-6 text-orange-400" />
-                                </div>
                                 <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Athlete Code</span>
                                 <code className="text-sm font-mono text-orange-400 font-bold">
                                   {user?.athleteCode || "---"}
