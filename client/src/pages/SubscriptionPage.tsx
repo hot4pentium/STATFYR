@@ -139,12 +139,12 @@ export default function SubscriptionPage() {
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg flex items-center gap-2">
                           <Star className="w-5 h-5 text-green-500" />
-                          Athletes are Always Free!
+                          Athlete Account
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm text-muted-foreground">
-                          As an athlete, you have free access to all features. Pro features like video highlights are unlocked by your connected supporter.
+                          Pro features like video highlights are unlocked when a supporter connects with you using your athlete code.
                         </p>
                       </CardContent>
                     </Card>
