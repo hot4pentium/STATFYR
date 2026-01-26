@@ -34,7 +34,24 @@ export default function SubscriptionPage() {
             Back to Dashboard
           </Button>
 
-          {hasActiveSubscription ? (
+          {user.role === 'athlete' ? (
+            <Card className="border-green-500/30" data-testid="card-athlete-subscription">
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 p-4 rounded-full bg-green-500/10">
+                  <Star className="w-12 h-12 text-green-500" />
+                </div>
+                <CardTitle className="text-2xl">Athlete Account</CardTitle>
+                <CardDescription>
+                  Pro features are unlocked when a supporter connects with you
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-center text-sm text-muted-foreground">
+                  Share your athlete code from your Settings page to let a parent or supporter connect with you and unlock premium features.
+                </p>
+              </CardContent>
+            </Card>
+          ) : hasActiveSubscription ? (
             <Card className="border-primary" data-testid="card-active-subscription">
               <CardHeader className="text-center">
                 <div className="mx-auto mb-4 p-4 rounded-full bg-primary/10">
@@ -134,22 +151,7 @@ export default function SubscriptionPage() {
                     </Card>
                   )}
 
-                  {user.role === 'athlete' && (
-                    <Card className="bg-muted/50 border-green-500/30">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <Star className="w-5 h-5 text-green-500" />
-                          Athlete Account
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          Pro features like video highlights are unlocked when a supporter connects with you using your athlete code.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
+                                  </div>
 
                 <div className="text-center pt-4">
                   <p className="text-sm text-muted-foreground">
