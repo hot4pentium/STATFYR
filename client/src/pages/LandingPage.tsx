@@ -247,7 +247,7 @@ export default function LandingPage() {
 
           {/* Roles Container */}
           <div className="max-w-2xl mx-auto rounded-3xl bg-gradient-to-b from-gray-900/80 via-gray-800/50 to-gray-900/80 border border-white/10 p-6 md:p-10">
-            <div className="flex flex-col gap-10 md:gap-12">
+            <div className="flex flex-col gap-16 md:gap-20">
               <div className="relative flex items-center justify-end py-8 md:py-10 px-4 md:px-6 rounded-2xl bg-gradient-to-br from-blue-950 via-blue-900/80 to-black/60 border border-blue-500/30" data-testid="card-role-coach">
               <div className="rounded-xl overflow-hidden border border-blue-500/30 shadow-xl w-[55%] md:w-[50%] mr-0">
                 <img 
@@ -320,7 +320,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
               </div>
-              <div className="absolute bottom-4 left-2 md:left-4 bg-black rounded-xl border border-purple-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
+              <div className="absolute top-1/2 -translate-y-1/2 left-2 md:left-4 bg-black rounded-xl border border-purple-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
                     <Heart className="w-5 h-5 text-purple-400" />
