@@ -51,7 +51,10 @@ export const teamMembers = pgTable("team_members", {
   joinedAt: timestamp("joined_at").defaultNow(),
   promotedToStaffAt: timestamp("promoted_to_staff_at"),
   staffPromotionSeen: boolean("staff_promotion_seen").default(false),
-});
+}, (table) => [
+  index("team_members_team_id_idx").on(table.teamId),
+  index("team_members_user_id_idx").on(table.userId),
+]);
 
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
   team: one(teams, {
@@ -78,7 +81,10 @@ export const events = pgTable("events", {
   snacksAthleteId: varchar("snacks_athlete_id").references(() => users.id),
   createdBy: varchar("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("events_team_id_idx").on(table.teamId),
+  index("events_date_idx").on(table.date),
+]);
 
 export const eventsRelations = relations(events, ({ one }) => ({
   team: one(teams, {
@@ -104,7 +110,10 @@ export const highlightVideos = pgTable("highlight_videos", {
   durationSeconds: integer("duration_seconds"),
   fileSizeBytes: integer("file_size_bytes"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("highlight_videos_team_id_idx").on(table.teamId),
+  index("highlight_videos_uploader_id_idx").on(table.uploaderId),
+]);
 
 export const highlightVideosRelations = relations(highlightVideos, ({ one }) => ({
   team: one(teams, {
@@ -129,7 +138,9 @@ export const plays = pgTable("plays", {
   status: text("status"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("plays_team_id_idx").on(table.teamId),
+]);
 
 export const playsRelations = relations(plays, ({ one, many }) => ({
   team: one(teams, {
@@ -199,7 +210,10 @@ export const managedAthletes = pgTable("managed_athletes", {
   bio: text("bio"),
   teamAwards: text("team_awards").array(),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("managed_athletes_supporter_id_idx").on(table.supporterId),
+  index("managed_athletes_athlete_id_idx").on(table.athleteId),
+]);
 
 export const supporterEvents = pgTable("supporter_events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -343,7 +357,10 @@ export const games = pgTable("games", {
   startedAt: timestamp("started_at"),
   endedAt: timestamp("ended_at"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("games_team_id_idx").on(table.teamId),
+  index("games_status_idx").on(table.status),
+]);
 
 export const gamesRelations = relations(games, ({ one, many }) => ({
   team: one(teams, {
@@ -389,7 +406,10 @@ export const gameStats = pgTable("game_stats", {
   isDeleted: boolean("is_deleted").notNull().default(false), // soft delete for corrections
   recordedAt: timestamp("recorded_at").defaultNow(),
   recordedById: varchar("recorded_by_id").references(() => users.id),
-});
+}, (table) => [
+  index("game_stats_game_id_idx").on(table.gameId),
+  index("game_stats_athlete_id_idx").on(table.athleteId),
+]);
 
 export const gameStatsRelations = relations(gameStats, ({ one }) => ({
   game: one(games, {
@@ -747,7 +767,10 @@ export const shoutouts = pgTable("shoutouts", {
   athleteId: varchar("athlete_id").notNull().references(() => users.id),
   message: text("message").notNull().default("🔥"), // preset emoji/message
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("shoutouts_athlete_id_idx").on(table.athleteId),
+  index("shoutouts_session_id_idx").on(table.sessionId),
+]);
 
 export const shoutoutsRelations = relations(shoutouts, ({ one }) => ({
   session: one(liveEngagementSessions, {
@@ -857,7 +880,10 @@ export const chatMessages = pgTable("chat_messages", {
   content: text("content").notNull(),
   channel: text("channel").notNull().default("general"), // general, announcements, etc.
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("chat_messages_team_id_idx").on(table.teamId),
+  index("chat_messages_created_at_idx").on(table.createdAt),
+]);
 
 export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   team: one(teams, {
