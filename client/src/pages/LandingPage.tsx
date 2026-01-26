@@ -222,7 +222,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16">
+          <div className="flex flex-col gap-10 md:gap-16">
             <div className="relative flex items-center justify-end py-8 md:py-10" data-testid="card-role-coach">
               <div className="rounded-xl overflow-hidden border border-blue-500/30 shadow-xl w-[45%] md:w-[40%] mr-0">
                 <img 
