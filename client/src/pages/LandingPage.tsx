@@ -36,6 +36,7 @@ import {
 import statfyrLogo from "@/assets/statfyr-fire-logo.png";
 import hypeCardPreview from "@/assets/hype-card-preview.png";
 import playmakerPreview from "@/assets/playmaker-preview.png";
+import livetapsPreview from "@/assets/livetaps-preview.png";
 
 export default function LandingPage() {
   const [activeRoleModal, setActiveRoleModal] = useState<string | null>(null);
@@ -286,39 +287,36 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="bg-white/5 rounded-xl border border-purple-500/30 p-4 md:p-6 shadow-xl hover:border-purple-500/50 transition-all" data-testid="card-role-supporter">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                  <Heart className="w-5 h-5 md:w-6 md:h-6 text-purple-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg md:text-xl font-bold text-white">Supporters</h3>
-                  <p className="text-xs text-gray-400 hidden md:block">Cheer on your athletes</p>
-                </div>
+            <div className="relative flex items-center justify-end py-8" data-testid="card-role-supporter">
+              <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl w-[45%] md:w-[40%] mr-0">
+                <img 
+                  src={livetapsPreview} 
+                  alt="Live Taps Preview" 
+                  className="w-full h-auto object-cover"
+                />
               </div>
-              
-              <div className="bg-white/5 rounded-lg p-3 mb-4 hidden md:block">
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap className="w-4 h-4 text-purple-400" />
-                  <span className="text-white text-sm font-medium">Game Day Live</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <Hand className="w-4 h-4 text-orange-400" />
-                    <span className="text-gray-300 text-xs">HYPE Taps</span>
+              <div className="absolute bottom-0 left-0 md:left-2 bg-black/95 backdrop-blur-sm rounded-xl border border-purple-500/40 p-4 md:p-5 shadow-2xl w-[65%] md:w-[60%]">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                    <Heart className="w-5 h-5 text-purple-400" />
                   </div>
-                  <span className="text-lg font-bold text-orange-400">127</span>
+                  <div>
+                    <h3 className="text-base md:text-lg font-bold text-white">Supporters</h3>
+                    <p className="text-[10px] md:text-xs text-gray-400">Cheer on your athletes</p>
+                  </div>
                 </div>
+                <ul className="space-y-1.5">
+                  {["Send shoutouts", "Tap to support", "Earn badges", "Manage athletes"].map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-gray-200 text-[11px] md:text-xs">
+                      <Check className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-[10px] md:text-xs text-gray-400 mt-3 border-t border-white/10 pt-2">
+                  Game Day Live: Real-time cheering & HYPE Taps during games
+                </p>
               </div>
-
-              <ul className="space-y-2">
-                {["Send shoutouts", "Tap to support", "Earn badges", "Manage athletes"].map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-gray-200 text-xs md:text-sm">
-                    <Check className="w-3 h-3 md:w-4 md:h-4 text-purple-400 flex-shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>
