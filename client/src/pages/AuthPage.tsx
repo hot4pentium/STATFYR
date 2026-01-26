@@ -135,7 +135,7 @@ export default function AuthPage() {
 
       <div className="relative z-10 w-full max-w-4xl px-4 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div className="space-y-6">
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center justify-center md:justify-start gap-3 mb-8">
             <img src="/logo.png" alt="STATFYR" className="h-12 w-12" />
             <h1 className="text-5xl tracking-tight" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
               STATF<span className="text-orange-500">Y</span>R
