@@ -342,30 +342,51 @@ export default function LandingPage() {
                 <CardTitle className="text-white text-xs md:text-sm">Coach</CardTitle>
               </CardHeader>
               <CardContent className="p-2 md:p-3 pt-0 space-y-2">
-                <div className="text-center">
-                  <span className="text-sm md:text-base font-bold text-white">$7.99</span>
-                  <span className="text-gray-400 text-[9px] md:text-[10px]">/mo</span>
-                </div>
+                <p className="text-[8px] md:text-[9px] text-gray-400 text-center">Free features:</p>
                 <ul className="space-y-1 text-[9px] md:text-[10px] text-gray-300">
                   <li className="flex items-center gap-1">
                     <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
-                    <span className="truncate">Rosters & events</span>
+                    <span className="truncate">Create team</span>
                   </li>
                   <li className="flex items-center gap-1">
-                    <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
-                    <span className="truncate">PlayMaker</span>
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">Manage rosters</span>
                   </li>
                   <li className="flex items-center gap-1">
-                    <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
-                    <span className="truncate">StatTracker</span>
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">Schedule events</span>
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">Team chat</span>
                   </li>
                 </ul>
+                <div className="border-t border-white/10 pt-2">
+                  <div className="text-center mb-1">
+                    <span className="text-sm md:text-base font-bold text-white">$7.99</span>
+                    <span className="text-gray-400 text-[9px] md:text-[10px]">/mo</span>
+                  </div>
+                  <ul className="space-y-1 text-[9px] md:text-[10px]">
+                    <li className="flex items-center gap-1 text-white/90">
+                      <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
+                      <span className="truncate">PlayMaker</span>
+                    </li>
+                    <li className="flex items-center gap-1 text-white/90">
+                      <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
+                      <span className="truncate">StatTracker</span>
+                    </li>
+                    <li className="flex items-center gap-1 text-white/90">
+                      <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
+                      <span className="truncate">Season history</span>
+                    </li>
+                  </ul>
+                </div>
               </CardContent>
             </Card>
 
             <Card className="bg-white/5 border-green-500/30 relative" data-testid="card-pricing-athlete">
               <div className="absolute -top-1.5 left-1/2 -translate-x-1/2">
-                <Badge className="bg-green-500 text-white border-0 text-[8px] md:text-[9px] px-1.5 py-0.5">Free</Badge>
+                <Badge className="bg-green-500 text-white border-0 text-[8px] md:text-[9px] px-1.5 py-0.5">Always Free</Badge>
               </div>
               <CardHeader className="text-center p-2 md:p-3 pt-4">
                 <div className="w-7 h-7 md:w-8 md:h-8 bg-green-500/20 rounded-lg mx-auto mb-1 flex items-center justify-center">
@@ -376,19 +397,32 @@ export default function LandingPage() {
               <CardContent className="p-2 md:p-3 pt-0 space-y-2">
                 <div className="text-center">
                   <span className="text-sm md:text-base font-bold text-green-400">$0</span>
+                  <span className="text-gray-400 text-[9px] md:text-[10px]"> forever</span>
                 </div>
                 <ul className="space-y-1 text-[9px] md:text-[10px] text-gray-300">
                   <li className="flex items-center gap-1">
                     <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
-                    <span className="truncate">Join team</span>
+                    <span className="truncate">Join team with code</span>
                   </li>
                   <li className="flex items-center gap-1">
                     <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
-                    <span className="truncate">View stats</span>
+                    <span className="truncate">View your stats</span>
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">Access playbook</span>
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">Receive shoutouts</span>
                   </li>
                   <li className="flex items-center gap-1">
                     <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
                     <span className="truncate">HYPE Card</span>
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">Video highlights</span>
                   </li>
                 </ul>
               </CardContent>
@@ -402,24 +436,45 @@ export default function LandingPage() {
                 <CardTitle className="text-white text-xs md:text-sm">Supporter</CardTitle>
               </CardHeader>
               <CardContent className="p-2 md:p-3 pt-0 space-y-2">
-                <div className="text-center">
-                  <span className="text-sm md:text-base font-bold text-white">$5.99</span>
-                  <span className="text-gray-400 text-[9px] md:text-[10px]">/mo</span>
-                </div>
+                <p className="text-[8px] md:text-[9px] text-gray-400 text-center">Free features:</p>
                 <ul className="space-y-1 text-[9px] md:text-[10px] text-gray-300">
+                  <li className="flex items-center gap-1">
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">Follow athletes</span>
+                  </li>
                   <li className="flex items-center gap-1">
                     <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
                     <span className="truncate">Game Day Live</span>
                   </li>
                   <li className="flex items-center gap-1">
-                    <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
-                    <span className="truncate">Manage athletes</span>
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">Send shoutouts</span>
                   </li>
                   <li className="flex items-center gap-1">
-                    <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
-                    <span className="truncate">Themes & badges</span>
+                    <Check className="w-2.5 h-2.5 text-green-400 flex-shrink-0" />
+                    <span className="truncate">HYPE Taps</span>
                   </li>
                 </ul>
+                <div className="border-t border-white/10 pt-2">
+                  <div className="text-center mb-1">
+                    <span className="text-sm md:text-base font-bold text-white">$5.99</span>
+                    <span className="text-gray-400 text-[9px] md:text-[10px]">/mo</span>
+                  </div>
+                  <ul className="space-y-1 text-[9px] md:text-[10px]">
+                    <li className="flex items-center gap-1 text-white/90">
+                      <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
+                      <span className="truncate">Manage athletes</span>
+                    </li>
+                    <li className="flex items-center gap-1 text-white/90">
+                      <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
+                      <span className="truncate">Themes & badges</span>
+                    </li>
+                    <li className="flex items-center gap-1 text-white/90">
+                      <Crown className="w-2.5 h-2.5 text-yellow-400 flex-shrink-0" />
+                      <span className="truncate">Season history</span>
+                    </li>
+                  </ul>
+                </div>
               </CardContent>
             </Card>
           </div>
