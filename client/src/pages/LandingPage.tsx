@@ -474,13 +474,13 @@ export default function LandingPage() {
                 <button 
                   key={index}
                   onClick={() => setSelectedImage(image)}
-                  className="flex-shrink-0 w-64 md:w-80 h-40 md:h-52 rounded-xl overflow-hidden border border-orange-500/20 hover:border-orange-500/50 transition-colors cursor-pointer"
+                  className="flex-shrink-0 w-48 md:w-72 h-32 md:h-44 rounded-xl overflow-hidden border border-orange-500/20 hover:border-orange-500/50 transition-colors cursor-pointer bg-black/30"
                   data-testid={`button-carousel-image-${index}`}
                 >
                   <img 
                     src={image.src} 
                     alt={image.alt}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 </button>
               ))}
