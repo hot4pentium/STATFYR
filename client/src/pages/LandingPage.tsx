@@ -133,8 +133,8 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background dark:bg-[hsl(220,13%,6%)]">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 dark:bg-[hsl(220,13%,6%)]/80 backdrop-blur-xl border-b border-border">
+    <div className="min-h-screen bg-black" style={{ background: 'linear-gradient(180deg, #000000 0%, #0a0a0a 50%, #050505 100%)' }}>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={statfyrLogo} alt="STATFYR" className="w-8 h-8" data-testid="img-logo" />
@@ -647,7 +647,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="py-12 px-6 border-t border-border">
+      <footer className="py-12 px-6 border-t border-white/10">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
