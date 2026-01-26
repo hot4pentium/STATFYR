@@ -40,6 +40,7 @@ import hypeCardPreview from "@/assets/hype-card-preview.png";
 import stattrackerPreview from "@/assets/stattracker-preview.png";
 import livetapsPreview from "@/assets/livetaps-preview.png";
 import dashboardPreview from "@/assets/dashboard-preview.png";
+import shoutoutsPreview from "@/assets/shoutouts-preview.png";
 
 export default function LandingPage() {
   const [activeRoleModal, setActiveRoleModal] = useState<string | null>(null);
@@ -313,12 +314,21 @@ export default function LandingPage() {
             </div>
 
             <div className="relative flex items-center justify-end py-16 md:py-20 px-4 md:px-6 rounded-2xl bg-gradient-to-br from-purple-950 via-purple-900/80 to-black/60 border border-purple-500/30" data-testid="card-role-supporter">
-              <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl w-[55%] md:w-[50%] mr-0">
-                <img 
-                  src={livetapsPreview} 
-                  alt="Live Taps Preview" 
-                  className="w-full h-auto object-cover"
-                />
+              <div className="flex flex-col gap-3 w-[55%] md:w-[50%] mr-0">
+                <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl">
+                  <img 
+                    src={livetapsPreview} 
+                    alt="Live Taps Preview" 
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+                <div className="rounded-xl overflow-hidden border border-purple-500/30 shadow-xl">
+                  <img 
+                    src={shoutoutsPreview} 
+                    alt="Shoutouts Preview" 
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
               </div>
               <div className="absolute top-1/2 -translate-y-1/2 left-2 md:left-4 bg-black rounded-xl border border-purple-500/40 p-3 md:p-4 shadow-2xl w-auto max-w-[200px] md:max-w-[240px]">
                 <div className="flex items-center gap-3 mb-3">
