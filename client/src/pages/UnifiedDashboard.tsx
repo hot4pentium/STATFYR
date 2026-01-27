@@ -4202,19 +4202,20 @@ export default function UnifiedDashboard() {
         </Dialog>
       </div>
 
-      {/* Floating Chat Button - Always visible on all dashboard views */}
+      {/* Bottom Chat Bar - Always visible on all dashboard views */}
       <Link href="/chat">
-        <button
-          className={`fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 flex items-center justify-center transition-transform hover:scale-105 z-50 ${hasUnread ? 'animate-pulse ring-4 ring-green-500/50 shadow-green-500/50 shadow-xl' : ''}`}
-          data-testid="button-floating-chat"
+        <div
+          className={`fixed bottom-0 left-0 right-0 h-12 bg-card/95 backdrop-blur-sm border-t border-border shadow-lg flex items-center justify-center gap-2 z-50 cursor-pointer hover:bg-card transition-colors ${hasUnread ? 'border-t-2 border-t-green-500' : ''}`}
+          data-testid="button-bottom-chat-bar"
         >
-          <MessageSquare className="h-6 w-6" />
+          <MessageSquare className="h-5 w-5 text-primary" />
+          <span className="text-sm font-medium text-foreground">Team Chat</span>
           {hasUnread && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold pointer-events-none">
-              !
+            <span className="bg-red-500 text-white text-xs rounded-full h-5 min-w-5 px-1.5 flex items-center justify-center font-bold">
+              New
             </span>
           )}
-        </button>
+        </div>
       </Link>
 
       {/* Extended Profile Edit Dialog */}
