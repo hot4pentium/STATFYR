@@ -18,19 +18,8 @@ html {
 }
 
 html, body {
-  touch-action: manipulation;
-  -webkit-touch-callout: default;
   -webkit-text-size-adjust: 100%;
-  overscroll-behavior: auto;
-}
-
-/* Fix for Capacitor iOS WebView scroll */
-html.ios body,
-html.md body,
-.ion-page {
-  position: relative !important;
-  overflow: auto !important;
-  -webkit-overflow-scrolling: touch !important;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
@@ -43,7 +32,6 @@ body {
       rgba(255, 255, 255, 0.08) 9px
     );
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 
 @theme inline {
