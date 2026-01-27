@@ -160,7 +160,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen relative">
+    <div className="fixed inset-0 flex flex-col">
       {/* Fixed background for mobile compatibility */}
       <div 
         className="fixed inset-0 -z-10 pointer-events-none"
@@ -171,7 +171,7 @@ export default function LandingPage() {
           backgroundRepeat: 'no-repeat'
         }}
       />
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/50">
+      <header className="flex-shrink-0 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 z-50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={statfyrLogo} alt="STATFYR" className="w-8 h-8" data-testid="img-logo" />
@@ -192,7 +192,12 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <section className="pt-24 md:pt-32 pb-10 md:pb-16 px-4 md:px-6 relative overflow-hidden">
+      {/* Scrollable content wrapper for iOS */}
+      <div 
+        className="flex-1 overflow-y-auto overflow-x-hidden"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+      <section className="pt-8 md:pt-16 pb-10 md:pb-16 px-4 md:px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 via-transparent to-transparent" />
         <div className="absolute top-20 left-1/4 w-48 md:w-96 h-48 md:h-96 bg-orange-500/10 rounded-full blur-3xl" />
         <div className="absolute top-40 right-1/4 w-36 md:w-72 h-36 md:h-72 bg-purple-500/10 rounded-full blur-3xl" />
@@ -795,6 +800,9 @@ export default function LandingPage() {
         </DialogContent>
       </Dialog>
 
+      </div>
+
+      {/* Image preview dialog - outside scroll wrapper for proper iOS modal behavior */}
       <Dialog open={selectedImage !== null} onOpenChange={(open) => !open && setSelectedImage(null)}>
         <DialogContent className="max-w-[90vw] md:max-w-2xl lg:max-w-4xl max-h-[85vh] bg-black/90 border-orange-500/30 p-1 md:p-2 overflow-hidden" data-testid="dialog-image-preview">
           <DialogHeader className="sr-only">
