@@ -171,7 +171,10 @@ export default function LandingPage() {
           backgroundRepeat: 'no-repeat'
         }}
       />
-      <header className="flex-shrink-0 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 z-50">
+      <header 
+        className="flex-shrink-0 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 z-50"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={statfyrLogo} alt="STATFYR" className="w-8 h-8" data-testid="img-logo" />
