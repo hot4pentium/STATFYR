@@ -273,7 +273,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 {/* Back - Pricing */}
-                <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-blue-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex md:flex-col">
+                <div className="absolute inset-0 bg-gray-900/95 rounded-xl md:rounded-2xl border border-blue-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex md:flex-col">
                   <div className="flex flex-col items-center mr-4 md:mr-0 md:mb-2">
                     <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center mb-1">
                       <Users className="w-5 h-5 text-blue-400" />
@@ -346,7 +346,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 {/* Back - Pricing */}
-                <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-green-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex md:flex-col">
+                <div className="absolute inset-0 bg-gray-900/95 rounded-xl md:rounded-2xl border border-green-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex md:flex-col">
                   <div className="flex flex-col items-center mr-4 md:mr-0 md:mb-2">
                     <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center mb-1">
                       <TrendingUp className="w-5 h-5 text-green-400" />
@@ -408,7 +408,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 {/* Back - Pricing */}
-                <div className="absolute inset-0 bg-white/5 rounded-xl md:rounded-2xl border border-purple-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex md:flex-col">
+                <div className="absolute inset-0 bg-gray-900/95 rounded-xl md:rounded-2xl border border-purple-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex md:flex-col">
                   <div className="flex flex-col items-center mr-4 md:mr-0 md:mb-2">
                     <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center mb-1">
                       <Heart className="w-5 h-5 text-purple-400" />
