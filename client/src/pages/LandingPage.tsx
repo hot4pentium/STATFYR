@@ -167,20 +167,20 @@ export default function LandingPage() {
       backgroundRepeat: 'no-repeat',
       backgroundAttachment: 'fixed'
     }}>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={statfyrLogo} alt="STATFYR" className="w-8 h-8" data-testid="img-logo" />
-            <span className="text-xl font-bold tracking-tight text-white">STATF<span className="text-orange-500">Y</span>R</span>
+            <span className="text-xl font-bold tracking-tight text-slate-900">STATF<span className="text-orange-600">Y</span>R</span>
           </div>
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm text-gray-300 hover:text-white transition-colors" data-testid="link-nav-features">Features</a>
-            <a href="#roles" className="text-sm text-gray-300 hover:text-white transition-colors" data-testid="link-nav-roles">Roles</a>
-            <a href="#pricing" className="text-sm text-gray-300 hover:text-white transition-colors" data-testid="link-nav-pricing">Pricing</a>
+            <a href="#features" className="text-sm text-slate-700 hover:text-slate-900 transition-colors" data-testid="link-nav-features">Features</a>
+            <a href="#roles" className="text-sm text-slate-700 hover:text-slate-900 transition-colors" data-testid="link-nav-roles">Roles</a>
+            <a href="#pricing" className="text-sm text-slate-700 hover:text-slate-900 transition-colors" data-testid="link-nav-pricing">Pricing</a>
           </nav>
           <div className="flex items-center gap-3">
             <Link href="/auth" data-testid="link-login-header">
-              <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-white/10">
+              <Button variant="ghost" size="sm" className="text-slate-700 hover:text-slate-900 hover:bg-slate-200/50">
                 Log in
               </Button>
             </Link>
@@ -195,18 +195,18 @@ export default function LandingPage() {
         
         <div className="container mx-auto max-w-5xl relative z-10">
           <div className="text-center">
-            <h1 className="text-3xl md:text-7xl font-bold tracking-tight text-white mb-4 md:mb-6 leading-[1.1]">
+            <h1 className="text-3xl md:text-7xl font-bold tracking-tight text-slate-900 mb-4 md:mb-6 leading-[1.1]">
               Ignite Your Team's
-              <span className="block text-orange-500">Full Potential</span>
+              <span className="block text-orange-600">Full Potential</span>
             </h1>
             
-            <p className="text-base md:text-xl text-gray-300 mb-6 md:mb-10 max-w-2xl mx-auto leading-relaxed px-2" data-testid="text-hero-description">
+            <p className="text-base md:text-xl text-slate-700 mb-6 md:mb-10 max-w-2xl mx-auto leading-relaxed px-2" data-testid="text-hero-description">
               STATFYR brings coaches, athletes, and supporters together with powerful tools 
               for team management, live stat tracking, and game day engagement.
             </p>
             
             
-            <div className="flex items-center justify-center gap-1.5 text-xs md:text-sm text-gray-400" data-testid="text-coming-soon">
+            <div className="flex items-center justify-center gap-1.5 text-xs md:text-sm text-slate-600" data-testid="text-coming-soon">
               <Smartphone className="w-3 h-3 md:w-4 md:h-4" />
               <span>iOS & Android Coming Soon</span>
             </div>
@@ -226,10 +226,10 @@ export default function LandingPage() {
       <section id="features" className="py-10 md:py-16 px-4 md:px-6 relative">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-2xl md:text-5xl font-bold text-white mb-3 md:mb-4">
+            <h2 className="text-2xl md:text-5xl font-bold text-slate-900 mb-3 md:mb-4">
               Built For Everyone On Your Team
             </h2>
-            <p className="text-gray-300 text-sm md:text-lg max-w-2xl mx-auto px-2">
+            <p className="text-slate-700 text-sm md:text-lg max-w-2xl mx-auto px-2">
               Whether you're leading the team, playing the game, or cheering from the sidelines
             </p>
           </div>
@@ -496,7 +496,7 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
-          <p className="text-center text-gray-400 text-sm mt-6">
+          <p className="text-center text-slate-600 text-sm mt-6">
             Supported Sports: Baseball, Basketball, Football, Soccer, and Volleyball
           </p>
         </div>
@@ -508,33 +508,33 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-4xl text-center relative z-10">
           <div className="inline-flex items-center gap-2 mb-6">
             <Smartphone className="w-5 h-5 text-orange-400" />
-            <span className="text-gray-300 font-medium">Available on iOS & Android</span>
+            <span className="text-slate-700 font-medium">Available on iOS & Android</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
             Ready to Ignite Your Team?
           </h2>
-          <p className="text-gray-300 text-lg mb-10 max-w-xl mx-auto">
+          <p className="text-slate-700 text-lg mb-10 max-w-xl mx-auto">
             Join coaches, athletes, and supporters who are already using STATFYR 
             to elevate their game day experience.
           </p>
-                    <p className="text-gray-300 text-sm mt-6">iOS & Android app coming soon</p>
+                    <p className="text-slate-600 text-sm mt-6">iOS & Android app coming soon</p>
         </div>
       </section>
 
-      <footer className="py-12 px-6 border-t border-white/10">
+      <footer className="py-12 px-6 border-t border-slate-300/30">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
               <img src={statfyrLogo} alt="STATFYR" className="w-6 h-6" />
-              <span className="font-bold text-white">STATF<span className="text-orange-500">Y</span>R</span>
+              <span className="font-bold text-slate-900">STATF<span className="text-orange-600">Y</span>R</span>
             </div>
-            <div className="flex gap-6 text-sm text-gray-300">
-              <a href="/privacy" className="hover:text-white transition-colors" data-testid="link-privacy">Privacy</a>
-              <a href="/terms" className="hover:text-white transition-colors" data-testid="link-terms">Terms</a>
-              <a href="/cookies" className="hover:text-white transition-colors" data-testid="link-cookies">Cookies</a>
-              <a href="/contact" className="hover:text-white transition-colors" data-testid="link-contact">Contact</a>
+            <div className="flex gap-6 text-sm text-slate-600">
+              <a href="/privacy" className="hover:text-slate-900 transition-colors" data-testid="link-privacy">Privacy</a>
+              <a href="/terms" className="hover:text-slate-900 transition-colors" data-testid="link-terms">Terms</a>
+              <a href="/cookies" className="hover:text-slate-900 transition-colors" data-testid="link-cookies">Cookies</a>
+              <a href="/contact" className="hover:text-slate-900 transition-colors" data-testid="link-contact">Contact</a>
             </div>
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-slate-600">
               © {new Date().getFullYear()} STATFYR. All rights reserved.
             </p>
           </div>
