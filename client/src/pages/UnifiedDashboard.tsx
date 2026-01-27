@@ -2570,7 +2570,7 @@ export default function UnifiedDashboard() {
         />
       )}
       <DashboardBackground />
-      <div className="relative z-10 min-h-screen">
+      <div className="relative z-10 min-h-screen pb-16">
         {/* Hero Section */}
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/70 to-background dark:from-black/40 dark:via-black/60 dark:to-background" />
