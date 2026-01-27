@@ -67,7 +67,8 @@ export async function setupKeyboard(): Promise<void> {
   
   try {
     await Keyboard.setAccessoryBarVisible({ isVisible: true });
-    await Keyboard.setScroll({ isDisabled: true });
+    // Don't disable scroll - it blocks page scrolling on iOS
+    await Keyboard.setScroll({ isDisabled: false });
     
     if (platform === "ios") {
       await Keyboard.setStyle({ style: KeyboardStyle.Dark });
