@@ -52,6 +52,7 @@ const config: CapacitorConfig = {
     preferredContentMode: "mobile",
     limitsNavigationsToAppBoundDomains: false,
     backgroundColor: "#0a0a0f",
+    minVersion: "14.0",
   },
   android: {
     backgroundColor: "#0a0a0f",
