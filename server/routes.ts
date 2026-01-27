@@ -3217,6 +3217,95 @@ export async function registerRoutes(
     }
   });
 
+  // Send bulk direct messages to multiple recipients
+  app.post("/api/teams/:teamId/direct-messages/bulk", async (req, res) => {
+    try {
+      const { recipientIds, content, senderId } = req.body;
+      const userId = senderId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      if (!recipientIds || !Array.isArray(recipientIds) || recipientIds.length === 0) {
+        return res.status(400).json({ error: "recipientIds array is required" });
+      }
+      if (!content) {
+        return res.status(400).json({ error: "content is required" });
+      }
+      
+      // Verify sender is a member of this team
+      const senderMembership = await storage.getTeamMembership(req.params.teamId, userId);
+      if (!senderMembership) {
+        return res.status(403).json({ error: "You are not a member of this team" });
+      }
+
+      const results = [];
+      const errors = [];
+
+      // Send messages to each recipient
+      for (const recipientId of recipientIds) {
+        try {
+          const recipientMembership = await storage.getTeamMembership(req.params.teamId, recipientId);
+          if (!recipientMembership) {
+            errors.push({ recipientId, error: "Recipient is not a member of this team" });
+            continue;
+          }
+
+          const message = await storage.createDirectMessage({
+            teamId: req.params.teamId,
+            senderId: userId,
+            recipientId,
+            content,
+          });
+          results.push(message);
+
+          // Async notification (fire and forget)
+          const teamId = req.params.teamId;
+          setTimeout(async () => {
+            try {
+              const isRecipientActive = await storage.isUserActiveInConversation(recipientId, userId);
+              if (isRecipientActive) return;
+
+              const prefs = await storage.getNotificationPreferences(recipientId);
+              const pushEnabled = prefs?.pushOnMessage !== false;
+              
+              const senderName = message.sender.name || message.sender.username || "Team Member";
+              const messagePreview = content.length > 50 ? content.substring(0, 50) + '...' : content;
+
+              if (pushEnabled) {
+                const userTokens = await storage.getUserFcmTokens(recipientId);
+                if (userTokens.length > 0) {
+                  const tokens = userTokens.map(t => t.token);
+                  await sendPushNotification(
+                    tokens,
+                    `Message from ${senderName}`,
+                    messagePreview,
+                    { type: 'direct_message', teamId, senderId: userId },
+                    `${APP_BASE_URL}/chat`
+                  );
+                }
+              }
+            } catch (err) {
+              console.error('[BulkDM] Notification failed:', err);
+            }
+          }, 5000);
+        } catch (err) {
+          errors.push({ recipientId, error: "Failed to send message" });
+        }
+      }
+
+      res.status(201).json({ 
+        success: results.length, 
+        failed: errors.length,
+        messages: results,
+        errors 
+      });
+    } catch (error) {
+      console.error("Error sending bulk messages:", error);
+      res.status(500).json({ error: "Failed to send bulk messages" });
+    }
+  });
+
   // Mark conversation as read
   app.post("/api/teams/:teamId/conversations/:otherUserId/read", async (req, res) => {
     try {
@@ -4108,7 +4197,7 @@ export async function registerRoutes(
         return res.status(401).json({ error: "User not found" });
       }
 
-      const teamMembership = await storage.getTeamMember(session.teamId, userId);
+      const teamMembership = await storage.getTeamMembership(session.teamId, userId);
       if (!teamMembership) {
         // Allow if user is a supporter following an athlete on the team
         const supporterLinks = await storage.getSupporterAthleteLinks(userId);

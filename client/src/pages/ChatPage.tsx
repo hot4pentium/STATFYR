@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -86,6 +88,8 @@ export default function ChatPage() {
   const [isSending, setIsSending] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [showMemberSelector, setShowMemberSelector] = useState(false);
+  const [groupMessage, setGroupMessage] = useState("");
+  const [isSendingGroup, setIsSendingGroup] = useState(false);
   const [chatMode, setChatMode] = useState<"channels" | "dm">("dm");
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [dmMessages, setDmMessages] = useState<DirectMessage[]>([]);
@@ -525,27 +529,70 @@ export default function ChatPage() {
                       </button>
                     ))}
                     
-                    <p className="px-3 py-2 text-xs text-muted-foreground uppercase font-bold mt-4">Team Members</p>
+                    <div className="px-3 py-2 flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground uppercase font-bold">Team Members</p>
+                      <div className="flex items-center gap-2">
+                        {selectedMembers.size > 0 && (
+                          <span className="text-xs text-primary">{selectedMembers.size} selected</span>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 text-xs px-2"
+                          onClick={() => {
+                            const allMemberIds = teamMembers.map(m => m.userId);
+                            if (selectedMembers.size === allMemberIds.length) {
+                              setSelectedMembers(new Set());
+                            } else {
+                              setSelectedMembers(new Set(allMemberIds));
+                            }
+                          }}
+                          data-testid="button-select-all"
+                        >
+                          {selectedMembers.size === teamMembers.length ? "Clear All" : "Select All"}
+                        </Button>
+                      </div>
+                    </div>
+                    {selectedMembers.size > 0 && (
+                      <Button
+                        className="mx-3 mb-2"
+                        size="sm"
+                        onClick={() => setShowMemberSelector(true)}
+                        data-testid="button-compose-group"
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        Message {selectedMembers.size} {selectedMembers.size === 1 ? "Person" : "People"}
+                      </Button>
+                    )}
                     {teamMembers.filter(m => !conversations.find(c => c.otherUser.id === m.userId)).map((member) => (
-                      <button
+                      <div
                         key={member.userId}
-                        onClick={() => startNewConversation(member.userId)}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-left transition-colors ${
-                          selectedConversation === member.userId
-                            ? "bg-primary/10 text-primary"
-                            : "hover:bg-white/5 text-foreground"
+                          selectedMembers.has(member.userId)
+                            ? "bg-primary/10"
+                            : "hover:bg-white/5"
                         }`}
                         data-testid={`member-${member.userId}`}
                       >
-                        <Avatar className="h-8 w-8">
-                          {member.user.avatar && <AvatarImage src={member.user.avatar} />}
-                          <AvatarFallback>{getInitials(member.user.name || `${member.user.firstName} ${member.user.lastName}`)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <span className="font-medium truncate block">{member.user.name || `${member.user.firstName} ${member.user.lastName}`}</span>
-                          <span className="text-xs text-muted-foreground capitalize">{member.role}</span>
-                        </div>
-                      </button>
+                        <Checkbox
+                          checked={selectedMembers.has(member.userId)}
+                          onCheckedChange={() => toggleMember(member.userId)}
+                          data-testid={`checkbox-member-${member.userId}`}
+                        />
+                        <button
+                          onClick={() => startNewConversation(member.userId)}
+                          className="flex-1 flex items-center gap-3 text-left"
+                        >
+                          <Avatar className="h-8 w-8">
+                            {member.user.avatar && <AvatarImage src={member.user.avatar} />}
+                            <AvatarFallback>{getInitials(member.user.name || `${member.user.firstName} ${member.user.lastName}`)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <span className="font-medium truncate block">{member.user.name || `${member.user.firstName} ${member.user.lastName}`}</span>
+                            <span className="text-xs text-muted-foreground capitalize">{member.role}</span>
+                          </div>
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </ScrollArea>
@@ -761,6 +808,78 @@ export default function ChatPage() {
           </Card>
         </div>
       </div>
+
+      {/* Group Message Dialog */}
+      <Dialog open={showMemberSelector} onOpenChange={setShowMemberSelector}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Message to {selectedMembers.size} {selectedMembers.size === 1 ? "Person" : "People"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex flex-wrap gap-2">
+              {Array.from(selectedMembers).map(memberId => {
+                const member = teamMembers.find(m => m.userId === memberId);
+                if (!member) return null;
+                return (
+                  <div key={memberId} className="flex items-center gap-1 bg-primary/10 text-primary text-sm px-2 py-1 rounded-full">
+                    <span>{member.user.name || `${member.user.firstName} ${member.user.lastName}`}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <Textarea
+              placeholder="Type your message..."
+              value={groupMessage}
+              onChange={(e) => setGroupMessage(e.target.value)}
+              className="min-h-[100px]"
+              data-testid="input-group-message"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMemberSelector(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!groupMessage.trim() || selectedMembers.size === 0) return;
+                setIsSendingGroup(true);
+                try {
+                  const response = await fetch(`/api/teams/${currentTeam?.id}/direct-messages/bulk`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                      senderId: user?.id,
+                      recipientIds: Array.from(selectedMembers),
+                      content: groupMessage.trim(),
+                    }),
+                  });
+                  if (!response.ok) throw new Error("Failed to send messages");
+                  toast({
+                    title: "Messages sent!",
+                    description: `Sent to ${selectedMembers.size} ${selectedMembers.size === 1 ? "person" : "people"}`,
+                  });
+                  setGroupMessage("");
+                  setSelectedMembers(new Set());
+                  setShowMemberSelector(false);
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to send messages. Please try again.",
+                    variant: "destructive",
+                  });
+                } finally {
+                  setIsSendingGroup(false);
+                }
+              }}
+              disabled={!groupMessage.trim() || isSendingGroup}
+              data-testid="button-send-group-message"
+            >
+              {isSendingGroup ? "Sending..." : "Send Message"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
