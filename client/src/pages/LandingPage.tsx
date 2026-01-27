@@ -248,20 +248,20 @@ export default function LandingPage() {
                     <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center mb-2 md:mb-3">
                       <Users className="w-5 h-5 text-blue-400" />
                     </div>
-                    <h3 className="text-base md:text-lg font-bold text-white">COACHES</h3>
+                    <h3 className="text-lg md:text-xl font-bold text-white">COACHES</h3>
                   </div>
                   <div className="flex-1 flex flex-col">
-                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-3 gap-y-1 md:space-y-2 flex-1">
+                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-3 gap-y-1.5 md:space-y-2 flex-1">
                       {["Create & manage rosters", "Track stats in real-time", "Design plays with PlayMaker", "Schedule games & practices"].map((item) => (
-                        <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-xs md:text-sm">
-                          <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-400 flex-shrink-0" />
+                        <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-sm md:text-base">
+                          <Check className="w-4 h-4 md:w-5 md:h-5 text-blue-400 flex-shrink-0" />
                           <span className="leading-tight">{item}</span>
                         </li>
                       ))}
                     </ul>
                     <button 
                       onClick={() => toggleFlip('coach')}
-                      className="text-blue-400 text-xs md:text-sm hover:text-blue-300 transition-colors mt-2 md:mt-3 text-left md:text-left"
+                      className="text-blue-400 text-sm md:text-base hover:text-blue-300 transition-colors mt-2 md:mt-3 text-left md:text-left"
                       data-testid="button-expand-coach"
                     >
                       More...
@@ -321,20 +321,20 @@ export default function LandingPage() {
                     <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center mb-2 md:mb-3">
                       <TrendingUp className="w-5 h-5 text-green-400" />
                     </div>
-                    <h3 className="text-base md:text-lg font-bold text-white">ATHLETES</h3>
+                    <h3 className="text-lg md:text-xl font-bold text-white">ATHLETES</h3>
                   </div>
                   <div className="flex-1 flex flex-col">
-                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-3 gap-y-1 md:space-y-2 flex-1">
+                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-3 gap-y-1.5 md:space-y-2 flex-1">
                       {["Chat with team", "View your stats", "Access team playbook", "Receive shoutouts"].map((item) => (
-                        <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-xs md:text-sm">
-                          <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-400 flex-shrink-0" />
+                        <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-sm md:text-base">
+                          <Check className="w-4 h-4 md:w-5 md:h-5 text-green-400 flex-shrink-0" />
                           <span className="leading-tight">{item}</span>
                         </li>
                       ))}
                     </ul>
                     <button 
                       onClick={() => toggleFlip('athlete')}
-                      className="text-green-400 text-xs md:text-sm hover:text-green-300 transition-colors mt-2 md:mt-3 text-left"
+                      className="text-green-400 text-sm md:text-base hover:text-green-300 transition-colors mt-2 md:mt-3 text-left"
                       data-testid="button-expand-athlete"
                     >
                       More...
@@ -383,20 +383,20 @@ export default function LandingPage() {
                     <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center mb-2 md:mb-3">
                       <Heart className="w-5 h-5 text-purple-400" />
                     </div>
-                    <h3 className="text-base md:text-lg font-bold text-white">SUPPORTERS</h3>
+                    <h3 className="text-lg md:text-xl font-bold text-white">SUPPORTERS</h3>
                   </div>
                   <div className="flex-1 flex flex-col">
-                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-3 gap-y-1 md:space-y-2 flex-1">
+                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-3 gap-y-1.5 md:space-y-2 flex-1">
                       {["Send shoutouts", "Tap to support", "Earn badges", "Manage athletes"].map((item) => (
-                        <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-xs md:text-sm">
-                          <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-purple-400 flex-shrink-0" />
+                        <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-sm md:text-base">
+                          <Check className="w-4 h-4 md:w-5 md:h-5 text-purple-400 flex-shrink-0" />
                           <span className="leading-tight">{item}</span>
                         </li>
                       ))}
                     </ul>
                     <button 
                       onClick={() => toggleFlip('supporter')}
-                      className="text-purple-400 text-xs md:text-sm hover:text-purple-300 transition-colors mt-2 md:mt-3 text-left"
+                      className="text-purple-400 text-sm md:text-base hover:text-purple-300 transition-colors mt-2 md:mt-3 text-left"
                       data-testid="button-expand-supporter"
                     >
                       More...
