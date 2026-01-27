@@ -163,7 +163,7 @@ export default function LandingPage() {
     <div className="min-h-screen relative">
       {/* Fixed background for mobile compatibility */}
       <div 
-        className="fixed inset-0 -z-10"
+        className="fixed inset-0 -z-10 pointer-events-none"
         style={{ 
           backgroundImage: `url(${landingBg})`,
           backgroundSize: 'cover',
