@@ -8,8 +8,7 @@ const config: CapacitorConfig = {
     androidScheme: "https",
     iosScheme: "https",
     hostname: "statfyr.com",
-    // Remote URL disabled - causes scroll issues in WKWebView
-    // url: "https://statfyr.replit.app",
+    url: "https://statfyr.replit.app",
   },
   plugins: {
     App: {
