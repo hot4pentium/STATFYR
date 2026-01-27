@@ -160,7 +160,15 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div 
+      className="absolute inset-0 overflow-y-auto overflow-x-hidden"
+      style={{ 
+        WebkitOverflowScrolling: 'touch',
+        touchAction: 'pan-y',
+        overscrollBehavior: 'auto'
+      }}
+    >
+      <div className="min-h-screen relative">
       {/* Fixed background */}
       <div 
         className="fixed inset-0 -z-10 pointer-events-none"
@@ -820,6 +828,7 @@ export default function LandingPage() {
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
