@@ -39,6 +39,10 @@ const config: CapacitorConfig = {
       iosSpinnerStyle: 'small',
       spinnerColor: '#F97316',
     },
+    StatusBar: {
+      style: 'DARK',
+      backgroundColor: '#ffffff',
+    },
   },
   ios: {
     contentInset: 'automatic',
