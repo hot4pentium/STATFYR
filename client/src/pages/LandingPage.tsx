@@ -160,23 +160,16 @@ export default function LandingPage() {
   };
 
   return (
-    <div 
-      className="absolute inset-0 overflow-y-auto overflow-x-hidden"
-      style={{ 
-        WebkitOverflowScrolling: 'touch',
-        touchAction: 'pan-y',
-        overscrollBehavior: 'auto'
-      }}
-    >
-      <div className="min-h-screen relative">
-      {/* Fixed background */}
+    <div className="min-h-screen relative">
+      {/* Background - not fixed, just absolute within container */}
       <div 
-        className="fixed inset-0 -z-10 pointer-events-none"
+        className="absolute inset-0 -z-10"
         style={{ 
           backgroundImage: `url(${landingBg})`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'scroll'
         }}
       />
       
@@ -828,7 +821,6 @@ export default function LandingPage() {
           )}
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   );
 }
