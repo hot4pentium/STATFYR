@@ -160,13 +160,17 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ 
-      backgroundImage: `url(${landingBg})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      backgroundAttachment: 'fixed'
-    }}>
+    <div className="min-h-screen relative">
+      {/* Fixed background for mobile compatibility */}
+      <div 
+        className="fixed inset-0 -z-10"
+        style={{ 
+          backgroundImage: `url(${landingBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      />
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
