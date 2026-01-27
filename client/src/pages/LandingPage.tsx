@@ -172,10 +172,10 @@ export default function LandingPage() {
         }}
       />
       
-      {/* Fixed header with safe area */}
+      {/* Fixed header with safe area - fallback for Dynamic Island */}
       <header 
         className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 z-50"
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 47px)' }}
       >
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -198,7 +198,7 @@ export default function LandingPage() {
       </header>
 
       {/* Main content with top padding to clear fixed header + safe area */}
-      <main style={{ paddingTop: 'calc(env(safe-area-inset-top) + 4rem)' }}>
+      <main style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), 47px) + 4rem)' }}>
       <section className="pb-10 md:pb-16 px-4 md:px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 via-transparent to-transparent" />
         <div className="absolute top-20 left-1/4 w-48 md:w-96 h-48 md:h-96 bg-orange-500/10 rounded-full blur-3xl" />
