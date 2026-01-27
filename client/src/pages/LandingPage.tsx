@@ -195,18 +195,18 @@ export default function LandingPage() {
         
         <div className="container mx-auto max-w-5xl relative z-10">
           <div className="text-center">
-            <h1 className="text-3xl md:text-7xl font-bold tracking-tight text-slate-900 mb-4 md:mb-6 leading-[1.1]">
+            <h1 className="text-4xl md:text-7xl font-bold tracking-tight text-slate-900 mb-4 md:mb-6 leading-[1.1]">
               Ignite Your Team's
               <span className="block text-orange-600">Full Potential</span>
             </h1>
             
-            <p className="text-base md:text-xl text-slate-700 mb-6 md:mb-10 max-w-2xl mx-auto leading-relaxed px-2" data-testid="text-hero-description">
+            <p className="text-lg md:text-xl text-slate-700 mb-6 md:mb-10 max-w-2xl mx-auto leading-relaxed px-2" data-testid="text-hero-description">
               STATFYR brings coaches, athletes, and supporters together with powerful tools 
               for team management, live stat tracking, and game day engagement.
             </p>
             
             
-            <div className="flex items-center justify-center gap-1.5 text-xs md:text-sm text-slate-600" data-testid="text-coming-soon">
+            <div className="flex items-center justify-center gap-1.5 text-sm md:text-base text-slate-600" data-testid="text-coming-soon">
               <Smartphone className="w-3 h-3 md:w-4 md:h-4" />
               <span>iOS & Android Coming Soon</span>
             </div>
@@ -226,10 +226,10 @@ export default function LandingPage() {
       <section id="features" className="py-10 md:py-16 px-4 md:px-6 relative">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-2xl md:text-5xl font-bold text-slate-900 mb-3 md:mb-4">
+            <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-3 md:mb-4">
               Built For Everyone On Your Team
             </h2>
-            <p className="text-slate-700 text-sm md:text-lg max-w-2xl mx-auto px-2">
+            <p className="text-slate-700 text-base md:text-lg max-w-2xl mx-auto px-2">
               Whether you're leading the team, playing the game, or cheering from the sidelines
             </p>
           </div>
