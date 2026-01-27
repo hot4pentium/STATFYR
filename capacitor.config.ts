@@ -8,8 +8,8 @@ const config: CapacitorConfig = {
     androidScheme: "https",
     iosScheme: "https",
     hostname: "statfyr.com",
-    // For development: uncomment the line below and replace with your Replit URL
-    url: "https://statfyr.replit.app",
+    // Remote URL disabled - causes scroll issues in WKWebView
+    // url: "https://statfyr.replit.app",
   },
   plugins: {
     App: {
