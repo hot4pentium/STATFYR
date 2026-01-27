@@ -329,7 +329,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex-1 flex flex-col">
                     <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-3 gap-y-1.5 md:space-y-2 flex-1">
-                      {["Chat with team", "View your stats", "Access team playbook", "Receive shoutouts"].map((item) => (
+                      {["Chat with team", "View your stats", "Access team playbook", "View Events and Roster"].map((item) => (
                         <li key={item} className="flex items-center gap-1.5 md:gap-2 text-gray-200 text-sm md:text-base">
                           <Check className="w-4 h-4 md:w-5 md:h-5 text-green-400 flex-shrink-0" />
                           <span className="leading-tight">{item}</span>
