@@ -8,6 +8,8 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     iosScheme: 'https',
     hostname: 'statfyr.com',
+    // For development: uncomment the line below and replace with your Replit URL
+    // url: 'https://your-replit-url.replit.dev',
   },
   plugins: {
     App: {
@@ -45,9 +47,10 @@ const config: CapacitorConfig = {
     },
   },
   ios: {
-    contentInset: 'automatic',
+    contentInset: 'always',
+    scrollEnabled: true,
     preferredContentMode: 'mobile',
-    limitsNavigationsToAppBoundDomains: true,
+    limitsNavigationsToAppBoundDomains: false,
     backgroundColor: '#0a0a0f',
   },
   android: {
