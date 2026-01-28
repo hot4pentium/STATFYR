@@ -279,8 +279,11 @@ html:not(.dark) {
 }
 
 html.dark .dashboard-bg {
-  background-color: transparent;
-  background-image: none;
+  background-color: hsl(220 13% 8%);
+  background-image: url('/LP_BG/arrow_dark_mode_BG.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* Dashboard Background - Bronze Theme */
