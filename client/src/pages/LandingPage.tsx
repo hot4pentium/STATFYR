@@ -44,7 +44,7 @@ import stattrackerPreview from "@/assets/stattracker-preview.png";
 import livetapsPreview from "@/assets/livetaps-preview.png";
 import dashboardPreview from "@/assets/dashboard-preview.png";
 import shoutoutsPreview from "@/assets/shoutouts-preview.png";
-import landingBg from "/LP_BG/stadium_tech_BG.png";
+import landingBg from "/LP_BG/tech_arrow_BG.png";
 
 export default function LandingPage() {
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
