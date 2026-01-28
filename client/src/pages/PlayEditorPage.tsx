@@ -3,12 +3,34 @@ import { useParams, useLocation } from "wouter";
 import { Layout } from "@/components/layout/Layout";
 import { PlaybookCanvas } from "@/components/PlaybookCanvas";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Eye, Crown, Loader2 } from "lucide-react";
+import { ArrowLeft, Eye, Crown, Loader2, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { isDemoMode, demoPlays, DEMO_SPORTS, type DemoSport } from "@/lib/demoData";
 import { useEntitlements } from "@/lib/entitlementsContext";
 import { toast } from "sonner";
+
+// Hook to detect landscape orientation
+function useIsLandscape() {
+  const [isLandscape, setIsLandscape] = useState(false);
+
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+    
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
+
+  return isLandscape;
+}
 
 export default function PlayEditorPage() {
   const params = useParams<{ playId: string }>();
@@ -18,6 +40,7 @@ export default function PlayEditorPage() {
   const [play, setPlay] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [demoSport, setDemoSport] = useState<DemoSport>("Soccer");
+  const isLandscape = useIsLandscape();
 
   useEffect(() => {
     if (isDemo) {
@@ -80,9 +103,34 @@ export default function PlayEditorPage() {
 
   const backUrl = isDemo ? "/playbook?demo=true" : "/playbook";
 
+  // Show rotate message in landscape mode
+  if (isLandscape) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
+          <div className="bg-card/80 backdrop-blur-sm border border-white/10 rounded-xl p-8 max-w-sm">
+            <RotateCcw className="w-16 h-16 mx-auto text-primary mb-4 animate-pulse" />
+            <h2 className="text-xl font-bold mb-2">Rotate Your Device</h2>
+            <p className="text-muted-foreground mb-4">
+              PlayMaker works best in portrait mode. Please rotate your device to continue.
+            </p>
+            <Button 
+              variant="outline"
+              onClick={() => navigate(backUrl)}
+              className="gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Playbook
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
-      <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {isDemo && (
           <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border border-amber-500/30 rounded-lg p-3">
             <div className="flex flex-wrap items-center gap-3">
