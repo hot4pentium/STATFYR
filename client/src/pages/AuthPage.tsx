@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation, useSearch } from "wouter";
-import { Eye, EyeOff, LogOut } from "lucide-react";
+import { Eye, EyeOff, LogOut, ArrowLeft } from "lucide-react";
 import { useUser } from "@/lib/userContext";
 import { loginUser, getUserTeams } from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
@@ -114,13 +114,27 @@ export default function AuthPage() {
       <div className="absolute inset-0 z-0 bg-gradient-to-br from-orange-500/10 via-background to-primary/5" />
       <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
 
+      {/* Back to landing page */}
+      <div className="absolute top-4 left-4 z-20">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-muted-foreground hover:text-foreground gap-2 min-w-[44px] min-h-[44px]"
+          onClick={() => setLocation("/")}
+          data-testid="button-back-to-landing"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          <span className="hidden sm:inline">Back</span>
+        </Button>
+      </div>
+
       {/* Logout button for stuck sessions */}
       {user && (
         <div className="absolute top-4 right-4 z-20">
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-muted-foreground hover:text-destructive gap-2"
+            className="text-muted-foreground hover:text-destructive gap-2 min-w-[44px] min-h-[44px]"
             onClick={async () => {
               await logout();
               window.location.reload();
@@ -128,7 +142,7 @@ export default function AuthPage() {
             data-testid="button-logout"
           >
             <LogOut className="h-4 w-4" />
-            Logout
+            <span className="hidden sm:inline">Logout</span>
           </Button>
         </div>
       )}
