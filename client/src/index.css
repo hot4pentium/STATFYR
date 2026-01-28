@@ -207,12 +207,11 @@ html:not(.dark) {
   
   html.dark body {
     background-color: hsl(220 13% 8%);
-    background-image: 
-      /* Subtle purple/blue gradient overlay for depth */
-      radial-gradient(ellipse at top left, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at bottom right, rgba(59, 130, 246, 0.06) 0%, transparent 40%);
-    background-size: 100% 100%, 100% 100%;
+    background-image: url('/LP_BG/arrow_dark_mode_BG.png');
+    background-size: cover;
+    background-position: center;
     background-attachment: fixed;
+    background-repeat: no-repeat;
   }
   
   /* Badge Theme: Bronze */
