@@ -282,14 +282,16 @@ export default function LandingPage() {
                 </div>
                 {/* Back - Pricing */}
                 <div className="absolute inset-0 bg-gray-900/95 rounded-xl md:rounded-2xl border border-blue-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex md:flex-col">
-                  <div className="flex flex-col items-center mr-4 md:mr-0 md:mb-2">
-                    <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center mb-1">
-                      <Users className="w-5 h-5 text-blue-400" />
+                  <div className="flex flex-col mr-4 md:mr-0 md:mb-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                        <Users className="w-4 h-4 text-blue-400" />
+                      </div>
+                      <h3 className="text-sm md:text-base font-bold text-white">Coach</h3>
                     </div>
-                    <h3 className="text-sm md:text-base font-bold text-white">Coach</h3>
-                    <div className="mt-1">
+                    <div>
                       <span className="text-lg font-bold text-white">$7.99</span>
-                      <span className="text-[10px] text-gray-400">/mo</span>
+                      <span className="text-xs text-gray-400">/mo</span>
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col">
@@ -355,11 +357,13 @@ export default function LandingPage() {
                 </div>
                 {/* Back - Pricing */}
                 <div className="absolute inset-0 bg-gray-900/95 rounded-xl md:rounded-2xl border border-green-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex md:flex-col">
-                  <div className="flex flex-col items-center mr-4 md:mr-0 md:mb-2">
-                    <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center mb-1">
-                      <TrendingUp className="w-5 h-5 text-green-400" />
+                  <div className="flex flex-col mr-4 md:mr-0 md:mb-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                        <TrendingUp className="w-4 h-4 text-green-400" />
+                      </div>
+                      <h3 className="text-sm md:text-base font-bold text-white">Athlete</h3>
                     </div>
-                    <h3 className="text-sm md:text-base font-bold text-white">Athlete</h3>
                     <span className="text-lg font-bold text-green-400">$0</span>
                   </div>
                   <div className="flex-1 flex flex-col">
@@ -417,14 +421,16 @@ export default function LandingPage() {
                 </div>
                 {/* Back - Pricing */}
                 <div className="absolute inset-0 bg-gray-900/95 rounded-xl md:rounded-2xl border border-purple-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] [transform:rotateY(180deg)] flex md:flex-col">
-                  <div className="flex flex-col items-center mr-4 md:mr-0 md:mb-2">
-                    <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center mb-1">
-                      <Heart className="w-5 h-5 text-purple-400" />
+                  <div className="flex flex-col mr-4 md:mr-0 md:mb-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                        <Heart className="w-4 h-4 text-purple-400" />
+                      </div>
+                      <h3 className="text-sm md:text-base font-bold text-white">Supporter</h3>
                     </div>
-                    <h3 className="text-sm md:text-base font-bold text-white">Supporter</h3>
-                    <div className="mt-1">
+                    <div>
                       <span className="text-lg font-bold text-white">$5.99</span>
-                      <span className="text-[10px] text-gray-400">/mo</span>
+                      <span className="text-xs text-gray-400">/mo</span>
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col">
