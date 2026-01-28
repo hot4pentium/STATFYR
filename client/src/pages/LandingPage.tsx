@@ -256,8 +256,8 @@ export default function LandingPage() {
               >
                 {/* Front */}
                 <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-blue-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] flex md:flex-col">
-                  <div className="flex flex-col items-center md:items-start mr-4 md:mr-0">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center mb-2 md:mb-3">
+                  <div className="flex items-center gap-3 mr-4 md:mr-0 md:mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
                       <Users className="w-5 h-5 text-blue-400" />
                     </div>
                     <h3 className="text-lg md:text-xl font-bold text-white">COACHES</h3>
@@ -331,8 +331,8 @@ export default function LandingPage() {
               >
                 {/* Front */}
                 <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-green-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] flex md:flex-col">
-                  <div className="flex flex-col items-center md:items-start mr-4 md:mr-0">
-                    <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center mb-2 md:mb-3">
+                  <div className="flex items-center gap-3 mr-4 md:mr-0 md:mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
                       <TrendingUp className="w-5 h-5 text-green-400" />
                     </div>
                     <h3 className="text-lg md:text-xl font-bold text-white">ATHLETES</h3>
@@ -395,8 +395,8 @@ export default function LandingPage() {
               >
                 {/* Front */}
                 <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-gray-900/70 rounded-xl md:rounded-2xl border border-purple-500/30 p-4 md:p-5 backdrop-blur-sm [backface-visibility:hidden] flex md:flex-col">
-                  <div className="flex flex-col items-center md:items-start mr-4 md:mr-0">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center mb-2 md:mb-3">
+                  <div className="flex items-center gap-3 mr-4 md:mr-0 md:mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
                       <Heart className="w-5 h-5 text-purple-400" />
                     </div>
                     <h3 className="text-lg md:text-xl font-bold text-white">SUPPORTERS</h3>
