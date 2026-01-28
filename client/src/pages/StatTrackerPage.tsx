@@ -15,6 +15,28 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+// Hook to detect landscape orientation
+function useIsLandscape() {
+  const [isLandscape, setIsLandscape] = useState(false);
+
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+    
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
+
+  return isLandscape;
+}
 import { 
   ArrowLeft, Play, Pause, RotateCcw, Users, Timer, Target, 
   Plus, Minus, Check, X, ChevronUp, ChevronDown, Activity,
@@ -50,6 +72,7 @@ export default function StatTrackerPage() {
   const [, params] = useRoute("/stattracker/:gameId");
   const demoMode = useDemoMode();
   const isDemo = demoMode.isDemo;
+  const isLandscape = useIsLandscape();
 
   const [viewMode, setViewMode] = useState<ViewMode>("setup");
   const [selectedEventId, setSelectedEventId] = useState<string>("");
@@ -589,6 +612,31 @@ export default function StatTrackerPage() {
       <Layout>
         <div className="flex items-center justify-center h-64">
           <p className="text-muted-foreground">Please select a team first</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show rotate message in landscape mode
+  if (isLandscape) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
+          <div className="bg-card/80 backdrop-blur-sm border border-white/10 rounded-xl p-8 max-w-sm">
+            <RotateCcw className="w-16 h-16 mx-auto text-primary mb-4 animate-pulse" />
+            <h2 className="text-xl font-bold mb-2">Rotate Your Device</h2>
+            <p className="text-muted-foreground mb-4">
+              StatTracker works best in portrait mode. Please rotate your device to continue.
+            </p>
+            <Button 
+              variant="outline"
+              onClick={() => navigate("/dashboard")}
+              className="gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Dashboard
+            </Button>
+          </div>
         </div>
       </Layout>
     );
