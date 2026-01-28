@@ -44,7 +44,7 @@ import stattrackerPreview from "@/assets/stattracker-preview.png";
 import livetapsPreview from "@/assets/livetaps-preview.png";
 import dashboardPreview from "@/assets/dashboard-preview.png";
 import shoutoutsPreview from "@/assets/shoutouts-preview.png";
-import landingBg from "/LP_BG/orange_tech-BG.png";
+import landingBg from "/LP_BG/orange-tech-BG.png";
 
 export default function LandingPage() {
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
