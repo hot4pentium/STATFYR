@@ -293,26 +293,26 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col">
-                    <p className="text-[10px] text-gray-400 mb-1">Free features:</p>
-                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-2 gap-y-0.5 mb-2">
+                    <p className="text-xs text-gray-400 mb-1">Free features:</p>
+                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-2 gap-y-1 mb-2">
                       {["Create team", "Manage rosters", "Schedule events", "Team chat"].map((item) => (
-                        <li key={item} className="flex items-center gap-1 text-gray-300 text-[10px] md:text-[11px]">
-                          <Check className="w-3 h-3 text-green-400 flex-shrink-0" />
+                        <li key={item} className="flex items-center gap-1.5 text-gray-300 text-xs md:text-sm">
+                          <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
                           <span>{item}</span>
                         </li>
                       ))}
                     </ul>
-                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-2 gap-y-0.5 flex-1">
+                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-2 gap-y-1 flex-1">
                       {["PlayMaker", "StatTracker", "Season history"].map((item) => (
-                        <li key={item} className="flex items-center gap-1 text-white/90 text-[10px] md:text-[11px]">
-                          <Crown className="w-3 h-3 text-yellow-400 flex-shrink-0" />
+                        <li key={item} className="flex items-center gap-1.5 text-white/90 text-xs md:text-sm">
+                          <Crown className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
                           <span>{item}</span>
                         </li>
                       ))}
                     </ul>
                     <button 
                       onClick={() => toggleFlip('coach')}
-                      className="text-blue-400 text-xs hover:text-blue-300 transition-colors mt-2 text-left"
+                      className="text-blue-400 text-sm hover:text-blue-300 transition-colors mt-2 text-left"
                     >
                       Close
                     </button>
@@ -363,18 +363,18 @@ export default function LandingPage() {
                     <span className="text-lg font-bold text-green-400">$0</span>
                   </div>
                   <div className="flex-1 flex flex-col">
-                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-2 gap-y-0.5 flex-1">
+                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-2 gap-y-1 flex-1">
                       {["Chat with team", "View your stats", "Access playbook", "Receive shoutouts", "HYPE Card*", "Video highlights*"].map((item) => (
-                        <li key={item} className="flex items-center gap-1 text-gray-300 text-[10px] md:text-[11px]">
-                          <Check className="w-3 h-3 text-green-400 flex-shrink-0" />
+                        <li key={item} className="flex items-center gap-1.5 text-gray-300 text-xs md:text-sm">
+                          <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
                           <span>{item}</span>
                         </li>
                       ))}
                     </ul>
-                    <p className="text-[10px] md:text-[11px] text-gray-400 mt-2">*Requires Supporter Pro</p>
+                    <p className="text-xs text-gray-400 mt-2">*Requires Supporter Pro</p>
                     <button 
                       onClick={() => toggleFlip('athlete')}
-                      className="text-green-400 text-xs hover:text-green-300 transition-colors mt-1 text-left"
+                      className="text-green-400 text-sm hover:text-green-300 transition-colors mt-1 text-left"
                     >
                       Close
                     </button>
@@ -428,26 +428,26 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col">
-                    <p className="text-[10px] text-gray-400 mb-1">Free features:</p>
-                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-2 gap-y-0.5 mb-2">
+                    <p className="text-xs text-gray-400 mb-1">Free features:</p>
+                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-2 gap-y-1 mb-2">
                       {["Follow team", "Game Day Live", "Send shoutouts", "HYPE Taps"].map((item) => (
-                        <li key={item} className="flex items-center gap-1 text-gray-300 text-[10px] md:text-[11px]">
-                          <Check className="w-3 h-3 text-green-400 flex-shrink-0" />
+                        <li key={item} className="flex items-center gap-1.5 text-gray-300 text-xs md:text-sm">
+                          <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
                           <span>{item}</span>
                         </li>
                       ))}
                     </ul>
-                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-2 gap-y-0.5 flex-1">
+                    <ul className="grid grid-cols-2 md:grid-cols-1 gap-x-2 gap-y-1 flex-1">
                       {["Manage athletes", "Themes & badges", "Season history"].map((item) => (
-                        <li key={item} className="flex items-center gap-1 text-white/90 text-[10px] md:text-[11px]">
-                          <Crown className="w-3 h-3 text-yellow-400 flex-shrink-0" />
+                        <li key={item} className="flex items-center gap-1.5 text-white/90 text-xs md:text-sm">
+                          <Crown className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
                           <span>{item}</span>
                         </li>
                       ))}
                     </ul>
                     <button 
                       onClick={() => toggleFlip('supporter')}
-                      className="text-purple-400 text-xs hover:text-purple-300 transition-colors mt-2 text-left"
+                      className="text-purple-400 text-sm hover:text-purple-300 transition-colors mt-2 text-left"
                     >
                       Close
                     </button>
