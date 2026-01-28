@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save, Plus, Minus } from "lucide-react";
+import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save } from "lucide-react";
 import basketballCourtImg from "@assets/bball_court_1766345509497.png";
 import footballFieldImg from "@assets/football_1768077466658.png";
 import soccerPitchImg from "@assets/generated_images/clean_flat_soccer_pitch_top-down.png";
@@ -79,7 +79,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const [playName, setPlayName] = useState("");
   const [playDescription, setPlayDescription] = useState("");
   const [playCategory, setPlayCategory] = useState("Offense");
-  const [showFullCourt, setShowFullCourt] = useState(false);
+  const showFullCourt = true; // Always show full court/field in portrait mode
 
   useEffect(() => {
     const imagesToLoad = [
@@ -876,31 +876,6 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
           data-testid="playbook-canvas"
         />
         
-        {/* Zoom controls - bottom right corner */}
-        <div className="absolute bottom-3 right-3 flex flex-col gap-1 z-10">
-          <Button
-            variant="secondary"
-            size="icon"
-            className="h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm border border-white/20 shadow-lg"
-            onClick={() => setShowFullCourt(true)}
-            disabled={showFullCourt}
-            data-testid="zoom-extend"
-            title="Show full court/field"
-          >
-            <Plus className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            className="h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm border border-white/20 shadow-lg"
-            onClick={() => setShowFullCourt(false)}
-            disabled={!showFullCourt}
-            data-testid="zoom-collapse"
-            title="Show half court/field"
-          >
-            <Minus className="h-5 w-5" />
-          </Button>
-        </div>
       </div>
     </div>
   );
