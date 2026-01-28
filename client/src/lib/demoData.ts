@@ -65,16 +65,16 @@ const demoCoach: User = {
   role: "coach",
 };
 
-const basketballPlayCanvas = JSON.stringify({
+const soccerPlayCanvas = JSON.stringify({
   version: "1.0",
   objects: [
-    { type: "circle", left: 150, top: 200, radius: 15, fill: "#3b82f6", stroke: "#1d4ed8", strokeWidth: 2 },
-    { type: "circle", left: 250, top: 150, radius: 15, fill: "#3b82f6", stroke: "#1d4ed8", strokeWidth: 2 },
-    { type: "circle", left: 350, top: 200, radius: 15, fill: "#3b82f6", stroke: "#1d4ed8", strokeWidth: 2 },
-    { type: "circle", left: 200, top: 300, radius: 15, fill: "#3b82f6", stroke: "#1d4ed8", strokeWidth: 2 },
-    { type: "circle", left: 300, top: 300, radius: 15, fill: "#3b82f6", stroke: "#1d4ed8", strokeWidth: 2 },
-    { type: "line", x1: 150, y1: 200, x2: 250, y2: 150, stroke: "#ef4444", strokeWidth: 3 },
-    { type: "line", x1: 250, y1: 150, x2: 350, y2: 200, stroke: "#ef4444", strokeWidth: 3 },
+    { type: "circle", left: 200, top: 150, radius: 15, fill: "#22c55e", stroke: "#16a34a", strokeWidth: 2 },
+    { type: "circle", left: 300, top: 120, radius: 15, fill: "#22c55e", stroke: "#16a34a", strokeWidth: 2 },
+    { type: "circle", left: 250, top: 220, radius: 15, fill: "#22c55e", stroke: "#16a34a", strokeWidth: 2 },
+    { type: "circle", left: 150, top: 280, radius: 15, fill: "#22c55e", stroke: "#16a34a", strokeWidth: 2 },
+    { type: "circle", left: 350, top: 280, radius: 15, fill: "#22c55e", stroke: "#16a34a", strokeWidth: 2 },
+    { type: "line", x1: 250, y1: 220, x2: 200, y2: 150, stroke: "#ef4444", strokeWidth: 3 },
+    { type: "line", x1: 250, y1: 220, x2: 300, y2: 120, stroke: "#ef4444", strokeWidth: 3 },
   ],
 });
 
@@ -84,54 +84,18 @@ export const demoPlays: Play[] = [
     teamId: DEMO_TEAM_ID,
     createdById: "demo-coach",
     createdBy: demoCoach,
-    name: "Pick and Roll",
-    description: "Classic pick and roll play with the point guard and center. The guard uses the screen to create space for a drive or pass.",
-    canvasData: basketballPlayCanvas,
+    name: "Through Ball Attack",
+    description: "Quick attacking play with midfielders splitting the defense using through balls to forwards.",
+    canvasData: soccerPlayCanvas,
     thumbnailData: "/screenshots/playmaker-demo.png?v=3",
     category: "Offense",
     status: "Active",
     createdAt: new Date().toISOString(),
   },
-  {
-    id: "demo-play-2",
-    teamId: DEMO_TEAM_ID,
-    createdById: "demo-coach",
-    createdBy: demoCoach,
-    name: "Box Out Zone",
-    description: "Defensive zone setup with emphasis on box out positioning for rebounds.",
-    canvasData: basketballPlayCanvas,
-    thumbnailData: null,
-    category: "Defense",
-    status: "Active",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "demo-play-3",
-    teamId: DEMO_TEAM_ID,
-    createdById: "demo-coach",
-    createdBy: demoCoach,
-    name: "Fast Break",
-    description: "Quick transition offense after a defensive stop. Focus on filling lanes and quick ball movement.",
-    canvasData: basketballPlayCanvas,
-    thumbnailData: null,
-    category: "Transition",
-    status: "Draft",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "demo-play-4",
-    teamId: DEMO_TEAM_ID,
-    createdById: "demo-coach",
-    createdBy: demoCoach,
-    name: "Inbound - Baseline",
-    description: "Baseline inbound play with multiple options for the passer.",
-    canvasData: basketballPlayCanvas,
-    thumbnailData: null,
-    category: "Set Plays",
-    status: "Active",
-    createdAt: new Date().toISOString(),
-  },
 ];
+
+export const DEMO_SPORTS = ["Soccer", "Basketball", "Football", "Baseball", "Volleyball"] as const;
+export type DemoSport = typeof DEMO_SPORTS[number];
 
 export function isDemoMode(): boolean {
   if (typeof window === 'undefined') return false;

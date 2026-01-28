@@ -5,7 +5,8 @@ import { PlaybookCanvas } from "@/components/PlaybookCanvas";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Eye, Crown, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { isDemoMode, demoPlays } from "@/lib/demoData";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { isDemoMode, demoPlays, DEMO_SPORTS, type DemoSport } from "@/lib/demoData";
 import { useEntitlements } from "@/lib/entitlementsContext";
 import { toast } from "sonner";
 
@@ -16,6 +17,7 @@ export default function PlayEditorPage() {
   const { entitlements, isLoading: entitlementsLoading } = useEntitlements();
   const [play, setPlay] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [demoSport, setDemoSport] = useState<DemoSport>("Soccer");
 
   useEffect(() => {
     if (isDemo) {
@@ -82,7 +84,7 @@ export default function PlayEditorPage() {
     <Layout>
       <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {isDemo && (
-          <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border border-amber-500/30 rounded-lg p-3 flex items-center justify-between">
+          <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border border-amber-500/30 rounded-lg p-3 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Eye className="h-5 w-5 text-amber-500" />
               <div>
@@ -90,7 +92,20 @@ export default function PlayEditorPage() {
                 <p className="text-xs text-amber-300/70">Explore the play designer. Changes won't be saved.</p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-amber-300/70">Sport:</span>
+                <Select value={demoSport} onValueChange={(v) => setDemoSport(v as DemoSport)}>
+                  <SelectTrigger className="w-[130px] h-8 border-amber-500/30 bg-amber-500/10 text-amber-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DEMO_SPORTS.map((sport) => (
+                      <SelectItem key={sport} value={sport}>{sport}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button 
                 size="sm" 
                 variant="outline" 
@@ -136,7 +151,7 @@ export default function PlayEditorPage() {
 
         <div className="bg-card rounded-lg border border-white/10 overflow-hidden">
           <PlaybookCanvas 
-            sport="basketball"
+            sport={isDemo ? demoSport : "Football"}
             onSave={isDemo ? undefined : handleSave}
             isSaving={false}
           />
