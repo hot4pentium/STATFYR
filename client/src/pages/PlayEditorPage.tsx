@@ -84,19 +84,18 @@ export default function PlayEditorPage() {
     <Layout>
       <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {isDemo && (
-          <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border border-amber-500/30 rounded-lg p-3 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Eye className="h-5 w-5 text-amber-500" />
-              <div>
-                <p className="font-semibold text-amber-200">Demo Mode</p>
-                <p className="text-xs text-amber-300/70">Explore the play designer. Changes won't be saved.</p>
+          <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border border-amber-500/30 rounded-lg p-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Eye className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="font-semibold text-amber-200 text-sm">Demo Mode</p>
+                  <p className="text-xs text-amber-300/70 truncate">Changes won't be saved</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-amber-300/70">Sport:</span>
                 <Select value={demoSport} onValueChange={(v) => setDemoSport(v as DemoSport)}>
-                  <SelectTrigger className="w-[130px] h-8 border-amber-500/30 bg-amber-500/10 text-amber-200">
+                  <SelectTrigger className="w-[120px] h-8 border-amber-500/30 bg-amber-500/10 text-amber-200 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -105,24 +104,23 @@ export default function PlayEditorPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => navigate("/subscription")}
+                  className="border-amber-500/30 text-amber-200 hover:bg-amber-500/20 h-8"
+                >
+                  <Crown className="h-4 w-4" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  onClick={() => navigate("/playbook")}
+                  className="text-amber-300/70 hover:text-amber-200 h-8 text-xs"
+                >
+                  Exit
+                </Button>
               </div>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => navigate("/subscription")}
-                className="border-amber-500/30 text-amber-200 hover:bg-amber-500/20"
-              >
-                <Crown className="h-4 w-4 mr-1" />
-                Upgrade
-              </Button>
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                onClick={() => navigate("/playbook")}
-                className="text-amber-300/70 hover:text-amber-200"
-              >
-                Exit Demo
-              </Button>
             </div>
           </div>
         )}
@@ -131,25 +129,22 @@ export default function PlayEditorPage() {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground flex-shrink-0"
             onClick={() => navigate(backUrl)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-display font-bold uppercase tracking-tight text-foreground">
-              {play?.name || "Play Designer"} {isDemo && <Badge variant="outline" className="ml-2 text-amber-500 border-amber-500/30">DEMO</Badge>}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg md:text-2xl font-display font-bold uppercase tracking-tight text-foreground truncate">
+              {play?.name || "Play Designer"} {isDemo && <Badge variant="outline" className="ml-2 text-amber-500 border-amber-500/30 text-xs">DEMO</Badge>}
             </h1>
-            {play?.description && (
-              <p className="text-muted-foreground text-sm">{play.description}</p>
-            )}
-            <p className="text-muted-foreground/70 text-xs mt-1">
-              Plays can be saved for coaches and staff to review. Saved plays will show for athletes and supporters to learn for game day.
+            <p className="text-muted-foreground/70 text-xs hidden md:block">
+              Design plays for your team to review and learn.
             </p>
           </div>
         </div>
 
-        <div className="bg-card rounded-lg border border-white/10 overflow-hidden">
+        <div className="bg-card rounded-lg border border-white/10 p-2">
           <PlaybookCanvas 
             sport={isDemo ? demoSport : "Football"}
             onSave={isDemo ? undefined : handleSave}

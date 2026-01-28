@@ -860,7 +860,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         </AlertDialog>
       </div>
 
-      <div className="relative w-full overflow-hidden rounded-lg border border-white/10 flex items-center justify-center" style={{ height: canvasSize.height || 500 }}>
+      <div className="relative w-full rounded-lg border border-white/10 flex items-center justify-center" style={{ height: canvasSize.height || 500 }}>
         <canvas
           ref={canvasRef}
           width={canvasSize.width || 400}
