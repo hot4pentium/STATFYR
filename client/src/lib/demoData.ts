@@ -94,7 +94,7 @@ export const demoPlays: Play[] = [
   },
 ];
 
-export const DEMO_SPORTS = ["Soccer", "Basketball", "Football", "Baseball", "Volleyball"] as const;
+export const DEMO_SPORTS = ["Baseball", "Basketball", "Football", "Soccer", "Volleyball"] as const;
 export type DemoSport = typeof DEMO_SPORTS[number];
 
 export function isDemoMode(): boolean {

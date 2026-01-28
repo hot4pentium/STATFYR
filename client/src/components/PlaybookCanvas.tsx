@@ -150,12 +150,11 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       if (container) {
         const width = container.clientWidth;
         const normalizedSport = sport?.toLowerCase();
-        const isExtendableSport = ["basketball", "football", "soccer"].includes(normalizedSport);
+        const isExtendableSport = ["basketball", "football", "soccer", "baseball", "volleyball"].includes(normalizedSport);
         
-        // Calculate height based on full field dimensions, then show half or full
+        // Calculate height based on full field dimensions
         let fullHeight: number;
         if (normalizedSport === "basketball" && basketballImageRef.current) {
-          // Basketball: full court is 2x as tall as half court
           const img = basketballImageRef.current;
           fullHeight = width * img.naturalHeight / img.naturalWidth;
         } else if (normalizedSport === "football" && footballImageRef.current) {
@@ -165,16 +164,20 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
           // Soccer is rotated, so swap dimensions
           const img = soccerImageRef.current;
           fullHeight = width * img.naturalWidth / img.naturalHeight;
+        } else if (normalizedSport === "baseball" && baseballImageRef.current) {
+          const img = baseballImageRef.current;
+          fullHeight = width * img.naturalHeight / img.naturalWidth;
+        } else if (normalizedSport === "volleyball" && volleyballImageRef.current) {
+          const img = volleyballImageRef.current;
+          fullHeight = width * img.naturalHeight / img.naturalWidth;
         } else {
           // Fallback
           fullHeight = Math.max(900, (window.innerHeight - 200) * 1.4);
         }
         
-        // Ensure minimum height
+        // Ensure minimum height and always show full field in portrait mode
         fullHeight = Math.max(fullHeight, 600);
-        
-        // Show half or full based on toggle
-        const height = (showFullCourt && isExtendableSport) ? fullHeight : fullHeight / 2;
+        const height = fullHeight;
         setCanvasSize({ width, height });
       }
     };
