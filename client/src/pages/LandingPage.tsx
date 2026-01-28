@@ -185,8 +185,6 @@ export default function LandingPage() {
           </div>
           <nav className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-sm text-slate-700 hover:text-slate-900 transition-colors" data-testid="link-nav-features">Features</a>
-            <a href="#roles" className="text-sm text-slate-700 hover:text-slate-900 transition-colors" data-testid="link-nav-roles">Roles</a>
-            <a href="#pricing" className="text-sm text-slate-700 hover:text-slate-900 transition-colors" data-testid="link-nav-pricing">Pricing</a>
           </nav>
           <div className="flex items-center gap-3">
             <Link href="/auth" data-testid="link-login-header">
