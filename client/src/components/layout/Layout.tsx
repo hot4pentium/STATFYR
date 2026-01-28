@@ -62,32 +62,30 @@ export function Layout({ children }: LayoutProps) {
             )}
             <ThemeToggle />
             {(user?.role === 'super_admin' || user?.isSuperAdmin) && (
-              <Link href="/super-admin">
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  className="border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10"
-                  data-testid="button-admin"
-                  title="Admin Panel"
-                >
-                  <Shield className="h-5 w-5" />
-                </Button>
-              </Link>
-            )}
-            <Link href="/settings">
               <Button 
                 variant="outline" 
                 size="icon"
-                className="border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10"
-                data-testid="button-settings"
+                className="border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10 min-w-[44px] min-h-[44px]"
+                data-testid="button-admin"
+                title="Admin Panel"
+                onClick={() => setLocation("/super-admin")}
               >
-                <Settings className="h-5 w-5" />
+                <Shield className="h-5 w-5" />
               </Button>
-            </Link>
+            )}
             <Button 
               variant="outline" 
               size="icon"
-              className="border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10"
+              className="border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10 min-w-[44px] min-h-[44px]"
+              data-testid="button-settings"
+              onClick={() => setLocation("/settings")}
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="icon"
+              className="border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10 min-w-[44px] min-h-[44px]"
               onClick={handleLogout}
               data-testid="button-logout"
             >
