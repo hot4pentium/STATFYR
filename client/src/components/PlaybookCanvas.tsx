@@ -1761,7 +1761,12 @@ export function PlaybookCanvas({
                 </div>
               </div>
             </div>
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mt-4">
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mt-2">
+              <p className="text-sm text-blue-200">
+                <strong>Edit existing keyframes:</strong> Click a keyframe in the timeline to jump to it, make changes, then click <span className="text-blue-400 font-medium">Update</span> to save.
+              </p>
+            </div>
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mt-2">
               <p className="text-sm text-amber-200">
                 <strong>Tip:</strong> Team members viewing saved plays can also play animations at different speeds.
               </p>
