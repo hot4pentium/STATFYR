@@ -1278,14 +1278,19 @@ export function PlaybookCanvas({
     if (clickedElement) {
       setIsDragging(true);
       setDraggedElementId(clickedElement.id);
+      
+      // Use displayed position for drag offset calculation (from keyframe if applicable)
+      const displayedElements = (keyframes.length > 0) ? getInterpolatedElements() : elements;
+      const displayedElement = displayedElements.find(e => e.id === clickedElement.id) || clickedElement;
+      
       if (clickedElement.tool === "arrow") {
-        const midX = (clickedElement.points[0].x + clickedElement.points[1].x) / 2;
-        const midY = (clickedElement.points[0].y + clickedElement.points[1].y) / 2;
+        const midX = (displayedElement.points[0].x + displayedElement.points[1].x) / 2;
+        const midY = (displayedElement.points[0].y + displayedElement.points[1].y) / 2;
         setDragOffset({ x: point.x - midX, y: point.y - midY });
       } else {
         setDragOffset({
-          x: point.x - clickedElement.points[0].x,
-          y: point.y - clickedElement.points[0].y,
+          x: point.x - displayedElement.points[0].x,
+          y: point.y - displayedElement.points[0].y,
         });
       }
       return;
