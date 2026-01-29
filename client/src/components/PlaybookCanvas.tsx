@@ -514,9 +514,9 @@ export function PlaybookCanvas({
 
     drawSportBackground(ctx, canvas.width, canvas.height, sport, activeHalf);
 
-    // Show interpolated/filtered elements during playback, in read-only mode, or when viewing keyframes in edit mode
-    // This ensures elements only appear at keyframes where they were recorded
-    const displayElements = (isPlaying || keyframes.length > 0) 
+    // In edit mode (not readOnly): show ALL elements so user can draw and move things
+    // Only filter/interpolate during playback or in read-only viewer mode
+    const displayElements = (isPlaying || readOnly) 
       ? getInterpolatedElements() 
       : elements;
     displayElements.forEach((element) => {
@@ -1208,10 +1208,9 @@ export function PlaybookCanvas({
   };
 
   const findElementAtPoint = (point: Point): DrawnElement | null => {
-    // Use displayed elements (which have keyframe positions applied) for hit testing
-    const displayedElements = (keyframes.length > 0) ? getInterpolatedElements() : elements;
-    
-    console.log('[findElementAtPoint] keyframes.length:', keyframes.length, 'displayedElements.length:', displayedElements.length, 'elements.length:', elements.length);
+    // In edit mode: use raw elements for hit testing (what user sees = what they can click)
+    // In viewer/playback: use interpolated elements
+    const displayedElements = (isPlaying || readOnly) ? getInterpolatedElements() : elements;
     
     for (let i = displayedElements.length - 1; i >= 0; i--) {
       const el = displayedElements[i];
@@ -1221,7 +1220,7 @@ export function PlaybookCanvas({
         const center = el.points[0];
         const dist = Math.sqrt((point.x - center.x) ** 2 + (point.y - center.y) ** 2);
         if (dist <= SHAPE_SIZE / 2 + 10) {
-          // Return the element from elements array (not the interpolated one) so we can modify it
+          // Return the element from elements array so we can modify it
           return elements.find(e => e.id === el.id) || el;
         }
       } else if (el.tool === "arrow" && el.points.length >= 2) {
@@ -1281,8 +1280,9 @@ export function PlaybookCanvas({
       setIsDragging(true);
       setDraggedElementId(clickedElement.id);
       
-      // Use displayed position for drag offset calculation (from keyframe if applicable)
-      const displayedElements = (keyframes.length > 0) ? getInterpolatedElements() : elements;
+      // In edit mode: use raw element positions (what we see and clicked on)
+      // In viewer/playback: use interpolated positions
+      const displayedElements = (isPlaying || readOnly) ? getInterpolatedElements() : elements;
       const displayedElement = displayedElements.find(e => e.id === clickedElement.id) || clickedElement;
       
       if (clickedElement.tool === "arrow") {
