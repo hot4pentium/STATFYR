@@ -275,6 +275,18 @@ export function PlaybookCanvas({
 
     // If not playing or only one keyframe, show current keyframe state
     if (!isPlaying || activeKeyframes.length === 1 || currentKeyframeIndex >= activeKeyframes.length - 1) {
+      // During playback, only show elements that exist in the current keyframe
+      if (isPlaying) {
+        return elements
+          .filter(el => currentKf.positions.some(p => p.elementId === el.id))
+          .map(el => {
+            const kfPos = currentKf.positions.find(p => p.elementId === el.id);
+            if (kfPos && kfPos.points.length === el.points.length) {
+              return { ...el, points: kfPos.points };
+            }
+            return el;
+          });
+      }
       return elements.map(el => {
         const kfPos = currentKf.positions.find(p => p.elementId === el.id);
         if (kfPos && kfPos.points.length === el.points.length) {
@@ -288,28 +300,54 @@ export function PlaybookCanvas({
     const nextKf = activeKeyframes[currentKeyframeIndex + 1];
     if (!nextKf) return elements;
 
-    return elements.map(el => {
-      const currentPos = currentKf.positions.find(p => p.elementId === el.id);
-      const nextPos = nextKf.positions.find(p => p.elementId === el.id);
+    // During playback, only show elements that exist in BOTH current and next keyframes
+    // This prevents elements added later from appearing at the start
+    return elements
+      .filter(el => {
+        const inCurrent = currentKf.positions.some(p => p.elementId === el.id);
+        const inNext = nextKf.positions.some(p => p.elementId === el.id);
+        // Show element if it exists in current keyframe, or if it's about to appear in next
+        return inCurrent || inNext;
+      })
+      .map(el => {
+        const currentPos = currentKf.positions.find(p => p.elementId === el.id);
+        const nextPos = nextKf.positions.find(p => p.elementId === el.id);
 
-      // Handle missing positions - use element's current points as fallback
-      const fromPoints = currentPos?.points || el.points;
-      const toPoints = nextPos?.points || el.points;
+        // If element doesn't exist in current keyframe but appears in next, fade it in
+        if (!currentPos && nextPos) {
+          // Element appears at this keyframe transition - show at destination with progress
+          if (nextPos.points.length === el.points.length) {
+            return { ...el, points: nextPos.points };
+          }
+          return el;
+        }
 
-      // If point counts don't match, use the current position without interpolation
-      if (fromPoints.length !== toPoints.length) {
-        return { ...el, points: fromPoints };
-      }
+        // If element exists in current but not next, show current position
+        if (currentPos && !nextPos) {
+          if (currentPos.points.length === el.points.length) {
+            return { ...el, points: currentPos.points };
+          }
+          return el;
+        }
 
-      const interpolatedPoints = fromPoints.map((cp, i) => {
-        const np = toPoints[i];
-        return {
-          x: cp.x + (np.x - cp.x) * animationProgress,
-          y: cp.y + (np.y - cp.y) * animationProgress
-        };
+        // Handle missing positions - use element's current points as fallback
+        const fromPoints = currentPos?.points || el.points;
+        const toPoints = nextPos?.points || el.points;
+
+        // If point counts don't match, use the current position without interpolation
+        if (fromPoints.length !== toPoints.length) {
+          return { ...el, points: fromPoints };
+        }
+
+        const interpolatedPoints = fromPoints.map((cp, i) => {
+          const np = toPoints[i];
+          return {
+            x: cp.x + (np.x - cp.x) * animationProgress,
+            y: cp.y + (np.y - cp.y) * animationProgress
+          };
+        });
+        return { ...el, points: interpolatedPoints };
       });
-      return { ...el, points: interpolatedPoints };
-    });
   }, [elements, keyframes, currentKeyframeIndex, animationProgress, isPlaying]);
 
   // Delete a specific keyframe
