@@ -345,29 +345,55 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     ctx.arc(width / 2, keyY + keyHeight, ftCircleRadius, 0, Math.PI);
     ctx.stroke();
     
-    // Backboard and hoop
-    const hoopY = margin + height * 0.03;
-    ctx.lineWidth = 3;
+    // Backboard (behind baseline)
+    const backboardY = margin * 0.3;
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = LINE_WHITE;
     ctx.beginPath();
-    ctx.moveTo(width / 2 - width * 0.08, margin);
-    ctx.lineTo(width / 2 + width * 0.08, margin);
+    ctx.moveTo(width / 2 - width * 0.07, backboardY);
+    ctx.lineTo(width / 2 + width * 0.07, backboardY);
     ctx.stroke();
     
-    // Hoop
+    // Rim/hoop (behind baseline, attached to backboard)
     ctx.lineWidth = LINE_WIDTH;
     ctx.strokeStyle = "#ff6b35";
     ctx.beginPath();
-    ctx.arc(width / 2, hoopY + height * 0.02, width * 0.025, 0, 2 * Math.PI);
+    ctx.arc(width / 2, backboardY + width * 0.025, width * 0.025, 0, 2 * Math.PI);
     ctx.stroke();
     
-    // 3-point line
+    // Net indication (small lines hanging from rim)
+    ctx.strokeStyle = "#cccccc";
+    ctx.lineWidth = 1;
+    const rimCenterY = backboardY + width * 0.025;
+    const rimRadius = width * 0.025;
+    for (let i = -3; i <= 3; i++) {
+      const x = width / 2 + (i * rimRadius * 0.4);
+      ctx.beginPath();
+      ctx.moveTo(x, rimCenterY + rimRadius * 0.5);
+      ctx.lineTo(x, rimCenterY + rimRadius * 1.5);
+      ctx.stroke();
+    }
+    
+    // 3-point line - connects directly to baseline
     ctx.strokeStyle = LINE_WHITE;
+    ctx.lineWidth = LINE_WIDTH;
     const threePointRadius = width * 0.38;
+    const threePointCenterY = margin + height * 0.04;
+    
+    // Calculate where the arc meets the baseline
+    const arcStartX = width / 2 - Math.sqrt(threePointRadius * threePointRadius - (threePointCenterY - margin) * (threePointCenterY - margin));
+    const arcEndX = width / 2 + Math.sqrt(threePointRadius * threePointRadius - (threePointCenterY - margin) * (threePointCenterY - margin));
+    
     ctx.beginPath();
-    ctx.moveTo(margin, margin + height * 0.12);
-    ctx.lineTo(margin, margin);
-    ctx.arc(width / 2, margin + height * 0.03, threePointRadius, Math.PI, 0, true);
-    ctx.lineTo(width - margin, margin + height * 0.12);
+    // Left straight portion along baseline
+    ctx.moveTo(margin, margin);
+    ctx.lineTo(arcStartX, margin);
+    // Arc from left to right
+    const startAngle = Math.acos((arcStartX - width / 2) / threePointRadius) + Math.PI;
+    const endAngle = Math.acos((arcEndX - width / 2) / threePointRadius);
+    ctx.arc(width / 2, threePointCenterY, threePointRadius, Math.PI + Math.asin((threePointCenterY - margin) / threePointRadius), -Math.asin((threePointCenterY - margin) / threePointRadius), true);
+    // Right straight portion along baseline
+    ctx.lineTo(width - margin, margin);
     ctx.stroke();
     
     ctx.restore();
