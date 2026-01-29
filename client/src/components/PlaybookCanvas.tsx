@@ -48,7 +48,7 @@ interface PlaybookCanvasProps {
   isSaving?: boolean;
 }
 
-const SHAPE_SIZE = 24;
+const SHAPE_SIZE = 22; // Reduced by ~10% for better canvas fit
 
 export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSaving = false }: PlaybookCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
