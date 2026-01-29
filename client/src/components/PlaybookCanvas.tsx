@@ -1211,6 +1211,8 @@ export function PlaybookCanvas({
     // Use displayed elements (which have keyframe positions applied) for hit testing
     const displayedElements = (keyframes.length > 0) ? getInterpolatedElements() : elements;
     
+    console.log('[findElementAtPoint] keyframes.length:', keyframes.length, 'displayedElements.length:', displayedElements.length, 'elements.length:', elements.length);
+    
     for (let i = displayedElements.length - 1; i >= 0; i--) {
       const el = displayedElements[i];
       if (!isDraggableTool(el.tool)) continue;
