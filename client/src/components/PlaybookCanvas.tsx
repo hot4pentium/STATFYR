@@ -179,20 +179,11 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         imageAspectRatio = volleyballImageRef.current.naturalHeight / volleyballImageRef.current.naturalWidth;
       }
       
-      // Calculate height based on width and aspect ratio
-      // Limit max height to leave room for toolbar (viewport - 280px for header/toolbar/padding)
-      const maxHeight = window.innerHeight - 280;
+      // Calculate height based on width and aspect ratio - full width, scrollable height
       const width = containerWidth;
-      let height = Math.round(width * imageAspectRatio);
+      const height = Math.round(width * imageAspectRatio);
       
-      // If height exceeds max, scale down width proportionally
-      if (height > maxHeight) {
-        height = maxHeight;
-        const adjustedWidth = Math.round(height / imageAspectRatio);
-        setCanvasSize({ width: adjustedWidth, height });
-      } else {
-        setCanvasSize({ width, height });
-      }
+      setCanvasSize({ width, height });
       setDimensionsLocked(true);
     };
     
@@ -851,7 +842,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         </AlertDialog>
       </div>
 
-      <div ref={containerRef} className="relative w-full rounded-lg border border-white/10 overflow-hidden" style={{ height: canvasSize.height || 400 }}>
+      <div ref={containerRef} className="relative w-full rounded-lg border border-white/10">
         <canvas
           ref={canvasRef}
           width={canvasSize.width || 400}
