@@ -424,8 +424,8 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     ctx.strokeStyle = LINE_WHITE;
     ctx.lineWidth = LINE_WIDTH;
     
-    // Sidelines
-    const margin = width * 0.08;
+    // Sidelines (wider field with smaller margins)
+    const margin = width * 0.04;
     ctx.beginPath();
     ctx.moveTo(margin, 0);
     ctx.lineTo(margin, height);
@@ -433,15 +433,21 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     ctx.lineTo(width - margin, height);
     ctx.stroke();
     
-    // End zone line (top)
+    // End zone back line (top of canvas)
     const endZoneHeight = height * 0.1;
     ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(margin, 0);
+    ctx.lineTo(width - margin, 0);
+    ctx.stroke();
+    
+    // Goal line (end of endzone)
     ctx.beginPath();
     ctx.moveTo(margin, endZoneHeight);
     ctx.lineTo(width - margin, endZoneHeight);
     ctx.stroke();
     
-    // Yard lines (every 10 yards)
+    // Yard lines (every 10 yards) - start from 10 yard line
     ctx.lineWidth = LINE_WIDTH;
     const playableHeight = height - endZoneHeight;
     for (let i = 1; i <= 5; i++) {
@@ -455,9 +461,9 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     }
     
     // Hash marks
-    const hashX1 = width * 0.35;
-    const hashX2 = width * 0.65;
-    const hashLen = width * 0.03;
+    const hashX1 = width * 0.38;
+    const hashX2 = width * 0.62;
+    const hashLen = width * 0.025;
     for (let i = 0; i <= 50; i++) {
       const y = endZoneHeight + (playableHeight * i * 0.018);
       if (y < height && i % 5 !== 0) {
@@ -470,29 +476,63 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       }
     }
     
-    // Yard numbers
+    // Yard numbers - split on either side of the line (e.g., "1 | 0")
     ctx.fillStyle = LINE_WHITE;
-    ctx.font = `bold ${width * 0.06}px Arial`;
-    ctx.textAlign = "center";
-    const yardNumbers = half === "offense" ? ["G", "10", "20", "30", "40", "50"] : ["G", "10", "20", "30", "40", "50"];
+    ctx.font = `bold ${width * 0.055}px Arial`;
+    const yardNumbers = [10, 20, 30, 40, 50];
     yardNumbers.forEach((num, i) => {
-      const y = endZoneHeight + (playableHeight * i * 0.18) + playableHeight * 0.09;
-      if (y < height - 20) {
-        // Flip text if in defense mode so it reads correctly
+      const lineY = endZoneHeight + (playableHeight * (i + 1) * 0.18);
+      if (lineY < height - 20) {
+        const tens = Math.floor(num / 10).toString();
+        const ones = (num % 10).toString();
+        const numberOffset = width * 0.03;
+        const sideOffset = width * 0.08;
+        
+        // Left side numbers
+        ctx.textAlign = "right";
+        const leftX = margin + sideOffset;
+        // Right side numbers  
+        const rightX = width - margin - sideOffset;
+        
         if (half === "defense") {
+          // Flip text for defense mode
           ctx.save();
-          ctx.translate(margin + width * 0.08, y);
+          ctx.translate(leftX - numberOffset, lineY);
           ctx.scale(1, -1);
-          ctx.fillText(num, 0, 0);
+          ctx.textAlign = "right";
+          ctx.fillText(tens, 0, 0);
           ctx.restore();
           ctx.save();
-          ctx.translate(width - margin - width * 0.08, y);
+          ctx.translate(leftX + numberOffset, lineY);
           ctx.scale(1, -1);
-          ctx.fillText(num, 0, 0);
+          ctx.textAlign = "left";
+          ctx.fillText(ones, 0, 0);
+          ctx.restore();
+          
+          ctx.save();
+          ctx.translate(rightX - numberOffset, lineY);
+          ctx.scale(1, -1);
+          ctx.textAlign = "right";
+          ctx.fillText(tens, 0, 0);
+          ctx.restore();
+          ctx.save();
+          ctx.translate(rightX + numberOffset, lineY);
+          ctx.scale(1, -1);
+          ctx.textAlign = "left";
+          ctx.fillText(ones, 0, 0);
           ctx.restore();
         } else {
-          ctx.fillText(num, margin + width * 0.08, y);
-          ctx.fillText(num, width - margin - width * 0.08, y);
+          // Left side: tens | ones
+          ctx.textAlign = "right";
+          ctx.fillText(tens, leftX - numberOffset, lineY);
+          ctx.textAlign = "left";
+          ctx.fillText(ones, leftX + numberOffset, lineY);
+          
+          // Right side: tens | ones
+          ctx.textAlign = "right";
+          ctx.fillText(tens, rightX - numberOffset, lineY);
+          ctx.textAlign = "left";
+          ctx.fillText(ones, rightX + numberOffset, lineY);
         }
       }
     });
