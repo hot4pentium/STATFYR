@@ -495,35 +495,35 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         const rightX = width - margin - sideOffset;
         
         // Left side - rotated 90 degrees counterclockwise (facing left sideline)
-        // Tens digit above the line, ones below
+        // Ones digit above the line, tens below (reading "50" top to bottom)
         ctx.save();
         ctx.translate(leftX, lineY - numberSpacing);
         if (half === "defense") ctx.scale(1, -1);
         ctx.rotate(-Math.PI / 2);
-        ctx.fillText(tens, 0, 0);
+        ctx.fillText(ones, 0, 0);
         ctx.restore();
         
         ctx.save();
         ctx.translate(leftX, lineY + numberSpacing);
         if (half === "defense") ctx.scale(1, -1);
         ctx.rotate(-Math.PI / 2);
-        ctx.fillText(ones, 0, 0);
+        ctx.fillText(tens, 0, 0);
         ctx.restore();
         
         // Right side - rotated 90 degrees clockwise (facing right sideline)
-        // Ones digit above the line, tens below (mirrored)
+        // Tens digit above the line, ones below (reading "50" top to bottom)
         ctx.save();
         ctx.translate(rightX, lineY - numberSpacing);
         if (half === "defense") ctx.scale(1, -1);
         ctx.rotate(Math.PI / 2);
-        ctx.fillText(ones, 0, 0);
+        ctx.fillText(tens, 0, 0);
         ctx.restore();
         
         ctx.save();
         ctx.translate(rightX, lineY + numberSpacing);
         if (half === "defense") ctx.scale(1, -1);
         ctx.rotate(Math.PI / 2);
-        ctx.fillText(tens, 0, 0);
+        ctx.fillText(ones, 0, 0);
         ctx.restore();
       }
     });
