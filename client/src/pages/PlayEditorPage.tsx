@@ -5,8 +5,13 @@ import { PlaybookCanvas } from "@/components/PlaybookCanvas";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Eye, Crown, Loader2, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { isDemoMode, demoPlays, DEMO_SPORTS, type DemoSport } from "@/lib/demoData";
+import { isDemoMode, demoPlays } from "@/lib/demoData";
+
+// Sport preview images for demo mode
+import basketballCourtImg from "@assets/bball_court_1766345509497.png";
+import soccerPitchImg from "@assets/generated_images/clean_flat_soccer_pitch_top-down.png";
+import baseballDiamondImg from "@assets/generated_images/baseball_diamond_top-down_view.png";
+import volleyballCourtImg from "@assets/generated_images/volleyball_court_net_at_sidelines.png";
 import { useEntitlements } from "@/lib/entitlementsContext";
 import { toast } from "sonner";
 
@@ -41,7 +46,6 @@ export default function PlayEditorPage() {
   const { entitlements, isLoading: entitlementsLoading } = useEntitlements();
   const [play, setPlay] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [demoSport, setDemoSport] = useState<DemoSport>("Soccer");
   const isMobileLandscape = useIsMobileLandscape();
 
   useEffect(() => {
@@ -140,20 +144,10 @@ export default function PlayEditorPage() {
                 <Eye className="h-5 w-5 text-amber-400 flex-shrink-0" />
                 <div className="min-w-0">
                   <p className="font-semibold text-white text-sm">Demo Mode</p>
-                  <p className="text-xs text-amber-100 truncate">Changes won't be saved</p>
+                  <p className="text-xs text-amber-100 truncate">Try drawing on the football field below</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Select value={demoSport} onValueChange={(v) => setDemoSport(v as DemoSport)}>
-                  <SelectTrigger className="w-[120px] h-8 border-amber-400/50 bg-amber-500/20 text-white text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DEMO_SPORTS.map((sport) => (
-                      <SelectItem key={sport} value={sport}>{sport}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <Button 
                   size="sm" 
                   variant="outline" 
@@ -196,11 +190,38 @@ export default function PlayEditorPage() {
 
         <div className="bg-card rounded-lg border border-white/10 p-2">
           <PlaybookCanvas 
-            sport={isDemo ? demoSport : "Football"}
+            sport="Football"
             onSave={isDemo ? undefined : handleSave}
             isSaving={false}
           />
         </div>
+
+        {isDemo && (
+          <div className="mt-6 space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-white mb-1">Also Available with Pro</h3>
+              <p className="text-sm text-muted-foreground">Create plays for these sports too</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-card rounded-lg border border-white/10 p-2 space-y-2">
+                <img src={basketballCourtImg} alt="Basketball Court" className="w-full h-24 object-cover rounded" />
+                <p className="text-xs text-center text-muted-foreground font-medium">Basketball</p>
+              </div>
+              <div className="bg-card rounded-lg border border-white/10 p-2 space-y-2">
+                <img src={soccerPitchImg} alt="Soccer Pitch" className="w-full h-24 object-cover rounded" />
+                <p className="text-xs text-center text-muted-foreground font-medium">Soccer</p>
+              </div>
+              <div className="bg-card rounded-lg border border-white/10 p-2 space-y-2">
+                <img src={baseballDiamondImg} alt="Baseball Diamond" className="w-full h-24 object-cover rounded" />
+                <p className="text-xs text-center text-muted-foreground font-medium">Baseball</p>
+              </div>
+              <div className="bg-card rounded-lg border border-white/10 p-2 space-y-2">
+                <img src={volleyballCourtImg} alt="Volleyball Court" className="w-full h-24 object-cover rounded" />
+                <p className="text-xs text-center text-muted-foreground font-medium">Volleyball</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
