@@ -598,12 +598,13 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     ctx.arc(width / 2, penaltySpotY, 3, 0, 2 * Math.PI);
     ctx.fill();
     
-    // Penalty arc (the "D") - connects to the penalty box edges
-    const arcRadius = width * 0.12;
+    // Penalty arc (the "D") - at the top of the penalty box, curving outward
     const penaltyBoxBottom = margin + penaltyHeight;
-    // Calculate the angle where arc meets penalty box
-    const distToBoxEdge = penaltyWidth / 2;
-    const angleAtBox = Math.acos(distToBoxEdge / arcRadius);
+    const arcRadius = width * 0.12;
+    // Calculate the angle where arc meets penalty box edges
+    const halfPenaltyWidth = penaltyWidth / 2;
+    // The arc is centered on penalty spot but only draw the part outside the box
+    const angleAtBox = Math.asin((penaltyBoxBottom - penaltySpotY) / arcRadius);
     ctx.beginPath();
     ctx.arc(width / 2, penaltySpotY, arcRadius, angleAtBox, Math.PI - angleAtBox);
     ctx.stroke();
