@@ -180,10 +180,19 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       }
       
       // Calculate height based on width and aspect ratio
+      // Limit max height to leave room for toolbar (viewport - 280px for header/toolbar/padding)
+      const maxHeight = window.innerHeight - 280;
       const width = containerWidth;
-      const height = Math.round(width * imageAspectRatio);
+      let height = Math.round(width * imageAspectRatio);
       
-      setCanvasSize({ width, height });
+      // If height exceeds max, scale down width proportionally
+      if (height > maxHeight) {
+        height = maxHeight;
+        const adjustedWidth = Math.round(height / imageAspectRatio);
+        setCanvasSize({ width: adjustedWidth, height });
+      } else {
+        setCanvasSize({ width, height });
+      }
       setDimensionsLocked(true);
     };
     
