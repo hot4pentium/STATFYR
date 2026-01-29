@@ -279,25 +279,12 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     if (soccerImageRef.current) {
       const img = soccerImageRef.current;
       
-      // Calculate full image dimensions (rotated 90 degrees)
-      const fullHeight = showFullCourt ? height : height * 2;
-      const drawWidth = width;
-      const drawHeight = fullHeight;
-      
+      // Draw the full soccer pitch rotated 90 degrees to fit portrait mode
       ctx.save();
-      if (showFullCourt) {
-        // Full court: center the image
-        ctx.translate(drawWidth / 2, drawHeight / 2);
-        ctx.rotate(Math.PI / 2);
-        ctx.drawImage(img, -drawHeight / 2, -drawWidth / 2, drawHeight, drawWidth);
-      } else {
-        // Half court: position so the goal is at top with full visibility
-        // We want to show one half of the field, starting from the goal line
-        ctx.translate(drawWidth / 2, 0);
-        ctx.rotate(Math.PI / 2);
-        // Draw so the top half is visible (goal at top)
-        ctx.drawImage(img, -height, -drawWidth / 2, drawHeight, drawWidth);
-      }
+      ctx.translate(width / 2, height / 2);
+      ctx.rotate(Math.PI / 2);
+      // After rotation, swap width/height for drawing
+      ctx.drawImage(img, -height / 2, -width / 2, height, width);
       ctx.restore();
     } else {
       ctx.fillStyle = "#228B22";
