@@ -2692,12 +2692,6 @@ export default function UnifiedDashboard() {
 
             {/* Profile Section */}
             <div className="relative flex items-start gap-4 landscape:justify-center landscape:items-center landscape:gap-6">
-              {/* Team Badge Watermark - positioned to align with profile content */}
-              {currentTeam?.badgeId && (
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-35 pointer-events-none">
-                  <TeamBadge badgeId={currentTeam.badgeId} size="xl" teamColor={currentTeam.teamColor} />
-                </div>
-              )}
               <div className="h-20 w-20 landscape:h-24 landscape:w-24 border-2 border-primary/50 rounded-xl overflow-hidden shrink-0">
                 {user.avatar ? (
                   <img src={user.avatar} alt="" className="w-full h-full object-cover" />
@@ -2711,9 +2705,14 @@ export default function UnifiedDashboard() {
                 {currentTeam && (
                   <p className="font-marker text-lg landscape:text-2xl -rotate-2 mb-1 text-[#de8816e6]">{currentTeam.name}</p>
                 )}
-                <h1 className="text-2xl landscape:text-3xl font-display font-bold text-primary uppercase tracking-wide">
-                  {roleConfig[userRole].title}
-                </h1>
+                <div className="flex items-center gap-2 landscape:justify-center">
+                  <h1 className="text-2xl landscape:text-3xl font-display font-bold text-primary uppercase tracking-wide">
+                    {roleConfig[userRole].title}
+                  </h1>
+                  {currentTeam?.badgeId && (
+                    <TeamBadge badgeId={currentTeam.badgeId} size="md" teamColor={currentTeam.teamColor} />
+                  )}
+                </div>
                 <p className="text-slate-600 dark:text-white/80 text-sm landscape:text-base">Welcome, {userRole === "coach" ? "Coach" : isStaff ? "Staff" : getUserDisplayName()}!</p>
                 {/* Athlete code hidden until feature is fully implemented */}
               </div>
