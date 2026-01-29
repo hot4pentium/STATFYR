@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
 import { Layout } from "@/components/layout/Layout";
 import { PlaybookCanvas } from "@/components/PlaybookCanvas";
@@ -8,6 +8,16 @@ import { Badge } from "@/components/ui/badge";
 import { isDemoMode, demoPlays } from "@/lib/demoData";
 import { useEntitlements } from "@/lib/entitlementsContext";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Hook to detect landscape orientation on mobile only (desktop is always allowed)
 function useIsMobileLandscape() {
@@ -41,6 +51,23 @@ export default function PlayEditorPage() {
   const [play, setPlay] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isMobileLandscape = useIsMobileLandscape();
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+
+  const handleBack = useCallback(() => {
+    const backUrl = isDemo ? "/playbook?demo=true" : "/playbook";
+    if (hasUnsavedChanges) {
+      setShowLeaveDialog(true);
+    } else {
+      navigate(backUrl);
+    }
+  }, [hasUnsavedChanges, isDemo, navigate]);
+
+  const handleConfirmLeave = useCallback(() => {
+    const backUrl = isDemo ? "/playbook?demo=true" : "/playbook";
+    setShowLeaveDialog(false);
+    navigate(backUrl);
+  }, [isDemo, navigate]);
 
   useEffect(() => {
     if (isDemo) {
@@ -102,6 +129,10 @@ export default function PlayEditorPage() {
   };
 
   const backUrl = isDemo ? "/playbook?demo=true" : "/playbook";
+
+  const handleHasUnsavedChanges = useCallback((hasChanges: boolean) => {
+    setHasUnsavedChanges(hasChanges);
+  }, []);
 
   // Show rotate message in landscape mode
   if (isMobileLandscape) {
@@ -168,7 +199,7 @@ export default function PlayEditorPage() {
             variant="ghost" 
             size="icon" 
             className="text-muted-foreground hover:text-foreground flex-shrink-0"
-            onClick={() => navigate(backUrl)}
+            onClick={handleBack}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -187,6 +218,7 @@ export default function PlayEditorPage() {
             sport="Football"
             onSave={isDemo ? undefined : handleSave}
             isSaving={false}
+            onHasUnsavedChanges={handleHasUnsavedChanges}
           />
         </div>
 
@@ -217,6 +249,23 @@ export default function PlayEditorPage() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave without saving?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes on the canvas. Are you sure you want to leave? Your changes will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Stay</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmLeave} className="bg-red-600 hover:bg-red-700">
+              Leave
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }

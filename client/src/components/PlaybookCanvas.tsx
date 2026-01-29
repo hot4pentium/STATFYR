@@ -46,11 +46,12 @@ interface PlaybookCanvasProps {
   sport?: string;
   onSave?: (data: SavePlayData) => Promise<void>;
   isSaving?: boolean;
+  onHasUnsavedChanges?: (hasChanges: boolean) => void;
 }
 
 const SHAPE_SIZE = 22; // Reduced by ~10% for better canvas fit
 
-export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSaving = false }: PlaybookCanvasProps) {
+export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSaving = false, onHasUnsavedChanges }: PlaybookCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedTool, setSelectedTool] = useState<Tool>("freedraw");
@@ -77,6 +78,11 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     setElements([]);
     setDimensionsLocked(false);
   }, [sport]);
+
+  // Notify parent when there are unsaved changes
+  useEffect(() => {
+    onHasUnsavedChanges?.(elements.length > 0);
+  }, [elements.length, onHasUnsavedChanges]);
 
   const sortedAthletes = [...athletes].sort((a, b) => 
     a.firstName.localeCompare(b.firstName)
