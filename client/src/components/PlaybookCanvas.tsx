@@ -680,6 +680,37 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     ctx.fillRect(margin - 5, centerY - 3, 10, 6);
     ctx.fillRect(width - margin - 5, centerY - 3, 10, 6);
     
+    // Judges ladders (referee stands) - outside the court on either side
+    const ladderWidth = width * 0.025;
+    const ladderHeight = height * 0.06;
+    ctx.fillStyle = "#555";
+    ctx.strokeStyle = "#444";
+    ctx.lineWidth = 1;
+    // Left side ladder
+    ctx.fillRect(margin - ladderWidth - 8, centerY - ladderHeight / 2, ladderWidth, ladderHeight);
+    ctx.strokeRect(margin - ladderWidth - 8, centerY - ladderHeight / 2, ladderWidth, ladderHeight);
+    // Right side ladder
+    ctx.fillRect(width - margin + 8, centerY - ladderHeight / 2, ladderWidth, ladderHeight);
+    ctx.strokeRect(width - margin + 8, centerY - ladderHeight / 2, ladderWidth, ladderHeight);
+    
+    // Ladder rungs
+    ctx.strokeStyle = "#777";
+    ctx.lineWidth = 1;
+    const rungCount = 3;
+    for (let i = 1; i <= rungCount; i++) {
+      const rungY = centerY - ladderHeight / 2 + (ladderHeight / (rungCount + 1)) * i;
+      // Left ladder rungs
+      ctx.beginPath();
+      ctx.moveTo(margin - ladderWidth - 8, rungY);
+      ctx.lineTo(margin - 8, rungY);
+      ctx.stroke();
+      // Right ladder rungs
+      ctx.beginPath();
+      ctx.moveTo(width - margin + 8, rungY);
+      ctx.lineTo(width - margin + ladderWidth + 8, rungY);
+      ctx.stroke();
+    }
+    
     // Attack line (3 meters from center)
     ctx.strokeStyle = LINE_WHITE;
     ctx.lineWidth = LINE_WIDTH;
