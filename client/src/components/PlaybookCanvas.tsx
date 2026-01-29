@@ -149,16 +149,46 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     return `${athlete.firstName.charAt(0)}${athlete.lastName.charAt(0)}`.toUpperCase();
   };
 
-  // Calculate canvas size for half-field display
+  // Calculate canvas size to fit full field within visible viewport
   useEffect(() => {
     const updateCanvasSize = () => {
       const container = canvasRef.current?.parentElement;
       if (container) {
-        const width = container.clientWidth;
-        // Half-field aspect ratio: wider than tall for a half
-        // Use a consistent aspect ratio for stability (width : height = 1 : 0.6)
-        const height = Math.round(width * 0.6);
-        setCanvasSize({ width, height: Math.max(height, 250) });
+        const containerWidth = container.clientWidth;
+        // Calculate available height: viewport height minus header/toolbar (~200px)
+        const availableHeight = window.innerHeight - 280;
+        
+        // Get the actual image aspect ratio for the current sport
+        const normalizedSport = sport?.toLowerCase();
+        let imageAspectRatio = 1.5; // Default tall aspect ratio for fields
+        
+        if (normalizedSport === "basketball" && basketballImageRef.current) {
+          imageAspectRatio = basketballImageRef.current.naturalHeight / basketballImageRef.current.naturalWidth;
+        } else if (normalizedSport === "football" && footballImageRef.current) {
+          imageAspectRatio = footballImageRef.current.naturalHeight / footballImageRef.current.naturalWidth;
+        } else if (normalizedSport === "soccer" && soccerImageRef.current) {
+          // Soccer is rotated, so width becomes height
+          imageAspectRatio = soccerImageRef.current.naturalWidth / soccerImageRef.current.naturalHeight;
+        } else if (normalizedSport === "baseball" && baseballImageRef.current) {
+          imageAspectRatio = baseballImageRef.current.naturalHeight / baseballImageRef.current.naturalWidth;
+        } else if (normalizedSport === "volleyball" && volleyballImageRef.current) {
+          imageAspectRatio = volleyballImageRef.current.naturalHeight / volleyballImageRef.current.naturalWidth;
+        }
+        
+        // For half-field, use half the aspect ratio
+        const halfFieldAspectRatio = imageAspectRatio / 2;
+        
+        // Calculate dimensions that fit within available space
+        let width = containerWidth;
+        let height = Math.round(width * halfFieldAspectRatio);
+        
+        // If height exceeds available, scale down to fit
+        if (height > availableHeight) {
+          height = availableHeight;
+          width = Math.round(height / halfFieldAspectRatio);
+        }
+        
+        setCanvasSize({ width: Math.min(width, containerWidth), height: Math.max(height, 200) });
       }
     };
     
