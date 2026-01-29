@@ -216,6 +216,8 @@ export function PlaybookCanvas({
       if (rawProgress >= 1) {
         const nextIndex = currentKeyframeIndex + 1;
         if (nextIndex < frozenKeyframes.length - 1) {
+          // Reset progress BEFORE updating keyframe index to prevent destination blink
+          setAnimationProgress(0);
           setCurrentKeyframeIndex(nextIndex);
           startTime = null;
           animationRef.current = requestAnimationFrame(animate);
