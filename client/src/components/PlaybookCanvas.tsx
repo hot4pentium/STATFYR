@@ -303,28 +303,31 @@ export function PlaybookCanvas({
     const nextKf = activeKeyframes[currentKeyframeIndex + 1];
     if (!nextKf) return elements;
 
-    // During playback, only show elements that exist in the CURRENT keyframe
-    // Elements added at later keyframes should not appear until we reach that keyframe
+    // During playback, show elements that exist in EITHER current OR next keyframe
+    // This makes new elements appear at the START of the transition (with movement)
     return elements
       .filter(el => {
-        // Only show elements that exist in the current keyframe
-        return currentKf.positions.some(p => p.elementId === el.id);
+        const inCurrent = currentKf.positions.some(p => p.elementId === el.id);
+        const inNext = nextKf.positions.some(p => p.elementId === el.id);
+        return inCurrent || inNext;
       })
       .map(el => {
         const currentPos = currentKf.positions.find(p => p.elementId === el.id);
         const nextPos = nextKf.positions.find(p => p.elementId === el.id);
 
-        // If element exists in current but not next, keep it at current position (it will disappear at next keyframe)
-        if (currentPos && !nextPos) {
-          if (currentPos.points.length === el.points.length) {
-            return { ...el, points: currentPos.points };
-          }
-          return el;
+        // Element only in next keyframe (new) - show at its final position immediately
+        if (!currentPos && nextPos) {
+          return { ...el, points: nextPos.points };
         }
 
-        // Handle missing positions - use element's current points as fallback
+        // Element only in current keyframe (removed in next) - keep at current position
+        if (currentPos && !nextPos) {
+          return { ...el, points: currentPos.points };
+        }
+
+        // Element in both - interpolate between positions
         const fromPoints = currentPos?.points || el.points;
-        const toPoints = nextPos?.points || fromPoints; // If not in next, stay at current position
+        const toPoints = nextPos?.points || fromPoints;
 
         // If point counts don't match, use the current position without interpolation
         if (fromPoints.length !== toPoints.length) {
