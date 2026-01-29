@@ -121,23 +121,27 @@ export function PlaybookCanvas({
     setIsPlaying(false);
   }, [JSON.stringify(initialKeyframes)]);
 
-  // Clear canvas and reset dimensions when sport changes
+  // Clear canvas and reset dimensions when sport changes (only in edit mode, not when viewing saved plays)
   useEffect(() => {
-    setElements([]);
-    setDimensionsLocked(false);
-  }, [sport]);
+    if (!readOnly && initialElements.length === 0) {
+      setElements([]);
+      setDimensionsLocked(false);
+    }
+  }, [sport, readOnly, initialElements.length]);
 
   // Notify parent when there are unsaved changes
   useEffect(() => {
     onHasUnsavedChanges?.(elements.length > 0 || keyframes.length > 0);
   }, [elements.length, keyframes.length, onHasUnsavedChanges]);
 
-  // Reset keyframes when sport changes
+  // Reset keyframes when sport changes (only in edit mode, not when viewing saved plays)
   useEffect(() => {
-    setKeyframes([]);
-    setCurrentKeyframeIndex(0);
-    setIsPlaying(false);
-  }, [sport]);
+    if (!readOnly && initialKeyframes.length === 0) {
+      setKeyframes([]);
+      setCurrentKeyframeIndex(0);
+      setIsPlaying(false);
+    }
+  }, [sport, readOnly, initialKeyframes.length]);
 
   // Capture keyframes snapshot when playback starts
   useEffect(() => {
