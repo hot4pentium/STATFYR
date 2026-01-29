@@ -108,7 +108,7 @@ export default function PlayEditorPage() {
             </Button>
             <Button 
               variant="ghost" 
-              onClick={() => navigate("/playbook")}
+              onClick={handleBack}
               className="mt-2 w-full"
             >
               Back to Playbook
@@ -134,6 +134,38 @@ export default function PlayEditorPage() {
     setHasUnsavedChanges(hasChanges);
   }, []);
 
+  // Handle browser back button and beforeunload
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    const handlePopState = () => {
+      if (hasUnsavedChanges) {
+        // Push state back to prevent navigation
+        window.history.pushState(null, '', window.location.href);
+        setShowLeaveDialog(true);
+      }
+    };
+
+    // Push initial state to enable popstate handling
+    if (hasUnsavedChanges) {
+      window.history.pushState(null, '', window.location.href);
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [hasUnsavedChanges]);
+
   // Show rotate message in landscape mode
   if (isMobileLandscape) {
     return (
@@ -147,7 +179,7 @@ export default function PlayEditorPage() {
             </p>
             <Button 
               variant="outline"
-              onClick={() => navigate(backUrl)}
+              onClick={handleBack}
               className="gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -184,7 +216,7 @@ export default function PlayEditorPage() {
                 <Button 
                   size="sm" 
                   variant="ghost" 
-                  onClick={() => navigate("/playbook")}
+                  onClick={handleBack}
                   className="text-amber-100 hover:text-white h-8 text-xs"
                 >
                   Exit
