@@ -55,10 +55,9 @@ interface PlaybookCanvasProps {
 
 const SHAPE_SIZE = 24;
 
-type FieldHalf = "offense" | "defense";
-
 export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSaving = false }: PlaybookCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const basketballImageRef = useRef<HTMLImageElement | null>(null);
   const footballImageRef = useRef<HTMLImageElement | null>(null);
   const soccerImageRef = useRef<HTMLImageElement | null>(null);
@@ -74,12 +73,9 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [lastPoint, setLastPoint] = useState<Point | null>(null);
   const [currentPath, setCurrentPath] = useState<Point[]>([]);
-  const [offenseElements, setOffenseElements] = useState<DrawnElement[]>([]);
-  const [defenseElements, setDefenseElements] = useState<DrawnElement[]>([]);
-  const [activeHalf, setActiveHalf] = useState<FieldHalf>("offense");
-  const elements = activeHalf === "offense" ? offenseElements : defenseElements;
-  const setElements = activeHalf === "offense" ? setOffenseElements : setDefenseElements;
+  const [elements, setElements] = useState<DrawnElement[]>([]);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [dimensionsLocked, setDimensionsLocked] = useState(false);
   const [sportImagesLoaded, setSportImagesLoaded] = useState(false);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [playName, setPlayName] = useState("");
@@ -149,147 +145,135 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     return `${athlete.firstName.charAt(0)}${athlete.lastName.charAt(0)}`.toUpperCase();
   };
 
-  // Calculate canvas size to fit full field within visible viewport
+  // Calculate canvas size for full field - lock dimensions after initial calculation
   useEffect(() => {
-    const updateCanvasSize = () => {
-      const container = canvasRef.current?.parentElement;
-      if (container) {
-        const containerWidth = container.clientWidth;
-        // Calculate available height: viewport height minus header/toolbar (~200px)
-        const availableHeight = window.innerHeight - 280;
-        
-        // Get the actual image aspect ratio for the current sport
-        const normalizedSport = sport?.toLowerCase();
-        let imageAspectRatio = 1.5; // Default tall aspect ratio for fields
-        
-        if (normalizedSport === "basketball" && basketballImageRef.current) {
-          imageAspectRatio = basketballImageRef.current.naturalHeight / basketballImageRef.current.naturalWidth;
-        } else if (normalizedSport === "football" && footballImageRef.current) {
-          imageAspectRatio = footballImageRef.current.naturalHeight / footballImageRef.current.naturalWidth;
-        } else if (normalizedSport === "soccer" && soccerImageRef.current) {
-          // Soccer is rotated, so width becomes height
-          imageAspectRatio = soccerImageRef.current.naturalWidth / soccerImageRef.current.naturalHeight;
-        } else if (normalizedSport === "baseball" && baseballImageRef.current) {
-          imageAspectRatio = baseballImageRef.current.naturalHeight / baseballImageRef.current.naturalWidth;
-        } else if (normalizedSport === "volleyball" && volleyballImageRef.current) {
-          imageAspectRatio = volleyballImageRef.current.naturalHeight / volleyballImageRef.current.naturalWidth;
-        }
-        
-        // For half-field, use half the aspect ratio
-        const halfFieldAspectRatio = imageAspectRatio / 2;
-        
-        // Calculate dimensions that fit within available space
-        let width = containerWidth;
-        let height = Math.round(width * halfFieldAspectRatio);
-        
-        // If height exceeds available, scale down to fit
-        if (height > availableHeight) {
-          height = availableHeight;
-          width = Math.round(height / halfFieldAspectRatio);
-        }
-        
-        setCanvasSize({ width: Math.min(width, containerWidth), height: Math.max(height, 200) });
+    const calculateSize = () => {
+      const container = containerRef.current;
+      if (!container || !sportImagesLoaded) return;
+      
+      // Don't recalculate if dimensions are locked (prevents scroll-triggered changes)
+      if (dimensionsLocked && canvasSize.width > 0) return;
+      
+      const containerWidth = container.clientWidth;
+      const normalizedSport = sport?.toLowerCase();
+      
+      // Get the actual image aspect ratio for the current sport
+      let imageAspectRatio = 1.8; // Default tall aspect ratio for fields
+      
+      if (normalizedSport === "basketball" && basketballImageRef.current) {
+        imageAspectRatio = basketballImageRef.current.naturalHeight / basketballImageRef.current.naturalWidth;
+      } else if (normalizedSport === "football" && footballImageRef.current) {
+        imageAspectRatio = footballImageRef.current.naturalHeight / footballImageRef.current.naturalWidth;
+      } else if (normalizedSport === "soccer" && soccerImageRef.current) {
+        // Soccer is rotated, so width becomes height
+        imageAspectRatio = soccerImageRef.current.naturalWidth / soccerImageRef.current.naturalHeight;
+      } else if (normalizedSport === "baseball" && baseballImageRef.current) {
+        imageAspectRatio = baseballImageRef.current.naturalHeight / baseballImageRef.current.naturalWidth;
+      } else if (normalizedSport === "volleyball" && volleyballImageRef.current) {
+        imageAspectRatio = volleyballImageRef.current.naturalHeight / volleyballImageRef.current.naturalWidth;
+      }
+      
+      // Calculate height based on width and aspect ratio
+      const width = containerWidth;
+      const height = Math.round(width * imageAspectRatio);
+      
+      setCanvasSize({ width, height });
+      setDimensionsLocked(true);
+    };
+    
+    calculateSize();
+    
+    // Only recalculate on significant resize (orientation change)
+    const handleResize = () => {
+      const container = containerRef.current;
+      if (!container) return;
+      const newWidth = container.clientWidth;
+      // Only unlock if width changed significantly (orientation change, not scroll)
+      if (Math.abs(newWidth - canvasSize.width) > 50) {
+        setDimensionsLocked(false);
       }
     };
     
-    updateCanvasSize();
-    window.addEventListener("resize", updateCanvasSize);
-    return () => window.removeEventListener("resize", updateCanvasSize);
-  }, [sport, sportImagesLoaded]);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [sport, sportImagesLoaded, dimensionsLocked, canvasSize.width]);
 
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
 
-    drawSportBackground(ctx, canvas.width, canvas.height, sport, activeHalf);
+    drawSportBackground(ctx, canvas.width, canvas.height, sport);
 
     elements.forEach((element) => {
       drawElement(ctx, element);
     });
-  }, [elements, sport, sportImagesLoaded, activeHalf]);
+  }, [elements, sport, sportImagesLoaded]);
 
   useEffect(() => {
     redrawCanvas();
   }, [canvasSize, redrawCanvas]);
 
-  const drawSportBackground = (ctx: CanvasRenderingContext2D, width: number, height: number, sportType: string, half: FieldHalf = "offense") => {
+  const drawSportBackground = (ctx: CanvasRenderingContext2D, width: number, height: number, sportType: string) => {
     const normalizedSport = sportType?.toLowerCase();
     switch (normalizedSport) {
       case "baseball":
-        drawBaseballField(ctx, width, height, half);
+        drawBaseballField(ctx, width, height);
         break;
       case "basketball":
-        drawBasketballCourt(ctx, width, height, half);
+        drawBasketballCourt(ctx, width, height);
         break;
       case "football":
-        drawFootballField(ctx, width, height, half);
+        drawFootballField(ctx, width, height);
         break;
       case "soccer":
-        drawSoccerPitch(ctx, width, height, half);
+        drawSoccerPitch(ctx, width, height);
         break;
       case "volleyball":
-        drawVolleyballCourt(ctx, width, height, half);
+        drawVolleyballCourt(ctx, width, height);
         break;
       default:
-        drawFootballField(ctx, width, height, half);
+        drawFootballField(ctx, width, height);
     }
   };
 
-  const drawBaseballField = (ctx: CanvasRenderingContext2D, width: number, height: number, half: FieldHalf) => {
+  const drawBaseballField = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (baseballImageRef.current) {
-      const img = baseballImageRef.current;
       ctx.fillStyle = "#228B22";
       ctx.fillRect(0, 0, width, height);
-      const sourceY = half === "offense" ? 0 : img.naturalHeight / 2;
-      const sourceH = img.naturalHeight / 2;
-      const scaledWidth = width * 1.3;
-      const offsetX = (width - scaledWidth) / 2;
-      ctx.drawImage(img, 0, sourceY, img.naturalWidth, sourceH, offsetX, 0, scaledWidth, height);
+      ctx.drawImage(baseballImageRef.current, 0, 0, width, height);
     } else {
       ctx.fillStyle = "#228B22";
       ctx.fillRect(0, 0, width, height);
     }
   };
 
-  const drawBasketballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number, half: FieldHalf) => {
+  const drawBasketballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (basketballImageRef.current) {
-      const img = basketballImageRef.current;
-      // Draw half of the basketball court
-      const sourceY = half === "offense" ? 0 : img.naturalHeight / 2;
-      const sourceH = img.naturalHeight / 2;
-      ctx.drawImage(img, 0, sourceY, img.naturalWidth, sourceH, 0, 0, width, height);
+      ctx.drawImage(basketballImageRef.current, 0, 0, width, height);
     } else {
       ctx.fillStyle = "#CD853F";
       ctx.fillRect(0, 0, width, height);
     }
   };
 
-  const drawFootballField = (ctx: CanvasRenderingContext2D, width: number, height: number, half: FieldHalf) => {
+  const drawFootballField = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (footballImageRef.current) {
-      const img = footballImageRef.current;
-      // Draw half of the football field
-      const sourceY = half === "offense" ? 0 : img.naturalHeight / 2;
-      const sourceH = img.naturalHeight / 2;
-      ctx.drawImage(img, 0, sourceY, img.naturalWidth, sourceH, 0, 0, width, height);
+      ctx.drawImage(footballImageRef.current, 0, 0, width, height);
     } else {
       ctx.fillStyle = "#1a472a";
       ctx.fillRect(0, 0, width, height);
     }
   };
 
-  const drawSoccerPitch = (ctx: CanvasRenderingContext2D, width: number, height: number, half: FieldHalf) => {
+  const drawSoccerPitch = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (soccerImageRef.current) {
       const img = soccerImageRef.current;
-      // Soccer field is rotated - draw half of it
-      // Source is half the image width (since we're rotating)
-      const sourceX = half === "offense" ? 0 : img.naturalWidth / 2;
-      const sourceW = img.naturalWidth / 2;
-      
+      // Soccer field is landscape, rotate 90 degrees for portrait display
       ctx.save();
       ctx.translate(width / 2, height / 2);
       ctx.rotate(Math.PI / 2);
-      ctx.drawImage(img, sourceX, 0, sourceW, img.naturalHeight, -height / 2, -width / 2, height, width);
+      ctx.drawImage(img, -height / 2, -width / 2, height, width);
       ctx.restore();
     } else {
       ctx.fillStyle = "#228B22";
@@ -297,15 +281,9 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     }
   };
 
-  const drawVolleyballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number, half: FieldHalf) => {
+  const drawVolleyballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (volleyballImageRef.current) {
-      const img = volleyballImageRef.current;
-      const sourceY = half === "offense" ? 0 : img.naturalHeight / 2;
-      const sourceH = img.naturalHeight / 2;
-      ctx.save();
-      ctx.globalAlpha = 0.3;
-      ctx.drawImage(img, 0, sourceY, img.naturalWidth, sourceH, 0, 0, width, height);
-      ctx.restore();
+      ctx.drawImage(volleyballImageRef.current, 0, 0, width, height);
     } else {
       ctx.fillStyle = "#CD853F";
       ctx.fillRect(0, 0, width, height);
@@ -670,13 +648,9 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const handleSavePlay = async () => {
     if (!onSave || !playName.trim()) return;
     
-    // Save both halves in a structured format
-    const canvasData = JSON.stringify({
-      offense: offenseElements,
-      defense: defenseElements,
-    });
+    const canvasData = JSON.stringify(elements);
     
-    // Capture canvas as thumbnail (current view)
+    // Capture canvas as thumbnail
     const canvas = canvasRef.current;
     const thumbnailData = canvas ? canvas.toDataURL("image/png", 0.5) : "";
     
@@ -692,8 +666,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     setPlayName("");
     setPlayDescription("");
     setPlayCategory("Offense");
-    setOffenseElements([]);
-    setDefenseElements([]);
+    setElements([]);
   };
 
   return (
@@ -863,29 +836,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         </AlertDialog>
       </div>
 
-      {/* Half-field toggle */}
-      <div className="flex justify-center gap-2 mb-2">
-        <Button
-          variant={activeHalf === "offense" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setActiveHalf("offense")}
-          className={activeHalf === "offense" ? "bg-green-600 hover:bg-green-700" : ""}
-          data-testid="toggle-offense"
-        >
-          Offense
-        </Button>
-        <Button
-          variant={activeHalf === "defense" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setActiveHalf("defense")}
-          className={activeHalf === "defense" ? "bg-blue-600 hover:bg-blue-700" : ""}
-          data-testid="toggle-defense"
-        >
-          Defense
-        </Button>
-      </div>
-
-      <div className="relative w-full rounded-lg border border-white/10 flex items-center justify-center" style={{ height: canvasSize.height || 250 }}>
+      <div ref={containerRef} className="relative w-full rounded-lg border border-white/10 overflow-hidden" style={{ height: canvasSize.height || 400 }}>
         <canvas
           ref={canvasRef}
           width={canvasSize.width || 400}
