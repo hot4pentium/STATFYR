@@ -144,14 +144,21 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     return `${athlete.firstName.charAt(0)}${athlete.lastName.charAt(0)}`.toUpperCase();
   };
 
-  // Store initial height to prevent shrinking on scroll
+  // Store initial dimensions to prevent shrinking on scroll
   const initialHeightRef = useRef<number>(0);
+  const initialWidthRef = useRef<number>(0);
 
   useEffect(() => {
     const updateCanvasSize = () => {
       const container = canvasRef.current?.parentElement;
       if (container) {
         const width = container.clientWidth;
+        
+        // Only update if width changed significantly (more than 10px) - prevents scroll-triggered updates on iOS
+        if (initialWidthRef.current > 0 && Math.abs(width - initialWidthRef.current) < 10) {
+          return; // Skip update - minor width change likely from scroll
+        }
+        
         const normalizedSport = sport?.toLowerCase();
         
         // Calculate height based on full field dimensions with extra space for complete visibility
@@ -180,9 +187,12 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         // Ensure minimum height
         fullHeight = Math.max(fullHeight, 700);
         
-        // Store initial height and never let it shrink (prevents scroll-triggered resize issues)
+        // Store initial dimensions and never let height shrink (prevents scroll-triggered resize issues)
         if (initialHeightRef.current === 0 || fullHeight > initialHeightRef.current) {
           initialHeightRef.current = fullHeight;
+        }
+        if (initialWidthRef.current === 0) {
+          initialWidthRef.current = width;
         }
         
         const height = initialHeightRef.current;
@@ -190,8 +200,9 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       }
     };
 
-    // Reset initial height when sport changes
+    // Reset initial dimensions when sport changes
     initialHeightRef.current = 0;
+    initialWidthRef.current = 0;
     
     updateCanvasSize();
     window.addEventListener("resize", updateCanvasSize);
@@ -849,11 +860,12 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         </AlertDialog>
       </div>
 
-      <div className="relative w-full rounded-lg border border-white/10 flex items-center justify-center" style={{ height: canvasSize.height || 500 }}>
+      <div className="relative w-full rounded-lg border border-white/10 flex items-center justify-center" style={{ minHeight: canvasSize.height || 500, height: canvasSize.height || 500 }}>
         <canvas
           ref={canvasRef}
           width={canvasSize.width || 400}
           height={canvasSize.height || 500}
+          style={{ minHeight: canvasSize.height || 500 }}
           className="touch-none cursor-crosshair max-w-full max-h-full"
           onMouseDown={handleStart}
           onMouseMove={handleMove}
