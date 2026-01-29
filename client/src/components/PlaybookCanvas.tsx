@@ -476,64 +476,55 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       }
     }
     
-    // Yard numbers - split on either side of the line (e.g., "1 | 0")
+    // Yard numbers - rotated vertically on either side of the line
     ctx.fillStyle = LINE_WHITE;
     ctx.font = `bold ${width * 0.055}px Arial`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
     const yardNumbers = [10, 20, 30, 40, 50];
+    const numberSpacing = width * 0.04;
+    
     yardNumbers.forEach((num, i) => {
       const lineY = endZoneHeight + (playableHeight * (i + 1) * 0.18);
       if (lineY < height - 20) {
         const tens = Math.floor(num / 10).toString();
         const ones = (num % 10).toString();
-        const numberOffset = width * 0.03;
-        const sideOffset = width * 0.08;
+        const sideOffset = width * 0.07;
         
-        // Left side numbers
-        ctx.textAlign = "right";
         const leftX = margin + sideOffset;
-        // Right side numbers  
         const rightX = width - margin - sideOffset;
         
-        if (half === "defense") {
-          // Flip text for defense mode
-          ctx.save();
-          ctx.translate(leftX - numberOffset, lineY);
-          ctx.scale(1, -1);
-          ctx.textAlign = "right";
-          ctx.fillText(tens, 0, 0);
-          ctx.restore();
-          ctx.save();
-          ctx.translate(leftX + numberOffset, lineY);
-          ctx.scale(1, -1);
-          ctx.textAlign = "left";
-          ctx.fillText(ones, 0, 0);
-          ctx.restore();
-          
-          ctx.save();
-          ctx.translate(rightX - numberOffset, lineY);
-          ctx.scale(1, -1);
-          ctx.textAlign = "right";
-          ctx.fillText(tens, 0, 0);
-          ctx.restore();
-          ctx.save();
-          ctx.translate(rightX + numberOffset, lineY);
-          ctx.scale(1, -1);
-          ctx.textAlign = "left";
-          ctx.fillText(ones, 0, 0);
-          ctx.restore();
-        } else {
-          // Left side: tens | ones
-          ctx.textAlign = "right";
-          ctx.fillText(tens, leftX - numberOffset, lineY);
-          ctx.textAlign = "left";
-          ctx.fillText(ones, leftX + numberOffset, lineY);
-          
-          // Right side: tens | ones
-          ctx.textAlign = "right";
-          ctx.fillText(tens, rightX - numberOffset, lineY);
-          ctx.textAlign = "left";
-          ctx.fillText(ones, rightX + numberOffset, lineY);
-        }
+        // Left side - rotated 90 degrees counterclockwise (facing left sideline)
+        // Tens digit above the line, ones below
+        ctx.save();
+        ctx.translate(leftX, lineY - numberSpacing);
+        if (half === "defense") ctx.scale(1, -1);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(tens, 0, 0);
+        ctx.restore();
+        
+        ctx.save();
+        ctx.translate(leftX, lineY + numberSpacing);
+        if (half === "defense") ctx.scale(1, -1);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(ones, 0, 0);
+        ctx.restore();
+        
+        // Right side - rotated 90 degrees clockwise (facing right sideline)
+        // Ones digit above the line, tens below (mirrored)
+        ctx.save();
+        ctx.translate(rightX, lineY - numberSpacing);
+        if (half === "defense") ctx.scale(1, -1);
+        ctx.rotate(Math.PI / 2);
+        ctx.fillText(ones, 0, 0);
+        ctx.restore();
+        
+        ctx.save();
+        ctx.translate(rightX, lineY + numberSpacing);
+        if (half === "defense") ctx.scale(1, -1);
+        ctx.rotate(Math.PI / 2);
+        ctx.fillText(tens, 0, 0);
+        ctx.restore();
       }
     });
     
