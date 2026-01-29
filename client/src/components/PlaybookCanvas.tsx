@@ -390,12 +390,24 @@ export function PlaybookCanvas({
     setIsPlaying(false);
   }, []);
 
-  // Reset animation to start
+  // Reset animation to start - uses jumpToKeyframe for consistency
   const resetAnimation = useCallback(() => {
     setIsPlaying(false);
     setCurrentKeyframeIndex(0);
     setAnimationProgress(0);
-  }, []);
+    
+    // Update elements to first keyframe positions
+    if (keyframes[0]) {
+      const kf = keyframes[0];
+      setElements(prev => prev.map(el => {
+        const kfPos = kf.positions.find(p => p.elementId === el.id);
+        if (kfPos && kfPos.points.length === el.points.length) {
+          return { ...el, points: kfPos.points };
+        }
+        return el;
+      }));
+    }
+  }, [keyframes]);
 
   const sortedAthletes = [...athletes].sort((a, b) => 
     a.firstName.localeCompare(b.firstName)
