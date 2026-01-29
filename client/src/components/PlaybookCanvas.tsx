@@ -144,13 +144,15 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     return `${athlete.firstName.charAt(0)}${athlete.lastName.charAt(0)}`.toUpperCase();
   };
 
+  // Store initial height to prevent shrinking on scroll
+  const initialHeightRef = useRef<number>(0);
+
   useEffect(() => {
     const updateCanvasSize = () => {
       const container = canvasRef.current?.parentElement;
       if (container) {
         const width = container.clientWidth;
         const normalizedSport = sport?.toLowerCase();
-        const isExtendableSport = ["basketball", "football", "soccer", "baseball", "volleyball"].includes(normalizedSport);
         
         // Calculate height based on full field dimensions with extra space for complete visibility
         let fullHeight: number;
@@ -177,15 +179,24 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         
         // Ensure minimum height
         fullHeight = Math.max(fullHeight, 700);
-        const height = fullHeight;
+        
+        // Store initial height and never let it shrink (prevents scroll-triggered resize issues)
+        if (initialHeightRef.current === 0 || fullHeight > initialHeightRef.current) {
+          initialHeightRef.current = fullHeight;
+        }
+        
+        const height = initialHeightRef.current;
         setCanvasSize({ width, height });
       }
     };
 
+    // Reset initial height when sport changes
+    initialHeightRef.current = 0;
+    
     updateCanvasSize();
     window.addEventListener("resize", updateCanvasSize);
     return () => window.removeEventListener("resize", updateCanvasSize);
-  }, [sport, showFullCourt, sportImagesLoaded]);
+  }, [sport, sportImagesLoaded]);
 
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
