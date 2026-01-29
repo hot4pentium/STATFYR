@@ -316,6 +316,14 @@ export function PlaybookCanvas({
     ));
   }, [elements, currentKeyframeIndex, keyframes.length]);
 
+  // Clear all keyframes and start fresh
+  const clearAllKeyframes = useCallback(() => {
+    setKeyframes([]);
+    setCurrentKeyframeIndex(0);
+    setAnimationProgress(0);
+    setIsPlaying(false);
+  }, []);
+
   // Reset animation to start
   const resetAnimation = useCallback(() => {
     setIsPlaying(false);
@@ -1462,18 +1470,49 @@ export function PlaybookCanvas({
               <span className="hidden sm:inline text-xs">Keyframe</span>
             </Button>
             {keyframes.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={updateCurrentKeyframe}
-                disabled={elements.length === 0 || isPlaying}
-                className="gap-1 text-blue-500 border-blue-500/50 hover:bg-blue-500/20"
-                title={`Update keyframe ${currentKeyframeIndex + 1} with current positions`}
-                data-testid="button-update-keyframe"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span className="hidden sm:inline text-xs">Update</span>
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={updateCurrentKeyframe}
+                  disabled={elements.length === 0 || isPlaying}
+                  className="gap-1 text-blue-500 border-blue-500/50 hover:bg-blue-500/20"
+                  title={`Update keyframe ${currentKeyframeIndex + 1} with current positions`}
+                  data-testid="button-update-keyframe"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span className="hidden sm:inline text-xs">Update</span>
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isPlaying}
+                      className="gap-1 text-red-500 border-red-500/50 hover:bg-red-500/20"
+                      title="Clear all keyframes and start over"
+                      data-testid="button-clear-keyframes"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="hidden sm:inline text-xs">Clear</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Clear All Keyframes?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will delete all {keyframes.length} keyframe{keyframes.length !== 1 ? 's' : ''} and reset your animation. Your shapes will remain on the canvas, but you'll need to record new keyframes.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={clearAllKeyframes} className="bg-red-600 hover:bg-red-700">
+                        Clear All
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
             )}
             <Button
               variant="ghost"
