@@ -525,15 +525,16 @@ export function PlaybookCanvas({
     // Show filtered/interpolated elements when:
     // 1. Playing animation
     // 2. In read-only viewer mode
-    // 3. In edit mode with keyframes (to show correct keyframe state)
+    // 3. In edit mode with keyframes BUT NOT while dragging (so user sees live movement)
     // This ensures elements only appear in frames where they were recorded
-    const displayElements = (isPlaying || readOnly || keyframes.length > 0) 
+    const shouldInterpolate = (isPlaying || readOnly || keyframes.length > 0) && !isDragging;
+    const displayElements = shouldInterpolate 
       ? getInterpolatedElements() 
       : elements;
     displayElements.forEach((element) => {
       drawElement(ctx, element);
     });
-  }, [elements, sport, activeHalf, isPlaying, keyframes.length, readOnly, getInterpolatedElements]);
+  }, [elements, sport, activeHalf, isPlaying, keyframes.length, readOnly, isDragging, getInterpolatedElements]);
 
   useEffect(() => {
     redrawCanvas();
@@ -1219,8 +1220,10 @@ export function PlaybookCanvas({
   };
 
   const findElementAtPoint = (point: Point): DrawnElement | null => {
-    // Use the same filtering logic as display: show elements from current keyframe + new unrecorded elements
-    const displayedElements = (isPlaying || readOnly || keyframes.length > 0) ? getInterpolatedElements() : elements;
+    // Use interpolated elements for hit testing only when viewing keyframe state (not while editing/dragging)
+    // During editing, use raw elements so user can grab and move things
+    const shouldInterpolate = (isPlaying || readOnly || keyframes.length > 0) && !isDragging;
+    const displayedElements = shouldInterpolate ? getInterpolatedElements() : elements;
     
     for (let i = displayedElements.length - 1; i >= 0; i--) {
       const el = displayedElements[i];
