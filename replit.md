@@ -14,7 +14,7 @@ STATFYR employs a modern web application architecture with a clear separation of
 ### Key Features
 -   **Role-Based Access Control**: Differentiated access levels for Coaches, Staff, Athletes, and Supporters, with varying permissions for dashboard management, content creation, and data viewing.
 -   **Video Highlights System**: Allows upload, transcoding (FFmpeg), and storage of team video highlights.
--   **Playbook System**: A canvas-based play designer (PlayMaker) for coaches to create and manage plays.
+-   **Playbook System**: A canvas-based play designer (PlayMaker) for coaches to create and manage plays. Features split offense/defense half-field views with toggle, portrait-only mode with landscape rotation prompt, and saves both halves together. Sports: Basketball, Football, Soccer, Baseball, Volleyball (alphabetized).
 -   **StatTracker System**: Enables live game statistics tracking, offering individual and team modes with sport-specific presets.
 -   **Live Engagement Sessions (Game Day Live)**: Facilitates real-time supporter interaction during live events through shoutouts and taps.
 -   **Badge & Theme System**: Rewards supporter engagement with badges that unlock custom dashboard themes.
