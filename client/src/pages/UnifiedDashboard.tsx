@@ -3819,9 +3819,9 @@ export default function UnifiedDashboard() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Play Detail Dialog with Animation Playback - Full screen to match editor canvas */}
+        {/* Play Detail Dialog with Animation Playback - Fixed width to match editor canvas */}
         <Dialog open={!!expandedPlay} onOpenChange={(open) => !open && setExpandedPlay(null)}>
-          <DialogContent className="max-w-[95vw] w-full max-h-[95vh] overflow-y-auto p-4">
+          <DialogContent className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 {expandedPlay?.name}
@@ -3830,7 +3830,7 @@ export default function UnifiedDashboard() {
             </DialogHeader>
             {expandedPlay?.description && <p className="text-muted-foreground text-sm">{expandedPlay.description}</p>}
             {expandedPlay?.canvasData && (
-              <div className="rounded-lg overflow-hidden border">
+              <div className="rounded-lg overflow-hidden border w-full">
                 <PlaybookCanvas
                   key={expandedPlay.id}
                   sport={currentTeam?.sport || "Basketball"}
