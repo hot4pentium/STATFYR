@@ -517,9 +517,12 @@ export function PlaybookCanvas({
 
     drawSportBackground(ctx, canvas.width, canvas.height, sport, activeHalf);
 
-    // In edit mode (not readOnly): show ALL elements so user can draw and move things
-    // Only filter/interpolate during playback or in read-only viewer mode
-    const displayElements = (isPlaying || readOnly) 
+    // Show filtered/interpolated elements when:
+    // 1. Playing animation
+    // 2. In read-only viewer mode
+    // 3. In edit mode with keyframes (to show correct keyframe state)
+    // This ensures elements only appear in frames where they were recorded
+    const displayElements = (isPlaying || readOnly || keyframes.length > 0) 
       ? getInterpolatedElements() 
       : elements;
     displayElements.forEach((element) => {
@@ -1211,9 +1214,8 @@ export function PlaybookCanvas({
   };
 
   const findElementAtPoint = (point: Point): DrawnElement | null => {
-    // In edit mode: use raw elements for hit testing (what user sees = what they can click)
-    // In viewer/playback: use interpolated elements
-    const displayedElements = (isPlaying || readOnly) ? getInterpolatedElements() : elements;
+    // Use the same filtering logic as display: show elements from current keyframe + new unrecorded elements
+    const displayedElements = (isPlaying || readOnly || keyframes.length > 0) ? getInterpolatedElements() : elements;
     
     for (let i = displayedElements.length - 1; i >= 0; i--) {
       const el = displayedElements[i];
