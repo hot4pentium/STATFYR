@@ -3829,32 +3829,48 @@ export default function UnifiedDashboard() {
               </DialogTitle>
             </DialogHeader>
             {expandedPlay?.description && <p className="text-muted-foreground text-sm">{expandedPlay.description}</p>}
-            {expandedPlay?.canvasData && (
-              <div className="rounded-lg overflow-hidden border w-full">
-                <PlaybookCanvas
-                  key={expandedPlay.id}
-                  sport={currentTeam?.sport || "Basketball"}
-                  readOnly={true}
-                  initialElements={(() => {
-                    try {
-                      const parsed = JSON.parse(expandedPlay.canvasData);
-                      return Array.isArray(parsed) ? parsed : [];
-                    } catch {
-                      return [];
-                    }
-                  })()}
-                  initialKeyframes={(() => {
-                    try {
-                      if (!expandedPlay.keyframesData) return [];
-                      const parsed = JSON.parse(expandedPlay.keyframesData);
-                      return Array.isArray(parsed) ? parsed : [];
-                    } catch {
-                      return [];
-                    }
-                  })()}
-                />
-              </div>
-            )}
+            {expandedPlay?.canvasData && (() => {
+              // Parse canvas data - new format has { elements, canvasWidth }, old format is just array
+              let elements: any[] = [];
+              let canvasWidth: number | undefined;
+              try {
+                const parsed = JSON.parse(expandedPlay.canvasData);
+                if (Array.isArray(parsed)) {
+                  elements = parsed; // Old format
+                } else if (parsed.elements) {
+                  elements = parsed.elements;
+                  canvasWidth = parsed.canvasWidth;
+                }
+              } catch {}
+
+              // Parse keyframes - new format has { keyframes, canvasWidth }, old format is just array
+              let keyframes: any[] = [];
+              let keyframesCanvasWidth: number | undefined;
+              try {
+                if (expandedPlay.keyframesData) {
+                  const parsed = JSON.parse(expandedPlay.keyframesData);
+                  if (Array.isArray(parsed)) {
+                    keyframes = parsed; // Old format
+                  } else if (parsed.keyframes) {
+                    keyframes = parsed.keyframes;
+                    keyframesCanvasWidth = parsed.canvasWidth;
+                  }
+                }
+              } catch {}
+
+              return (
+                <div className="rounded-lg overflow-hidden border w-full">
+                  <PlaybookCanvas
+                    key={expandedPlay.id}
+                    sport={currentTeam?.sport || "Basketball"}
+                    readOnly={true}
+                    initialElements={elements}
+                    initialKeyframes={keyframes}
+                    originalCanvasWidth={canvasWidth || keyframesCanvasWidth}
+                  />
+                </div>
+              );
+            })()}
             {(userRole === "coach" || isStaff) && (
               <DialogFooter>
                 <Button variant="destructive" onClick={() => { deletePlayMutation.mutate(expandedPlay!.id); setExpandedPlay(null); }}>

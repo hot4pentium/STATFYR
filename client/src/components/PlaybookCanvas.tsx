@@ -63,6 +63,7 @@ interface PlaybookCanvasProps {
   initialElements?: DrawnElement[];
   initialKeyframes?: Keyframe[];
   readOnly?: boolean;
+  originalCanvasWidth?: number; // Original canvas width for scaling viewer
 }
 
 const SHAPE_SIZE = 22; // Reduced by ~10% for better canvas fit
@@ -75,7 +76,8 @@ export function PlaybookCanvas({
   onHasUnsavedChanges,
   initialElements = [],
   initialKeyframes = [],
-  readOnly = false
+  readOnly = false,
+  originalCanvasWidth
 }: PlaybookCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -108,18 +110,49 @@ export function PlaybookCanvas({
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const playbackKeyframesRef = useRef<Keyframe[]>([]);
 
-  // Sync elements when initialElements prop changes
-  useEffect(() => {
-    setElements(initialElements);
-  }, [JSON.stringify(initialElements)]);
+  // Helper to scale elements based on canvas width ratio
+  const scaleElements = useCallback((els: DrawnElement[], fromWidth: number, toWidth: number): DrawnElement[] => {
+    if (!fromWidth || !toWidth || fromWidth === toWidth) return els;
+    const scale = toWidth / fromWidth;
+    return els.map(el => ({
+      ...el,
+      points: el.points.map(p => ({ x: p.x * scale, y: p.y * scale }))
+    }));
+  }, []);
 
-  // Sync keyframes when initialKeyframes prop changes
+  // Helper to scale keyframes based on canvas width ratio
+  const scaleKeyframes = useCallback((kfs: Keyframe[], fromWidth: number, toWidth: number): Keyframe[] => {
+    if (!fromWidth || !toWidth || fromWidth === toWidth) return kfs;
+    const scale = toWidth / fromWidth;
+    return kfs.map(kf => ({
+      ...kf,
+      positions: kf.positions.map(pos => ({
+        ...pos,
+        points: pos.points.map(p => ({ x: p.x * scale, y: p.y * scale }))
+      }))
+    }));
+  }, []);
+
+  // Sync elements when initialElements prop changes - scale if needed for viewer
   useEffect(() => {
-    setKeyframes(initialKeyframes);
+    if (originalCanvasWidth && canvasSize.width > 0) {
+      setElements(scaleElements(initialElements, originalCanvasWidth, canvasSize.width));
+    } else {
+      setElements(initialElements);
+    }
+  }, [JSON.stringify(initialElements), originalCanvasWidth, canvasSize.width, scaleElements]);
+
+  // Sync keyframes when initialKeyframes prop changes - scale if needed for viewer
+  useEffect(() => {
+    if (originalCanvasWidth && canvasSize.width > 0) {
+      setKeyframes(scaleKeyframes(initialKeyframes, originalCanvasWidth, canvasSize.width));
+    } else {
+      setKeyframes(initialKeyframes);
+    }
     setCurrentKeyframeIndex(0);
     setAnimationProgress(0);
     setIsPlaying(false);
-  }, [JSON.stringify(initialKeyframes)]);
+  }, [JSON.stringify(initialKeyframes), originalCanvasWidth, canvasSize.width, scaleKeyframes]);
 
   // Clear canvas and reset dimensions when sport changes (only in edit mode, not when viewing saved plays)
   useEffect(() => {
@@ -1354,7 +1387,11 @@ export function PlaybookCanvas({
   const handleSavePlay = async () => {
     if (!onSave || !playName.trim()) return;
     
-    const canvasData = JSON.stringify(elements);
+    // Store elements with canvas width for proper scaling when viewing
+    const canvasData = JSON.stringify({
+      elements,
+      canvasWidth: canvasSize.width
+    });
     
     // Capture canvas as thumbnail
     const canvas = canvasRef.current;
@@ -1366,7 +1403,7 @@ export function PlaybookCanvas({
       canvasData,
       thumbnailData,
       category: playCategory,
-      keyframesData: keyframes.length > 0 ? JSON.stringify(keyframes) : undefined,
+      keyframesData: keyframes.length > 0 ? JSON.stringify({ keyframes, canvasWidth: canvasSize.width }) : undefined,
     });
     
     setIsSaveDialogOpen(false);
