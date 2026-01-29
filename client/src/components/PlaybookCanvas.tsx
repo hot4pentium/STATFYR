@@ -275,9 +275,21 @@ export function PlaybookCanvas({
 
     // If not playing or only one keyframe or at last keyframe, show current keyframe state
     if (!isPlaying || activeKeyframes.length === 1 || currentKeyframeIndex >= activeKeyframes.length - 1) {
-      // Only show elements that exist in the current keyframe (filter out elements added in later keyframes)
+      // Build a set of all element IDs that exist in ANY keyframe
+      const allKeyframedElementIds = new Set<string>();
+      activeKeyframes.forEach(kf => {
+        kf.positions.forEach(p => allKeyframedElementIds.add(p.elementId));
+      });
+
+      // Show elements that either:
+      // 1. Exist in the current keyframe, OR
+      // 2. Are brand new (not recorded in any keyframe yet) - so user can see what they just drew
       return elements
-        .filter(el => currentKf.positions.some(p => p.elementId === el.id))
+        .filter(el => {
+          const existsInCurrentKf = currentKf.positions.some(p => p.elementId === el.id);
+          const isNewElement = !allKeyframedElementIds.has(el.id);
+          return existsInCurrentKf || isNewElement;
+        })
         .map(el => {
           const kfPos = currentKf.positions.find(p => p.elementId === el.id);
           if (kfPos && kfPos.points.length === el.points.length) {
