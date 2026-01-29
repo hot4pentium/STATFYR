@@ -3819,18 +3819,18 @@ export default function UnifiedDashboard() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Play Detail Dialog with Animation Playback */}
+        {/* Play Detail Dialog with Animation Playback - Full screen to match editor canvas */}
         <Dialog open={!!expandedPlay} onOpenChange={(open) => !open && setExpandedPlay(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[95vw] w-full max-h-[95vh] overflow-y-auto p-4">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 {expandedPlay?.name}
                 {expandedPlay?.category && <Badge variant="outline">{expandedPlay.category}</Badge>}
               </DialogTitle>
             </DialogHeader>
-            {expandedPlay?.description && <p className="text-muted-foreground">{expandedPlay.description}</p>}
+            {expandedPlay?.description && <p className="text-muted-foreground text-sm">{expandedPlay.description}</p>}
             {expandedPlay?.canvasData && (
-              <div className="rounded-lg overflow-hidden border max-h-[60vh]">
+              <div className="rounded-lg overflow-hidden border">
                 <PlaybookCanvas
                   key={expandedPlay.id}
                   sport={currentTeam?.sport || "Basketball"}
