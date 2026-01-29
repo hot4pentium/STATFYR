@@ -3830,7 +3830,7 @@ export default function UnifiedDashboard() {
             </DialogHeader>
             {expandedPlay?.description && <p className="text-muted-foreground">{expandedPlay.description}</p>}
             {expandedPlay?.canvasData && (
-              <div className="rounded-lg overflow-hidden border">
+              <div className="rounded-lg overflow-hidden border max-h-[60vh]">
                 <PlaybookCanvas
                   key={expandedPlay.id}
                   sport={currentTeam?.sport || "Basketball"}
