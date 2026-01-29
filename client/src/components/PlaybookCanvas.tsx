@@ -1208,22 +1208,26 @@ export function PlaybookCanvas({
   };
 
   const findElementAtPoint = (point: Point): DrawnElement | null => {
-    for (let i = elements.length - 1; i >= 0; i--) {
-      const el = elements[i];
+    // Use displayed elements (which have keyframe positions applied) for hit testing
+    const displayedElements = (keyframes.length > 0) ? getInterpolatedElements() : elements;
+    
+    for (let i = displayedElements.length - 1; i >= 0; i--) {
+      const el = displayedElements[i];
       if (!isDraggableTool(el.tool)) continue;
 
       if (isShapeTool(el.tool)) {
         const center = el.points[0];
         const dist = Math.sqrt((point.x - center.x) ** 2 + (point.y - center.y) ** 2);
         if (dist <= SHAPE_SIZE / 2 + 10) {
-          return el;
+          // Return the element from elements array (not the interpolated one) so we can modify it
+          return elements.find(e => e.id === el.id) || el;
         }
       } else if (el.tool === "arrow" && el.points.length >= 2) {
         const start = el.points[0];
         const end = el.points[1];
         const distToLine = pointToLineDistance(point, start, end);
         if (distToLine <= 15) {
-          return el;
+          return elements.find(e => e.id === el.id) || el;
         }
       }
     }
