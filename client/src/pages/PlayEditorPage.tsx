@@ -6,12 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Eye, Crown, Loader2, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { isDemoMode, demoPlays } from "@/lib/demoData";
-
-// Sport preview images for demo mode
-import basketballCourtImg from "@assets/bball_court_1766345509497.png";
-import soccerPitchImg from "@assets/generated_images/clean_flat_soccer_pitch_top-down.png";
-import baseballDiamondImg from "@assets/generated_images/baseball_diamond_top-down_view.png";
-import volleyballCourtImg from "@assets/generated_images/volleyball_court_net_at_sidelines.png";
 import { useEntitlements } from "@/lib/entitlementsContext";
 import { toast } from "sonner";
 
@@ -203,21 +197,21 @@ export default function PlayEditorPage() {
               <p className="text-sm text-muted-foreground">Create plays for these sports too</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-card rounded-lg border border-white/10 p-2 space-y-2">
-                <img src={basketballCourtImg} alt="Basketball Court" className="w-full h-24 object-cover rounded" />
-                <p className="text-xs text-center text-muted-foreground font-medium">Basketball</p>
+              <div className="bg-gradient-to-br from-amber-700 to-amber-900 rounded-lg border border-white/10 p-4 flex flex-col items-center justify-center h-24">
+                <span className="text-2xl mb-1">🏀</span>
+                <p className="text-xs text-center text-white font-medium">Basketball</p>
               </div>
-              <div className="bg-card rounded-lg border border-white/10 p-2 space-y-2">
-                <img src={soccerPitchImg} alt="Soccer Pitch" className="w-full h-24 object-cover rounded" />
-                <p className="text-xs text-center text-muted-foreground font-medium">Soccer</p>
+              <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-lg border border-white/10 p-4 flex flex-col items-center justify-center h-24">
+                <span className="text-2xl mb-1">⚽</span>
+                <p className="text-xs text-center text-white font-medium">Soccer</p>
               </div>
-              <div className="bg-card rounded-lg border border-white/10 p-2 space-y-2">
-                <img src={baseballDiamondImg} alt="Baseball Diamond" className="w-full h-24 object-cover rounded" />
-                <p className="text-xs text-center text-muted-foreground font-medium">Baseball</p>
+              <div className="bg-gradient-to-br from-green-700 to-amber-700 rounded-lg border border-white/10 p-4 flex flex-col items-center justify-center h-24">
+                <span className="text-2xl mb-1">⚾</span>
+                <p className="text-xs text-center text-white font-medium">Baseball</p>
               </div>
-              <div className="bg-card rounded-lg border border-white/10 p-2 space-y-2">
-                <img src={volleyballCourtImg} alt="Volleyball Court" className="w-full h-24 object-cover rounded" />
-                <p className="text-xs text-center text-muted-foreground font-medium">Volleyball</p>
+              <div className="bg-gradient-to-br from-amber-600 to-amber-800 rounded-lg border border-white/10 p-4 flex flex-col items-center justify-center h-24">
+                <span className="text-2xl mb-1">🏐</span>
+                <p className="text-xs text-center text-white font-medium">Volleyball</p>
               </div>
             </div>
           </div>

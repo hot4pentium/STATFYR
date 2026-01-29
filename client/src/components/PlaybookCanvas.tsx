@@ -1,11 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save } from "lucide-react";
-import basketballCourtImg from "@assets/bball_court_1766345509497.png";
-import footballFieldImg from "@assets/football_1768077466658.png";
-import soccerPitchImg from "@assets/generated_images/clean_flat_soccer_pitch_top-down.png";
-import baseballDiamondImg from "@assets/generated_images/baseball_diamond_top-down_view.png";
-import volleyballCourtImg from "@assets/generated_images/volleyball_court_net_at_sidelines.png";
+import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save, Shield, Swords } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -58,11 +53,6 @@ const SHAPE_SIZE = 24;
 export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSaving = false }: PlaybookCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const basketballImageRef = useRef<HTMLImageElement | null>(null);
-  const footballImageRef = useRef<HTMLImageElement | null>(null);
-  const soccerImageRef = useRef<HTMLImageElement | null>(null);
-  const baseballImageRef = useRef<HTMLImageElement | null>(null);
-  const volleyballImageRef = useRef<HTMLImageElement | null>(null);
   const [selectedTool, setSelectedTool] = useState<Tool>("freedraw");
   const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
   const [isAthletePopoverOpen, setIsAthletePopoverOpen] = useState(false);
@@ -76,34 +66,11 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const [elements, setElements] = useState<DrawnElement[]>([]);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [dimensionsLocked, setDimensionsLocked] = useState(false);
-  const [sportImagesLoaded, setSportImagesLoaded] = useState(false);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [activeHalf, setActiveHalf] = useState<"offense" | "defense">("offense");
   const [playName, setPlayName] = useState("");
   const [playDescription, setPlayDescription] = useState("");
   const [playCategory, setPlayCategory] = useState("Offense");
-
-  useEffect(() => {
-    const imagesToLoad = [
-      { src: basketballCourtImg, ref: basketballImageRef },
-      { src: footballFieldImg, ref: footballImageRef },
-      { src: soccerPitchImg, ref: soccerImageRef },
-      { src: baseballDiamondImg, ref: baseballImageRef },
-      { src: volleyballCourtImg, ref: volleyballImageRef },
-    ];
-    
-    let loadedCount = 0;
-    imagesToLoad.forEach(({ src, ref }) => {
-      const img = new Image();
-      img.src = src;
-      img.onload = () => {
-        ref.current = img;
-        loadedCount++;
-        if (loadedCount === imagesToLoad.length) {
-          setSportImagesLoaded(true);
-        }
-      };
-    });
-  }, []);
 
   // Clear canvas and reset dimensions when sport changes
   useEffect(() => {
@@ -151,11 +118,11 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     return `${athlete.firstName.charAt(0)}${athlete.lastName.charAt(0)}`.toUpperCase();
   };
 
-  // Calculate canvas size for full field - lock dimensions after initial calculation
+  // Calculate canvas size - half field + a bit past midfield (except baseball = full)
   useEffect(() => {
     const calculateSize = () => {
       const container = containerRef.current;
-      if (!container || !sportImagesLoaded) return;
+      if (!container) return;
       
       // Don't recalculate if dimensions are locked (prevents scroll-triggered changes)
       if (dimensionsLocked && canvasSize.width > 0) return;
@@ -163,25 +130,25 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       const containerWidth = container.clientWidth;
       const normalizedSport = sport?.toLowerCase();
       
-      // Get the actual image aspect ratio for the current sport
-      let imageAspectRatio = 1.8; // Default tall aspect ratio for fields
+      // Aspect ratio: height/width for half field + bit past midfield (~60% of field)
+      // These ratios show half the field plus ~10-15% past center
+      let aspectRatio = 1.0;
       
-      if (normalizedSport === "basketball" && basketballImageRef.current) {
-        imageAspectRatio = basketballImageRef.current.naturalHeight / basketballImageRef.current.naturalWidth;
-      } else if (normalizedSport === "football" && footballImageRef.current) {
-        imageAspectRatio = footballImageRef.current.naturalHeight / footballImageRef.current.naturalWidth;
-      } else if (normalizedSport === "soccer" && soccerImageRef.current) {
-        // Soccer is rotated, so width becomes height
-        imageAspectRatio = soccerImageRef.current.naturalWidth / soccerImageRef.current.naturalHeight;
-      } else if (normalizedSport === "baseball" && baseballImageRef.current) {
-        imageAspectRatio = baseballImageRef.current.naturalHeight / baseballImageRef.current.naturalWidth;
-      } else if (normalizedSport === "volleyball" && volleyballImageRef.current) {
-        imageAspectRatio = volleyballImageRef.current.naturalHeight / volleyballImageRef.current.naturalWidth;
+      if (normalizedSport === "basketball") {
+        aspectRatio = 0.9; // Half court is roughly square
+      } else if (normalizedSport === "football") {
+        aspectRatio = 1.1; // Football field slightly taller
+      } else if (normalizedSport === "soccer") {
+        aspectRatio = 1.0; // Soccer half pitch
+      } else if (normalizedSport === "baseball") {
+        aspectRatio = 1.0; // Full diamond is roughly square
+      } else if (normalizedSport === "volleyball") {
+        aspectRatio = 1.1; // Volleyball half court
       }
       
-      // Calculate height based on width and aspect ratio - full width, scrollable height
+      // Calculate height based on width and aspect ratio
       const width = containerWidth;
-      const height = Math.round(width * imageAspectRatio);
+      const height = Math.round(width * aspectRatio);
       
       setCanvasSize({ width, height });
       setDimensionsLocked(true);
@@ -202,98 +169,458 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [sport, sportImagesLoaded, dimensionsLocked, canvasSize.width]);
+  }, [sport, dimensionsLocked, canvasSize.width]);
 
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
 
-    drawSportBackground(ctx, canvas.width, canvas.height, sport);
+    drawSportBackground(ctx, canvas.width, canvas.height, sport, activeHalf);
 
     elements.forEach((element) => {
       drawElement(ctx, element);
     });
-  }, [elements, sport, sportImagesLoaded]);
+  }, [elements, sport, activeHalf]);
 
   useEffect(() => {
     redrawCanvas();
   }, [canvasSize, redrawCanvas]);
 
-  const drawSportBackground = (ctx: CanvasRenderingContext2D, width: number, height: number, sportType: string) => {
+  // Consistent styling constants
+  const FIELD_GREEN = "#2d5a27";
+  const FIELD_GREEN_STRIPE = "#346b2d";
+  const COURT_TAN = "#c9a66b";
+  const COURT_TAN_DARK = "#b89559";
+  const LINE_WHITE = "#ffffff";
+  const LINE_WIDTH = 2;
+
+  const drawSportBackground = (ctx: CanvasRenderingContext2D, width: number, height: number, sportType: string, half: "offense" | "defense") => {
     const normalizedSport = sportType?.toLowerCase();
     switch (normalizedSport) {
       case "baseball":
         drawBaseballField(ctx, width, height);
         break;
       case "basketball":
-        drawBasketballCourt(ctx, width, height);
+        drawBasketballCourt(ctx, width, height, half);
         break;
       case "football":
-        drawFootballField(ctx, width, height);
+        drawFootballField(ctx, width, height, half);
         break;
       case "soccer":
-        drawSoccerPitch(ctx, width, height);
+        drawSoccerPitch(ctx, width, height, half);
         break;
       case "volleyball":
-        drawVolleyballCourt(ctx, width, height);
+        drawVolleyballCourt(ctx, width, height, half);
         break;
       default:
-        drawFootballField(ctx, width, height);
+        drawFootballField(ctx, width, height, half);
     }
   };
 
+  // Baseball - Full diamond view
   const drawBaseballField = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    if (baseballImageRef.current) {
-      ctx.fillStyle = "#228B22";
-      ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(baseballImageRef.current, 0, 0, width, height);
-    } else {
-      ctx.fillStyle = "#228B22";
-      ctx.fillRect(0, 0, width, height);
-    }
+    // Green grass background
+    ctx.fillStyle = FIELD_GREEN;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Outfield arc (darker green)
+    ctx.fillStyle = FIELD_GREEN_STRIPE;
+    ctx.beginPath();
+    ctx.arc(width / 2, height * 0.85, width * 0.48, Math.PI, 2 * Math.PI);
+    ctx.fill();
+    
+    // Infield dirt (tan)
+    ctx.fillStyle = COURT_TAN;
+    ctx.beginPath();
+    ctx.moveTo(width / 2, height * 0.85); // Home plate
+    ctx.lineTo(width * 0.15, height * 0.5); // Third base
+    ctx.lineTo(width / 2, height * 0.15); // Second base
+    ctx.lineTo(width * 0.85, height * 0.5); // First base
+    ctx.closePath();
+    ctx.fill();
+    
+    // Base paths (white lines)
+    ctx.strokeStyle = LINE_WHITE;
+    ctx.lineWidth = LINE_WIDTH;
+    ctx.beginPath();
+    ctx.moveTo(width / 2, height * 0.85);
+    ctx.lineTo(width * 0.85, height * 0.5);
+    ctx.lineTo(width / 2, height * 0.15);
+    ctx.lineTo(width * 0.15, height * 0.5);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // Pitcher's mound
+    ctx.fillStyle = COURT_TAN_DARK;
+    ctx.beginPath();
+    ctx.arc(width / 2, height * 0.52, width * 0.04, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = LINE_WHITE;
+    ctx.stroke();
+    
+    // Bases (white squares)
+    const baseSize = width * 0.03;
+    ctx.fillStyle = LINE_WHITE;
+    // First base
+    ctx.fillRect(width * 0.85 - baseSize/2, height * 0.5 - baseSize/2, baseSize, baseSize);
+    // Second base
+    ctx.fillRect(width / 2 - baseSize/2, height * 0.15 - baseSize/2, baseSize, baseSize);
+    // Third base
+    ctx.fillRect(width * 0.15 - baseSize/2, height * 0.5 - baseSize/2, baseSize, baseSize);
+    // Home plate (pentagon)
+    ctx.beginPath();
+    const hx = width / 2, hy = height * 0.85;
+    const hs = baseSize * 0.7;
+    ctx.moveTo(hx, hy + hs);
+    ctx.lineTo(hx - hs, hy);
+    ctx.lineTo(hx - hs * 0.7, hy - hs);
+    ctx.lineTo(hx + hs * 0.7, hy - hs);
+    ctx.lineTo(hx + hs, hy);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Batter's boxes
+    ctx.strokeStyle = LINE_WHITE;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(hx - baseSize * 2.5, hy - baseSize, baseSize * 1.5, baseSize * 2.5);
+    ctx.strokeRect(hx + baseSize, hy - baseSize, baseSize * 1.5, baseSize * 2.5);
   };
 
-  const drawBasketballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    if (basketballImageRef.current) {
-      ctx.drawImage(basketballImageRef.current, 0, 0, width, height);
-    } else {
-      ctx.fillStyle = "#CD853F";
-      ctx.fillRect(0, 0, width, height);
+  // Basketball - Half court + past center
+  const drawBasketballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number, half: "offense" | "defense") => {
+    // Flip coordinate system for defense view
+    ctx.save();
+    if (half === "defense") {
+      ctx.translate(0, height);
+      ctx.scale(1, -1);
     }
+    
+    // Hardwood floor
+    ctx.fillStyle = COURT_TAN;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Wood grain effect
+    ctx.strokeStyle = COURT_TAN_DARK;
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < width; i += 15) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, height);
+      ctx.stroke();
+    }
+    
+    ctx.strokeStyle = LINE_WHITE;
+    ctx.lineWidth = LINE_WIDTH;
+    
+    // Court boundary
+    const margin = width * 0.05;
+    ctx.strokeRect(margin, margin, width - margin * 2, height - margin * 2);
+    
+    // Center line (at ~85% from top to show bit of other half)
+    const centerY = height * 0.85;
+    ctx.beginPath();
+    ctx.moveTo(margin, centerY);
+    ctx.lineTo(width - margin, centerY);
+    ctx.stroke();
+    
+    // Center circle (partial, at center line)
+    const centerCircleRadius = width * 0.15;
+    ctx.beginPath();
+    ctx.arc(width / 2, centerY, centerCircleRadius, Math.PI, 2 * Math.PI);
+    ctx.stroke();
+    
+    // Key/paint area
+    const keyWidth = width * 0.32;
+    const keyHeight = height * 0.22;
+    const keyX = (width - keyWidth) / 2;
+    const keyY = margin;
+    
+    // Key rectangle
+    ctx.strokeRect(keyX, keyY, keyWidth, keyHeight);
+    
+    // Free throw circle
+    const ftCircleRadius = keyWidth / 2;
+    ctx.beginPath();
+    ctx.arc(width / 2, keyY + keyHeight, ftCircleRadius, 0, Math.PI);
+    ctx.stroke();
+    
+    // Backboard and hoop
+    const hoopY = margin + height * 0.03;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(width / 2 - width * 0.08, margin);
+    ctx.lineTo(width / 2 + width * 0.08, margin);
+    ctx.stroke();
+    
+    // Hoop
+    ctx.lineWidth = LINE_WIDTH;
+    ctx.strokeStyle = "#ff6b35";
+    ctx.beginPath();
+    ctx.arc(width / 2, hoopY + height * 0.02, width * 0.025, 0, 2 * Math.PI);
+    ctx.stroke();
+    
+    // 3-point line
+    ctx.strokeStyle = LINE_WHITE;
+    const threePointRadius = width * 0.38;
+    ctx.beginPath();
+    ctx.moveTo(margin, margin + height * 0.12);
+    ctx.lineTo(margin, margin);
+    ctx.arc(width / 2, margin + height * 0.03, threePointRadius, Math.PI, 0, true);
+    ctx.lineTo(width - margin, margin + height * 0.12);
+    ctx.stroke();
+    
+    ctx.restore();
   };
 
-  const drawFootballField = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    if (footballImageRef.current) {
-      ctx.drawImage(footballImageRef.current, 0, 0, width, height);
-    } else {
-      ctx.fillStyle = "#1a472a";
-      ctx.fillRect(0, 0, width, height);
+  // Football - Half field + past midfield
+  const drawFootballField = (ctx: CanvasRenderingContext2D, width: number, height: number, half: "offense" | "defense") => {
+    // Flip coordinate system for defense view
+    ctx.save();
+    if (half === "defense") {
+      ctx.translate(0, height);
+      ctx.scale(1, -1);
     }
+    
+    // Green grass
+    ctx.fillStyle = FIELD_GREEN;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Yard line stripes
+    const stripeHeight = height / 11; // 10 yard increments + endzone
+    for (let i = 0; i < 11; i++) {
+      if (i % 2 === 1) {
+        ctx.fillStyle = FIELD_GREEN_STRIPE;
+        ctx.fillRect(0, i * stripeHeight, width, stripeHeight);
+      }
+    }
+    
+    ctx.strokeStyle = LINE_WHITE;
+    ctx.lineWidth = LINE_WIDTH;
+    
+    // Sidelines
+    const margin = width * 0.08;
+    ctx.beginPath();
+    ctx.moveTo(margin, 0);
+    ctx.lineTo(margin, height);
+    ctx.moveTo(width - margin, 0);
+    ctx.lineTo(width - margin, height);
+    ctx.stroke();
+    
+    // End zone line (top)
+    const endZoneHeight = height * 0.1;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(margin, endZoneHeight);
+    ctx.lineTo(width - margin, endZoneHeight);
+    ctx.stroke();
+    
+    // Yard lines (every 10 yards)
+    ctx.lineWidth = LINE_WIDTH;
+    const playableHeight = height - endZoneHeight;
+    for (let i = 1; i <= 5; i++) {
+      const y = endZoneHeight + (playableHeight * i * 0.18);
+      if (y < height) {
+        ctx.beginPath();
+        ctx.moveTo(margin, y);
+        ctx.lineTo(width - margin, y);
+        ctx.stroke();
+      }
+    }
+    
+    // Hash marks
+    const hashX1 = width * 0.35;
+    const hashX2 = width * 0.65;
+    const hashLen = width * 0.03;
+    for (let i = 0; i <= 50; i++) {
+      const y = endZoneHeight + (playableHeight * i * 0.018);
+      if (y < height && i % 5 !== 0) {
+        ctx.beginPath();
+        ctx.moveTo(hashX1 - hashLen, y);
+        ctx.lineTo(hashX1, y);
+        ctx.moveTo(hashX2, y);
+        ctx.lineTo(hashX2 + hashLen, y);
+        ctx.stroke();
+      }
+    }
+    
+    // Yard numbers
+    ctx.fillStyle = LINE_WHITE;
+    ctx.font = `bold ${width * 0.06}px Arial`;
+    ctx.textAlign = "center";
+    const yardNumbers = half === "offense" ? ["G", "10", "20", "30", "40", "50"] : ["G", "10", "20", "30", "40", "50"];
+    yardNumbers.forEach((num, i) => {
+      const y = endZoneHeight + (playableHeight * i * 0.18) + playableHeight * 0.09;
+      if (y < height - 20) {
+        // Flip text if in defense mode so it reads correctly
+        if (half === "defense") {
+          ctx.save();
+          ctx.translate(margin + width * 0.08, y);
+          ctx.scale(1, -1);
+          ctx.fillText(num, 0, 0);
+          ctx.restore();
+          ctx.save();
+          ctx.translate(width - margin - width * 0.08, y);
+          ctx.scale(1, -1);
+          ctx.fillText(num, 0, 0);
+          ctx.restore();
+        } else {
+          ctx.fillText(num, margin + width * 0.08, y);
+          ctx.fillText(num, width - margin - width * 0.08, y);
+        }
+      }
+    });
+    
+    ctx.restore();
   };
 
-  const drawSoccerPitch = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    if (soccerImageRef.current) {
-      const img = soccerImageRef.current;
-      // Soccer field is landscape, rotate 90 degrees for portrait display
-      ctx.save();
-      ctx.translate(width / 2, height / 2);
-      ctx.rotate(Math.PI / 2);
-      ctx.drawImage(img, -height / 2, -width / 2, height, width);
-      ctx.restore();
-    } else {
-      ctx.fillStyle = "#228B22";
-      ctx.fillRect(0, 0, width, height);
+  // Soccer - Half pitch + past center
+  const drawSoccerPitch = (ctx: CanvasRenderingContext2D, width: number, height: number, half: "offense" | "defense") => {
+    // Flip coordinate system for defense view
+    ctx.save();
+    if (half === "defense") {
+      ctx.translate(0, height);
+      ctx.scale(1, -1);
     }
+    
+    // Green grass
+    ctx.fillStyle = FIELD_GREEN;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Grass stripes
+    const stripeHeight = height / 10;
+    for (let i = 0; i < 10; i++) {
+      if (i % 2 === 1) {
+        ctx.fillStyle = FIELD_GREEN_STRIPE;
+        ctx.fillRect(0, i * stripeHeight, width, stripeHeight);
+      }
+    }
+    
+    ctx.strokeStyle = LINE_WHITE;
+    ctx.lineWidth = LINE_WIDTH;
+    
+    // Pitch boundary
+    const margin = width * 0.05;
+    ctx.strokeRect(margin, margin, width - margin * 2, height - margin * 2);
+    
+    // Center line (at ~85% from top)
+    const centerY = height * 0.85;
+    ctx.beginPath();
+    ctx.moveTo(margin, centerY);
+    ctx.lineTo(width - margin, centerY);
+    ctx.stroke();
+    
+    // Center circle (partial)
+    const centerCircleRadius = width * 0.18;
+    ctx.beginPath();
+    ctx.arc(width / 2, centerY, centerCircleRadius, Math.PI, 2 * Math.PI);
+    ctx.stroke();
+    
+    // Center spot
+    ctx.fillStyle = LINE_WHITE;
+    ctx.beginPath();
+    ctx.arc(width / 2, centerY, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Penalty area (18-yard box)
+    const penaltyWidth = width * 0.7;
+    const penaltyHeight = height * 0.2;
+    const penaltyX = (width - penaltyWidth) / 2;
+    ctx.strokeRect(penaltyX, margin, penaltyWidth, penaltyHeight);
+    
+    // Goal area (6-yard box)
+    const goalAreaWidth = width * 0.35;
+    const goalAreaHeight = height * 0.08;
+    const goalAreaX = (width - goalAreaWidth) / 2;
+    ctx.strokeRect(goalAreaX, margin, goalAreaWidth, goalAreaHeight);
+    
+    // Penalty spot
+    ctx.fillStyle = LINE_WHITE;
+    ctx.beginPath();
+    ctx.arc(width / 2, margin + penaltyHeight * 0.7, 3, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Penalty arc
+    ctx.beginPath();
+    ctx.arc(width / 2, margin + penaltyHeight * 0.7, width * 0.15, 0.3 * Math.PI, 0.7 * Math.PI);
+    ctx.stroke();
+    
+    // Goal
+    const goalWidth = width * 0.15;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = LINE_WHITE;
+    ctx.beginPath();
+    ctx.moveTo((width - goalWidth) / 2, margin);
+    ctx.lineTo((width + goalWidth) / 2, margin);
+    ctx.stroke();
+    
+    ctx.restore();
   };
 
-  const drawVolleyballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    if (volleyballImageRef.current) {
-      ctx.drawImage(volleyballImageRef.current, 0, 0, width, height);
-    } else {
-      ctx.fillStyle = "#CD853F";
-      ctx.fillRect(0, 0, width, height);
+  // Volleyball - Half court + past center
+  const drawVolleyballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number, half: "offense" | "defense") => {
+    // Flip coordinate system for defense view
+    ctx.save();
+    if (half === "defense") {
+      ctx.translate(0, height);
+      ctx.scale(1, -1);
     }
+    
+    // Court floor
+    ctx.fillStyle = COURT_TAN;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Subtle floor pattern
+    ctx.strokeStyle = COURT_TAN_DARK;
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < width; i += 20) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, height);
+      ctx.stroke();
+    }
+    
+    ctx.strokeStyle = LINE_WHITE;
+    ctx.lineWidth = LINE_WIDTH;
+    
+    // Court boundary
+    const margin = width * 0.08;
+    ctx.strokeRect(margin, margin, width - margin * 2, height - margin * 2);
+    
+    // Net/center line (at ~85% from top)
+    const centerY = height * 0.85;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(margin, centerY);
+    ctx.lineTo(width - margin, centerY);
+    ctx.stroke();
+    
+    // Net posts (visual indicators)
+    ctx.fillStyle = "#666";
+    ctx.fillRect(margin - 5, centerY - 3, 10, 6);
+    ctx.fillRect(width - margin - 5, centerY - 3, 10, 6);
+    
+    // Attack line (3 meters from center)
+    ctx.strokeStyle = LINE_WHITE;
+    ctx.lineWidth = LINE_WIDTH;
+    const attackLineY = height * 0.5;
+    ctx.beginPath();
+    ctx.moveTo(margin, attackLineY);
+    ctx.lineTo(width - margin, attackLineY);
+    ctx.stroke();
+    
+    // Service zone indicators at baseline
+    ctx.lineWidth = 1;
+    const serviceZoneWidth = (width - margin * 2) / 6;
+    for (let i = 1; i < 6; i++) {
+      const x = margin + serviceZoneWidth * i;
+      ctx.beginPath();
+      ctx.moveTo(x, margin);
+      ctx.lineTo(x, margin + height * 0.03);
+      ctx.stroke();
+    }
+    
+    ctx.restore();
   };
 
   const drawElement = (ctx: CanvasRenderingContext2D, element: DrawnElement) => {
@@ -742,6 +1069,19 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
           <MousePointerClick className="h-5 w-5" />
           <span className="hidden sm:inline">Delete</span>
         </Button>
+
+        {sport?.toLowerCase() !== "baseball" && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setActiveHalf(activeHalf === "offense" ? "defense" : "offense")}
+            className={`gap-2 ${activeHalf === "offense" ? "text-green-500 border-green-500/50" : "text-red-500 border-red-500/50"}`}
+            data-testid="toggle-half"
+          >
+            {activeHalf === "offense" ? <Swords className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
+            <span className="hidden sm:inline">{activeHalf === "offense" ? "Offense" : "Defense"}</span>
+          </Button>
+        )}
 
         <div className="flex-1" />
 
