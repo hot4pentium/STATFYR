@@ -105,6 +105,12 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     });
   }, []);
 
+  // Clear canvas and reset dimensions when sport changes
+  useEffect(() => {
+    setElements([]);
+    setDimensionsLocked(false);
+  }, [sport]);
+
   const sortedAthletes = [...athletes].sort((a, b) => 
     a.firstName.localeCompare(b.firstName)
   );
