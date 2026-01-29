@@ -161,9 +161,10 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
           const img = footballImageRef.current;
           fullHeight = width * img.naturalHeight / img.naturalWidth;
         } else if (normalizedSport === "soccer" && soccerImageRef.current) {
-          // Soccer is rotated, so swap dimensions
+          // Soccer is rotated 90 degrees - original width becomes canvas height
           const img = soccerImageRef.current;
-          fullHeight = width * img.naturalWidth / img.naturalHeight;
+          // Add 10% extra height to ensure full field is visible
+          fullHeight = (width * img.naturalWidth / img.naturalHeight) * 1.1;
         } else if (normalizedSport === "baseball" && baseballImageRef.current) {
           const img = baseballImageRef.current;
           fullHeight = width * img.naturalHeight / img.naturalWidth;
@@ -280,19 +281,14 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       const img = soccerImageRef.current;
       
       // Soccer image is landscape, rotate 90 degrees for portrait display
-      // After rotation: original width becomes canvas height, original height becomes canvas width
-      const imgAspect = img.naturalWidth / img.naturalHeight;
-      
+      // Fill the entire canvas with the rotated image
       ctx.save();
       ctx.translate(width / 2, height / 2);
       ctx.rotate(Math.PI / 2);
       
-      // Calculate dimensions to fill the canvas while preserving aspect ratio
-      // After rotation, we draw with swapped dimensions
-      const drawHeight = width; // canvas width becomes draw height after rotation
-      const drawWidth = drawHeight * imgAspect; // maintain aspect ratio
-      
-      ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+      // After rotation: draw with height=canvas height, width=canvas width (swapped due to rotation)
+      // This fills the entire canvas with the soccer field
+      ctx.drawImage(img, -height / 2, -width / 2, height, width);
       ctx.restore();
     } else {
       ctx.fillStyle = "#228B22";
