@@ -640,9 +640,13 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const handleSavePlay = async () => {
     if (!onSave || !playName.trim()) return;
     
-    const canvasData = JSON.stringify(elements);
+    // Save both halves in a structured format
+    const canvasData = JSON.stringify({
+      offense: offenseElements,
+      defense: defenseElements,
+    });
     
-    // Capture canvas as thumbnail
+    // Capture canvas as thumbnail (current view)
     const canvas = canvasRef.current;
     const thumbnailData = canvas ? canvas.toDataURL("image/png", 0.5) : "";
     
@@ -658,7 +662,8 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     setPlayName("");
     setPlayDescription("");
     setPlayCategory("Offense");
-    setElements([]);
+    setOffenseElements([]);
+    setDefenseElements([]);
   };
 
   return (
