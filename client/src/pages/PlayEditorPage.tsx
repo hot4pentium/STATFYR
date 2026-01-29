@@ -132,18 +132,18 @@ export default function PlayEditorPage() {
     <Layout>
       <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {isDemo && (
-          <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border border-amber-500/30 rounded-lg p-3">
+          <div className="bg-gradient-to-r from-amber-600/30 via-orange-600/30 to-amber-600/30 border border-amber-500/50 rounded-lg p-3 sticky top-0 z-20">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <Eye className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                <Eye className="h-5 w-5 text-amber-400 flex-shrink-0" />
                 <div className="min-w-0">
-                  <p className="font-semibold text-amber-200 text-sm">Demo Mode</p>
-                  <p className="text-xs text-amber-300/70 truncate">Changes won't be saved</p>
+                  <p className="font-semibold text-white text-sm">Demo Mode</p>
+                  <p className="text-xs text-amber-100 truncate">Changes won't be saved</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Select value={demoSport} onValueChange={(v) => setDemoSport(v as DemoSport)}>
-                  <SelectTrigger className="w-[120px] h-8 border-amber-500/30 bg-amber-500/10 text-amber-200 text-sm">
+                  <SelectTrigger className="w-[120px] h-8 border-amber-400/50 bg-amber-500/20 text-white text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -156,7 +156,7 @@ export default function PlayEditorPage() {
                   size="sm" 
                   variant="outline" 
                   onClick={() => navigate("/subscription")}
-                  className="border-amber-500/30 text-amber-200 hover:bg-amber-500/20 h-8"
+                  className="border-amber-400/50 text-white hover:bg-amber-500/30 h-8"
                 >
                   <Crown className="h-4 w-4" />
                 </Button>
@@ -164,7 +164,7 @@ export default function PlayEditorPage() {
                   size="sm" 
                   variant="ghost" 
                   onClick={() => navigate("/playbook")}
-                  className="text-amber-300/70 hover:text-amber-200 h-8 text-xs"
+                  className="text-amber-100 hover:text-white h-8 text-xs"
                 >
                   Exit
                 </Button>

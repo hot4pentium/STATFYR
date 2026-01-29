@@ -279,12 +279,20 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     if (soccerImageRef.current) {
       const img = soccerImageRef.current;
       
-      // Draw the full soccer pitch rotated 90 degrees to fit portrait mode
+      // Soccer image is landscape, rotate 90 degrees for portrait display
+      // After rotation: original width becomes canvas height, original height becomes canvas width
+      const imgAspect = img.naturalWidth / img.naturalHeight;
+      
       ctx.save();
       ctx.translate(width / 2, height / 2);
       ctx.rotate(Math.PI / 2);
-      // After rotation, swap width/height for drawing
-      ctx.drawImage(img, -height / 2, -width / 2, height, width);
+      
+      // Calculate dimensions to fill the canvas while preserving aspect ratio
+      // After rotation, we draw with swapped dimensions
+      const drawHeight = width; // canvas width becomes draw height after rotation
+      const drawWidth = drawHeight * imgAspect; // maintain aspect ratio
+      
+      ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
       ctx.restore();
     } else {
       ctx.fillStyle = "#228B22";
@@ -685,7 +693,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
   return (
     <div className="flex flex-col gap-4" data-testid="playbook-canvas-container">
-      <div className="flex flex-wrap gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg" data-testid="playbook-toolbar">
+      <div className="flex flex-wrap gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10" data-testid="playbook-toolbar">
         {tools.map((tool) => (
           <Button
             key={tool.id}
