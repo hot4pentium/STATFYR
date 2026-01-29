@@ -260,7 +260,12 @@ export function PlaybookCanvas({
       timestamp: Date.now()
     };
 
-    setKeyframes(prev => [...prev, newKeyframe]);
+    setKeyframes(prev => {
+      const newKeyframes = [...prev, newKeyframe];
+      // Auto-navigate to the newly recorded keyframe
+      setCurrentKeyframeIndex(newKeyframes.length - 1);
+      return newKeyframes;
+    });
   }, [elements]);
 
   // Get interpolated element positions for animation
@@ -1217,15 +1222,6 @@ export function PlaybookCanvas({
     // Use the same filtering logic as display: show elements from current keyframe + new unrecorded elements
     const displayedElements = (isPlaying || readOnly || keyframes.length > 0) ? getInterpolatedElements() : elements;
     
-    console.log('findElementAtPoint:', {
-      point,
-      displayedElementsCount: displayedElements.length,
-      keyframesCount: keyframes.length,
-      isPlaying,
-      readOnly,
-      displayedElements: displayedElements.map(e => ({ id: e.id.slice(0,8), tool: e.tool, points: e.points }))
-    });
-    
     for (let i = displayedElements.length - 1; i >= 0; i--) {
       const el = displayedElements[i];
       if (!isDraggableTool(el.tool)) continue;
@@ -1233,7 +1229,6 @@ export function PlaybookCanvas({
       if (isShapeTool(el.tool)) {
         const center = el.points[0];
         const dist = Math.sqrt((point.x - center.x) ** 2 + (point.y - center.y) ** 2);
-        console.log('Checking shape:', { id: el.id.slice(0,8), center, dist, threshold: SHAPE_SIZE / 2 + 10 });
         if (dist <= SHAPE_SIZE / 2 + 10) {
           // Return the element from elements array so we can modify it
           return elements.find(e => e.id === el.id) || el;
