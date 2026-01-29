@@ -152,32 +152,31 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
         const normalizedSport = sport?.toLowerCase();
         const isExtendableSport = ["basketball", "football", "soccer", "baseball", "volleyball"].includes(normalizedSport);
         
-        // Calculate height based on full field dimensions
+        // Calculate height based on full field dimensions with extra space for complete visibility
         let fullHeight: number;
         if (normalizedSport === "basketball" && basketballImageRef.current) {
           const img = basketballImageRef.current;
-          fullHeight = width * img.naturalHeight / img.naturalWidth;
+          fullHeight = width * img.naturalHeight / img.naturalWidth * 1.15;
         } else if (normalizedSport === "football" && footballImageRef.current) {
           const img = footballImageRef.current;
-          fullHeight = width * img.naturalHeight / img.naturalWidth;
+          fullHeight = width * img.naturalHeight / img.naturalWidth * 1.15;
         } else if (normalizedSport === "soccer" && soccerImageRef.current) {
           // Soccer is rotated 90 degrees - original width becomes canvas height
           const img = soccerImageRef.current;
-          // Add 10% extra height to ensure full field is visible
-          fullHeight = (width * img.naturalWidth / img.naturalHeight) * 1.1;
+          fullHeight = width * img.naturalWidth / img.naturalHeight * 1.15;
         } else if (normalizedSport === "baseball" && baseballImageRef.current) {
           const img = baseballImageRef.current;
-          fullHeight = width * img.naturalHeight / img.naturalWidth;
+          fullHeight = width * img.naturalHeight / img.naturalWidth * 1.15;
         } else if (normalizedSport === "volleyball" && volleyballImageRef.current) {
           const img = volleyballImageRef.current;
-          fullHeight = width * img.naturalHeight / img.naturalWidth;
+          fullHeight = width * img.naturalHeight / img.naturalWidth * 1.15;
         } else {
           // Fallback
           fullHeight = Math.max(900, (window.innerHeight - 200) * 1.4);
         }
         
-        // Ensure minimum height and always show full field in portrait mode
-        fullHeight = Math.max(fullHeight, 600);
+        // Ensure minimum height
+        fullHeight = Math.max(fullHeight, 700);
         const height = fullHeight;
         setCanvasSize({ width, height });
       }
@@ -243,16 +242,8 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
   const drawBasketballCourt = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (basketballImageRef.current) {
-      const img = basketballImageRef.current;
-      const imgAspect = img.naturalWidth / img.naturalHeight;
-      
-      // Calculate full image dimensions to fill width
-      const fullHeight = showFullCourt ? height : height * 2;
-      const drawWidth = width;
-      const drawHeight = fullHeight;
-      
-      // Draw full image - canvas height handles the cropping
-      ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
+      // Draw full basketball court filling the entire canvas
+      ctx.drawImage(basketballImageRef.current, 0, 0, width, height);
     } else {
       ctx.fillStyle = "#CD853F";
       ctx.fillRect(0, 0, width, height);
@@ -261,15 +252,8 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
   const drawFootballField = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (footballImageRef.current) {
-      const img = footballImageRef.current;
-      
-      // Calculate full image dimensions to fill width
-      const fullHeight = showFullCourt ? height : height * 2;
-      const drawWidth = width;
-      const drawHeight = fullHeight;
-      
-      // Draw full image - canvas height handles the cropping
-      ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
+      // Draw full football field filling the entire canvas
+      ctx.drawImage(footballImageRef.current, 0, 0, width, height);
     } else {
       ctx.fillStyle = "#1a472a";
       ctx.fillRect(0, 0, width, height);
