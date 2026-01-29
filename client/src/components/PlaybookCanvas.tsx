@@ -579,37 +579,59 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
     ctx.arc(width / 2, centerY, 3, 0, 2 * Math.PI);
     ctx.fill();
     
-    // Penalty area (18-yard box)
-    const penaltyWidth = width * 0.7;
+    // Penalty area (18-yard box) - narrower width
+    const penaltyWidth = width * 0.55;
     const penaltyHeight = height * 0.2;
     const penaltyX = (width - penaltyWidth) / 2;
     ctx.strokeRect(penaltyX, margin, penaltyWidth, penaltyHeight);
     
     // Goal area (6-yard box)
-    const goalAreaWidth = width * 0.35;
-    const goalAreaHeight = height * 0.08;
+    const goalAreaWidth = width * 0.28;
+    const goalAreaHeight = height * 0.07;
     const goalAreaX = (width - goalAreaWidth) / 2;
     ctx.strokeRect(goalAreaX, margin, goalAreaWidth, goalAreaHeight);
     
     // Penalty spot
+    const penaltySpotY = margin + penaltyHeight * 0.65;
     ctx.fillStyle = LINE_WHITE;
     ctx.beginPath();
-    ctx.arc(width / 2, margin + penaltyHeight * 0.7, 3, 0, 2 * Math.PI);
+    ctx.arc(width / 2, penaltySpotY, 3, 0, 2 * Math.PI);
     ctx.fill();
     
-    // Penalty arc
+    // Penalty arc (the "D") - connects to the penalty box edges
+    const arcRadius = width * 0.12;
+    const penaltyBoxBottom = margin + penaltyHeight;
+    // Calculate the angle where arc meets penalty box
+    const distToBoxEdge = penaltyWidth / 2;
+    const angleAtBox = Math.acos(distToBoxEdge / arcRadius);
     ctx.beginPath();
-    ctx.arc(width / 2, margin + penaltyHeight * 0.7, width * 0.15, 0.3 * Math.PI, 0.7 * Math.PI);
+    ctx.arc(width / 2, penaltySpotY, arcRadius, angleAtBox, Math.PI - angleAtBox);
     ctx.stroke();
     
-    // Goal
-    const goalWidth = width * 0.15;
+    // Goal (behind the endline)
+    const goalWidth = width * 0.18;
+    const goalDepth = margin * 0.7;
     ctx.lineWidth = 3;
     ctx.strokeStyle = LINE_WHITE;
+    // Goal posts and crossbar
     ctx.beginPath();
     ctx.moveTo((width - goalWidth) / 2, margin);
+    ctx.lineTo((width - goalWidth) / 2, margin - goalDepth);
+    ctx.lineTo((width + goalWidth) / 2, margin - goalDepth);
     ctx.lineTo((width + goalWidth) / 2, margin);
     ctx.stroke();
+    
+    // Goal net effect (simple lines)
+    ctx.lineWidth = 0.5;
+    ctx.strokeStyle = "#cccccc";
+    const netSpacing = goalWidth / 6;
+    for (let i = 1; i < 6; i++) {
+      const x = (width - goalWidth) / 2 + netSpacing * i;
+      ctx.beginPath();
+      ctx.moveTo(x, margin);
+      ctx.lineTo(x, margin - goalDepth);
+      ctx.stroke();
+    }
     
     ctx.restore();
   };
