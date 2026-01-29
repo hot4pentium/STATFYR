@@ -16,13 +16,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
-// Hook to detect landscape orientation
-function useIsLandscape() {
-  const [isLandscape, setIsLandscape] = useState(false);
+// Hook to detect landscape orientation on mobile only (desktop is always allowed)
+function useIsMobileLandscape() {
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
 
   useEffect(() => {
     const checkOrientation = () => {
-      setIsLandscape(window.innerWidth > window.innerHeight);
+      const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+      const isLandscape = window.innerWidth > window.innerHeight;
+      setIsMobileLandscape(isMobile && isLandscape);
     };
     
     checkOrientation();
@@ -35,7 +37,7 @@ function useIsLandscape() {
     };
   }, []);
 
-  return isLandscape;
+  return isMobileLandscape;
 }
 import { 
   ArrowLeft, Play, Pause, RotateCcw, Users, Timer, Target, 
@@ -72,7 +74,7 @@ export default function StatTrackerPage() {
   const [, params] = useRoute("/stattracker/:gameId");
   const demoMode = useDemoMode();
   const isDemo = demoMode.isDemo;
-  const isLandscape = useIsLandscape();
+  const isMobileLandscape = useIsMobileLandscape();
 
   const [viewMode, setViewMode] = useState<ViewMode>("setup");
   const [selectedEventId, setSelectedEventId] = useState<string>("");
@@ -618,7 +620,7 @@ export default function StatTrackerPage() {
   }
 
   // Show rotate message in landscape mode
-  if (isLandscape) {
+  if (isMobileLandscape) {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">

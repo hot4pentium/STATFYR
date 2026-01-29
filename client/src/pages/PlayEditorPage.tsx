@@ -10,13 +10,15 @@ import { isDemoMode, demoPlays, DEMO_SPORTS, type DemoSport } from "@/lib/demoDa
 import { useEntitlements } from "@/lib/entitlementsContext";
 import { toast } from "sonner";
 
-// Hook to detect landscape orientation
-function useIsLandscape() {
-  const [isLandscape, setIsLandscape] = useState(false);
+// Hook to detect landscape orientation on mobile only (desktop is always allowed)
+function useIsMobileLandscape() {
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
 
   useEffect(() => {
     const checkOrientation = () => {
-      setIsLandscape(window.innerWidth > window.innerHeight);
+      const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+      const isLandscape = window.innerWidth > window.innerHeight;
+      setIsMobileLandscape(isMobile && isLandscape);
     };
     
     checkOrientation();
@@ -29,7 +31,7 @@ function useIsLandscape() {
     };
   }, []);
 
-  return isLandscape;
+  return isMobileLandscape;
 }
 
 export default function PlayEditorPage() {
@@ -40,7 +42,7 @@ export default function PlayEditorPage() {
   const [play, setPlay] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [demoSport, setDemoSport] = useState<DemoSport>("Soccer");
-  const isLandscape = useIsLandscape();
+  const isMobileLandscape = useIsMobileLandscape();
 
   useEffect(() => {
     if (isDemo) {
@@ -104,7 +106,7 @@ export default function PlayEditorPage() {
   const backUrl = isDemo ? "/playbook?demo=true" : "/playbook";
 
   // Show rotate message in landscape mode
-  if (isLandscape) {
+  if (isMobileLandscape) {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
