@@ -273,27 +273,18 @@ export function PlaybookCanvas({
     const currentKf = activeKeyframes[currentKeyframeIndex];
     if (!currentKf) return elements;
 
-    // If not playing or only one keyframe, show current keyframe state
+    // If not playing or only one keyframe or at last keyframe, show current keyframe state
     if (!isPlaying || activeKeyframes.length === 1 || currentKeyframeIndex >= activeKeyframes.length - 1) {
-      // During playback, only show elements that exist in the current keyframe
-      if (isPlaying) {
-        return elements
-          .filter(el => currentKf.positions.some(p => p.elementId === el.id))
-          .map(el => {
-            const kfPos = currentKf.positions.find(p => p.elementId === el.id);
-            if (kfPos && kfPos.points.length === el.points.length) {
-              return { ...el, points: kfPos.points };
-            }
-            return el;
-          });
-      }
-      return elements.map(el => {
-        const kfPos = currentKf.positions.find(p => p.elementId === el.id);
-        if (kfPos && kfPos.points.length === el.points.length) {
-          return { ...el, points: kfPos.points };
-        }
-        return el;
-      });
+      // Only show elements that exist in the current keyframe (filter out elements added in later keyframes)
+      return elements
+        .filter(el => currentKf.positions.some(p => p.elementId === el.id))
+        .map(el => {
+          const kfPos = currentKf.positions.find(p => p.elementId === el.id);
+          if (kfPos && kfPos.points.length === el.points.length) {
+            return { ...el, points: kfPos.points };
+          }
+          return el;
+        });
     }
 
     // Interpolate between current and next keyframe
@@ -390,13 +381,15 @@ export function PlaybookCanvas({
     setIsPlaying(false);
   }, []);
 
-  // Reset animation to start - uses jumpToKeyframe for consistency
+  // Reset animation to start - updates elements to first keyframe state
   const resetAnimation = useCallback(() => {
     setIsPlaying(false);
     setCurrentKeyframeIndex(0);
     setAnimationProgress(0);
     
     // Update elements to first keyframe positions
+    // Note: The getInterpolatedElements function handles filtering during playback
+    // For edit mode reset, we restore positions but keep all elements visible
     if (keyframes[0]) {
       const kf = keyframes[0];
       setElements(prev => prev.map(el => {
@@ -509,9 +502,9 @@ export function PlaybookCanvas({
 
     drawSportBackground(ctx, canvas.width, canvas.height, sport, activeHalf);
 
-    // Show interpolated elements during playback or in read-only mode (viewer)
-    // In edit mode (not readOnly), show raw elements when not playing so users can edit and record new keyframes
-    const displayElements = isPlaying || (readOnly && keyframes.length > 0) 
+    // Show interpolated/filtered elements during playback, in read-only mode, or when viewing keyframes in edit mode
+    // This ensures elements only appear at keyframes where they were recorded
+    const displayElements = (isPlaying || keyframes.length > 0) 
       ? getInterpolatedElements() 
       : elements;
     displayElements.forEach((element) => {
