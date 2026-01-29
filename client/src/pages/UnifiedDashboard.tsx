@@ -178,6 +178,10 @@ export default function UnifiedDashboard() {
   // Staff promotion celebration modal
   const [showStaffCelebration, setShowStaffCelebration] = useState(false);
   const [staffPromotionTeam, setStaffPromotionTeam] = useState<{ teamId: string; teamName: string } | null>(null);
+  
+  // Playmaker unsaved changes tracking
+  const [hasPlaymakerUnsavedChanges, setHasPlaymakerUnsavedChanges] = useState(false);
+  const [showPlaymakerLeaveDialog, setShowPlaymakerLeaveDialog] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -1219,7 +1223,14 @@ export default function UnifiedDashboard() {
     return (
       <div ref={contentRef} className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
         <div className="flex items-center gap-3 mb-4">
-          <Button variant="ghost" size="sm" onClick={() => setSelectedCard(null)} className="gap-2" data-testid="button-back">
+          <Button variant="ghost" size="sm" onClick={() => {
+            if (selectedCard === "playmaker" && hasPlaymakerUnsavedChanges) {
+              setShowPlaymakerLeaveDialog(true);
+            } else {
+              setSelectedCard(null);
+              setHasPlaymakerUnsavedChanges(false);
+            }
+          }} className="gap-2" data-testid="button-back">
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
@@ -1599,7 +1610,14 @@ export default function UnifiedDashboard() {
                   <CardTitle className="text-lg">Create New Play</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <PlaybookCanvas sport={currentTeam?.sport} onSave={async (data) => { createPlayMutation.mutate(data); }} />
+                  <PlaybookCanvas 
+                    sport={currentTeam?.sport} 
+                    onSave={async (data) => { 
+                      createPlayMutation.mutate(data);
+                      setHasPlaymakerUnsavedChanges(false);
+                    }}
+                    onHasUnsavedChanges={setHasPlaymakerUnsavedChanges}
+                  />
                 </CardContent>
               </Card>
             )}
@@ -3643,6 +3661,31 @@ export default function UnifiedDashboard() {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={() => deleteConfirmEvent && deleteEventMutation.mutate(deleteConfirmEvent.id)}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Playmaker Leave Confirmation */}
+        <AlertDialog open={showPlaymakerLeaveDialog} onOpenChange={setShowPlaymakerLeaveDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Leave without saving?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You have unsaved changes on the canvas. Are you sure you want to leave? Your changes will be lost.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Stay</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => {
+                  setShowPlaymakerLeaveDialog(false);
+                  setSelectedCard(null);
+                  setHasPlaymakerUnsavedChanges(false);
+                }}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Leave
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
