@@ -310,6 +310,7 @@ export async function createPlay(teamId: string, userId: string, data: {
   canvasData: string;
   thumbnailData?: string;
   category: string;
+  keyframesData?: string;
 }): Promise<Play> {
   const res = await apiRequest("POST", `/api/teams/${teamId}/plays`, { ...data, userId });
   return res.json();

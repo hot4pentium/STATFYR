@@ -722,7 +722,7 @@ export default function UnifiedDashboard() {
   });
 
   const createPlayMutation = useMutation({
-    mutationFn: (data: { name: string; description?: string; canvasData: string; thumbnailData?: string; category: string }) => {
+    mutationFn: (data: { name: string; description?: string; canvasData: string; thumbnailData?: string; category: string; keyframesData?: string }) => {
       if (!currentTeam || !user) throw new Error("No team selected");
       return createPlay(currentTeam.id, user.id, data);
     },
@@ -3819,9 +3819,9 @@ export default function UnifiedDashboard() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Play Detail Dialog */}
+        {/* Play Detail Dialog with Animation Playback */}
         <Dialog open={!!expandedPlay} onOpenChange={(open) => !open && setExpandedPlay(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 {expandedPlay?.name}
@@ -3829,9 +3829,30 @@ export default function UnifiedDashboard() {
               </DialogTitle>
             </DialogHeader>
             {expandedPlay?.description && <p className="text-muted-foreground">{expandedPlay.description}</p>}
-            {expandedPlay?.thumbnailData && (
-              <div className="rounded-lg overflow-hidden border max-h-[50vh] overflow-y-auto">
-                <img src={expandedPlay.thumbnailData} alt={expandedPlay.name} className="w-full h-auto max-h-[50vh] object-contain" />
+            {expandedPlay?.canvasData && (
+              <div className="rounded-lg overflow-hidden border">
+                <PlaybookCanvas
+                  key={expandedPlay.id}
+                  sport={currentTeam?.sport || "Basketball"}
+                  readOnly={true}
+                  initialElements={(() => {
+                    try {
+                      const parsed = JSON.parse(expandedPlay.canvasData);
+                      return Array.isArray(parsed) ? parsed : [];
+                    } catch {
+                      return [];
+                    }
+                  })()}
+                  initialKeyframes={(() => {
+                    try {
+                      if (!expandedPlay.keyframesData) return [];
+                      const parsed = JSON.parse(expandedPlay.keyframesData);
+                      return Array.isArray(parsed) ? parsed : [];
+                    } catch {
+                      return [];
+                    }
+                  })()}
+                />
               </div>
             )}
             {(userRole === "coach" || isStaff) && (

@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save, Shield, Swords } from "lucide-react";
+import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save, Shield, Swords, Play, Pause, RotateCcw, Plus, HelpCircle, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -33,12 +34,24 @@ interface DrawnElement {
   label?: string;
 }
 
+interface KeyframeElementPosition {
+  elementId: string;
+  points: Point[];
+}
+
+interface Keyframe {
+  id: string;
+  positions: KeyframeElementPosition[];
+  timestamp: number;
+}
+
 interface SavePlayData {
   name: string;
   description: string;
   canvasData: string;
   thumbnailData: string;
   category: string;
+  keyframesData?: string;
 }
 
 interface PlaybookCanvasProps {
@@ -47,13 +60,26 @@ interface PlaybookCanvasProps {
   onSave?: (data: SavePlayData) => Promise<void>;
   isSaving?: boolean;
   onHasUnsavedChanges?: (hasChanges: boolean) => void;
+  initialElements?: DrawnElement[];
+  initialKeyframes?: Keyframe[];
+  readOnly?: boolean;
 }
 
 const SHAPE_SIZE = 22; // Reduced by ~10% for better canvas fit
 
-export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSaving = false, onHasUnsavedChanges }: PlaybookCanvasProps) {
+export function PlaybookCanvas({ 
+  athletes = [], 
+  sport = "Football", 
+  onSave, 
+  isSaving = false, 
+  onHasUnsavedChanges,
+  initialElements = [],
+  initialKeyframes = [],
+  readOnly = false
+}: PlaybookCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number | null>(null);
   const [selectedTool, setSelectedTool] = useState<Tool>("freedraw");
   const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
   const [isAthletePopoverOpen, setIsAthletePopoverOpen] = useState(false);
@@ -64,7 +90,7 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [lastPoint, setLastPoint] = useState<Point | null>(null);
   const [currentPath, setCurrentPath] = useState<Point[]>([]);
-  const [elements, setElements] = useState<DrawnElement[]>([]);
+  const [elements, setElements] = useState<DrawnElement[]>(initialElements);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [dimensionsLocked, setDimensionsLocked] = useState(false);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -72,6 +98,28 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
   const [playName, setPlayName] = useState("");
   const [playDescription, setPlayDescription] = useState("");
   const [playCategory, setPlayCategory] = useState("Offense");
+  
+  // Animation/Keyframe state
+  const [keyframes, setKeyframes] = useState<Keyframe[]>(initialKeyframes);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentKeyframeIndex, setCurrentKeyframeIndex] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [animationProgress, setAnimationProgress] = useState(0);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const playbackKeyframesRef = useRef<Keyframe[]>([]);
+
+  // Sync elements when initialElements prop changes
+  useEffect(() => {
+    setElements(initialElements);
+  }, [JSON.stringify(initialElements)]);
+
+  // Sync keyframes when initialKeyframes prop changes
+  useEffect(() => {
+    setKeyframes(initialKeyframes);
+    setCurrentKeyframeIndex(0);
+    setAnimationProgress(0);
+    setIsPlaying(false);
+  }, [JSON.stringify(initialKeyframes)]);
 
   // Clear canvas and reset dimensions when sport changes
   useEffect(() => {
@@ -81,8 +129,199 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
   // Notify parent when there are unsaved changes
   useEffect(() => {
-    onHasUnsavedChanges?.(elements.length > 0);
-  }, [elements.length, onHasUnsavedChanges]);
+    onHasUnsavedChanges?.(elements.length > 0 || keyframes.length > 0);
+  }, [elements.length, keyframes.length, onHasUnsavedChanges]);
+
+  // Reset keyframes when sport changes
+  useEffect(() => {
+    setKeyframes([]);
+    setCurrentKeyframeIndex(0);
+    setIsPlaying(false);
+  }, [sport]);
+
+  // Capture keyframes snapshot when playback starts
+  useEffect(() => {
+    if (isPlaying) {
+      playbackKeyframesRef.current = [...keyframes];
+    }
+  }, [isPlaying]);
+
+  // Animation playback engine - uses captured keyframes ref for stable playback
+  useEffect(() => {
+    const frozenKeyframes = playbackKeyframesRef.current;
+    
+    if (!isPlaying || frozenKeyframes.length < 2) {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+      return;
+    }
+
+    let startTime: number | null = null;
+    const segmentDuration = 1000 / playbackSpeed; // ms per keyframe transition
+    let isCancelled = false;
+
+    const easeInOutQuad = (t: number): number => {
+      return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    };
+
+    const animate = (timestamp: number) => {
+      if (isCancelled) return;
+      
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const rawProgress = Math.min(elapsed / segmentDuration, 1);
+      const easedProgress = easeInOutQuad(rawProgress);
+      
+      setAnimationProgress(easedProgress);
+
+      if (rawProgress >= 1) {
+        const nextIndex = currentKeyframeIndex + 1;
+        if (nextIndex < frozenKeyframes.length - 1) {
+          setCurrentKeyframeIndex(nextIndex);
+          startTime = null;
+          animationRef.current = requestAnimationFrame(animate);
+        } else {
+          setCurrentKeyframeIndex(frozenKeyframes.length - 1);
+          setAnimationProgress(1);
+          setTimeout(() => {
+            if (!isCancelled) {
+              setIsPlaying(false);
+            }
+          }, 300);
+          return;
+        }
+      } else {
+        animationRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      isCancelled = true;
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
+  }, [isPlaying, currentKeyframeIndex, playbackSpeed]);
+
+  // Record a new keyframe with current element positions
+  const recordKeyframe = useCallback(() => {
+    if (elements.length === 0) return;
+
+    const newKeyframe: Keyframe = {
+      id: `kf-${Date.now()}`,
+      positions: elements.map(el => ({
+        elementId: el.id,
+        points: el.points.map(p => ({ ...p }))
+      })),
+      timestamp: Date.now()
+    };
+
+    setKeyframes(prev => [...prev, newKeyframe]);
+  }, [elements]);
+
+  // Get interpolated element positions for animation
+  const getInterpolatedElements = useCallback((): DrawnElement[] => {
+    // Use frozen keyframes during playback for consistency
+    const activeKeyframes = isPlaying ? playbackKeyframesRef.current : keyframes;
+    
+    if (activeKeyframes.length === 0) return elements;
+    
+    const currentKf = activeKeyframes[currentKeyframeIndex];
+    if (!currentKf) return elements;
+
+    // If not playing or only one keyframe, show current keyframe state
+    if (!isPlaying || activeKeyframes.length === 1 || currentKeyframeIndex >= activeKeyframes.length - 1) {
+      return elements.map(el => {
+        const kfPos = currentKf.positions.find(p => p.elementId === el.id);
+        if (kfPos && kfPos.points.length === el.points.length) {
+          return { ...el, points: kfPos.points };
+        }
+        return el;
+      });
+    }
+
+    // Interpolate between current and next keyframe
+    const nextKf = activeKeyframes[currentKeyframeIndex + 1];
+    if (!nextKf) return elements;
+
+    return elements.map(el => {
+      const currentPos = currentKf.positions.find(p => p.elementId === el.id);
+      const nextPos = nextKf.positions.find(p => p.elementId === el.id);
+
+      // Handle missing positions - use element's current points as fallback
+      const fromPoints = currentPos?.points || el.points;
+      const toPoints = nextPos?.points || el.points;
+
+      // If point counts don't match, use the current position without interpolation
+      if (fromPoints.length !== toPoints.length) {
+        return { ...el, points: fromPoints };
+      }
+
+      const interpolatedPoints = fromPoints.map((cp, i) => {
+        const np = toPoints[i];
+        return {
+          x: cp.x + (np.x - cp.x) * animationProgress,
+          y: cp.y + (np.y - cp.y) * animationProgress
+        };
+      });
+      return { ...el, points: interpolatedPoints };
+    });
+  }, [elements, keyframes, currentKeyframeIndex, animationProgress, isPlaying]);
+
+  // Delete a specific keyframe
+  const deleteKeyframe = useCallback((keyframeId: string) => {
+    setKeyframes(prev => prev.filter(kf => kf.id !== keyframeId));
+    if (currentKeyframeIndex >= keyframes.length - 1) {
+      setCurrentKeyframeIndex(Math.max(0, keyframes.length - 2));
+    }
+  }, [keyframes.length, currentKeyframeIndex]);
+
+  // Jump to a specific keyframe and update elements to match (for editing)
+  const jumpToKeyframe = useCallback((index: number) => {
+    setIsPlaying(false);
+    setCurrentKeyframeIndex(index);
+    setAnimationProgress(0);
+    
+    // In edit mode, update elements to match the keyframe positions so user can see and edit from that pose
+    if (!readOnly && keyframes[index]) {
+      const kf = keyframes[index];
+      setElements(prev => prev.map(el => {
+        const kfPos = kf.positions.find(p => p.elementId === el.id);
+        if (kfPos && kfPos.points.length === el.points.length) {
+          return { ...el, points: kfPos.points };
+        }
+        return el;
+      }));
+    }
+  }, [readOnly, keyframes]);
+
+  // Update the current keyframe with current element positions (for editing existing keyframes)
+  const updateCurrentKeyframe = useCallback(() => {
+    if (elements.length === 0 || currentKeyframeIndex >= keyframes.length) return;
+    
+    const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
+      elementId: el.id,
+      points: el.points.map(p => ({ x: p.x, y: p.y }))
+    }));
+
+    setKeyframes(prev => prev.map((kf, idx) => 
+      idx === currentKeyframeIndex 
+        ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
+        : kf
+    ));
+  }, [elements, currentKeyframeIndex, keyframes.length]);
+
+  // Reset animation to start
+  const resetAnimation = useCallback(() => {
+    setIsPlaying(false);
+    setCurrentKeyframeIndex(0);
+    setAnimationProgress(0);
+  }, []);
 
   const sortedAthletes = [...athletes].sort((a, b) => 
     a.firstName.localeCompare(b.firstName)
@@ -184,14 +423,19 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
 
     drawSportBackground(ctx, canvas.width, canvas.height, sport, activeHalf);
 
-    elements.forEach((element) => {
+    // Show interpolated elements during playback or in read-only mode (viewer)
+    // In edit mode (not readOnly), show raw elements when not playing so users can edit and record new keyframes
+    const displayElements = isPlaying || (readOnly && keyframes.length > 0) 
+      ? getInterpolatedElements() 
+      : elements;
+    displayElements.forEach((element) => {
       drawElement(ctx, element);
     });
-  }, [elements, sport, activeHalf]);
+  }, [elements, sport, activeHalf, isPlaying, keyframes.length, readOnly, getInterpolatedElements]);
 
   useEffect(() => {
     redrawCanvas();
-  }, [canvasSize, redrawCanvas]);
+  }, [canvasSize, redrawCanvas, animationProgress, currentKeyframeIndex]);
 
   // Consistent styling constants
   const FIELD_GREEN = "#2d5a27";
@@ -1110,12 +1354,14 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
       canvasData,
       thumbnailData,
       category: playCategory,
+      keyframesData: keyframes.length > 0 ? JSON.stringify(keyframes) : undefined,
     });
     
     setIsSaveDialogOpen(false);
     setPlayName("");
     setPlayDescription("");
     setPlayCategory("Offense");
+    setKeyframes([]);
     setElements([]);
   };
 
@@ -1198,6 +1444,115 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
             {activeHalf === "offense" ? <Swords className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
             <span className="hidden sm:inline">{activeHalf === "offense" ? "Offense" : "Defense"}</span>
           </Button>
+        )}
+
+        {/* Animation Controls */}
+        {!readOnly && (
+          <div className="flex items-center gap-1 border-l border-white/10 pl-2 ml-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={recordKeyframe}
+              disabled={elements.length === 0 || isPlaying}
+              className="gap-1 text-amber-500 border-amber-500/50 hover:bg-amber-500/20"
+              title="Record current positions as a new keyframe"
+              data-testid="button-record-keyframe"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline text-xs">Keyframe</span>
+            </Button>
+            {keyframes.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={updateCurrentKeyframe}
+                disabled={elements.length === 0 || isPlaying}
+                className="gap-1 text-blue-500 border-blue-500/50 hover:bg-blue-500/20"
+                title={`Update keyframe ${currentKeyframeIndex + 1} with current positions`}
+                data-testid="button-update-keyframe"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs">Update</span>
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsHelpModalOpen(true)}
+              className="text-muted-foreground hover:text-white"
+              title="How to animate plays"
+              data-testid="button-animation-help"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* Playback Controls - show when keyframes exist */}
+        {keyframes.length >= 2 && (
+          <div className="flex items-center gap-1 border-l border-white/10 pl-2 ml-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={resetAnimation}
+              disabled={currentKeyframeIndex === 0 && !isPlaying}
+              className="h-8 w-8"
+              title="Reset to start"
+              data-testid="button-reset-animation"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => jumpToKeyframe(Math.max(0, currentKeyframeIndex - 1))}
+              disabled={currentKeyframeIndex === 0 || isPlaying}
+              className="h-8 w-8"
+              data-testid="button-prev-keyframe"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={isPlaying ? "default" : "outline"}
+              size="icon"
+              onClick={() => setIsPlaying(!isPlaying)}
+              className={`h-8 w-8 ${isPlaying ? "bg-green-600 hover:bg-green-700" : ""}`}
+              title={isPlaying ? "Pause" : "Play animation"}
+              data-testid="button-play-animation"
+            >
+              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => jumpToKeyframe(Math.min(keyframes.length - 1, currentKeyframeIndex + 1))}
+              disabled={currentKeyframeIndex >= keyframes.length - 1 || isPlaying}
+              className="h-8 w-8"
+              data-testid="button-next-keyframe"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <div className="hidden sm:flex items-center gap-2 ml-2">
+              <span className="text-xs text-muted-foreground">{playbackSpeed}x</span>
+              <Slider
+                value={[playbackSpeed]}
+                onValueChange={([v]) => setPlaybackSpeed(v)}
+                min={0.5}
+                max={2}
+                step={0.5}
+                className="w-16"
+                disabled={isPlaying}
+              />
+            </div>
+            <span className="text-xs text-muted-foreground ml-2">
+              {currentKeyframeIndex + 1}/{keyframes.length}
+            </span>
+          </div>
+        )}
+
+        {/* Keyframe count indicator when < 2 keyframes */}
+        {keyframes.length === 1 && (
+          <span className="text-xs text-amber-500 ml-2">1 keyframe (add more to animate)</span>
         )}
 
         <div className="flex-1" />
@@ -1304,17 +1659,119 @@ export function PlaybookCanvas({ athletes = [], sport = "Football", onSave, isSa
           ref={canvasRef}
           width={canvasSize.width || 400}
           height={canvasSize.height || 250}
-          className="touch-none cursor-crosshair max-w-full max-h-full"
-          onMouseDown={handleStart}
-          onMouseMove={handleMove}
-          onMouseUp={handleEnd}
-          onMouseLeave={handleEnd}
-          onTouchStart={handleStart}
-          onTouchMove={handleMove}
-          onTouchEnd={handleEnd}
+          className={`touch-none max-w-full max-h-full ${readOnly || isPlaying ? "cursor-default" : "cursor-crosshair"}`}
+          onMouseDown={!readOnly && !isPlaying ? handleStart : undefined}
+          onMouseMove={!readOnly && !isPlaying ? handleMove : undefined}
+          onMouseUp={!readOnly && !isPlaying ? handleEnd : undefined}
+          onMouseLeave={!readOnly && !isPlaying ? handleEnd : undefined}
+          onTouchStart={!readOnly && !isPlaying ? handleStart : undefined}
+          onTouchMove={!readOnly && !isPlaying ? handleMove : undefined}
+          onTouchEnd={!readOnly && !isPlaying ? handleEnd : undefined}
           data-testid="playbook-canvas"
         />
       </div>
+
+      {/* Keyframe Timeline */}
+      {keyframes.length > 0 && (
+        <div className="mt-3 p-3 bg-black/30 rounded-lg border border-white/10">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-medium text-muted-foreground">Timeline</span>
+            <span className="text-xs text-amber-500">({keyframes.length} keyframes)</span>
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+            {keyframes.map((kf, index) => (
+              <div
+                key={kf.id}
+                className={`relative flex-shrink-0 w-12 h-12 rounded-lg border-2 cursor-pointer transition-all ${
+                  index === currentKeyframeIndex
+                    ? "border-primary bg-primary/20 ring-2 ring-primary/50"
+                    : "border-white/20 bg-white/5 hover:border-white/40"
+                }`}
+                onClick={() => jumpToKeyframe(index)}
+                data-testid={`keyframe-${index}`}
+              >
+                <div className="absolute inset-0 flex items-center justify-center text-xs font-bold">
+                  {index + 1}
+                </div>
+                {!readOnly && (
+                  <button
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteKeyframe(kf.id);
+                    }}
+                    title="Delete keyframe"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Animation Help Modal */}
+      <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Play className="h-5 w-5 text-primary" />
+              How to Animate Plays
+            </DialogTitle>
+            <DialogDescription>
+              Create step-by-step animations to show player movements
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-bold flex-shrink-0">1</div>
+                <div>
+                  <p className="font-medium">Set up your starting positions</p>
+                  <p className="text-sm text-muted-foreground">Place shapes (squares, circles, triangles) and draw arrows to show the initial formation.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-bold flex-shrink-0">2</div>
+                <div>
+                  <p className="font-medium">Record your first keyframe</p>
+                  <p className="text-sm text-muted-foreground">Click the <span className="text-amber-500 font-medium">+ Keyframe</span> button to save the starting positions.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-bold flex-shrink-0">3</div>
+                <div>
+                  <p className="font-medium">Move shapes to their next positions</p>
+                  <p className="text-sm text-muted-foreground">Drag shapes to where they should move. You can also add new shapes or arrows.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-bold flex-shrink-0">4</div>
+                <div>
+                  <p className="font-medium">Record another keyframe</p>
+                  <p className="text-sm text-muted-foreground">Click <span className="text-amber-500 font-medium">+ Keyframe</span> again. Repeat steps 3-4 for each movement phase.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center text-sm font-bold flex-shrink-0">▶</div>
+                <div>
+                  <p className="font-medium">Play your animation</p>
+                  <p className="text-sm text-muted-foreground">Once you have 2+ keyframes, playback controls appear. Press play to watch your animated play!</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mt-4">
+              <p className="text-sm text-amber-200">
+                <strong>Tip:</strong> Team members viewing saved plays can also play animations at different speeds.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsHelpModalOpen(false)}>Got it!</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
