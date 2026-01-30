@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, Save, Shield, Swords, Play, Pause, RotateCcw, Plus, HelpCircle, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, MousePointer, Save, Shield, Swords, Play, Pause, RotateCcw, Plus, HelpCircle, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-type Tool = "freedraw" | "arrow" | "square" | "xshape" | "triangle" | "circle" | "athlete" | "delete";
+type Tool = "select" | "freedraw" | "arrow" | "square" | "xshape" | "triangle" | "circle" | "athlete" | "delete";
 
 interface Point {
   x: number;
@@ -82,7 +82,7 @@ export function PlaybookCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
-  const [selectedTool, setSelectedTool] = useState<Tool>("freedraw");
+  const [selectedTool, setSelectedTool] = useState<Tool>("select");
   const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
   const [isAthletePopoverOpen, setIsAthletePopoverOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -436,6 +436,7 @@ export function PlaybookCanvas({
   );
 
   const tools: { id: Tool; icon: React.ReactNode; label: string; color?: string }[] = [
+    { id: "select", icon: <MousePointer className="h-5 w-5" />, label: "Select" },
     { id: "freedraw", icon: <Pencil className="h-5 w-5" />, label: "Free Draw" },
     { id: "arrow", icon: <ArrowRight className="h-5 w-5" />, label: "Arrow" },
     { id: "square", icon: <Square className="h-5 w-5" />, label: "Square" },
@@ -445,7 +446,7 @@ export function PlaybookCanvas({
   ];
 
   const isShapeTool = (tool: Tool) => ["square", "xshape", "triangle", "circle", "athlete"].includes(tool);
-  const isDraggableTool = (tool: Tool) => ["square", "xshape", "triangle", "circle", "arrow", "athlete"].includes(tool);
+  const isDraggableTool = (tool: Tool) => ["select", "square", "xshape", "triangle", "circle", "arrow", "athlete"].includes(tool);
 
   const getToolColor = (tool: Tool) => {
     switch (tool) {
