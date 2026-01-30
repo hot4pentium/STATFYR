@@ -139,11 +139,18 @@ export function PlaybookCanvas({
 
   // Sync elements when initialElements prop changes - scale if needed for viewer
   useEffect(() => {
+    let elementsToSet: DrawnElement[];
     if (originalCanvasWidth && canvasSize.width > 0) {
-      setElements(scaleElements(initialElements, originalCanvasWidth, canvasSize.width));
+      elementsToSet = scaleElements(initialElements, originalCanvasWidth, canvasSize.width);
     } else {
-      setElements(initialElements);
+      elementsToSet = initialElements;
     }
+    setElements(elementsToSet);
+    
+    // Populate master element list for playback
+    elementsToSet.forEach(el => {
+      allElementsRef.current.set(el.id, el);
+    });
   }, [JSON.stringify(initialElements), originalCanvasWidth, canvasSize.width, scaleElements]);
 
   // Sync keyframes when initialKeyframes prop changes - scale if needed for viewer
