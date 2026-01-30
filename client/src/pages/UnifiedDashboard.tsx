@@ -3877,7 +3877,7 @@ export default function UnifiedDashboard() {
                   variant="outline" 
                   onClick={() => {
                     setExpandedPlay(null);
-                    navigate(`/play/edit/${expandedPlay!.id}`);
+                    setLocation(`/play/edit/${expandedPlay!.id}`);
                   }}
                 >
                   <Pencil className="h-4 w-4 mr-2" /> Edit Play
