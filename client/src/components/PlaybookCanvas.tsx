@@ -295,10 +295,11 @@ export function PlaybookCanvas({
       // Always use keyframe positions for elements in the current keyframe
       // This ensures display matches keyframe data for consistent hit detection
       // New elements (not in any keyframe) keep their current positions
+      // IMPORTANT: Create deep copies to avoid modifying keyframe data
       return filteredElements.map(el => {
         const kfPos = currentKf.positions.find(p => p.elementId === el.id);
         if (kfPos && kfPos.points.length > 0) {
-          return { ...el, points: kfPos.points };
+          return { ...el, points: kfPos.points.map(p => ({ x: p.x, y: p.y })) };
         }
         // Element is new (not in keyframe) - keep current position
         return el;
@@ -323,12 +324,12 @@ export function PlaybookCanvas({
 
         // Element only in next keyframe (new) - show at its final position immediately
         if (!currentPos && nextPos) {
-          return { ...el, points: nextPos.points };
+          return { ...el, points: nextPos.points.map(p => ({ x: p.x, y: p.y })) };
         }
 
         // Element only in current keyframe (removed in next) - keep at current position
         if (currentPos && !nextPos) {
-          return { ...el, points: currentPos.points };
+          return { ...el, points: currentPos.points.map(p => ({ x: p.x, y: p.y })) };
         }
 
         // Element in both - interpolate between positions
@@ -337,7 +338,7 @@ export function PlaybookCanvas({
 
         // If point counts don't match, use the current position without interpolation
         if (fromPoints.length !== toPoints.length) {
-          return { ...el, points: fromPoints };
+          return { ...el, points: fromPoints.map(p => ({ x: p.x, y: p.y })) };
         }
 
         const interpolatedPoints = fromPoints.map((cp, i) => {
@@ -367,13 +368,14 @@ export function PlaybookCanvas({
     
     // In edit mode, update elements to match the keyframe positions so user can see and edit from that pose
     // Only update positions for elements that exist in this keyframe
+    // IMPORTANT: Create deep copies to avoid modifying keyframe data directly
     if (!readOnly && keyframes[index]) {
       const kf = keyframes[index];
       setElements(prev => prev.map(el => {
         const kfPos = kf.positions.find(p => p.elementId === el.id);
         if (kfPos && kfPos.points.length > 0) {
-          // Element exists in this keyframe - use keyframe position
-          return { ...el, points: kfPos.points };
+          // Element exists in this keyframe - use DEEP COPY of keyframe position
+          return { ...el, points: kfPos.points.map(p => ({ x: p.x, y: p.y })) };
         }
         // Element not in this keyframe - keep current position (will be filtered by display)
         return el;
