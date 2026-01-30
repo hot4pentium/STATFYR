@@ -750,19 +750,25 @@ export function PlaybookCanvas({
     ctx.fillStyle = FIELD_GREEN;
     ctx.fillRect(0, 0, width, height);
     
+    // Diamond positioned lower to show more outfield
+    // Home plate at 95%, second base at 35% (shifted down from 85%/15%)
+    const homeY = 0.95;
+    const secondY = 0.35;
+    const baselineY = 0.65; // First/third base Y position
+    
     // Outfield arc (darker green)
     ctx.fillStyle = FIELD_GREEN_STRIPE;
     ctx.beginPath();
-    ctx.arc(width / 2, height * 0.85, width * 0.48, Math.PI, 2 * Math.PI);
+    ctx.arc(width / 2, height * homeY, width * 0.55, Math.PI, 2 * Math.PI);
     ctx.fill();
     
     // Infield dirt (tan)
     ctx.fillStyle = COURT_TAN;
     ctx.beginPath();
-    ctx.moveTo(width / 2, height * 0.85); // Home plate
-    ctx.lineTo(width * 0.15, height * 0.5); // Third base
-    ctx.lineTo(width / 2, height * 0.15); // Second base
-    ctx.lineTo(width * 0.85, height * 0.5); // First base
+    ctx.moveTo(width / 2, height * homeY); // Home plate
+    ctx.lineTo(width * 0.12, height * baselineY); // Third base
+    ctx.lineTo(width / 2, height * secondY); // Second base
+    ctx.lineTo(width * 0.88, height * baselineY); // First base
     ctx.closePath();
     ctx.fill();
     
@@ -770,17 +776,18 @@ export function PlaybookCanvas({
     ctx.strokeStyle = LINE_WHITE;
     ctx.lineWidth = LINE_WIDTH;
     ctx.beginPath();
-    ctx.moveTo(width / 2, height * 0.85);
-    ctx.lineTo(width * 0.85, height * 0.5);
-    ctx.lineTo(width / 2, height * 0.15);
-    ctx.lineTo(width * 0.15, height * 0.5);
+    ctx.moveTo(width / 2, height * homeY);
+    ctx.lineTo(width * 0.88, height * baselineY);
+    ctx.lineTo(width / 2, height * secondY);
+    ctx.lineTo(width * 0.12, height * baselineY);
     ctx.closePath();
     ctx.stroke();
     
     // Pitcher's mound
+    const moundY = (homeY + secondY) / 2 + 0.03;
     ctx.fillStyle = COURT_TAN_DARK;
     ctx.beginPath();
-    ctx.arc(width / 2, height * 0.52, width * 0.04, 0, 2 * Math.PI);
+    ctx.arc(width / 2, height * moundY, width * 0.04, 0, 2 * Math.PI);
     ctx.fill();
     ctx.strokeStyle = LINE_WHITE;
     ctx.stroke();
@@ -789,14 +796,14 @@ export function PlaybookCanvas({
     const baseSize = width * 0.03;
     ctx.fillStyle = LINE_WHITE;
     // First base
-    ctx.fillRect(width * 0.85 - baseSize/2, height * 0.5 - baseSize/2, baseSize, baseSize);
+    ctx.fillRect(width * 0.88 - baseSize/2, height * baselineY - baseSize/2, baseSize, baseSize);
     // Second base
-    ctx.fillRect(width / 2 - baseSize/2, height * 0.15 - baseSize/2, baseSize, baseSize);
+    ctx.fillRect(width / 2 - baseSize/2, height * secondY - baseSize/2, baseSize, baseSize);
     // Third base
-    ctx.fillRect(width * 0.15 - baseSize/2, height * 0.5 - baseSize/2, baseSize, baseSize);
+    ctx.fillRect(width * 0.12 - baseSize/2, height * baselineY - baseSize/2, baseSize, baseSize);
     // Home plate (pentagon)
     ctx.beginPath();
-    const hx = width / 2, hy = height * 0.85;
+    const hx = width / 2, hy = height * homeY;
     const hs = baseSize * 0.7;
     ctx.moveTo(hx, hy + hs);
     ctx.lineTo(hx - hs, hy);
