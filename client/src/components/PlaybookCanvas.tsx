@@ -265,53 +265,36 @@ export function PlaybookCanvas({
     setCurrentKeyframeIndex(keyframes.length); // This will be the index of the new keyframe
   }, [elements, keyframes.length]);
 
-  // Get interpolated element positions for animation
+  // Get interpolated element positions for animation playback ONLY
+  // During editing, elements array is the source of truth
   const getInterpolatedElements = useCallback((): DrawnElement[] => {
-    // Use frozen keyframes during playback for consistency
-    const activeKeyframes = isPlaying ? playbackKeyframesRef.current : keyframes;
-    
+    // NOT playing = just return current elements as-is (source of truth for editing)
+    if (!isPlaying) {
+      return elements;
+    }
+
+    // PLAYING: interpolate between keyframes
+    const activeKeyframes = playbackKeyframesRef.current;
     if (activeKeyframes.length === 0) return elements;
     
     const currentKf = activeKeyframes[currentKeyframeIndex];
     if (!currentKf) return elements;
 
-    // If not playing or only one keyframe or at last keyframe, show current keyframe state
-    if (!isPlaying || activeKeyframes.length === 1 || currentKeyframeIndex >= activeKeyframes.length - 1) {
-      // Build a set of all element IDs that exist in ANY keyframe
-      const allKeyframedElementIds = new Set<string>();
-      activeKeyframes.forEach(kf => {
-        kf.positions.forEach(p => allKeyframedElementIds.add(p.elementId));
-      });
-
-      // Show elements that either:
-      // 1. Exist in the current keyframe, OR
-      // 2. Are brand new (not recorded in any keyframe yet) - so user can see what they just drew
-      const filteredElements = elements.filter(el => {
-        const existsInCurrentKf = currentKf.positions.some(p => p.elementId === el.id);
-        const isNewElement = !allKeyframedElementIds.has(el.id);
-        return existsInCurrentKf || isNewElement;
-      });
-
-      // Always use keyframe positions for elements in the current keyframe
-      // This ensures display matches keyframe data for consistent hit detection
-      // New elements (not in any keyframe) keep their current positions
-      // IMPORTANT: Create deep copies to avoid modifying keyframe data
-      return filteredElements.map(el => {
+    // At last keyframe or only one keyframe - show final positions
+    if (activeKeyframes.length === 1 || currentKeyframeIndex >= activeKeyframes.length - 1) {
+      return elements.map(el => {
         const kfPos = currentKf.positions.find(p => p.elementId === el.id);
         if (kfPos && kfPos.points.length > 0) {
           return { ...el, points: kfPos.points.map(p => ({ x: p.x, y: p.y })) };
         }
-        // Element is new (not in keyframe) - keep current position
         return el;
-      });
+      }).filter(el => currentKf.positions.some(p => p.elementId === el.id));
     }
 
     // Interpolate between current and next keyframe
     const nextKf = activeKeyframes[currentKeyframeIndex + 1];
     if (!nextKf) return elements;
 
-    // During playback, show elements that exist in EITHER current OR next keyframe
-    // This makes new elements appear at the START of the transition (with movement)
     return elements
       .filter(el => {
         const inCurrent = currentKf.positions.some(p => p.elementId === el.id);
@@ -322,21 +305,16 @@ export function PlaybookCanvas({
         const currentPos = currentKf.positions.find(p => p.elementId === el.id);
         const nextPos = nextKf.positions.find(p => p.elementId === el.id);
 
-        // Element only in next keyframe (new) - show at its final position immediately
         if (!currentPos && nextPos) {
           return { ...el, points: nextPos.points.map(p => ({ x: p.x, y: p.y })) };
         }
-
-        // Element only in current keyframe (removed in next) - keep at current position
         if (currentPos && !nextPos) {
           return { ...el, points: currentPos.points.map(p => ({ x: p.x, y: p.y })) };
         }
 
-        // Element in both - interpolate between positions
         const fromPoints = currentPos?.points || el.points;
         const toPoints = nextPos?.points || fromPoints;
 
-        // If point counts don't match, use the current position without interpolation
         if (fromPoints.length !== toPoints.length) {
           return { ...el, points: fromPoints.map(p => ({ x: p.x, y: p.y })) };
         }
@@ -350,7 +328,7 @@ export function PlaybookCanvas({
         });
         return { ...el, points: interpolatedPoints };
       });
-  }, [elements, keyframes, currentKeyframeIndex, animationProgress, isPlaying, readOnly]);
+  }, [elements, currentKeyframeIndex, animationProgress, isPlaying]);
 
   // Delete a specific keyframe
   const deleteKeyframe = useCallback((keyframeId: string) => {
@@ -1227,10 +1205,9 @@ export function PlaybookCanvas({
   };
 
   const findElementAtPoint = (point: Point): DrawnElement | null => {
-    // Use interpolated elements for hit testing only when viewing keyframe state (not while editing/dragging)
-    // During editing, use raw elements so user can grab and move things
-    const shouldInterpolate = (isPlaying || readOnly || keyframes.length > 0) && !isDragging;
-    const displayedElements = shouldInterpolate ? getInterpolatedElements() : elements;
+    // Use elements directly - they are the source of truth during editing
+    // Only use interpolated elements during playback
+    const displayedElements = isPlaying ? getInterpolatedElements() : elements;
     
     for (let i = displayedElements.length - 1; i >= 0; i--) {
       const el = displayedElements[i];
@@ -1240,8 +1217,7 @@ export function PlaybookCanvas({
         const center = el.points[0];
         const dist = Math.sqrt((point.x - center.x) ** 2 + (point.y - center.y) ** 2);
         if (dist <= SHAPE_SIZE / 2 + 10) {
-          // Return the element from elements array so we can modify it
-          return elements.find(e => e.id === el.id) || el;
+          return el;
         }
       } else if (el.tool === "arrow" && el.points.length >= 2) {
         const start = el.points[0];
@@ -1249,7 +1225,7 @@ export function PlaybookCanvas({
         const distToLine = pointToLineDistance(point, start, end);
         // Increased hit area from 15 to 25 for easier selection
         if (distToLine <= 25) {
-          return elements.find(e => e.id === el.id) || el;
+          return el;
         }
       }
     }
@@ -1292,20 +1268,14 @@ export function PlaybookCanvas({
     
     if (selectedTool === "delete") {
       if (clickedElement) {
+        // Always remove from elements array
+        setElements((prev) => prev.filter((el) => el.id !== clickedElement.id));
+        // Also remove from ALL keyframes
         if (keyframes.length > 0) {
-          // With keyframes: only remove from current keyframe, not from elements array
-          setKeyframes(prev => prev.map((kf, idx) => {
-            if (idx === currentKeyframeIndex) {
-              return {
-                ...kf,
-                positions: kf.positions.filter(p => p.elementId !== clickedElement.id)
-              };
-            }
-            return kf;
-          }));
-        } else {
-          // No keyframes: delete from elements array entirely
-          setElements((prev) => prev.filter((el) => el.id !== clickedElement.id));
+          setKeyframes(prev => prev.map(kf => ({
+            ...kf,
+            positions: kf.positions.filter(p => p.elementId !== clickedElement.id)
+          })));
         }
       }
       return;
@@ -1315,19 +1285,15 @@ export function PlaybookCanvas({
       setIsDragging(true);
       setDraggedElementId(clickedElement.id);
       
-      // Use the same logic as display/hit detection: interpolated positions when keyframes exist
-      const shouldInterpolate = (isPlaying || readOnly || keyframes.length > 0);
-      const displayedElements = shouldInterpolate ? getInterpolatedElements() : elements;
-      const displayedElement = displayedElements.find(e => e.id === clickedElement.id) || clickedElement;
-      
+      // Use elements directly - they are the source of truth
       if (clickedElement.tool === "arrow") {
-        const midX = (displayedElement.points[0].x + displayedElement.points[1].x) / 2;
-        const midY = (displayedElement.points[0].y + displayedElement.points[1].y) / 2;
+        const midX = (clickedElement.points[0].x + clickedElement.points[1].x) / 2;
+        const midY = (clickedElement.points[0].y + clickedElement.points[1].y) / 2;
         setDragOffset({ x: point.x - midX, y: point.y - midY });
       } else {
         setDragOffset({
-          x: point.x - displayedElement.points[0].x,
-          y: point.y - displayedElement.points[0].y,
+          x: point.x - clickedElement.points[0].x,
+          y: point.y - clickedElement.points[0].y,
         });
       }
       return;
