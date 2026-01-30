@@ -1294,7 +1294,21 @@ export function PlaybookCanvas({
     
     if (selectedTool === "delete") {
       if (clickedElement) {
-        setElements((prev) => prev.filter((el) => el.id !== clickedElement.id));
+        if (keyframes.length > 0) {
+          // With keyframes: only remove from current keyframe, not from elements array
+          setKeyframes(prev => prev.map((kf, idx) => {
+            if (idx === currentKeyframeIndex) {
+              return {
+                ...kf,
+                positions: kf.positions.filter(p => p.elementId !== clickedElement.id)
+              };
+            }
+            return kf;
+          }));
+        } else {
+          // No keyframes: delete from elements array entirely
+          setElements((prev) => prev.filter((el) => el.id !== clickedElement.id));
+        }
       }
       return;
     }
