@@ -1424,19 +1424,23 @@ export function PlaybookCanvas({
           ctx.fill();
         } else if (ballSport === "baseball") {
           // White baseball with red stitching
-          ctx.fillStyle = "#ffffff";
+          ctx.fillStyle = "#f5f5f4";
           ctx.beginPath();
           ctx.arc(ballCenter.x, ballCenter.y, ballRadius, 0, Math.PI * 2);
           ctx.fill();
+          ctx.strokeStyle = "#a8a29e";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          // Red stitching curves (matching toolbar icon style - curving outward)
           ctx.strokeStyle = "#dc2626";
           ctx.lineWidth = 1.5;
-          ctx.stroke();
-          // Red stitching curves
+          // Left stitching - curve opens to the left
           ctx.beginPath();
-          ctx.arc(ballCenter.x - ballRadius * 0.3, ballCenter.y, ballRadius * 0.6, -Math.PI * 0.4, Math.PI * 0.4);
+          ctx.arc(ballCenter.x - ballRadius * 0.7, ballCenter.y, ballRadius * 0.5, -Math.PI * 0.5, Math.PI * 0.5);
           ctx.stroke();
+          // Right stitching - curve opens to the right
           ctx.beginPath();
-          ctx.arc(ballCenter.x + ballRadius * 0.3, ballCenter.y, ballRadius * 0.6, Math.PI * 0.6, Math.PI * 1.4);
+          ctx.arc(ballCenter.x + ballRadius * 0.7, ballCenter.y, ballRadius * 0.5, Math.PI * 0.5, Math.PI * 1.5);
           ctx.stroke();
         } else if (ballSport === "volleyball") {
           // White/yellow volleyball with curved lines
