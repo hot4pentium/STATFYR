@@ -1692,125 +1692,127 @@ export function PlaybookCanvas({
       <div className="flex flex-wrap gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10" data-testid="playbook-toolbar">
         {!isAnimationMode ? (
           <>
-            {/* Drawing Tools */}
-            {tools.map((tool) => (
-              <Button
-                key={tool.id}
-                variant={selectedTool === tool.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedTool(tool.id)}
-                className={`gap-2 ${tool.color === "red" ? "text-red-500 hover:text-red-400" : ""}`}
-                data-testid={`tool-${tool.id}`}
-              >
-                {tool.icon}
-                <span className="hidden sm:inline">{tool.label}</span>
-              </Button>
-            ))}
-
-            <Popover open={isAthletePopoverOpen} onOpenChange={setIsAthletePopoverOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={selectedTool === "athlete" ? "default" : "outline"}
-                  size="sm"
-                  className="gap-2 text-blue-500 hover:text-blue-400"
-                  data-testid="tool-athlete"
-                >
-                  <Circle className="h-5 w-5 fill-blue-500" />
-                  <span className="hidden sm:inline">{selectedAthlete ? getInitials(selectedAthlete) : "Athlete"}</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-0" align="start">
-                <ScrollArea className="h-[200px]">
-                  <div className="p-2">
-                    <p className="text-xs text-muted-foreground mb-2 px-2">Select an athlete</p>
-                    {sortedAthletes.length === 0 ? (
-                      <p className="text-sm text-muted-foreground px-2 py-4 text-center">No athletes on team</p>
-                    ) : (
-                      sortedAthletes.map((athlete) => (
-                        <Button
-                          key={athlete.id}
-                          variant="ghost"
-                          size="sm"
-                          className="w-full justify-start gap-2"
-                          onClick={() => handleSelectAthlete(athlete)}
-                          data-testid={`athlete-option-${athlete.id}`}
-                        >
-                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
-                            {getInitials(athlete)}
-                          </div>
-                          {athlete.firstName} {athlete.lastName}
-                        </Button>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
-
-            <Button
-              variant={selectedTool === "ball" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedTool("ball")}
-              className="gap-2"
-              data-testid="tool-ball"
-            >
-              <Circle className="h-5 w-5 fill-amber-600 text-amber-600" />
-              <span className="hidden sm:inline">Ball</span>
-            </Button>
-
-            <Button
-              variant={selectedTool === "delete" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedTool("delete")}
-              className="gap-2 text-orange-500 hover:text-orange-400"
-              data-testid="tool-delete"
-            >
-              <MousePointerClick className="h-5 w-5" />
-              <span className="hidden sm:inline">Delete</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={undo}
-              disabled={undoStack.length === 0}
-              className="gap-2 text-blue-500 hover:text-blue-400"
-              data-testid="button-undo"
-            >
-              <Undo2 className="h-5 w-5" />
-              <span className="hidden sm:inline">Undo</span>
-            </Button>
-
-            {sport?.toLowerCase() !== "baseball" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setActiveHalf(activeHalf === "offense" ? "defense" : "offense")}
-                className={`gap-2 ${activeHalf === "offense" ? "text-green-500 border-green-500/50" : "text-red-500 border-red-500/50"}`}
-                data-testid="toggle-half"
-              >
-                {activeHalf === "offense" ? <Swords className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
-                <span className="hidden sm:inline">{activeHalf === "offense" ? "Offense" : "Defense"}</span>
-              </Button>
-            )}
-
-            {/* Animate Mode Toggle */}
+            {/* Drawing Tools - only show when not in read-only mode */}
             {!readOnly && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsAnimationMode(true)}
-                className="gap-2 ml-2 border-amber-500/50 text-amber-500 hover:bg-amber-500/20"
-                data-testid="button-animate-mode"
-              >
-                <Film className="h-5 w-5" />
-                <span className="hidden sm:inline">Animate</span>
-                {keyframes.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-amber-500/20 text-amber-400 rounded">
-                    {keyframes.length}
-                  </span>
+              <>
+                {tools.map((tool) => (
+                  <Button
+                    key={tool.id}
+                    variant={selectedTool === tool.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedTool(tool.id)}
+                    className={`gap-2 ${tool.color === "red" ? "text-red-500 hover:text-red-400" : ""}`}
+                    data-testid={`tool-${tool.id}`}
+                  >
+                    {tool.icon}
+                    <span className="hidden sm:inline">{tool.label}</span>
+                  </Button>
+                ))}
+
+                <Popover open={isAthletePopoverOpen} onOpenChange={setIsAthletePopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={selectedTool === "athlete" ? "default" : "outline"}
+                      size="sm"
+                      className="gap-2 text-blue-500 hover:text-blue-400"
+                      data-testid="tool-athlete"
+                    >
+                      <Circle className="h-5 w-5 fill-blue-500" />
+                      <span className="hidden sm:inline">{selectedAthlete ? getInitials(selectedAthlete) : "Athlete"}</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 p-0" align="start">
+                    <ScrollArea className="h-[200px]">
+                      <div className="p-2">
+                        <p className="text-xs text-muted-foreground mb-2 px-2">Select an athlete</p>
+                        {sortedAthletes.length === 0 ? (
+                          <p className="text-sm text-muted-foreground px-2 py-4 text-center">No athletes on team</p>
+                        ) : (
+                          sortedAthletes.map((athlete) => (
+                            <Button
+                              key={athlete.id}
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start gap-2"
+                              onClick={() => handleSelectAthlete(athlete)}
+                              data-testid={`athlete-option-${athlete.id}`}
+                            >
+                              <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                                {getInitials(athlete)}
+                              </div>
+                              {athlete.firstName} {athlete.lastName}
+                            </Button>
+                          ))
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </PopoverContent>
+                </Popover>
+
+                <Button
+                  variant={selectedTool === "ball" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedTool("ball")}
+                  className="gap-2"
+                  data-testid="tool-ball"
+                >
+                  <Circle className="h-5 w-5 fill-amber-600 text-amber-600" />
+                  <span className="hidden sm:inline">Ball</span>
+                </Button>
+
+                <Button
+                  variant={selectedTool === "delete" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedTool("delete")}
+                  className="gap-2 text-orange-500 hover:text-orange-400"
+                  data-testid="tool-delete"
+                >
+                  <MousePointerClick className="h-5 w-5" />
+                  <span className="hidden sm:inline">Delete</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={undo}
+                  disabled={undoStack.length === 0}
+                  className="gap-2 text-blue-500 hover:text-blue-400"
+                  data-testid="button-undo"
+                >
+                  <Undo2 className="h-5 w-5" />
+                  <span className="hidden sm:inline">Undo</span>
+                </Button>
+
+                {sport?.toLowerCase() !== "baseball" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setActiveHalf(activeHalf === "offense" ? "defense" : "offense")}
+                    className={`gap-2 ${activeHalf === "offense" ? "text-green-500 border-green-500/50" : "text-red-500 border-red-500/50"}`}
+                    data-testid="toggle-half"
+                  >
+                    {activeHalf === "offense" ? <Swords className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
+                    <span className="hidden sm:inline">{activeHalf === "offense" ? "Offense" : "Defense"}</span>
+                  </Button>
                 )}
-              </Button>
+
+                {/* Animate Mode Toggle */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAnimationMode(true)}
+                  className="gap-2 ml-2 border-amber-500/50 text-amber-500 hover:bg-amber-500/20"
+                  data-testid="button-animate-mode"
+                >
+                  <Film className="h-5 w-5" />
+                  <span className="hidden sm:inline">Animate</span>
+                  {keyframes.length > 0 && (
+                    <span className="ml-1 px-1.5 py-0.5 text-xs bg-amber-500/20 text-amber-400 rounded">
+                      {keyframes.length}
+                    </span>
+                  )}
+                </Button>
+              </>
             )}
 
             {/* Read-only Playback Controls */}
