@@ -275,50 +275,80 @@ export function PlaybookCanvas({
       return elements;
     }
 
-    // PLAYING: interpolate between keyframes
+    // PLAYING: interpolate between keyframes using master element list
     const activeKeyframes = playbackKeyframesRef.current;
     if (activeKeyframes.length === 0) return elements;
     
     const currentKf = activeKeyframes[currentKeyframeIndex];
     if (!currentKf) return elements;
 
-    // At last keyframe or only one keyframe - show final positions
+    // Helper to build element from keyframe position using master list
+    const buildElementFromKf = (kfPos: { elementId: string; points: Point[] }): DrawnElement | null => {
+      const originalEl = allElementsRef.current.get(kfPos.elementId);
+      if (!originalEl || kfPos.points.length === 0) return null;
+      return {
+        ...originalEl,
+        points: kfPos.points.map(p => ({ x: p.x, y: p.y }))
+      };
+    };
+
+    // At last keyframe or only one keyframe - show elements from current keyframe
     if (activeKeyframes.length === 1 || currentKeyframeIndex >= activeKeyframes.length - 1) {
-      return elements.map(el => {
-        const kfPos = currentKf.positions.find(p => p.elementId === el.id);
-        if (kfPos && kfPos.points.length > 0) {
-          return { ...el, points: kfPos.points.map(p => ({ x: p.x, y: p.y })) };
-        }
-        return el;
-      }).filter(el => currentKf.positions.some(p => p.elementId === el.id));
+      return currentKf.positions
+        .map(buildElementFromKf)
+        .filter((el): el is DrawnElement => el !== null);
     }
 
     // Interpolate between current and next keyframe
     const nextKf = activeKeyframes[currentKeyframeIndex + 1];
-    if (!nextKf) return elements;
+    if (!nextKf) {
+      return currentKf.positions
+        .map(buildElementFromKf)
+        .filter((el): el is DrawnElement => el !== null);
+    }
 
-    return elements
-      .filter(el => {
-        const inCurrent = currentKf.positions.some(p => p.elementId === el.id);
-        const inNext = nextKf.positions.some(p => p.elementId === el.id);
-        return inCurrent || inNext;
-      })
-      .map(el => {
-        const currentPos = currentKf.positions.find(p => p.elementId === el.id);
-        const nextPos = nextKf.positions.find(p => p.elementId === el.id);
+    // Get all unique element IDs from both keyframes
+    const allElementIds = new Set<string>();
+    currentKf.positions.forEach(p => allElementIds.add(p.elementId));
+    nextKf.positions.forEach(p => allElementIds.add(p.elementId));
 
-        if (!currentPos && nextPos) {
-          return { ...el, points: nextPos.points.map(p => ({ x: p.x, y: p.y })) };
-        }
-        if (currentPos && !nextPos) {
-          return { ...el, points: currentPos.points.map(p => ({ x: p.x, y: p.y })) };
-        }
+    const result: DrawnElement[] = [];
+    Array.from(allElementIds).forEach(elementId => {
+      const originalEl = allElementsRef.current.get(elementId);
+      if (!originalEl) return;
 
-        const fromPoints = currentPos?.points || el.points;
-        const toPoints = nextPos?.points || fromPoints;
+      const currentPos = currentKf.positions.find(p => p.elementId === elementId);
+      const nextPos = nextKf.positions.find(p => p.elementId === elementId);
+
+      // Element only in next keyframe - show at next position
+      if (!currentPos && nextPos) {
+        result.push({
+          ...originalEl,
+          points: nextPos.points.map(p => ({ x: p.x, y: p.y }))
+        } as DrawnElement);
+        return;
+      }
+
+      // Element only in current keyframe - show at current position
+      if (currentPos && !nextPos) {
+        result.push({
+          ...originalEl,
+          points: currentPos.points.map(p => ({ x: p.x, y: p.y }))
+        } as DrawnElement);
+        return;
+      }
+
+      // Element in both - interpolate
+      if (currentPos && nextPos) {
+        const fromPoints = currentPos.points;
+        const toPoints = nextPos.points;
 
         if (fromPoints.length !== toPoints.length) {
-          return { ...el, points: fromPoints.map(p => ({ x: p.x, y: p.y })) };
+          result.push({
+            ...originalEl,
+            points: fromPoints.map(p => ({ x: p.x, y: p.y }))
+          } as DrawnElement);
+          return;
         }
 
         const interpolatedPoints = fromPoints.map((cp, i) => {
@@ -328,8 +358,11 @@ export function PlaybookCanvas({
             y: cp.y + (np.y - cp.y) * animationProgress
           };
         });
-        return { ...el, points: interpolatedPoints };
-      });
+        result.push({ ...originalEl, points: interpolatedPoints } as DrawnElement);
+      }
+    });
+
+    return result;
   }, [elements, currentKeyframeIndex, animationProgress, isPlaying]);
 
   // Delete a specific keyframe
