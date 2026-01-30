@@ -1257,7 +1257,9 @@ export async function registerRoutes(
       if (!play) {
         return res.status(404).json({ error: "Play not found" });
       }
-      res.json(play);
+      // Include team sport for proper field rendering
+      const team = await storage.getTeam(play.teamId);
+      res.json({ ...play, sport: team?.sport || "Football" });
     } catch (error) {
       res.status(500).json({ error: "Failed to get play" });
     }
