@@ -247,6 +247,9 @@ export default function PlayEditorPage() {
 
   return (
     <Layout>
+      <div className="bg-red-500 text-white p-4 mb-4 fixed top-20 left-4 z-50 rounded">
+        DEBUG: PlayEditorPage rendered - isEditMode: {String(isEditMode)}, playId: {params.playId}, play: {play?.id || 'null'}
+      </div>
       <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {isDemo && (
           <div className="bg-gradient-to-r from-amber-600/30 via-orange-600/30 to-amber-600/30 border border-amber-500/50 rounded-lg p-3 sticky top-0 z-20">
