@@ -260,13 +260,10 @@ export function PlaybookCanvas({
       timestamp: Date.now()
     };
 
-    setKeyframes(prev => {
-      const newKeyframes = [...prev, newKeyframe];
-      // Auto-navigate to the newly recorded keyframe
-      setCurrentKeyframeIndex(newKeyframes.length - 1);
-      return newKeyframes;
-    });
-  }, [elements]);
+    setKeyframes(prev => [...prev, newKeyframe]);
+    // Auto-navigate to the newly recorded keyframe (use callback to get correct length)
+    setCurrentKeyframeIndex(keyframes.length); // This will be the index of the new keyframe
+  }, [elements, keyframes.length]);
 
   // Get interpolated element positions for animation
   const getInterpolatedElements = useCallback((): DrawnElement[] => {
@@ -372,13 +369,18 @@ export function PlaybookCanvas({
     setAnimationProgress(0);
     
     // In edit mode, update elements to match the keyframe positions so user can see and edit from that pose
+    // Only update positions for elements that exist in this keyframe
     if (!readOnly && keyframes[index]) {
       const kf = keyframes[index];
       setElements(prev => prev.map(el => {
         const kfPos = kf.positions.find(p => p.elementId === el.id);
-        if (kfPos && kfPos.points.length === el.points.length) {
-          return { ...el, points: kfPos.points };
+        if (kfPos) {
+          // Element exists in this keyframe - use keyframe position
+          if (kfPos.points.length === el.points.length) {
+            return { ...el, points: kfPos.points };
+          }
         }
+        // Element not in this keyframe - keep current position (will be filtered by display)
         return el;
       }));
     }
