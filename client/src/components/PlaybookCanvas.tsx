@@ -1610,14 +1610,13 @@ export function PlaybookCanvas({
     }
 
     if (selectedTool === "athlete") {
-      if (!selectedAthlete) return;
       const newElement: DrawnElement = {
         id: crypto.randomUUID(),
         tool: selectedTool,
         points: [point],
         color: getToolColor(selectedTool),
         lineWidth: 3,
-        label: getInitials(selectedAthlete),
+        label: selectedAthlete ? getInitials(selectedAthlete) : "",
       };
       allElementsRef.current.set(newElement.id, newElement);
       setElements((prev) => [...prev, newElement]);
@@ -1753,7 +1752,7 @@ export function PlaybookCanvas({
     setElements([]);
   };
 
-  const handleSelectAthlete = (athlete: Athlete) => {
+  const handleSelectAthlete = (athlete: Athlete | null) => {
     setSelectedAthlete(athlete);
     setSelectedTool("athlete");
     setIsAthletePopoverOpen(false);
@@ -1818,31 +1817,48 @@ export function PlaybookCanvas({
                       data-testid="tool-athlete"
                     >
                       <Circle className="h-5 w-5 fill-blue-500" />
-                      <span className="hidden sm:inline">{selectedAthlete ? getInitials(selectedAthlete) : "Athlete"}</span>
+                      <span className="hidden sm:inline">{selectedAthlete ? getInitials(selectedAthlete) : "Player"}</span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-48 p-0" align="start">
                     <ScrollArea className="h-[200px]">
                       <div className="p-2">
-                        <p className="text-xs text-muted-foreground mb-2 px-2">Select an athlete</p>
-                        {sortedAthletes.length === 0 ? (
-                          <p className="text-sm text-muted-foreground px-2 py-4 text-center">No athletes on team</p>
-                        ) : (
-                          sortedAthletes.map((athlete) => (
-                            <Button
-                              key={athlete.id}
-                              variant="ghost"
-                              size="sm"
-                              className="w-full justify-start gap-2"
-                              onClick={() => handleSelectAthlete(athlete)}
-                              data-testid={`athlete-option-${athlete.id}`}
-                            >
-                              <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
-                                {getInitials(athlete)}
-                              </div>
-                              {athlete.firstName} {athlete.lastName}
-                            </Button>
-                          ))
+                        <p className="text-xs text-muted-foreground mb-2 px-2">Select a player</p>
+                        
+                        {/* Generic Player option */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start gap-2"
+                          onClick={() => handleSelectAthlete(null)}
+                          data-testid="athlete-option-generic"
+                        >
+                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                            <Circle className="h-3 w-3 fill-white text-white" />
+                          </div>
+                          Generic Player
+                        </Button>
+                        
+                        {sortedAthletes.length > 0 && (
+                          <>
+                            <div className="h-px bg-white/10 my-2" />
+                            <p className="text-xs text-muted-foreground mb-2 px-2">Team Roster</p>
+                            {sortedAthletes.map((athlete) => (
+                              <Button
+                                key={athlete.id}
+                                variant="ghost"
+                                size="sm"
+                                className="w-full justify-start gap-2"
+                                onClick={() => handleSelectAthlete(athlete)}
+                                data-testid={`athlete-option-${athlete.id}`}
+                              >
+                                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                                  {getInitials(athlete)}
+                                </div>
+                                {athlete.firstName} {athlete.lastName}
+                              </Button>
+                            ))}
+                          </>
                         )}
                       </div>
                     </ScrollArea>
