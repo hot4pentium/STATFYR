@@ -83,6 +83,7 @@ export function PlaybookCanvas({
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
   const [selectedTool, setSelectedTool] = useState<Tool>("select");
+  const [isAnimationMode, setIsAnimationMode] = useState(false);
   const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
   const [isAthletePopoverOpen, setIsAthletePopoverOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -1689,116 +1690,118 @@ export function PlaybookCanvas({
   return (
     <div className="flex flex-col gap-4" data-testid="playbook-canvas-container">
       <div className="flex flex-wrap gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10" data-testid="playbook-toolbar">
-        {tools.map((tool) => (
-          <Button
-            key={tool.id}
-            variant={selectedTool === tool.id ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedTool(tool.id)}
-            className={`gap-2 ${tool.color === "red" ? "text-red-500 hover:text-red-400" : ""}`}
-            data-testid={`tool-${tool.id}`}
-          >
-            {tool.icon}
-            <span className="hidden sm:inline">{tool.label}</span>
-          </Button>
-        ))}
+        {!isAnimationMode ? (
+          <>
+            {/* Drawing Tools */}
+            {tools.map((tool) => (
+              <Button
+                key={tool.id}
+                variant={selectedTool === tool.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedTool(tool.id)}
+                className={`gap-2 ${tool.color === "red" ? "text-red-500 hover:text-red-400" : ""}`}
+                data-testid={`tool-${tool.id}`}
+              >
+                {tool.icon}
+                <span className="hidden sm:inline">{tool.label}</span>
+              </Button>
+            ))}
 
-        <Popover open={isAthletePopoverOpen} onOpenChange={setIsAthletePopoverOpen}>
-          <PopoverTrigger asChild>
+            <Popover open={isAthletePopoverOpen} onOpenChange={setIsAthletePopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={selectedTool === "athlete" ? "default" : "outline"}
+                  size="sm"
+                  className="gap-2 text-blue-500 hover:text-blue-400"
+                  data-testid="tool-athlete"
+                >
+                  <Circle className="h-5 w-5 fill-blue-500" />
+                  <span className="hidden sm:inline">{selectedAthlete ? getInitials(selectedAthlete) : "Athlete"}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-0" align="start">
+                <ScrollArea className="h-[200px]">
+                  <div className="p-2">
+                    <p className="text-xs text-muted-foreground mb-2 px-2">Select an athlete</p>
+                    {sortedAthletes.length === 0 ? (
+                      <p className="text-sm text-muted-foreground px-2 py-4 text-center">No athletes on team</p>
+                    ) : (
+                      sortedAthletes.map((athlete) => (
+                        <Button
+                          key={athlete.id}
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start gap-2"
+                          onClick={() => handleSelectAthlete(athlete)}
+                          data-testid={`athlete-option-${athlete.id}`}
+                        >
+                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                            {getInitials(athlete)}
+                          </div>
+                          {athlete.firstName} {athlete.lastName}
+                        </Button>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
+
             <Button
-              variant={selectedTool === "athlete" ? "default" : "outline"}
+              variant={selectedTool === "ball" ? "default" : "outline"}
               size="sm"
-              className="gap-2 text-blue-500 hover:text-blue-400"
-              data-testid="tool-athlete"
+              onClick={() => setSelectedTool("ball")}
+              className="gap-2"
+              data-testid="tool-ball"
             >
-              <Circle className="h-5 w-5 fill-blue-500" />
-              <span className="hidden sm:inline">{selectedAthlete ? getInitials(selectedAthlete) : "Athlete"}</span>
+              <Circle className="h-5 w-5 fill-amber-600 text-amber-600" />
+              <span className="hidden sm:inline">Ball</span>
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-48 p-0" align="start">
-            <ScrollArea className="h-[200px]">
-              <div className="p-2">
-                <p className="text-xs text-muted-foreground mb-2 px-2">Select an athlete</p>
-                {sortedAthletes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground px-2 py-4 text-center">No athletes on team</p>
-                ) : (
-                  sortedAthletes.map((athlete) => (
-                    <Button
-                      key={athlete.id}
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start gap-2"
-                      onClick={() => handleSelectAthlete(athlete)}
-                      data-testid={`athlete-option-${athlete.id}`}
-                    >
-                      <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
-                        {getInitials(athlete)}
-                      </div>
-                      {athlete.firstName} {athlete.lastName}
-                    </Button>
-                  ))
-                )}
-              </div>
-            </ScrollArea>
-          </PopoverContent>
-        </Popover>
 
-        <Button
-          variant={selectedTool === "ball" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setSelectedTool("ball")}
-          className="gap-2"
-          data-testid="tool-ball"
-        >
-          <Circle className="h-5 w-5 fill-amber-600 text-amber-600" />
-          <span className="hidden sm:inline">Ball</span>
-        </Button>
+            <Button
+              variant={selectedTool === "delete" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedTool("delete")}
+              className="gap-2 text-orange-500 hover:text-orange-400"
+              data-testid="tool-delete"
+            >
+              <MousePointerClick className="h-5 w-5" />
+              <span className="hidden sm:inline">Delete</span>
+            </Button>
 
-        <Button
-          variant={selectedTool === "delete" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setSelectedTool("delete")}
-          className="gap-2 text-orange-500 hover:text-orange-400"
-          data-testid="tool-delete"
-        >
-          <MousePointerClick className="h-5 w-5" />
-          <span className="hidden sm:inline">Delete</span>
-        </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={undo}
+              disabled={undoStack.length === 0}
+              className="gap-2 text-blue-500 hover:text-blue-400"
+              data-testid="button-undo"
+            >
+              <Undo2 className="h-5 w-5" />
+              <span className="hidden sm:inline">Undo</span>
+            </Button>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={undo}
-          disabled={undoStack.length === 0}
-          className="gap-2 text-blue-500 hover:text-blue-400"
-          data-testid="button-undo"
-        >
-          <Undo2 className="h-5 w-5" />
-          <span className="hidden sm:inline">Undo</span>
-        </Button>
-
-        {sport?.toLowerCase() !== "baseball" && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setActiveHalf(activeHalf === "offense" ? "defense" : "offense")}
-            className={`gap-2 ${activeHalf === "offense" ? "text-green-500 border-green-500/50" : "text-red-500 border-red-500/50"}`}
-            data-testid="toggle-half"
-          >
-            {activeHalf === "offense" ? <Swords className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
-            <span className="hidden sm:inline">{activeHalf === "offense" ? "Offense" : "Defense"}</span>
-          </Button>
-        )}
-
-        {/* Animation Dropdown */}
-        {!readOnly && (
-          <Popover>
-            <PopoverTrigger asChild>
+            {sport?.toLowerCase() !== "baseball" && (
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 border-l border-white/10 ml-2"
-                data-testid="dropdown-animation"
+                onClick={() => setActiveHalf(activeHalf === "offense" ? "defense" : "offense")}
+                className={`gap-2 ${activeHalf === "offense" ? "text-green-500 border-green-500/50" : "text-red-500 border-red-500/50"}`}
+                data-testid="toggle-half"
+              >
+                {activeHalf === "offense" ? <Swords className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
+                <span className="hidden sm:inline">{activeHalf === "offense" ? "Offense" : "Defense"}</span>
+              </Button>
+            )}
+
+            {/* Animate Mode Toggle */}
+            {!readOnly && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAnimationMode(true)}
+                className="gap-2 ml-2 border-amber-500/50 text-amber-500 hover:bg-amber-500/20"
+                data-testid="button-animate-mode"
               >
                 <Film className="h-5 w-5" />
                 <span className="hidden sm:inline">Animate</span>
@@ -1808,179 +1811,183 @@ export function PlaybookCanvas({
                   </span>
                 )}
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-4" align="start">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-sm">Animation Controls</h4>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsHelpModalOpen(true)}
-                    className="h-6 w-6 text-muted-foreground hover:text-white"
-                    title="How to animate plays"
-                    data-testid="button-animation-help"
-                  >
-                    <HelpCircle className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                {/* Keyframe Actions */}
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground">Keyframes</p>
-                  <div className="flex flex-wrap gap-2">
+            )}
+          </>
+        ) : (
+          <>
+            {/* Animation Mode Toolbar */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAnimationMode(false)}
+              className="gap-2 text-muted-foreground"
+              data-testid="button-back-to-draw"
+            >
+              <XIcon className="h-5 w-5" />
+              <span className="hidden sm:inline">Back to Draw</span>
+            </Button>
+
+            <div className="h-6 w-px bg-amber-500/50 mx-2" />
+
+            <span className="text-sm font-medium text-amber-500 flex items-center gap-2">
+              <Film className="h-4 w-4" />
+              Animation
+            </span>
+
+            <div className="h-6 w-px bg-white/20 mx-2" />
+
+            {/* Keyframe Actions */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={recordKeyframe}
+              disabled={elements.length === 0 || isPlaying}
+              className="gap-2 text-amber-500 border-amber-500/50 hover:bg-amber-500/20"
+              title="Record current positions as a new keyframe"
+              data-testid="button-record-keyframe"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Record Keyframe</span>
+            </Button>
+
+            {keyframes.length > 0 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={updateCurrentKeyframe}
+                  disabled={elements.length === 0 || isPlaying}
+                  className="gap-2 text-blue-500 border-blue-500/50 hover:bg-blue-500/20"
+                  title={`Update keyframe ${currentKeyframeIndex + 1} with current positions`}
+                  data-testid="button-update-keyframe"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span className="hidden sm:inline">Update</span>
+                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={recordKeyframe}
-                      disabled={elements.length === 0 || isPlaying}
-                      className="gap-1 text-amber-500 border-amber-500/50 hover:bg-amber-500/20"
-                      title="Record current positions as a new keyframe"
-                      data-testid="button-record-keyframe"
+                      disabled={isPlaying}
+                      className="gap-2 text-red-500 border-red-500/50 hover:bg-red-500/20"
+                      title="Clear all keyframes"
+                      data-testid="button-clear-keyframes"
                     >
-                      <Plus className="h-4 w-4" />
-                      Record
+                      <Trash2 className="h-4 w-4" />
+                      <span className="hidden sm:inline">Clear All</span>
                     </Button>
-                    {keyframes.length > 0 && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={updateCurrentKeyframe}
-                          disabled={elements.length === 0 || isPlaying}
-                          className="gap-1 text-blue-500 border-blue-500/50 hover:bg-blue-500/20"
-                          title={`Update keyframe ${currentKeyframeIndex + 1} with current positions`}
-                          data-testid="button-update-keyframe"
-                        >
-                          <RefreshCw className="h-4 w-4" />
-                          Update
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={isPlaying}
-                              className="gap-1 text-red-500 border-red-500/50 hover:bg-red-500/20"
-                              title="Clear all keyframes"
-                              data-testid="button-clear-keyframes"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              Clear
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Clear All Keyframes?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will delete all {keyframes.length} keyframe{keyframes.length !== 1 ? 's' : ''} and reset your animation. Your shapes will remain on the canvas.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={clearAllKeyframes} className="bg-red-600 hover:bg-red-700">
-                                Clear All
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </>
-                    )}
-                  </div>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Clear All Keyframes?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will delete all {keyframes.length} keyframe{keyframes.length !== 1 ? 's' : ''} and reset your animation. Your shapes will remain on the canvas.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={clearAllKeyframes} className="bg-red-600 hover:bg-red-700">
+                        Clear All
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
+
+            {/* Playback Controls */}
+            {keyframes.length >= 2 && (
+              <>
+                <div className="h-6 w-px bg-white/20 mx-2" />
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={resetAnimation}
+                  disabled={currentKeyframeIndex === 0 && !isPlaying}
+                  className="h-8 w-8"
+                  title="Reset to start"
+                  data-testid="button-reset-animation"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => jumpToKeyframe(Math.max(0, currentKeyframeIndex - 1))}
+                  disabled={currentKeyframeIndex === 0 || isPlaying}
+                  className="h-8 w-8"
+                  data-testid="button-prev-keyframe"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={isPlaying ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => {
+                    if (!isPlaying) {
+                      setCurrentKeyframeIndex(0);
+                      setAnimationProgress(0);
+                    }
+                    setIsPlaying(!isPlaying);
+                  }}
+                  className={`h-8 w-8 ${isPlaying ? "bg-green-600 hover:bg-green-700" : ""}`}
+                  title={isPlaying ? "Pause" : "Play animation"}
+                  data-testid="button-play-animation"
+                >
+                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => jumpToKeyframe(Math.min(keyframes.length - 1, currentKeyframeIndex + 1))}
+                  disabled={currentKeyframeIndex >= keyframes.length - 1 || isPlaying}
+                  className="h-8 w-8"
+                  data-testid="button-next-keyframe"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+
+                <span className="text-sm font-medium ml-2">
+                  {currentKeyframeIndex + 1}/{keyframes.length}
+                </span>
+
+                <div className="hidden sm:flex items-center gap-2 ml-4">
+                  <span className="text-xs text-muted-foreground">Speed:</span>
+                  <Slider
+                    value={[playbackSpeed]}
+                    onValueChange={([v]) => setPlaybackSpeed(v)}
+                    min={0.5}
+                    max={2}
+                    step={0.5}
+                    className="w-20"
+                    disabled={isPlaying}
+                  />
+                  <span className="text-xs font-medium">{playbackSpeed}x</span>
                 </div>
+              </>
+            )}
 
-                {/* Playback Controls */}
-                {keyframes.length >= 2 && (
-                  <div className="space-y-2 pt-2 border-t border-white/10">
-                    <p className="text-xs text-muted-foreground">Playback</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={resetAnimation}
-                          disabled={currentKeyframeIndex === 0 && !isPlaying}
-                          className="h-8 w-8"
-                          title="Reset to start"
-                          data-testid="button-reset-animation"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => jumpToKeyframe(Math.max(0, currentKeyframeIndex - 1))}
-                          disabled={currentKeyframeIndex === 0 || isPlaying}
-                          className="h-8 w-8"
-                          data-testid="button-prev-keyframe"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant={isPlaying ? "default" : "outline"}
-                          size="icon"
-                          onClick={() => {
-                            if (!isPlaying) {
-                              setCurrentKeyframeIndex(0);
-                              setAnimationProgress(0);
-                            }
-                            setIsPlaying(!isPlaying);
-                          }}
-                          className={`h-8 w-8 ${isPlaying ? "bg-green-600 hover:bg-green-700" : ""}`}
-                          title={isPlaying ? "Pause" : "Play animation"}
-                          data-testid="button-play-animation"
-                        >
-                          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => jumpToKeyframe(Math.min(keyframes.length - 1, currentKeyframeIndex + 1))}
-                          disabled={currentKeyframeIndex >= keyframes.length - 1 || isPlaying}
-                          className="h-8 w-8"
-                          data-testid="button-next-keyframe"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {currentKeyframeIndex + 1}/{keyframes.length}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-muted-foreground">Speed:</span>
-                      <Slider
-                        value={[playbackSpeed]}
-                        onValueChange={([v]) => setPlaybackSpeed(v)}
-                        min={0.5}
-                        max={2}
-                        step={0.5}
-                        className="flex-1"
-                        disabled={isPlaying}
-                      />
-                      <span className="text-xs font-medium w-8">{playbackSpeed}x</span>
-                    </div>
-                  </div>
-                )}
+            {keyframes.length === 0 && (
+              <span className="text-xs text-muted-foreground ml-2">Draw elements first, then record keyframes</span>
+            )}
+            {keyframes.length === 1 && (
+              <span className="text-xs text-amber-500 ml-2">Add more keyframes to animate</span>
+            )}
 
-                {keyframes.length === 0 && (
-                  <p className="text-xs text-muted-foreground italic">
-                    Draw elements, then click "Record" to capture their positions as a keyframe.
-                  </p>
-                )}
-                {keyframes.length === 1 && (
-                  <p className="text-xs text-muted-foreground italic">
-                    Move elements and record another keyframe to create an animation.
-                  </p>
-                )}
-              </div>
-            </PopoverContent>
-          </Popover>
-        )}
-
-        {/* Keyframe count indicator when < 2 keyframes */}
-        {keyframes.length === 1 && (
-          <span className="text-xs text-amber-500 ml-2">1 keyframe (add more to animate)</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsHelpModalOpen(true)}
+              className="ml-2 text-muted-foreground hover:text-white"
+              title="How to animate plays"
+              data-testid="button-animation-help"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
+          </>
         )}
 
         <div className="flex-1" />
