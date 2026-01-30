@@ -543,7 +543,7 @@ export function PlaybookCanvas({
   ];
 
   const isShapeTool = (tool: Tool) => ["square", "xshape", "triangle", "circle", "athlete", "ball"].includes(tool);
-  const isDraggableTool = (tool: Tool) => ["select", "square", "xshape", "triangle", "circle", "arrow", "athlete", "ball"].includes(tool);
+  const isDraggableTool = (tool: Tool) => ["select", "square", "xshape", "triangle", "circle", "arrow", "athlete", "ball", "freedraw"].includes(tool);
 
   const getToolColor = (tool: Tool) => {
     switch (tool) {
@@ -1454,6 +1454,14 @@ export function PlaybookCanvas({
         // Increased hit area from 15 to 25 for easier selection
         if (distToLine <= 25) {
           return el;
+        }
+      } else if (el.tool === "freedraw" && el.points.length >= 2) {
+        // Check if point is near any segment of the freedraw path
+        for (let j = 0; j < el.points.length - 1; j++) {
+          const distToSegment = pointToLineDistance(point, el.points[j], el.points[j + 1]);
+          if (distToSegment <= 15) {
+            return el;
+          }
         }
       }
     }
