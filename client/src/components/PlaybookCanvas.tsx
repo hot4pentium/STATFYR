@@ -334,8 +334,9 @@ export function PlaybookCanvas({
   // During editing, elements array is the source of truth
   // In read-only mode, always show keyframe positions
   const getInterpolatedElements = useCallback((): DrawnElement[] => {
-    // In read-only mode with keyframes, always show keyframe positions (even when not playing)
-    if (readOnly && keyframes.length > 0) {
+    // In read-only mode with keyframes but NOT playing - show current keyframe position
+    // This keeps the display on the last keyframe after animation ends
+    if (readOnly && keyframes.length > 0 && !isPlaying) {
       const currentKf = keyframes[currentKeyframeIndex];
       if (currentKf) {
         // Build elements from current keyframe
