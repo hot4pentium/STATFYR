@@ -289,19 +289,26 @@ export function PlaybookCanvas({
       // Show elements that either:
       // 1. Exist in the current keyframe, OR
       // 2. Are brand new (not recorded in any keyframe yet) - so user can see what they just drew
-      return elements
-        .filter(el => {
-          const existsInCurrentKf = currentKf.positions.some(p => p.elementId === el.id);
-          const isNewElement = !allKeyframedElementIds.has(el.id);
-          return existsInCurrentKf || isNewElement;
-        })
-        .map(el => {
-          const kfPos = currentKf.positions.find(p => p.elementId === el.id);
-          if (kfPos && kfPos.points.length === el.points.length) {
-            return { ...el, points: kfPos.points };
-          }
-          return el;
-        });
+      const filteredElements = elements.filter(el => {
+        const existsInCurrentKf = currentKf.positions.some(p => p.elementId === el.id);
+        const isNewElement = !allKeyframedElementIds.has(el.id);
+        return existsInCurrentKf || isNewElement;
+      });
+
+      // In edit mode (not readOnly), show current positions so user can edit freely
+      // In playback/viewer mode, show keyframe positions
+      if (!readOnly && !isPlaying) {
+        return filteredElements; // Keep current positions for editing
+      }
+
+      // For playback/viewer: use keyframe positions
+      return filteredElements.map(el => {
+        const kfPos = currentKf.positions.find(p => p.elementId === el.id);
+        if (kfPos && kfPos.points.length === el.points.length) {
+          return { ...el, points: kfPos.points };
+        }
+        return el;
+      });
     }
 
     // Interpolate between current and next keyframe
@@ -348,7 +355,7 @@ export function PlaybookCanvas({
         });
         return { ...el, points: interpolatedPoints };
       });
-  }, [elements, keyframes, currentKeyframeIndex, animationProgress, isPlaying]);
+  }, [elements, keyframes, currentKeyframeIndex, animationProgress, isPlaying, readOnly]);
 
   // Delete a specific keyframe
   const deleteKeyframe = useCallback((keyframeId: string) => {
