@@ -82,6 +82,7 @@ function Router() {
       <Route path="/events" component={EventsPage} />
       <Route path="/playbook" component={PlaybookPage} />
       <Route path="/playbook/:playId" component={PlayEditorPage} />
+      <Route path="/play/edit/:playId" component={PlayEditorPage} />
       <Route path="/stats" component={StatsPage} />
       <Route path="/chat" component={ChatPage} />
       <Route path="/settings" component={CoachSettings} />

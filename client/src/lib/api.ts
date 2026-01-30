@@ -298,6 +298,15 @@ export interface Play {
   createdBy: User;
 }
 
+export async function getPlay(playId: string): Promise<Play | null> {
+  const res = await fetch(`/api/plays/${playId}`);
+  if (!res.ok) {
+    if (res.status === 404) return null;
+    throw new Error("Failed to get play");
+  }
+  return res.json();
+}
+
 export async function getTeamPlays(teamId: string): Promise<Play[]> {
   const res = await fetch(`/api/teams/${teamId}/plays`);
   if (!res.ok) throw new Error("Failed to get plays");

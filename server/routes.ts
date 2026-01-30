@@ -1251,6 +1251,18 @@ export async function registerRoutes(
   });
 
   // Plays CRUD routes
+  app.get("/api/plays/:playId", async (req, res) => {
+    try {
+      const play = await storage.getPlay(req.params.playId);
+      if (!play) {
+        return res.status(404).json({ error: "Play not found" });
+      }
+      res.json(play);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get play" });
+    }
+  });
+
   app.get("/api/teams/:teamId/plays", async (req, res) => {
     try {
       const plays = await storage.getTeamPlays(req.params.teamId);

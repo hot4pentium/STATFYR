@@ -3872,7 +3872,16 @@ export default function UnifiedDashboard() {
               );
             })()}
             {(userRole === "coach" || isStaff) && (
-              <DialogFooter>
+              <DialogFooter className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setExpandedPlay(null);
+                    navigate(`/play/edit/${expandedPlay!.id}`);
+                  }}
+                >
+                  <Pencil className="h-4 w-4 mr-2" /> Edit Play
+                </Button>
                 <Button variant="destructive" onClick={() => { deletePlayMutation.mutate(expandedPlay!.id); setExpandedPlay(null); }}>
                   <Trash2 className="h-4 w-4 mr-2" /> Delete Play
                 </Button>

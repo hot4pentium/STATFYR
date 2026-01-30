@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
 import { PlaybookCanvas } from "@/components/PlaybookCanvas";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,8 @@ import { ArrowLeft, Eye, Crown, Loader2, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { isDemoMode, demoPlays } from "@/lib/demoData";
 import { useEntitlements } from "@/lib/entitlementsContext";
+import { useUser } from "@/lib/userContext";
+import { getPlay, updatePlay } from "@/lib/api";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -45,17 +48,43 @@ function useIsMobileLandscape() {
 
 export default function PlayEditorPage() {
   const params = useParams<{ playId: string }>();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const isDemo = isDemoMode();
+  const isEditMode = location.startsWith('/play/edit/');
   const { entitlements, isLoading: entitlementsLoading } = useEntitlements();
+  const { user } = useUser();
+  const queryClient = useQueryClient();
   const [play, setPlay] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const isMobileLandscape = useIsMobileLandscape();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
+  // Load existing play when in edit mode
+  const { data: existingPlay, isLoading: playLoading } = useQuery({
+    queryKey: ['play', params.playId],
+    queryFn: () => getPlay(params.playId!),
+    enabled: isEditMode && !!params.playId && !isDemo,
+  });
+
+  // Update play mutation
+  const updatePlayMutation = useMutation({
+    mutationFn: async (data: { canvasData: string; thumbnailData?: string; keyframesData?: string }) => {
+      if (!user?.id || !params.playId) throw new Error("Missing user or play ID");
+      return updatePlay(params.playId, user.id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['play', params.playId] });
+      queryClient.invalidateQueries({ queryKey: ['teamPlays'] });
+      toast.success("Play updated successfully!");
+      setHasUnsavedChanges(false);
+    },
+    onError: () => {
+      toast.error("Failed to update play");
+    },
+  });
+
   const handleBack = useCallback(() => {
-    const backUrl = isDemo ? "/playbook?demo=true" : "/playbook";
+    const backUrl = isDemo ? "/playbook?demo=true" : "/dashboard";
     if (hasUnsavedChanges) {
       setShowLeaveDialog(true);
     } else {
@@ -64,7 +93,7 @@ export default function PlayEditorPage() {
   }, [hasUnsavedChanges, isDemo, navigate]);
 
   const handleConfirmLeave = useCallback(() => {
-    const backUrl = isDemo ? "/playbook?demo=true" : "/playbook";
+    const backUrl = isDemo ? "/playbook?demo=true" : "/dashboard";
     setShowLeaveDialog(false);
     navigate(backUrl);
   }, [isDemo, navigate]);
@@ -73,11 +102,12 @@ export default function PlayEditorPage() {
     if (isDemo) {
       const demoPlay = demoPlays.find(p => p.id === params.playId);
       setPlay(demoPlay || null);
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
+    } else if (existingPlay) {
+      setPlay(existingPlay);
     }
-  }, [params.playId, isDemo]);
+  }, [params.playId, isDemo, existingPlay]);
+
+  const isLoading = entitlementsLoading || (isEditMode && playLoading);
 
   if (entitlementsLoading || isLoading) {
     return (
@@ -128,7 +158,23 @@ export default function PlayEditorPage() {
     }
   };
 
-  const backUrl = isDemo ? "/playbook?demo=true" : "/playbook";
+  // Handle updating an existing play
+  const handleUpdatePlay = async (data: {
+    name: string;
+    description: string;
+    canvasData: string;
+    thumbnailData?: string;
+    category: string;
+    keyframesData?: string;
+  }) => {
+    updatePlayMutation.mutate({
+      canvasData: data.canvasData,
+      thumbnailData: data.thumbnailData,
+      keyframesData: data.keyframesData,
+    });
+  };
+
+  const backUrl = isDemo ? "/playbook?demo=true" : "/dashboard";
 
   const handleHasUnsavedChanges = useCallback((hasChanges: boolean) => {
     setHasUnsavedChanges(hasChanges);
@@ -246,12 +292,49 @@ export default function PlayEditorPage() {
         </div>
 
         <div className="bg-card rounded-lg border border-white/10 p-2">
-          <PlaybookCanvas 
-            sport="Football"
-            onSave={isDemo ? undefined : handleSave}
-            isSaving={false}
-            onHasUnsavedChanges={handleHasUnsavedChanges}
-          />
+          {(() => {
+            // Parse existing play data if editing
+            let initialElements: any[] = [];
+            let initialKeyframes: any[] = [];
+            let originalCanvasWidth: number | undefined;
+
+            if (play?.canvasData) {
+              try {
+                const parsed = JSON.parse(play.canvasData);
+                if (Array.isArray(parsed)) {
+                  initialElements = parsed;
+                } else if (parsed.elements) {
+                  initialElements = parsed.elements;
+                  originalCanvasWidth = parsed.canvasWidth;
+                }
+              } catch {}
+            }
+
+            if (play?.keyframesData) {
+              try {
+                const parsed = JSON.parse(play.keyframesData);
+                if (Array.isArray(parsed)) {
+                  initialKeyframes = parsed;
+                } else if (parsed.keyframes) {
+                  initialKeyframes = parsed.keyframes;
+                  if (!originalCanvasWidth) originalCanvasWidth = parsed.canvasWidth;
+                }
+              } catch {}
+            }
+
+            return (
+              <PlaybookCanvas 
+                key={play?.id || 'new'}
+                sport={play?.category || "Football"}
+                onSave={isDemo ? undefined : (isEditMode ? handleUpdatePlay : handleSave)}
+                isSaving={updatePlayMutation.isPending}
+                onHasUnsavedChanges={handleHasUnsavedChanges}
+                initialElements={initialElements}
+                initialKeyframes={initialKeyframes}
+                originalCanvasWidth={originalCanvasWidth}
+              />
+            );
+          })()}
         </div>
 
         {isDemo && (
