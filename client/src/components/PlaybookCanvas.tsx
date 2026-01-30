@@ -264,13 +264,10 @@ export function PlaybookCanvas({
           startTime = null;
           animationRef.current = requestAnimationFrame(animate);
         } else {
+          // Stay on last keyframe when finished
           setCurrentKeyframeIndex(frozenKeyframes.length - 1);
           setAnimationProgress(1);
-          setTimeout(() => {
-            if (!isCancelled) {
-              setIsPlaying(false);
-            }
-          }, 300);
+          setIsPlaying(false);
           return;
         }
       } else {
