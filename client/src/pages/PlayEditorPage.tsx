@@ -59,12 +59,19 @@ export default function PlayEditorPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
+  console.log('[PlayEditorPage] location:', location, 'isEditMode:', isEditMode, 'playId:', params.playId, 'isDemo:', isDemo);
+
   // Load existing play when in edit mode
   const { data: existingPlay, isLoading: playLoading } = useQuery({
     queryKey: ['play', params.playId],
-    queryFn: () => getPlay(params.playId!),
+    queryFn: () => {
+      console.log('[PlayEditorPage] Fetching play:', params.playId);
+      return getPlay(params.playId!);
+    },
     enabled: isEditMode && !!params.playId && !isDemo,
   });
+
+  console.log('[PlayEditorPage] existingPlay:', existingPlay?.id, 'playLoading:', playLoading);
 
   // Update play mutation
   const updatePlayMutation = useMutation({
