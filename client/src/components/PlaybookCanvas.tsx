@@ -1674,7 +1674,14 @@ export function PlaybookCanvas({
             <Button
               variant={isPlaying ? "default" : "outline"}
               size="icon"
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={() => {
+                if (!isPlaying) {
+                  // Reset to start when beginning playback
+                  setCurrentKeyframeIndex(0);
+                  setAnimationProgress(0);
+                }
+                setIsPlaying(!isPlaying);
+              }}
               className={`h-8 w-8 ${isPlaying ? "bg-green-600 hover:bg-green-700" : ""}`}
               title={isPlaying ? "Pause" : "Play animation"}
               data-testid="button-play-animation"
