@@ -66,7 +66,7 @@ interface PlaybookCanvasProps {
   originalCanvasWidth?: number; // Original canvas width for scaling viewer
 }
 
-const SHAPE_SIZE = 22; // Reduced by ~10% for better canvas fit
+const SHAPE_SIZE = 16; // Smaller to fit 22 players on football field
 
 export function PlaybookCanvas({ 
   athletes = [], 
