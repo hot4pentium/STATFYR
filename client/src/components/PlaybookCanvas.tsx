@@ -1459,25 +1459,25 @@ export function PlaybookCanvas({
           ctx.arc(ballCenter.x, ballCenter.y + ballRadius * 0.3, ballRadius * 0.8, -Math.PI * 0.8, -Math.PI * 0.2);
           ctx.stroke();
         } else {
-          // Brown football (american)
+          // Brown football (american) - rotated 90 degrees (vertical)
           ctx.fillStyle = "#8b4513";
           ctx.beginPath();
-          // Draw oval shape
-          ctx.ellipse(ballCenter.x, ballCenter.y, ballRadius * 1.3, ballRadius * 0.7, 0, 0, Math.PI * 2);
+          // Draw oval shape - swapped rx/ry for vertical orientation
+          ctx.ellipse(ballCenter.x, ballCenter.y, ballRadius * 0.7, ballRadius * 1.3, 0, 0, Math.PI * 2);
           ctx.fill();
           ctx.strokeStyle = "#ffffff";
           ctx.lineWidth = 1.5;
           ctx.stroke();
-          // White laces
+          // White laces (now vertical)
           ctx.beginPath();
-          ctx.moveTo(ballCenter.x - ballRadius * 0.4, ballCenter.y);
-          ctx.lineTo(ballCenter.x + ballRadius * 0.4, ballCenter.y);
+          ctx.moveTo(ballCenter.x, ballCenter.y - ballRadius * 0.4);
+          ctx.lineTo(ballCenter.x, ballCenter.y + ballRadius * 0.4);
           ctx.stroke();
-          // Lace marks
+          // Lace marks (now horizontal)
           for (let i = -2; i <= 2; i++) {
             ctx.beginPath();
-            ctx.moveTo(ballCenter.x + i * ballRadius * 0.15, ballCenter.y - ballRadius * 0.15);
-            ctx.lineTo(ballCenter.x + i * ballRadius * 0.15, ballCenter.y + ballRadius * 0.15);
+            ctx.moveTo(ballCenter.x - ballRadius * 0.15, ballCenter.y + i * ballRadius * 0.15);
+            ctx.lineTo(ballCenter.x + ballRadius * 0.15, ballCenter.y + i * ballRadius * 0.15);
             ctx.stroke();
           }
         }
