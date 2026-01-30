@@ -107,9 +107,10 @@ export default function PlayEditorPage() {
     }
   }, [params.playId, isDemo, existingPlay]);
 
-  const isLoading = entitlementsLoading || (isEditMode && playLoading);
+  // Wait for play data to be ready in edit mode
+  const isLoading = entitlementsLoading || (isEditMode && (playLoading || !play));
 
-  if (entitlementsLoading || isLoading) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[60vh]">

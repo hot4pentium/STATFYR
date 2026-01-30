@@ -329,6 +329,8 @@ export async function updatePlay(playId: string, userId: string, data: {
   name?: string;
   description?: string;
   canvasData?: string;
+  thumbnailData?: string;
+  keyframesData?: string;
   status?: string;
 }): Promise<Play> {
   const res = await apiRequest("PATCH", `/api/plays/${playId}`, { ...data, userId });
