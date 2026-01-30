@@ -569,6 +569,62 @@ export function PlaybookCanvas({
     return `${athlete.firstName.charAt(0)}${athlete.lastName.charAt(0)}`.toUpperCase();
   };
 
+  // Sport-specific ball icon
+  const getBallIcon = () => {
+    const normalizedSport = sport?.toLowerCase();
+    const size = "h-5 w-5";
+    
+    if (normalizedSport === "basketball") {
+      return (
+        <svg className={size} viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" fill="#f97316" stroke="#c2410c" strokeWidth="1"/>
+          <path d="M12 2C12 12 12 12 12 22" stroke="#c2410c" strokeWidth="1"/>
+          <path d="M2 12C12 12 12 12 22 12" stroke="#c2410c" strokeWidth="1"/>
+          <path d="M4 6C8 10 16 10 20 6" stroke="#c2410c" strokeWidth="1" fill="none"/>
+          <path d="M4 18C8 14 16 14 20 18" stroke="#c2410c" strokeWidth="1" fill="none"/>
+        </svg>
+      );
+    } else if (normalizedSport === "football") {
+      return (
+        <svg className={size} viewBox="0 0 24 24" fill="none">
+          <ellipse cx="12" cy="12" rx="10" ry="6" fill="#92400e" stroke="#78350f" strokeWidth="1"/>
+          <path d="M12 6V18" stroke="#fff" strokeWidth="1.5"/>
+          <path d="M9 8L15 8M9 10L15 10M9 12L15 12M9 14L15 14M9 16L15 16" stroke="#fff" strokeWidth="0.75"/>
+        </svg>
+      );
+    } else if (normalizedSport === "soccer") {
+      return (
+        <svg className={size} viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" fill="#fff" stroke="#1f2937" strokeWidth="1"/>
+          <polygon points="12,7 14.5,9 13.5,12 10.5,12 9.5,9" fill="#1f2937"/>
+          <polygon points="17,11 18,14 16,16 13,15 14,12" fill="#1f2937"/>
+          <polygon points="7,11 6,14 8,16 11,15 10,12" fill="#1f2937"/>
+        </svg>
+      );
+    } else if (normalizedSport === "baseball") {
+      return (
+        <svg className={size} viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" fill="#f5f5f4" stroke="#a8a29e" strokeWidth="1"/>
+          <path d="M6 6C8 8 8 16 6 18" stroke="#dc2626" strokeWidth="1.5" fill="none"/>
+          <path d="M18 6C16 8 16 16 18 18" stroke="#dc2626" strokeWidth="1.5" fill="none"/>
+          <path d="M5.5 8L7 9M5 11L7 12M5.5 14L7 15" stroke="#dc2626" strokeWidth="0.75"/>
+          <path d="M18.5 8L17 9M19 11L17 12M18.5 14L17 15" stroke="#dc2626" strokeWidth="0.75"/>
+        </svg>
+      );
+    } else if (normalizedSport === "volleyball") {
+      return (
+        <svg className={size} viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" fill="#fef3c7" stroke="#d97706" strokeWidth="1"/>
+          <path d="M12 2C12 12 12 12 12 22" stroke="#2563eb" strokeWidth="1"/>
+          <path d="M2 12C6 8 18 8 22 12" stroke="#dc2626" strokeWidth="1" fill="none"/>
+          <path d="M2 12C6 16 18 16 22 12" stroke="#16a34a" strokeWidth="1" fill="none"/>
+        </svg>
+      );
+    }
+    // Default ball
+    return <Circle className={`${size} fill-amber-600 text-amber-600`} />;
+  };
+
   // Calculate canvas size - half field + a bit past midfield (except baseball = full)
   useEffect(() => {
     const calculateSize = () => {
@@ -1789,7 +1845,7 @@ export function PlaybookCanvas({
                   className="gap-2"
                   data-testid="tool-ball"
                 >
-                  <Circle className="h-5 w-5 fill-amber-600 text-amber-600" />
+                  {getBallIcon()}
                   <span className="hidden sm:inline">Ball</span>
                 </Button>
 
