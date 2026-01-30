@@ -374,11 +374,9 @@ export function PlaybookCanvas({
       const kf = keyframes[index];
       setElements(prev => prev.map(el => {
         const kfPos = kf.positions.find(p => p.elementId === el.id);
-        if (kfPos) {
+        if (kfPos && kfPos.points.length > 0) {
           // Element exists in this keyframe - use keyframe position
-          if (kfPos.points.length === el.points.length) {
-            return { ...el, points: kfPos.points };
-          }
+          return { ...el, points: kfPos.points };
         }
         // Element not in this keyframe - keep current position (will be filtered by display)
         return el;
@@ -1250,7 +1248,8 @@ export function PlaybookCanvas({
         const start = el.points[0];
         const end = el.points[1];
         const distToLine = pointToLineDistance(point, start, end);
-        if (distToLine <= 15) {
+        // Increased hit area from 15 to 25 for easier selection
+        if (distToLine <= 25) {
           return elements.find(e => e.id === el.id) || el;
         }
       }
