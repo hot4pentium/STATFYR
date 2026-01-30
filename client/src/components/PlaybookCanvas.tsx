@@ -330,9 +330,28 @@ export function PlaybookCanvas({
     setCurrentKeyframeIndex(keyframes.length); // This will be the index of the new keyframe
   }, [elements, keyframes.length]);
 
-  // Get interpolated element positions for animation playback ONLY
+  // Get interpolated element positions for animation playback
   // During editing, elements array is the source of truth
+  // In read-only mode, always show keyframe positions
   const getInterpolatedElements = useCallback((): DrawnElement[] => {
+    // In read-only mode with keyframes, always show keyframe positions (even when not playing)
+    if (readOnly && keyframes.length > 0) {
+      const currentKf = keyframes[currentKeyframeIndex];
+      if (currentKf) {
+        // Build elements from current keyframe
+        return currentKf.positions
+          .map(kfPos => {
+            const originalEl = allElementsRef.current.get(kfPos.elementId);
+            if (!originalEl || kfPos.points.length === 0) return null;
+            return {
+              ...originalEl,
+              points: kfPos.points.map(p => ({ x: p.x, y: p.y }))
+            };
+          })
+          .filter((el): el is DrawnElement => el !== null);
+      }
+    }
+
     // NOT playing = just return current elements as-is (source of truth for editing)
     if (!isPlaying) {
       return elements;
@@ -426,7 +445,7 @@ export function PlaybookCanvas({
     });
 
     return result;
-  }, [elements, currentKeyframeIndex, animationProgress, isPlaying]);
+  }, [elements, currentKeyframeIndex, animationProgress, isPlaying, readOnly, keyframes]);
 
   // Delete a specific keyframe
   const deleteKeyframe = useCallback((keyframeId: string) => {
