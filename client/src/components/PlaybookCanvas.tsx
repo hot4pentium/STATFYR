@@ -1715,11 +1715,9 @@ export function PlaybookCanvas({
   return (
     <div className="flex flex-col gap-4" data-testid="playbook-canvas-container">
       <div className="flex flex-wrap gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10" data-testid="playbook-toolbar">
-        {!isAnimationMode ? (
+        {/* Drawing Tools - only show when not in read-only mode */}
+        {!readOnly && (
           <>
-            {/* Drawing Tools - only show when not in read-only mode */}
-            {!readOnly && (
-              <>
                 {tools.map((tool) => (
                   <Button
                     key={tool.id}
@@ -1821,28 +1819,143 @@ export function PlaybookCanvas({
                   </Button>
                 )}
 
-                {/* Animate Mode Toggle */}
+                {/* Separator between drawing tools and animation tools */}
+                <div className="h-6 w-px bg-amber-500/50 mx-2" />
+                
+                {/* Animation label */}
+                <span className="text-sm font-medium text-amber-500 flex items-center gap-2">
+                  <Film className="h-4 w-4" />
+                  <span className="hidden sm:inline">Animation</span>
+                </span>
+
+                {/* Record Keyframe Button */}
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setIsAnimationMode(true)}
-                  className="gap-2 ml-2 border-amber-500/50 text-amber-500 hover:bg-amber-500/20"
-                  data-testid="button-animate-mode"
+                  onClick={recordKeyframe}
+                  disabled={elements.length === 0 || isPlaying}
+                  className="gap-2 text-amber-500 border-amber-500/50 hover:bg-amber-500/20"
+                  title="Record current positions as a new keyframe"
+                  data-testid="button-record-keyframe"
                 >
-                  <Film className="h-5 w-5" />
-                  <span className="hidden sm:inline">Animate</span>
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Record</span>
                   {keyframes.length > 0 && (
-                    <span className="ml-1 px-1.5 py-0.5 text-xs bg-amber-500/20 text-amber-400 rounded">
+                    <span className="px-1.5 py-0.5 text-xs bg-amber-500/20 text-amber-400 rounded">
                       {keyframes.length}
                     </span>
                   )}
                 </Button>
-              </>
-            )}
 
-            {/* Read-only Playback Controls */}
-            {readOnly && keyframes.length >= 2 && (
-              <>
+                {keyframes.length > 0 && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={updateCurrentKeyframe}
+                      disabled={elements.length === 0 || isPlaying}
+                      className="gap-2 text-blue-500 border-blue-500/50 hover:bg-blue-500/20"
+                      title={`Update keyframe ${currentKeyframeIndex + 1} with current positions`}
+                      data-testid="button-update-keyframe"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      <span className="hidden sm:inline">Update</span>
+                    </Button>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isPlaying}
+                          className="gap-2 text-red-500 border-red-500/50 hover:bg-red-500/20"
+                          title="Clear all keyframes"
+                          data-testid="button-clear-keyframes"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="hidden sm:inline">Clear</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Clear All Keyframes?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will delete all {keyframes.length} keyframe{keyframes.length !== 1 ? 's' : ''} and reset your animation. Your shapes will remain on the canvas.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={clearAllKeyframes} className="bg-red-600 hover:bg-red-700">
+                            Clear All
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
+                )}
+
+                {/* Playback Controls */}
+                {keyframes.length >= 2 && (
+                  <>
+                    <div className="h-6 w-px bg-white/20 mx-1" />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={resetAnimation}
+                      disabled={currentKeyframeIndex === 0 && !isPlaying}
+                      className="h-8 w-8"
+                      title="Reset to start"
+                      data-testid="button-reset-animation"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => jumpToKeyframe(Math.max(0, currentKeyframeIndex - 1))}
+                      disabled={currentKeyframeIndex === 0 || isPlaying}
+                      className="h-8 w-8"
+                      data-testid="button-prev-keyframe"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={isPlaying ? "default" : "outline"}
+                      size="icon"
+                      onClick={() => {
+                        if (!isPlaying) {
+                          setCurrentKeyframeIndex(0);
+                          setAnimationProgress(0);
+                        }
+                        setIsPlaying(!isPlaying);
+                      }}
+                      className={`h-8 w-8 ${isPlaying ? "bg-green-600 hover:bg-green-700" : ""}`}
+                      title={isPlaying ? "Pause" : "Play animation"}
+                      data-testid="button-play-animation"
+                    >
+                      {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => jumpToKeyframe(Math.min(keyframes.length - 1, currentKeyframeIndex + 1))}
+                      disabled={currentKeyframeIndex >= keyframes.length - 1 || isPlaying}
+                      className="h-8 w-8"
+                      data-testid="button-next-keyframe"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm font-medium">
+                      {currentKeyframeIndex + 1}/{keyframes.length}
+                    </span>
+                  </>
+                )}
+          </>
+        )}
+
+        {/* Read-only Playback Controls */}
+        {readOnly && keyframes.length >= 2 && (
+          <>
                 <div className="h-6 w-px bg-amber-500/50 mx-2" />
                 <span className="text-sm font-medium text-amber-500 flex items-center gap-2">
                   <Film className="h-4 w-4" />
@@ -1913,183 +2026,6 @@ export function PlaybookCanvas({
                 </div>
               </>
             )}
-          </>
-        ) : (
-          <>
-            {/* Animation Mode Toolbar */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAnimationMode(false)}
-              className="gap-2 text-muted-foreground"
-              data-testid="button-back-to-draw"
-            >
-              <XIcon className="h-5 w-5" />
-              <span className="hidden sm:inline">Back to Draw</span>
-            </Button>
-
-            <div className="h-6 w-px bg-amber-500/50 mx-2" />
-
-            <span className="text-sm font-medium text-amber-500 flex items-center gap-2">
-              <Film className="h-4 w-4" />
-              Animation
-            </span>
-
-            <div className="h-6 w-px bg-white/20 mx-2" />
-
-            {/* Keyframe Actions */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={recordKeyframe}
-              disabled={elements.length === 0 || isPlaying}
-              className="gap-2 text-amber-500 border-amber-500/50 hover:bg-amber-500/20"
-              title="Record current positions as a new keyframe"
-              data-testid="button-record-keyframe"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Record Keyframe</span>
-            </Button>
-
-            {keyframes.length > 0 && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={updateCurrentKeyframe}
-                  disabled={elements.length === 0 || isPlaying}
-                  className="gap-2 text-blue-500 border-blue-500/50 hover:bg-blue-500/20"
-                  title={`Update keyframe ${currentKeyframeIndex + 1} with current positions`}
-                  data-testid="button-update-keyframe"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  <span className="hidden sm:inline">Update</span>
-                </Button>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={isPlaying}
-                      className="gap-2 text-red-500 border-red-500/50 hover:bg-red-500/20"
-                      title="Clear all keyframes"
-                      data-testid="button-clear-keyframes"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="hidden sm:inline">Clear All</span>
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Clear All Keyframes?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will delete all {keyframes.length} keyframe{keyframes.length !== 1 ? 's' : ''} and reset your animation. Your shapes will remain on the canvas.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={clearAllKeyframes} className="bg-red-600 hover:bg-red-700">
-                        Clear All
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </>
-            )}
-
-            {/* Playback Controls */}
-            {keyframes.length >= 2 && (
-              <>
-                <div className="h-6 w-px bg-white/20 mx-2" />
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={resetAnimation}
-                  disabled={currentKeyframeIndex === 0 && !isPlaying}
-                  className="h-8 w-8"
-                  title="Reset to start"
-                  data-testid="button-reset-animation"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => jumpToKeyframe(Math.max(0, currentKeyframeIndex - 1))}
-                  disabled={currentKeyframeIndex === 0 || isPlaying}
-                  className="h-8 w-8"
-                  data-testid="button-prev-keyframe"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={isPlaying ? "default" : "outline"}
-                  size="icon"
-                  onClick={() => {
-                    if (!isPlaying) {
-                      setCurrentKeyframeIndex(0);
-                      setAnimationProgress(0);
-                    }
-                    setIsPlaying(!isPlaying);
-                  }}
-                  className={`h-8 w-8 ${isPlaying ? "bg-green-600 hover:bg-green-700" : ""}`}
-                  title={isPlaying ? "Pause" : "Play animation"}
-                  data-testid="button-play-animation"
-                >
-                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => jumpToKeyframe(Math.min(keyframes.length - 1, currentKeyframeIndex + 1))}
-                  disabled={currentKeyframeIndex >= keyframes.length - 1 || isPlaying}
-                  className="h-8 w-8"
-                  data-testid="button-next-keyframe"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-
-                <span className="text-sm font-medium ml-2">
-                  {currentKeyframeIndex + 1}/{keyframes.length}
-                </span>
-
-                <div className="hidden sm:flex items-center gap-2 ml-4">
-                  <span className="text-xs text-muted-foreground">Speed:</span>
-                  <Slider
-                    value={[playbackSpeed]}
-                    onValueChange={([v]) => setPlaybackSpeed(v)}
-                    min={0.5}
-                    max={2}
-                    step={0.5}
-                    className="w-20"
-                    disabled={isPlaying}
-                  />
-                  <span className="text-xs font-medium">{playbackSpeed}x</span>
-                </div>
-              </>
-            )}
-
-            {keyframes.length === 0 && (
-              <span className="text-xs text-muted-foreground ml-2">Draw elements first, then record keyframes</span>
-            )}
-            {keyframes.length === 1 && (
-              <span className="text-xs text-amber-500 ml-2">Add more keyframes to animate</span>
-            )}
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsHelpModalOpen(true)}
-              className="ml-2 text-muted-foreground hover:text-white"
-              title="How to animate plays"
-              data-testid="button-animation-help"
-            >
-              <HelpCircle className="h-4 w-4" />
-            </Button>
-          </>
-        )}
 
         <div className="flex-1" />
 
