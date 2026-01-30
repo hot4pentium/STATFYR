@@ -1421,7 +1421,31 @@ export function PlaybookCanvas({
   };
 
   const handleEnd = () => {
-    if (isDragging) {
+    if (isDragging && draggedElementId) {
+      // Update the current keyframe with the new position of the dragged element
+      if (keyframes.length > 0) {
+        const draggedElement = elements.find(e => e.id === draggedElementId);
+        if (draggedElement) {
+          setKeyframes(prev => prev.map((kf, idx) => {
+            if (idx === currentKeyframeIndex) {
+              // Check if element exists in this keyframe
+              const existingPos = kf.positions.find(p => p.elementId === draggedElementId);
+              if (existingPos) {
+                // Update existing position
+                return {
+                  ...kf,
+                  positions: kf.positions.map(p => 
+                    p.elementId === draggedElementId 
+                      ? { ...p, points: draggedElement.points.map(pt => ({ x: pt.x, y: pt.y })) }
+                      : p
+                  )
+                };
+              }
+            }
+            return kf;
+          }));
+        }
+      }
       setIsDragging(false);
       setDraggedElementId(null);
       setDragOffset({ x: 0, y: 0 });
