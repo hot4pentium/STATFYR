@@ -299,29 +299,39 @@ export default function PlayEditorPage() {
             let initialKeyframes: any[] = [];
             let originalCanvasWidth: number | undefined;
 
+            console.log('[PlayEditorPage] isEditMode:', isEditMode, 'play:', play?.id, 'canvasData length:', play?.canvasData?.length, 'keyframesData length:', play?.keyframesData?.length);
+
             if (play?.canvasData) {
               try {
                 const parsed = JSON.parse(play.canvasData);
+                console.log('[PlayEditorPage] Parsed canvasData:', typeof parsed, Array.isArray(parsed) ? 'array' : 'object', 'elements count:', parsed.elements?.length || (Array.isArray(parsed) ? parsed.length : 0));
                 if (Array.isArray(parsed)) {
                   initialElements = parsed;
                 } else if (parsed.elements) {
                   initialElements = parsed.elements;
                   originalCanvasWidth = parsed.canvasWidth;
                 }
-              } catch {}
+              } catch (e) {
+                console.error('[PlayEditorPage] Error parsing canvasData:', e);
+              }
             }
 
             if (play?.keyframesData) {
               try {
                 const parsed = JSON.parse(play.keyframesData);
+                console.log('[PlayEditorPage] Parsed keyframesData:', typeof parsed, 'keyframes count:', parsed.keyframes?.length || (Array.isArray(parsed) ? parsed.length : 0));
                 if (Array.isArray(parsed)) {
                   initialKeyframes = parsed;
                 } else if (parsed.keyframes) {
                   initialKeyframes = parsed.keyframes;
                   if (!originalCanvasWidth) originalCanvasWidth = parsed.canvasWidth;
                 }
-              } catch {}
+              } catch (e) {
+                console.error('[PlayEditorPage] Error parsing keyframesData:', e);
+              }
             }
+
+            console.log('[PlayEditorPage] Final: initialElements:', initialElements.length, 'initialKeyframes:', initialKeyframes.length, 'originalCanvasWidth:', originalCanvasWidth);
 
             return (
               <PlaybookCanvas 
