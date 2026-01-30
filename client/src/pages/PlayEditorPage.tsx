@@ -47,7 +47,9 @@ function useIsMobileLandscape() {
 }
 
 export default function PlayEditorPage() {
+  console.log('[PlayEditorPage] COMPONENT START');
   const params = useParams<{ playId: string }>();
+  console.log('[PlayEditorPage] params:', params);
   const [location, navigate] = useLocation();
   const isDemo = isDemoMode();
   const isEditMode = location.startsWith('/play/edit/');
