@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-type Tool = "select" | "freedraw" | "arrow" | "square" | "xshape" | "triangle" | "circle" | "athlete" | "delete";
+type Tool = "select" | "freedraw" | "arrow" | "square" | "xshape" | "triangle" | "circle" | "athlete" | "ball" | "delete";
 
 interface Point {
   x: number;
@@ -524,8 +524,8 @@ export function PlaybookCanvas({
     { id: "circle", icon: <Circle className="h-5 w-5 text-red-500" />, label: "O Circle", color: "red" },
   ];
 
-  const isShapeTool = (tool: Tool) => ["square", "xshape", "triangle", "circle", "athlete"].includes(tool);
-  const isDraggableTool = (tool: Tool) => ["select", "square", "xshape", "triangle", "circle", "arrow", "athlete"].includes(tool);
+  const isShapeTool = (tool: Tool) => ["square", "xshape", "triangle", "circle", "athlete", "ball"].includes(tool);
+  const isDraggableTool = (tool: Tool) => ["select", "square", "xshape", "triangle", "circle", "arrow", "athlete", "ball"].includes(tool);
 
   const getToolColor = (tool: Tool) => {
     switch (tool) {
@@ -1283,6 +1283,112 @@ export function PlaybookCanvas({
         ctx.textBaseline = "middle";
         ctx.fillText(element.label || "", athCenter.x, athCenter.y);
         break;
+
+      case "ball":
+        const ballCenter = element.points[0];
+        const ballRadius = SHAPE_SIZE / 2 + 2;
+        const ballSport = element.label || "football";
+        
+        ctx.save();
+        
+        if (ballSport === "basketball") {
+          // Orange basketball with lines
+          ctx.fillStyle = "#f97316";
+          ctx.beginPath();
+          ctx.arc(ballCenter.x, ballCenter.y, ballRadius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#000000";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          // Draw basketball lines
+          ctx.beginPath();
+          ctx.moveTo(ballCenter.x - ballRadius, ballCenter.y);
+          ctx.lineTo(ballCenter.x + ballRadius, ballCenter.y);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(ballCenter.x, ballCenter.y - ballRadius);
+          ctx.lineTo(ballCenter.x, ballCenter.y + ballRadius);
+          ctx.stroke();
+        } else if (ballSport === "soccer") {
+          // White soccer ball with pentagon pattern
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(ballCenter.x, ballCenter.y, ballRadius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#000000";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          // Draw pentagon in center
+          ctx.fillStyle = "#000000";
+          ctx.beginPath();
+          const pentRadius = ballRadius * 0.4;
+          for (let i = 0; i < 5; i++) {
+            const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+            const px = ballCenter.x + pentRadius * Math.cos(angle);
+            const py = ballCenter.y + pentRadius * Math.sin(angle);
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.fill();
+        } else if (ballSport === "baseball") {
+          // White baseball with red stitching
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(ballCenter.x, ballCenter.y, ballRadius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#dc2626";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          // Red stitching curves
+          ctx.beginPath();
+          ctx.arc(ballCenter.x - ballRadius * 0.3, ballCenter.y, ballRadius * 0.6, -Math.PI * 0.4, Math.PI * 0.4);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(ballCenter.x + ballRadius * 0.3, ballCenter.y, ballRadius * 0.6, Math.PI * 0.6, Math.PI * 1.4);
+          ctx.stroke();
+        } else if (ballSport === "volleyball") {
+          // White/yellow volleyball with curved lines
+          ctx.fillStyle = "#fef08a";
+          ctx.beginPath();
+          ctx.arc(ballCenter.x, ballCenter.y, ballRadius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#1e40af";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          // Draw curved lines
+          ctx.beginPath();
+          ctx.arc(ballCenter.x, ballCenter.y - ballRadius * 0.3, ballRadius * 0.8, Math.PI * 0.2, Math.PI * 0.8);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(ballCenter.x, ballCenter.y + ballRadius * 0.3, ballRadius * 0.8, -Math.PI * 0.8, -Math.PI * 0.2);
+          ctx.stroke();
+        } else {
+          // Brown football (american)
+          ctx.fillStyle = "#8b4513";
+          ctx.beginPath();
+          // Draw oval shape
+          ctx.ellipse(ballCenter.x, ballCenter.y, ballRadius * 1.3, ballRadius * 0.7, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          // White laces
+          ctx.beginPath();
+          ctx.moveTo(ballCenter.x - ballRadius * 0.4, ballCenter.y);
+          ctx.lineTo(ballCenter.x + ballRadius * 0.4, ballCenter.y);
+          ctx.stroke();
+          // Lace marks
+          for (let i = -2; i <= 2; i++) {
+            ctx.beginPath();
+            ctx.moveTo(ballCenter.x + i * ballRadius * 0.15, ballCenter.y - ballRadius * 0.15);
+            ctx.lineTo(ballCenter.x + i * ballRadius * 0.15, ballCenter.y + ballRadius * 0.15);
+            ctx.stroke();
+          }
+        }
+        
+        ctx.restore();
+        break;
     }
   };
 
@@ -1423,6 +1529,8 @@ export function PlaybookCanvas({
         color: getToolColor(selectedTool),
         fillColor: getFillColor(selectedTool),
         lineWidth: 3,
+        // For balls, store the sport type as label
+        label: selectedTool === "ball" ? sport?.toLowerCase() : undefined,
       };
       allElementsRef.current.set(newElement.id, newElement);
       setElements((prev) => [...prev, newElement]);
@@ -1634,6 +1742,17 @@ export function PlaybookCanvas({
             </ScrollArea>
           </PopoverContent>
         </Popover>
+
+        <Button
+          variant={selectedTool === "ball" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setSelectedTool("ball")}
+          className="gap-2"
+          data-testid="tool-ball"
+        >
+          <Circle className="h-5 w-5 fill-amber-600 text-amber-600" />
+          <span className="hidden sm:inline">Ball</span>
+        </Button>
 
         <Button
           variant={selectedTool === "delete" ? "default" : "outline"}
