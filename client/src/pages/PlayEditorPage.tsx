@@ -59,7 +59,7 @@ export default function PlayEditorPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
-  console.log('[PlayEditorPage] location:', location, 'isEditMode:', isEditMode, 'playId:', params.playId, 'isDemo:', isDemo);
+  console.log('[PlayEditorPage] RENDER START - location:', location, 'isEditMode:', isEditMode, 'playId:', params.playId, 'isDemo:', isDemo, 'entitlementsLoading:', entitlementsLoading, 'playLoading:', playLoading, 'play:', play?.id);
 
   // Load existing play when in edit mode
   const { data: existingPlay, isLoading: playLoading } = useQuery({
