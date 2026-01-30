@@ -93,6 +93,8 @@ export function PlaybookCanvas({
   const [lastPoint, setLastPoint] = useState<Point | null>(null);
   const [currentPath, setCurrentPath] = useState<Point[]>([]);
   const [elements, setElements] = useState<DrawnElement[]>(initialElements);
+  // Master list of all elements ever created (for restoring from keyframes)
+  const allElementsRef = useRef<Map<string, DrawnElement>>(new Map());
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [dimensionsLocked, setDimensionsLocked] = useState(false);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -338,26 +340,30 @@ export function PlaybookCanvas({
     }
   }, [keyframes.length, currentKeyframeIndex]);
 
-  // Jump to a specific keyframe and update elements to match (for editing)
+  // Jump to a specific keyframe and RESTORE elements to exactly match the keyframe
   const jumpToKeyframe = useCallback((index: number) => {
     setIsPlaying(false);
     setCurrentKeyframeIndex(index);
     setAnimationProgress(0);
     
-    // In edit mode, update elements to match the keyframe positions so user can see and edit from that pose
-    // Only update positions for elements that exist in this keyframe
-    // IMPORTANT: Create deep copies to avoid modifying keyframe data directly
+    // RESTORE elements to exactly match the keyframe snapshot
+    // This means only showing elements that exist in this keyframe, at their recorded positions
     if (!readOnly && keyframes[index]) {
       const kf = keyframes[index];
-      setElements(prev => prev.map(el => {
-        const kfPos = kf.positions.find(p => p.elementId === el.id);
-        if (kfPos && kfPos.points.length > 0) {
-          // Element exists in this keyframe - use DEEP COPY of keyframe position
-          return { ...el, points: kfPos.points.map(p => ({ x: p.x, y: p.y })) };
+      // Rebuild elements array from keyframe data
+      // Use master list to get element metadata (tool, color, etc)
+      const restoredElements: DrawnElement[] = [];
+      for (const kfPos of kf.positions) {
+        // Find the original element from master list to get its metadata
+        const originalEl = allElementsRef.current.get(kfPos.elementId);
+        if (originalEl && kfPos.points.length > 0) {
+          restoredElements.push({
+            ...originalEl,
+            points: kfPos.points.map(p => ({ x: p.x, y: p.y })) // Deep copy
+          });
         }
-        // Element not in this keyframe - keep current position (will be filtered by display)
-        return el;
-      }));
+      }
+      setElements(restoredElements);
     }
   }, [readOnly, keyframes]);
 
@@ -1268,15 +1274,10 @@ export function PlaybookCanvas({
     
     if (selectedTool === "delete") {
       if (clickedElement) {
-        // Always remove from elements array
+        // Only remove from current elements array (what you see)
+        // Keyframes are immutable snapshots - don't modify them
+        // The deleted element will reappear if you jump back to a keyframe that contains it
         setElements((prev) => prev.filter((el) => el.id !== clickedElement.id));
-        // Also remove from ALL keyframes
-        if (keyframes.length > 0) {
-          setKeyframes(prev => prev.map(kf => ({
-            ...kf,
-            positions: kf.positions.filter(p => p.elementId !== clickedElement.id)
-          })));
-        }
       }
       return;
     }
@@ -1309,6 +1310,7 @@ export function PlaybookCanvas({
         lineWidth: 3,
         label: getInitials(selectedAthlete),
       };
+      allElementsRef.current.set(newElement.id, newElement);
       setElements((prev) => [...prev, newElement]);
       return;
     }
@@ -1322,6 +1324,7 @@ export function PlaybookCanvas({
         fillColor: getFillColor(selectedTool),
         lineWidth: 3,
       };
+      allElementsRef.current.set(newElement.id, newElement);
       setElements((prev) => [...prev, newElement]);
       return;
     }
@@ -1421,6 +1424,7 @@ export function PlaybookCanvas({
         color: getToolColor(selectedTool),
         lineWidth: 3,
       };
+      allElementsRef.current.set(newElement.id, newElement);
       setElements((prev) => [...prev, newElement]);
     }
 
