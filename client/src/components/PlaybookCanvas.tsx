@@ -598,8 +598,18 @@ export function PlaybookCanvas({
       }
       
       // Calculate height based on width and aspect ratio
-      const width = containerWidth;
-      const height = Math.round(width * aspectRatio);
+      let width = containerWidth;
+      let height = Math.round(width * aspectRatio);
+      
+      // In portrait mode, limit height to 50% of viewport to leave room for toolbar/timeline
+      const isPortrait = window.innerHeight > window.innerWidth;
+      if (isPortrait) {
+        const maxHeight = Math.round(window.innerHeight * 0.5);
+        if (height > maxHeight) {
+          height = maxHeight;
+          width = Math.round(height / aspectRatio);
+        }
+      }
       
       setCanvasSize({ width, height });
       setDimensionsLocked(true);
