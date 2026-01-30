@@ -1,0 +1,111 @@
+[Log] [PlayEditorPage] COMPONENT START (PlayEditorPage.tsx, line 48)
+[Log] [PlayEditorPage] params: – {0: "56c3c625-589c-4047-97ed-b2ea93d9a3e0", playId: "56c3c625-589c-4047-97ed-b2ea93d9a3e0"} (PlayEditorPage.tsx, line 50)
+[Log] [PlayEditorPage] RENDER - location: – "/play/edit/56c3c625-589c-4047-97ed-b2ea93d9a3e0" – "isEditMode:" – true – "playId:" – "56c3c625-589c-4047-97ed-b2ea93d9a3e0" – "isDemo:" – false – "entitlementsLoading:" – false – "playLoading:" – true – "existingPlay:" – undefined (PlayEditorPage.tsx, line 69)
+[Log] [PlayEditorPage] Fetching play: – "56c3c625-589c-4047-97ed-b2ea93d9a3e0" (PlayEditorPage.tsx, line 64)
+[Error] Unable to post message to https://staging.replit.com. Recipient has origin https://replit.com.
+
+	postMessage
+	postMessageToWorkspace (workspace_iframe.html:43)
+	(anonymous function) (workspace_iframe.html:62)
+[Error] Unable to post message to https://firewalledreplit.com. Recipient has origin https://replit.com.
+
+	postMessage
+	postMessageToWorkspace (workspace_iframe.html:44)
+	(anonymous function) (workspace_iframe.html:62)
+[Error] Unable to post message to https://staging.firewalledreplit.com. Recipient has origin https://replit.com.
+
+	postMessage
+	postMessageToWorkspace (workspace_iframe.html:45)
+	(anonymous function) (workspace_iframe.html:62)
+[Error] Unable to post message to http://localhost:3000. Recipient has origin https://replit.com.
+
+	postMessage
+	postMessageToWorkspace (workspace_iframe.html:46)
+	(anonymous function) (workspace_iframe.html:62)
+[Log] [PlayEditorPage] COMPONENT START (PlayEditorPage.tsx, line 48)
+[Log] [PlayEditorPage] params: – {0: "56c3c625-589c-4047-97ed-b2ea93d9a3e0", playId: "56c3c625-589c-4047-97ed-b2ea93d9a3e0"} (PlayEditorPage.tsx, line 50)
+[Log] [PlayEditorPage] RENDER - location: – "/play/edit/56c3c625-589c-4047-97ed-b2ea93d9a3e0" – "isEditMode:" – true – "playId:" – "56c3c625-589c-4047-97ed-b2ea93d9a3e0" – "isDemo:" – false – "entitlementsLoading:" – false – "playLoading:" – false – "existingPlay:" – "56c3c625-589c-4047-97ed-b2ea93d9a3e0" (PlayEditorPage.tsx, line 69)
+[Log] [PlayEditorPage] COMPONENT START (PlayEditorPage.tsx, line 48)
+[Log] [PlayEditorPage] params: – {0: "56c3c625-589c-4047-97ed-b2ea93d9a3e0", playId: "56c3c625-589c-4047-97ed-b2ea93d9a3e0"} (PlayEditorPage.tsx, line 50)
+[Log] [PlayEditorPage] RENDER - location: – "/play/edit/56c3c625-589c-4047-97ed-b2ea93d9a3e0" – "isEditMode:" – true – "playId:" – "56c3c625-589c-4047-97ed-b2ea93d9a3e0" – "isDemo:" – false – "entitlementsLoading:" – false – "playLoading:" – false – "existingPlay:" – "56c3c625-589c-4047-97ed-b2ea93d9a3e0" (PlayEditorPage.tsx, line 69)
+[Error] React has detected a change in the order of Hooks called by PlayEditorPage. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+1. useContext                 useContext
+2. useContext                 useContext
+3. useSyncExternalStore       useSyncExternalStore
+4. useRef                     useRef
+5. useInsertionEffect         useInsertionEffect
+6. useContext                 useContext
+7. useContext                 useContext
+8. useContext                 useContext
+9. useState                   useState
+10. useState                  useState
+11. useEffect                 useEffect
+12. useState                  useState
+13. useState                  useState
+14. useContext                useContext
+15. useContext                useContext
+16. useContext                useContext
+17. useEffect                 useEffect
+18. useState                  useState
+19. useCallback               useCallback
+20. useSyncExternalStore      useSyncExternalStore
+21. useEffect                 useEffect
+22. useContext                useContext
+23. useState                  useState
+24. useEffect                 useEffect
+25. useCallback               useCallback
+26. useSyncExternalStore      useSyncExternalStore
+27. useCallback               useCallback
+28. useCallback               useCallback
+29. useCallback               useCallback
+30. useEffect                 useEffect
+31. undefined                 useCallback
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+	updateHookTypesDev (react-dom_client.js:5594)
+	useCallback (react-dom_client.js:18935)
+	PlayEditorPage (PlayEditorPage.tsx:213)
+	react_stack_bottom_frame (react-dom_client.js:18509)
+	renderWithHooks (react-dom_client.js:5654)
+	updateFunctionComponent (react-dom_client.js:7475)
+	runWithFiberInDEV (react-dom_client.js:999)
+	performUnitOfWork (react-dom_client.js:12561:116)
+	workLoopSync (react-dom_client.js:12424)
+	renderRootSync (react-dom_client.js:12408)
+	performWorkOnRoot (react-dom_client.js:11766:204)
+	performSyncWorkOnRoot (react-dom_client.js:13517)
+	flushSyncWorkAcrossRoots_impl (react-dom_client.js:13414:144)
+	processRootScheduleInMicrotask (react-dom_client.js:13437:136)
+	(anonymous function) (react-dom_client.js:13531)
+[Log] [PlayEditorPage] COMPONENT START (PlayEditorPage.tsx, line 48)
+[Log] [PlayEditorPage] params: – {0: "56c3c625-589c-4047-97ed-b2ea93d9a3e0", playId: "56c3c625-589c-4047-97ed-b2ea93d9a3e0"} (PlayEditorPage.tsx, line 50)
+[Log] [PlayEditorPage] RENDER - location: – "/play/edit/56c3c625-589c-4047-97ed-b2ea93d9a3e0" – "isEditMode:" – true – "playId:" – "56c3c625-589c-4047-97ed-b2ea93d9a3e0" – "isDemo:" – false – "entitlementsLoading:" – false – "playLoading:" – false – "existingPlay:" – "56c3c625-589c-4047-97ed-b2ea93d9a3e0" (PlayEditorPage.tsx, line 69)
+[Error] Error: Rendered more hooks than during the previous render.
+	reportError (react-dom_client.js:5792)
+	defaultOnUncaughtError (react-dom_client.js:6965)
+	logUncaughtError (react-dom_client.js:7020)
+	runWithFiberInDEV (react-dom_client.js:999)
+	(anonymous function) (react-dom_client.js:7048)
+	callCallback (react-dom_client.js:5491)
+	commitCallbacks (react-dom_client.js:5503)
+	runWithFiberInDEV (react-dom_client.js:999)
+	commitLayoutEffectOnFiber (react-dom_client.js:9976)
+	flushLayoutEffects (react-dom_client.js:12924:146)
+	commitRoot (react-dom_client.js:12803)
+	commitRootWhenReady (react-dom_client.js:12016)
+	performWorkOnRoot (react-dom_client.js:11950)
+	performSyncWorkOnRoot (react-dom_client.js:13517)
+	flushSyncWorkAcrossRoots_impl (react-dom_client.js:13414:144)
+	processRootScheduleInMicrotask (react-dom_client.js:13437:136)
+	(anonymous function) (react-dom_client.js:13531)
+[Warning] An error occurred in the <PlayEditorPage> component. (react-dom_client.js, line 6966)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+[Error] [vite] – TypeError: undefined is not an object (evaluating 'ws.send') — client:449
+TypeError: undefined is not an object (evaluating 'ws.send') — client:449
+	(anonymous function) (client:158)

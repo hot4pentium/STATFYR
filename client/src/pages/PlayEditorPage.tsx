@@ -47,9 +47,7 @@ function useIsMobileLandscape() {
 }
 
 export default function PlayEditorPage() {
-  console.log('[PlayEditorPage] COMPONENT START');
   const params = useParams<{ playId: string }>();
-  console.log('[PlayEditorPage] params:', params);
   const [location, navigate] = useLocation();
   const isDemo = isDemoMode();
   const isEditMode = location.startsWith('/play/edit/');
@@ -70,8 +68,6 @@ export default function PlayEditorPage() {
     },
     enabled: isEditMode && !!params.playId && !isDemo,
   });
-
-  console.log('[PlayEditorPage] RENDER - location:', location, 'isEditMode:', isEditMode, 'playId:', params.playId, 'isDemo:', isDemo, 'entitlementsLoading:', entitlementsLoading, 'playLoading:', playLoading, 'existingPlay:', existingPlay?.id);
 
   // Update play mutation
   const updatePlayMutation = useMutation({
@@ -113,6 +109,42 @@ export default function PlayEditorPage() {
       setPlay(existingPlay);
     }
   }, [params.playId, isDemo, existingPlay]);
+
+  const handleHasUnsavedChanges = useCallback((hasChanges: boolean) => {
+    setHasUnsavedChanges(hasChanges);
+  }, []);
+
+  // Handle browser back button and beforeunload
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    const handlePopState = () => {
+      if (hasUnsavedChanges) {
+        // Push state back to prevent navigation
+        window.history.pushState(null, '', window.location.href);
+        setShowLeaveDialog(true);
+      }
+    };
+
+    // Push initial state to enable popstate handling
+    if (hasUnsavedChanges) {
+      window.history.pushState(null, '', window.location.href);
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [hasUnsavedChanges]);
 
   // Wait for play data to be ready in edit mode
   const isLoading = entitlementsLoading || (isEditMode && (playLoading || !play));
@@ -184,42 +216,6 @@ export default function PlayEditorPage() {
 
   const backUrl = isDemo ? "/playbook?demo=true" : "/dashboard";
 
-  const handleHasUnsavedChanges = useCallback((hasChanges: boolean) => {
-    setHasUnsavedChanges(hasChanges);
-  }, []);
-
-  // Handle browser back button and beforeunload
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = '';
-        return '';
-      }
-    };
-
-    const handlePopState = () => {
-      if (hasUnsavedChanges) {
-        // Push state back to prevent navigation
-        window.history.pushState(null, '', window.location.href);
-        setShowLeaveDialog(true);
-      }
-    };
-
-    // Push initial state to enable popstate handling
-    if (hasUnsavedChanges) {
-      window.history.pushState(null, '', window.location.href);
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [hasUnsavedChanges]);
-
   // Show rotate message in landscape mode
   if (isMobileLandscape) {
     return (
@@ -247,9 +243,6 @@ export default function PlayEditorPage() {
 
   return (
     <Layout>
-      <div className="bg-red-500 text-white p-4 mb-4 fixed top-20 left-4 z-50 rounded">
-        DEBUG: PlayEditorPage rendered - isEditMode: {String(isEditMode)}, playId: {params.playId}, play: {play?.id || 'null'}
-      </div>
       <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {isDemo && (
           <div className="bg-gradient-to-r from-amber-600/30 via-orange-600/30 to-amber-600/30 border border-amber-500/50 rounded-lg p-3 sticky top-0 z-20">
