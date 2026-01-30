@@ -1812,6 +1812,80 @@ export function PlaybookCanvas({
                 )}
               </Button>
             )}
+
+            {/* Read-only Playback Controls */}
+            {readOnly && keyframes.length >= 2 && (
+              <>
+                <div className="h-6 w-px bg-amber-500/50 mx-2" />
+                <span className="text-sm font-medium text-amber-500 flex items-center gap-2">
+                  <Film className="h-4 w-4" />
+                  Play
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={resetAnimation}
+                  disabled={currentKeyframeIndex === 0 && !isPlaying}
+                  className="h-8 w-8"
+                  title="Reset to start"
+                  data-testid="button-reset-animation"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => jumpToKeyframe(Math.max(0, currentKeyframeIndex - 1))}
+                  disabled={currentKeyframeIndex === 0 || isPlaying}
+                  className="h-8 w-8"
+                  data-testid="button-prev-keyframe"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={isPlaying ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => {
+                    if (!isPlaying) {
+                      setCurrentKeyframeIndex(0);
+                      setAnimationProgress(0);
+                    }
+                    setIsPlaying(!isPlaying);
+                  }}
+                  className={`h-8 w-8 ${isPlaying ? "bg-green-600 hover:bg-green-700" : ""}`}
+                  title={isPlaying ? "Pause" : "Play animation"}
+                  data-testid="button-play-animation"
+                >
+                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => jumpToKeyframe(Math.min(keyframes.length - 1, currentKeyframeIndex + 1))}
+                  disabled={currentKeyframeIndex >= keyframes.length - 1 || isPlaying}
+                  className="h-8 w-8"
+                  data-testid="button-next-keyframe"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <span className="text-sm font-medium ml-2">
+                  {currentKeyframeIndex + 1}/{keyframes.length}
+                </span>
+                <div className="hidden sm:flex items-center gap-2 ml-4">
+                  <span className="text-xs text-muted-foreground">Speed:</span>
+                  <Slider
+                    value={[playbackSpeed]}
+                    onValueChange={([v]) => setPlaybackSpeed(v)}
+                    min={0.5}
+                    max={2}
+                    step={0.5}
+                    className="w-20"
+                    disabled={isPlaying}
+                  />
+                  <span className="text-xs font-medium">{playbackSpeed}x</span>
+                </div>
+              </>
+            )}
           </>
         ) : (
           <>
