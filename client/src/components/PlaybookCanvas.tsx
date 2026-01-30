@@ -95,6 +95,8 @@ export function PlaybookCanvas({
   const [elements, setElements] = useState<DrawnElement[]>(initialElements);
   // Master list of all elements ever created (for restoring from keyframes)
   const allElementsRef = useRef<Map<string, DrawnElement>>(new Map());
+  // Undo stack - stores previous states
+  const [undoStack, setUndoStack] = useState<DrawnElement[][]>([]);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [dimensionsLocked, setDimensionsLocked] = useState(false);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -250,6 +252,32 @@ export function PlaybookCanvas({
   }, [isPlaying, currentKeyframeIndex, playbackSpeed]);
 
   // Record a new keyframe with current element positions
+  // Save current state to undo stack before making changes
+  const saveToUndoStack = useCallback(() => {
+    setUndoStack(prev => {
+      // Keep only last 20 states to prevent memory issues
+      const newStack = [...prev, elements.map(el => ({
+        ...el,
+        points: el.points.map(p => ({ x: p.x, y: p.y }))
+      }))];
+      return newStack.slice(-20);
+    });
+  }, [elements]);
+
+  // Undo last operation
+  const undo = useCallback(() => {
+    if (undoStack.length === 0) return;
+    
+    const previousState = undoStack[undoStack.length - 1];
+    setUndoStack(prev => prev.slice(0, -1));
+    setElements(previousState);
+    
+    // Restore elements to master list
+    previousState.forEach(el => {
+      allElementsRef.current.set(el.id, el);
+    });
+  }, [undoStack]);
+
   const recordKeyframe = useCallback(() => {
     if (elements.length === 0) return;
 
@@ -1307,6 +1335,8 @@ export function PlaybookCanvas({
     
     if (selectedTool === "delete") {
       if (clickedElement) {
+        // Save current state before deleting
+        saveToUndoStack();
         // Only remove from current elements array (what you see)
         // Keyframes are immutable snapshots - don't modify them
         // The deleted element will reappear if you jump back to a keyframe that contains it
@@ -1577,6 +1607,18 @@ export function PlaybookCanvas({
         >
           <MousePointerClick className="h-5 w-5" />
           <span className="hidden sm:inline">Delete</span>
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={undo}
+          disabled={undoStack.length === 0}
+          className="gap-2 text-blue-500 hover:text-blue-400"
+          data-testid="button-undo"
+        >
+          <Undo2 className="h-5 w-5" />
+          <span className="hidden sm:inline">Undo</span>
         </Button>
 
         {sport?.toLowerCase() !== "baseball" && (
