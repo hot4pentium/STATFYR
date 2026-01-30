@@ -154,16 +154,46 @@ export function PlaybookCanvas({
   }, [JSON.stringify(initialElements), originalCanvasWidth, canvasSize.width, scaleElements]);
 
   // Sync keyframes when initialKeyframes prop changes - scale if needed for viewer
+  // Also populate master element list from keyframe data for playback
   useEffect(() => {
+    let keyframesToSet: Keyframe[];
     if (originalCanvasWidth && canvasSize.width > 0) {
-      setKeyframes(scaleKeyframes(initialKeyframes, originalCanvasWidth, canvasSize.width));
+      keyframesToSet = scaleKeyframes(initialKeyframes, originalCanvasWidth, canvasSize.width);
     } else {
-      setKeyframes(initialKeyframes);
+      keyframesToSet = initialKeyframes;
     }
+    setKeyframes(keyframesToSet);
     setCurrentKeyframeIndex(0);
     setAnimationProgress(0);
     setIsPlaying(false);
-  }, [JSON.stringify(initialKeyframes), originalCanvasWidth, canvasSize.width, scaleKeyframes]);
+    
+    // Populate master element list from keyframe positions
+    // This ensures elements added in later keyframes are available for playback
+    keyframesToSet.forEach(kf => {
+      kf.positions.forEach(pos => {
+        // Check if we already have this element
+        if (!allElementsRef.current.has(pos.elementId)) {
+          // Try to find in current elements first
+          const existingEl = initialElements.find(el => el.id === pos.elementId);
+          if (existingEl) {
+            allElementsRef.current.set(pos.elementId, existingEl);
+          } else {
+            // Create a placeholder element from keyframe data
+            // We need to infer the element type from the points
+            const isArrow = pos.points.length === 2;
+            const placeholderEl: DrawnElement = {
+              id: pos.elementId,
+              tool: isArrow ? "arrow" : "circle",
+              points: pos.points.map(p => ({ x: p.x, y: p.y })),
+              color: isArrow ? "#f59e0b" : "#ef4444",
+              lineWidth: 3,
+            };
+            allElementsRef.current.set(pos.elementId, placeholderEl);
+          }
+        }
+      });
+    });
+  }, [JSON.stringify(initialKeyframes), JSON.stringify(initialElements), originalCanvasWidth, canvasSize.width, scaleKeyframes]);
 
   // Clear canvas and reset dimensions when sport changes (only in edit mode, not when viewing saved plays)
   useEffect(() => {
