@@ -292,18 +292,15 @@ export function PlaybookCanvas({
         return existsInCurrentKf || isNewElement;
       });
 
-      // In edit mode (not readOnly), show current positions so user can edit freely
-      // In playback/viewer mode, show keyframe positions
-      if (!readOnly && !isPlaying) {
-        return filteredElements; // Keep current positions for editing
-      }
-
-      // For playback/viewer: use keyframe positions
+      // Always use keyframe positions for elements in the current keyframe
+      // This ensures display matches keyframe data for consistent hit detection
+      // New elements (not in any keyframe) keep their current positions
       return filteredElements.map(el => {
         const kfPos = currentKf.positions.find(p => p.elementId === el.id);
-        if (kfPos && kfPos.points.length === el.points.length) {
+        if (kfPos && kfPos.points.length > 0) {
           return { ...el, points: kfPos.points };
         }
+        // Element is new (not in keyframe) - keep current position
         return el;
       });
     }
