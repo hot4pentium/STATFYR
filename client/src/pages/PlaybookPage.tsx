@@ -1,43 +1,93 @@
+import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
-import { PLAYS } from "@/lib/mockData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Play, Share2, ArrowLeft, Eye, Crown, Loader2 } from "lucide-react";
+import { Plus, Play, Share2, ArrowLeft, Eye, Crown, Loader2, TrendingUp, TrendingDown, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { isDemoMode, demoPlays } from "@/lib/demoData";
 import { useEntitlements } from "@/lib/entitlementsContext";
+import { useUser } from "@/lib/userContext";
+import { useQuery } from "@tanstack/react-query";
+import { getTeamPlays, getTeamPlayStats, type Play as PlayType, type TeamPlayStats } from "@/lib/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-type PlayItem = {
-  id: string;
-  name: string;
-  type: string;
-  tags: string[];
-  thumbnailData?: string | null;
-};
+type RatingFilter = "all" | "high" | "medium" | "low" | "unrated";
 
-function normalizePlay(play: any): PlayItem {
-  if ('type' in play && 'tags' in play) {
-    return play as PlayItem;
+function getSuccessRateBadge(stats: TeamPlayStats[string] | undefined) {
+  if (!stats || stats.total === 0) {
+    return null;
   }
-  return {
-    id: play.id,
-    name: play.name,
-    type: play.category || 'General',
-    tags: [play.status || 'Active', play.category || 'General'].filter(Boolean),
-    thumbnailData: play.thumbnailData || null,
-  };
+  
+  const rate = stats.successRate;
+  if (rate === null) return null;
+  
+  if (rate >= 70) {
+    return (
+      <Badge className="bg-green-500/20 text-green-400 border-green-500/30 gap-1">
+        <TrendingUp className="h-3 w-3" />
+        {rate}%
+      </Badge>
+    );
+  } else if (rate >= 40) {
+    return (
+      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 gap-1">
+        {rate}%
+      </Badge>
+    );
+  } else {
+    return (
+      <Badge className="bg-red-500/20 text-red-400 border-red-500/30 gap-1">
+        <TrendingDown className="h-3 w-3" />
+        {rate}%
+      </Badge>
+    );
+  }
+}
+
+function getRatingCategory(stats: TeamPlayStats[string] | undefined): RatingFilter {
+  if (!stats || stats.total === 0) return "unrated";
+  const rate = stats.successRate;
+  if (rate === null) return "unrated";
+  if (rate >= 70) return "high";
+  if (rate >= 40) return "medium";
+  return "low";
 }
 
 export default function PlaybookPage() {
   const [, navigate] = useLocation();
   const isDemo = isDemoMode();
   const { entitlements, isLoading: entitlementsLoading } = useEntitlements();
-  
-  const rawPlays = isDemo ? demoPlays : PLAYS;
-  const playsToShow = rawPlays.map(normalizePlay);
+  const { currentTeam } = useUser();
+  const [ratingFilter, setRatingFilter] = useState<RatingFilter>("all");
 
-  if (entitlementsLoading && !isDemo) {
+  const { data: teamPlays = [], isLoading: playsLoading } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "plays"],
+    queryFn: () => currentTeam ? getTeamPlays(currentTeam.id) : Promise.resolve([]),
+    enabled: !!currentTeam && !isDemo,
+  });
+
+  const { data: playStats = {} as TeamPlayStats } = useQuery<TeamPlayStats>({
+    queryKey: ["/api/teams", currentTeam?.id, "play-stats"],
+    queryFn: () => currentTeam ? getTeamPlayStats(currentTeam.id) : Promise.resolve({} as TeamPlayStats),
+    enabled: !!currentTeam && !isDemo,
+  });
+
+  const playsToShow = isDemo 
+    ? demoPlays 
+    : teamPlays.filter((play) => {
+        if (ratingFilter === "all") return true;
+        const category = getRatingCategory(playStats[play.id]);
+        return category === ratingFilter;
+      });
+
+  if ((entitlementsLoading || playsLoading) && !isDemo) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -136,14 +186,39 @@ export default function PlaybookPage() {
           </Button>
         </div>
 
+        {!isDemo && teamPlays.length > 0 && (
+          <div className="flex items-center gap-3">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={ratingFilter} onValueChange={(v) => setRatingFilter(v as RatingFilter)}>
+              <SelectTrigger className="w-[180px]" data-testid="select-rating-filter">
+                <SelectValue placeholder="Filter by rating" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Plays</SelectItem>
+                <SelectItem value="high">High Success (70%+)</SelectItem>
+                <SelectItem value="medium">Medium (40-69%)</SelectItem>
+                <SelectItem value="low">Needs Work (&lt;40%)</SelectItem>
+                <SelectItem value="unrated">Not Rated</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-muted-foreground">
+              Showing {playsToShow.length} of {teamPlays.length} plays
+            </span>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {playsToShow.map((play) => {
             const playUrl = isDemo ? `/playbook/${play.id}?demo=true` : `/playbook/${play.id}`;
+            const stats = !isDemo ? playStats[play.id] : undefined;
+            const successBadge = getSuccessRateBadge(stats);
+            
             return (
             <Card 
               key={play.id} 
               className="bg-card border-white/5 hover:border-primary/50 transition-all group overflow-hidden cursor-pointer"
               onClick={() => navigate(playUrl)}
+              data-testid={`play-card-${play.id}`}
             >
               <div className="h-48 bg-[#1a3c28] relative overflow-hidden border-b border-white/5 pattern-grid-lg">
                 {play.thumbnailData ? (
@@ -164,9 +239,20 @@ export default function PlaybookPage() {
                   </>
                 )}
                 
-                <div className="absolute top-2 right-2">
-                   <Badge variant="secondary" className="bg-black/50 backdrop-blur-sm text-white border-white/10 hover:bg-black/70">{play.type}</Badge>
+                <div className="absolute top-2 right-2 flex gap-2">
+                  {successBadge}
+                  <Badge variant="secondary" className="bg-black/50 backdrop-blur-sm text-white border-white/10 hover:bg-black/70">
+                    {play.category || 'General'}
+                  </Badge>
                 </div>
+                
+                {stats && stats.total > 0 && (
+                  <div className="absolute bottom-2 left-2">
+                    <span className="text-xs bg-black/50 backdrop-blur-sm text-white/70 px-2 py-1 rounded">
+                      {stats.total} run{stats.total !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                )}
               </div>
               
               <CardContent className="p-4">
@@ -174,13 +260,15 @@ export default function PlaybookPage() {
                    <h3 className="font-display text-xl font-bold uppercase">{play.name}</h3>
                 </div>
                 
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {play.tags.map(tag => (
-                    <span key={tag} className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground bg-white/5 px-2 py-1 rounded">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                {stats && stats.total > 0 && (
+                  <div className="flex gap-2 mb-3 text-xs">
+                    <span className="text-green-400">{stats.success} success</span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-amber-400">{stats.needsWork} work</span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-red-400">{stats.unsuccessful} miss</span>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-2">
                    <Button 
