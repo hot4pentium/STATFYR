@@ -1302,9 +1302,9 @@ export function PlaybookCanvas({
       setIsDragging(true);
       setDraggedElementId(clickedElement.id);
       
-      // In edit mode: use raw element positions (what we see and clicked on)
-      // In viewer/playback: use interpolated positions
-      const displayedElements = (isPlaying || readOnly) ? getInterpolatedElements() : elements;
+      // Use the same logic as display/hit detection: interpolated positions when keyframes exist
+      const shouldInterpolate = (isPlaying || readOnly || keyframes.length > 0);
+      const displayedElements = shouldInterpolate ? getInterpolatedElements() : elements;
       const displayedElement = displayedElements.find(e => e.id === clickedElement.id) || clickedElement;
       
       if (clickedElement.tool === "arrow") {
