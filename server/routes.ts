@@ -1430,6 +1430,31 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/teams/:teamId/play-outcomes/detailed", async (req, res) => {
+    try {
+      const outcomes = await storage.getTeamPlayOutcomes(req.params.teamId);
+      const plays = await storage.getTeamPlays(req.params.teamId);
+      const games = await storage.getTeamGames(req.params.teamId);
+      
+      const playsMap = new Map(plays.map(p => [p.id, p]));
+      const gamesMap = new Map(games.map(g => [g.id, g]));
+      
+      const detailed = outcomes.map(o => ({
+        ...o,
+        play: playsMap.get(o.playId) || null,
+        game: o.gameId ? gamesMap.get(o.gameId) || null : null,
+      })).sort((a, b) => {
+        const dateA = a.recordedAt ? new Date(a.recordedAt).getTime() : 0;
+        const dateB = b.recordedAt ? new Date(b.recordedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      
+      res.json(detailed);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get detailed play outcomes" });
+    }
+  });
+
   app.get("/api/plays/:playId/outcomes", async (req, res) => {
     try {
       const outcomes = await storage.getPlayOutcomes(req.params.playId);

@@ -400,6 +400,25 @@ export async function getTeamPlayStats(teamId: string): Promise<TeamPlayStats> {
   return res.json();
 }
 
+export interface DetailedPlayOutcome {
+  id: string;
+  playId: string;
+  gameId: string;
+  teamId: string;
+  recordedById: string;
+  outcome: 'success' | 'needs_work' | 'unsuccessful';
+  notes: string | null;
+  recordedAt: string;
+  play: Play | null;
+  game: Game | null;
+}
+
+export async function getDetailedPlayOutcomes(teamId: string): Promise<DetailedPlayOutcome[]> {
+  const res = await fetch(`/api/teams/${teamId}/play-outcomes/detailed`);
+  if (!res.ok) throw new Error("Failed to get detailed play outcomes");
+  return res.json();
+}
+
 export interface PlayNote {
   text: string;
   outcome: string;

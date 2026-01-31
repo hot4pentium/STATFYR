@@ -54,10 +54,11 @@ import {
   startLiveSession, endLiveSession, getAthleteStats, getAthleteShoutouts, getAthleteShoutoutCount,
   getManagedAthletes, getSupporterBadges, getAllBadges, getSupporterTapTotal, getActiveLiveSessions,
   getUserTeams, joinTeamByCode, getTeamEngagementStats, getTopTappers, getActiveTheme, getTeamPlayStats,
-  getGamePlayOutcomes, getConnectedSupporter, disconnectSupporter, getCalendarToken,
+  getGamePlayOutcomes, getConnectedSupporter, disconnectSupporter, getCalendarToken, getDetailedPlayOutcomes,
   type Team, type TeamMember, type Event, type HighlightVideo, type Play, type StartingLineup,
   type TeamAggregateStats, type AdvancedTeamStats, type LiveEngagementSession, type ManagedAthlete,
-  type TopTapper, type SupporterBadge, type BadgeDefinition, type TeamPlayStats, type GamePlayOutcomes
+  type TopTapper, type SupporterBadge, type BadgeDefinition, type TeamPlayStats, type GamePlayOutcomes,
+  type DetailedPlayOutcome
 } from "@/lib/api";
 import { SPORT_POSITIONS } from "@/lib/sportConstants";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Cell, Legend, CartesianGrid } from "recharts";
@@ -119,7 +120,7 @@ export default function UnifiedDashboard() {
   const [rosterTab, setRosterTab] = useState<"all" | "athletes" | "coach" | "supporters">("all");
   const [playbookTab, setPlaybookTab] = useState<"Offense" | "Defense" | "Special">("Offense");
   const [playRatingFilter, setPlayRatingFilter] = useState<"all" | "high" | "medium" | "low" | "unrated">("all");
-  const [statsTab, setStatsTab] = useState<"season" | "athletes" | "games">("season");
+  const [statsTab, setStatsTab] = useState<"season" | "athletes" | "games" | "plays">("season");
   const [athleteViewMode, setAthleteViewMode] = useState<"chart" | "table" | "cards">("chart");
   const [expandedPlay, setExpandedPlay] = useState<Play | null>(null);
   const [expandedGameId, setExpandedGameId] = useState<string | null>(null);
@@ -320,6 +321,14 @@ export default function UnifiedDashboard() {
   const { data: advancedStats } = useQuery({
     queryKey: ["/api/teams", currentTeam?.id, "stats", "advanced"],
     queryFn: () => currentTeam ? getAdvancedTeamStats(currentTeam.id) : Promise.resolve({ gameHistory: [], athletePerformance: [], ratios: {} }),
+    enabled: !!currentTeam && selectedCard === "stats" && (userRole === "coach" || userRole === "supporter" || isStaff),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+
+  const { data: detailedPlayOutcomes = [] } = useQuery({
+    queryKey: ["/api/teams", currentTeam?.id, "play-outcomes", "detailed"],
+    queryFn: () => currentTeam ? getDetailedPlayOutcomes(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam && selectedCard === "stats" && (userRole === "coach" || userRole === "supporter" || isStaff),
     refetchOnMount: 'always',
     staleTime: 0,
@@ -1745,13 +1754,14 @@ export default function UnifiedDashboard() {
                 </div>
 
                 <Tabs value={statsTab} onValueChange={(v) => setStatsTab(v as typeof statsTab)} className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 mb-4 bg-muted/50 border border-white/10">
+                  <TabsList className="grid w-full grid-cols-4 mb-4 bg-muted/50 border border-white/10">
                     <TabsTrigger value="season" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Season</TabsTrigger>
                     <TabsTrigger value="athletes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-1">
                       Athletes
                       {userRole === "supporter" && !entitlements.canViewIndividualStats && <Lock className="h-3 w-3 text-yellow-500" />}
                     </TabsTrigger>
                     <TabsTrigger value="games" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Games</TabsTrigger>
+                    <TabsTrigger value="plays" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Plays</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="season" className="space-y-4">
@@ -2116,6 +2126,67 @@ export default function UnifiedDashboard() {
                         <CardContent className="p-8 text-center">
                           <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                           <p className="text-muted-foreground">No games recorded yet.</p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="plays" className="space-y-4">
+                    {detailedPlayOutcomes.length > 0 ? (
+                      <div className="space-y-3">
+                        {detailedPlayOutcomes.slice(0, 20).map((outcome: DetailedPlayOutcome) => (
+                          <Card key={outcome.id} className="bg-card/60 backdrop-blur-sm border-white/10">
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-3">
+                                {outcome.play?.thumbnailData ? (
+                                  <div className="h-12 w-16 rounded-lg overflow-hidden bg-black/20 shrink-0">
+                                    <img src={outcome.play.thumbnailData} alt={outcome.play?.name || "Play"} className="w-full h-full object-cover" />
+                                  </div>
+                                ) : (
+                                  <div className="h-12 w-16 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center shrink-0">
+                                    <BookOpen className="h-4 w-4 text-orange-500" />
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <p className="font-bold truncate">{outcome.play?.name || "Unknown Play"}</p>
+                                    <Badge 
+                                      className={`text-xs shrink-0 ${
+                                        outcome.outcome === 'success' ? "bg-green-600" : 
+                                        outcome.outcome === 'needs_work' ? "bg-yellow-600" : 
+                                        "bg-red-600"
+                                      }`}
+                                    >
+                                      {outcome.outcome === 'success' ? 'Success' : outcome.outcome === 'needs_work' ? 'Needs Work' : 'Failed'}
+                                    </Badge>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
+                                    <span className="flex items-center gap-1">
+                                      <Calendar className="h-3 w-3" />
+                                      {format(new Date(outcome.recordedAt), "MMM d, yyyy")}
+                                    </span>
+                                    {outcome.game && (
+                                      <span className="flex items-center gap-1">
+                                        <Trophy className="h-3 w-3" />
+                                        vs {outcome.game.opponentName || "Unknown"} ({outcome.game.teamScore}-{outcome.game.opponentScore})
+                                      </span>
+                                    )}
+                                  </div>
+                                  {outcome.notes && (
+                                    <p className="text-sm text-muted-foreground mt-1 italic">"{outcome.notes}"</p>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <Card className="bg-card/60 backdrop-blur-sm border-white/10">
+                        <CardContent className="p-8 text-center">
+                          <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No play outcomes recorded yet.</p>
+                          <p className="text-sm text-muted-foreground mt-1">Rate plays during games in StatTracker to see them here.</p>
                         </CardContent>
                       </Card>
                     )}
