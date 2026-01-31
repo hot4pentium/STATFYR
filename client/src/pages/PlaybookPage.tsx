@@ -195,9 +195,9 @@ export default function PlaybookPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Plays</SelectItem>
-                <SelectItem value="high">High Success (70%+)</SelectItem>
-                <SelectItem value="medium">Medium (40-69%)</SelectItem>
-                <SelectItem value="low">Needs Work (&lt;40%)</SelectItem>
+                <SelectItem value="high">Success</SelectItem>
+                <SelectItem value="medium">Needs Work</SelectItem>
+                <SelectItem value="low">Failed</SelectItem>
                 <SelectItem value="unrated">Not Rated</SelectItem>
               </SelectContent>
             </Select>
