@@ -94,6 +94,7 @@ export default function StatTrackerPage() {
   const [isInitializingStats, setIsInitializingStats] = useState(false);
   const [recordedPlayerId, setRecordedPlayerId] = useState<string | null>(null);
   const [showEndGameConfirm, setShowEndGameConfirm] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [inGameOpen, setInGameOpen] = useState(false);
   const [benchOpen, setBenchOpen] = useState(false);
   const [summaryTab, setSummaryTab] = useState<"game" | "season" | "progression">("game");
@@ -108,6 +109,14 @@ export default function StatTrackerPage() {
     queryFn: () => selectedTeam ? getTeamEvents(selectedTeam.id) : [],
     enabled: !!selectedTeam
   });
+
+  const { data: teamGames = [] } = useQuery({
+    queryKey: ["team-games", selectedTeam?.id],
+    queryFn: () => selectedTeam ? getTeamGames(selectedTeam.id) : [],
+    enabled: !!selectedTeam && !isDemo
+  });
+
+  const pausedOrActiveGame = teamGames.find((g: Game) => g.status === "paused" || g.status === "active");
 
   const { data: teamMembers = [] } = useQuery({
     queryKey: ["team-members", selectedTeam?.id],
@@ -680,11 +689,21 @@ export default function StatTrackerPage() {
           </div>
         )}
         <div className="flex items-center gap-3">
-          <Link href="/dashboard">
-            <Button variant="ghost" size="icon" data-testid="button-back">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            data-testid="button-back"
+            onClick={() => {
+              const isActiveGame = effectiveGame && (effectiveGame.status === "active" || effectiveGame.status === "paused");
+              if (isActiveGame && viewMode === "tracking") {
+                setShowLeaveConfirm(true);
+              } else {
+                navigate("/dashboard");
+              }
+            }}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <div className="flex-1">
             <h1 className="text-2xl md:text-3xl font-display font-bold uppercase tracking-tight">
               StatTracker {isDemo && <Badge variant="outline" className="ml-2 text-amber-500 border-amber-500/30">DEMO</Badge>}
@@ -716,6 +735,33 @@ export default function StatTrackerPage() {
 
         {viewMode === "setup" && (
           <div className="space-y-6">
+            {pausedOrActiveGame && !currentGameId && (
+              <Card className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border-amber-500/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2 text-amber-200">
+                    <Play className="h-5 w-5" />
+                    Resume Game
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-amber-300/80">
+                    You have a {pausedOrActiveGame.status} game from {pausedOrActiveGame.opponentName ? `vs ${pausedOrActiveGame.opponentName}` : "earlier"}.
+                    Score: {pausedOrActiveGame.teamScore} - {pausedOrActiveGame.opponentScore}
+                  </p>
+                  <Button
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-black"
+                    onClick={() => {
+                      setCurrentGameId(pausedOrActiveGame.id);
+                      setViewMode("tracking");
+                    }}
+                    data-testid="button-resume-game"
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    Continue Game
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
             <Card className="bg-card border-white/5">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -2201,6 +2247,68 @@ export default function StatTrackerPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Leave Game Confirmation Dialog */}
+      <Dialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Leave Game?</DialogTitle>
+          </DialogHeader>
+          <p className="text-muted-foreground">
+            You have an active game in progress. What would you like to do?
+          </p>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
+            <Button
+              variant="outline"
+              className="w-full"
+              disabled={updateGameMutation.isPending}
+              onClick={async () => {
+                if (!isDemo && currentGameId && user) {
+                  try {
+                    await updateGameMutation.mutateAsync({ status: "paused" });
+                    setShowLeaveConfirm(false);
+                    navigate("/dashboard");
+                  } catch {
+                    toast({ title: "Error", description: "Failed to pause game. Please try again.", variant: "destructive" });
+                  }
+                } else {
+                  setShowLeaveConfirm(false);
+                  navigate("/dashboard");
+                }
+              }}
+              data-testid="button-pause-leave"
+            >
+              {updateGameMutation.isPending ? (
+                <>Pausing...</>
+              ) : (
+                <>
+                  <Pause className="h-4 w-4 mr-2" />
+                  Pause & Leave
+                </>
+              )}
+            </Button>
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={() => {
+                setShowLeaveConfirm(false);
+                confirmEndGame();
+              }}
+              data-testid="button-end-leave"
+            >
+              End Game
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => setShowLeaveConfirm(false)}
+              data-testid="button-cancel-leave"
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
