@@ -2722,7 +2722,10 @@ export default function UnifiedDashboard() {
             }}
           />
           
-          <div className="relative z-10 px-4 pt-6 pb-8">
+          <div 
+            className="relative z-10 px-4 pb-8"
+            style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1.5rem)' }}
+          >
             {/* Top Bar */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
