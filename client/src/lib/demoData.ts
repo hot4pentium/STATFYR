@@ -4,22 +4,27 @@ export const DEMO_TEAM_ID = "demo-team-001";
 export const DEMO_GAME_ID = "demo-game-001";
 
 export const demoPlayers: User[] = [
-  { id: "demo-player-1", username: "marcus_j", name: "Marcus Johnson", firstName: "Marcus", lastName: "Johnson", email: "", role: "athlete", number: 23, position: "Point Guard" },
-  { id: "demo-player-2", username: "tyler_w", name: "Tyler Williams", firstName: "Tyler", lastName: "Williams", email: "", role: "athlete", number: 11, position: "Shooting Guard" },
-  { id: "demo-player-3", username: "jordan_s", name: "Jordan Smith", firstName: "Jordan", lastName: "Smith", email: "", role: "athlete", number: 34, position: "Small Forward" },
-  { id: "demo-player-4", username: "chris_d", name: "Chris Davis", firstName: "Chris", lastName: "Davis", email: "", role: "athlete", number: 55, position: "Power Forward" },
-  { id: "demo-player-5", username: "alex_t", name: "Alex Thompson", firstName: "Alex", lastName: "Thompson", email: "", role: "athlete", number: 42, position: "Center" },
+  { id: "demo-player-1", username: "jaylen_c", name: "Jaylen Carter", firstName: "Jaylen", lastName: "Carter", email: "", role: "athlete", number: 7, position: "Quarterback" },
+  { id: "demo-player-2", username: "marcus_w", name: "Marcus Williams", firstName: "Marcus", lastName: "Williams", email: "", role: "athlete", number: 22, position: "Running Back" },
+  { id: "demo-player-3", username: "deon_j", name: "DeShawn Jackson", firstName: "DeShawn", lastName: "Jackson", email: "", role: "athlete", number: 81, position: "Wide Receiver" },
+  { id: "demo-player-4", username: "travis_h", name: "Travis Henderson", firstName: "Travis", lastName: "Henderson", email: "", role: "athlete", number: 88, position: "Tight End" },
+  { id: "demo-player-5", username: "jordan_b", name: "Jordan Brooks", firstName: "Jordan", lastName: "Brooks", email: "", role: "athlete", number: 55, position: "Linebacker" },
+  { id: "demo-player-6", username: "malik_t", name: "Malik Thompson", firstName: "Malik", lastName: "Thompson", email: "", role: "athlete", number: 24, position: "Cornerback" },
+  { id: "demo-player-7", username: "chris_r", name: "Chris Rodriguez", firstName: "Chris", lastName: "Rodriguez", email: "", role: "athlete", number: 72, position: "Offensive Line" },
+  { id: "demo-player-8", username: "tyler_m", name: "Tyler Mitchell", firstName: "Tyler", lastName: "Mitchell", email: "", role: "athlete", number: 11, position: "Wide Receiver" },
 ];
 
 export const demoStatConfigs: StatConfig[] = [
-  { id: "demo-stat-1", teamId: DEMO_TEAM_ID, name: "Points", shortName: "PTS", value: 1, category: "Scoring", isActive: true, displayOrder: 1 },
-  { id: "demo-stat-2", teamId: DEMO_TEAM_ID, name: "3-Pointer", shortName: "3PT", value: 3, category: "Scoring", isActive: true, displayOrder: 2 },
-  { id: "demo-stat-3", teamId: DEMO_TEAM_ID, name: "Free Throw", shortName: "FT", value: 1, category: "Scoring", isActive: true, displayOrder: 3 },
-  { id: "demo-stat-4", teamId: DEMO_TEAM_ID, name: "Rebound", shortName: "REB", value: 0, category: "Rebounds", isActive: true, displayOrder: 4 },
-  { id: "demo-stat-5", teamId: DEMO_TEAM_ID, name: "Assist", shortName: "AST", value: 0, category: "Playmaking", isActive: true, displayOrder: 5 },
-  { id: "demo-stat-6", teamId: DEMO_TEAM_ID, name: "Steal", shortName: "STL", value: 0, category: "Defense", isActive: true, displayOrder: 6 },
-  { id: "demo-stat-7", teamId: DEMO_TEAM_ID, name: "Block", shortName: "BLK", value: 0, category: "Defense", isActive: true, displayOrder: 7 },
-  { id: "demo-stat-8", teamId: DEMO_TEAM_ID, name: "Turnover", shortName: "TO", value: 0, category: "Mistakes", isActive: true, displayOrder: 8 },
+  { id: "demo-stat-1", teamId: DEMO_TEAM_ID, name: "Touchdown", shortName: "TD", value: 6, category: "Scoring", isActive: true, displayOrder: 1 },
+  { id: "demo-stat-2", teamId: DEMO_TEAM_ID, name: "Field Goal", shortName: "FG", value: 3, category: "Scoring", isActive: true, displayOrder: 2 },
+  { id: "demo-stat-3", teamId: DEMO_TEAM_ID, name: "Extra Point", shortName: "XP", value: 1, category: "Scoring", isActive: true, displayOrder: 3 },
+  { id: "demo-stat-4", teamId: DEMO_TEAM_ID, name: "Passing Yards", shortName: "PYD", value: 0, category: "Passing", isActive: true, displayOrder: 4 },
+  { id: "demo-stat-5", teamId: DEMO_TEAM_ID, name: "Rushing Yards", shortName: "RYD", value: 0, category: "Rushing", isActive: true, displayOrder: 5 },
+  { id: "demo-stat-6", teamId: DEMO_TEAM_ID, name: "Tackle", shortName: "TKL", value: 0, category: "Defense", isActive: true, displayOrder: 6 },
+  { id: "demo-stat-7", teamId: DEMO_TEAM_ID, name: "Sack", shortName: "SCK", value: 0, category: "Defense", isActive: true, displayOrder: 7 },
+  { id: "demo-stat-8", teamId: DEMO_TEAM_ID, name: "Interception", shortName: "INT", value: 0, category: "Defense", isActive: true, displayOrder: 8 },
+  { id: "demo-stat-9", teamId: DEMO_TEAM_ID, name: "Reception", shortName: "REC", value: 0, category: "Receiving", isActive: true, displayOrder: 9 },
+  { id: "demo-stat-10", teamId: DEMO_TEAM_ID, name: "Fumble", shortName: "FUM", value: 0, category: "Turnover", isActive: true, displayOrder: 10 },
 ];
 
 export const demoGame: Game = {
@@ -30,9 +35,9 @@ export const demoGame: Game = {
   currentPeriod: 2,
   totalPeriods: 4,
   periodType: "quarter",
-  teamScore: 28,
-  opponentScore: 24,
-  opponentName: "Demo Opponents",
+  teamScore: 14,
+  opponentScore: 7,
+  opponentName: "Riverside Tigers",
   startedAt: new Date().toISOString(),
 };
 
@@ -47,12 +52,14 @@ export const demoGameRoster: GameRoster[] = demoPlayers.map((player, index) => (
 }));
 
 export const demoGameStats: GameStat[] = [
-  { id: "demo-gs-1", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-1", athleteId: "demo-player-1", period: 1, value: 8, pointsValue: 8, isDeleted: false, statConfig: demoStatConfigs[0], athlete: demoPlayers[0] },
-  { id: "demo-gs-2", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-2", athleteId: "demo-player-2", period: 1, value: 2, pointsValue: 6, isDeleted: false, statConfig: demoStatConfigs[1], athlete: demoPlayers[1] },
-  { id: "demo-gs-3", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-4", athleteId: "demo-player-5", period: 1, value: 5, pointsValue: 0, isDeleted: false, statConfig: demoStatConfigs[3], athlete: demoPlayers[4] },
-  { id: "demo-gs-4", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-5", athleteId: "demo-player-1", period: 1, value: 4, pointsValue: 0, isDeleted: false, statConfig: demoStatConfigs[4], athlete: demoPlayers[0] },
-  { id: "demo-gs-5", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-1", athleteId: "demo-player-3", period: 2, value: 6, pointsValue: 6, isDeleted: false, statConfig: demoStatConfigs[0], athlete: demoPlayers[2] },
-  { id: "demo-gs-6", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-6", athleteId: "demo-player-4", period: 2, value: 2, pointsValue: 0, isDeleted: false, statConfig: demoStatConfigs[5], athlete: demoPlayers[3] },
+  { id: "demo-gs-1", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-1", athleteId: "demo-player-2", period: 1, value: 1, pointsValue: 6, isDeleted: false, statConfig: demoStatConfigs[0], athlete: demoPlayers[1] },
+  { id: "demo-gs-2", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-3", athleteId: "demo-player-1", period: 1, value: 1, pointsValue: 1, isDeleted: false, statConfig: demoStatConfigs[2], athlete: demoPlayers[0] },
+  { id: "demo-gs-3", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-5", athleteId: "demo-player-2", period: 1, value: 45, pointsValue: 0, isDeleted: false, statConfig: demoStatConfigs[4], athlete: demoPlayers[1] },
+  { id: "demo-gs-4", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-4", athleteId: "demo-player-1", period: 1, value: 85, pointsValue: 0, isDeleted: false, statConfig: demoStatConfigs[3], athlete: demoPlayers[0] },
+  { id: "demo-gs-5", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-1", athleteId: "demo-player-3", period: 2, value: 1, pointsValue: 6, isDeleted: false, statConfig: demoStatConfigs[0], athlete: demoPlayers[2] },
+  { id: "demo-gs-6", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-3", athleteId: "demo-player-1", period: 2, value: 1, pointsValue: 1, isDeleted: false, statConfig: demoStatConfigs[2], athlete: demoPlayers[0] },
+  { id: "demo-gs-7", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-6", athleteId: "demo-player-5", period: 2, value: 4, pointsValue: 0, isDeleted: false, statConfig: demoStatConfigs[5], athlete: demoPlayers[4] },
+  { id: "demo-gs-8", gameId: DEMO_GAME_ID, statConfigId: "demo-stat-9", athleteId: "demo-player-3", period: 1, value: 3, pointsValue: 0, isDeleted: false, statConfig: demoStatConfigs[8], athlete: demoPlayers[2] },
 ];
 
 const demoCoach: User = {
