@@ -288,6 +288,8 @@ export default function StatTrackerPage() {
         setViewMode("summary");
       } else if (effectiveGame.status === "active" || effectiveGame.status === "paused") {
         setViewMode("tracking");
+      } else if (effectiveGame.status === "pending" || !effectiveGame.status) {
+        setViewMode("roster");
       }
     }
   }, [effectiveGame, gameRoster, isDemo]);
@@ -341,7 +343,7 @@ export default function StatTrackerPage() {
           toast({ title: "Game created", description: "Set up your game roster" });
         }
         
-        queryClient.invalidateQueries({ queryKey: ["game-roster", game.id] });
+        await queryClient.refetchQueries({ queryKey: ["game-roster", game.id] });
         setViewMode("roster");
       }
     },
