@@ -307,6 +307,8 @@ export default function UnifiedDashboard() {
     queryKey: ["/api/teams", currentTeam?.id, "play-stats"],
     queryFn: () => currentTeam ? getTeamPlayStats(currentTeam.id) : Promise.resolve({}),
     enabled: !!currentTeam && (selectedCard === "playmaker" || selectedCard === "playbook"),
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 
   const { data: aggregateStats } = useQuery({
