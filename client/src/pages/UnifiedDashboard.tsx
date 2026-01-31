@@ -41,8 +41,8 @@ import {
   Trophy, Shield, X, Copy, Check, Plus, Pencil, Trash2, Video, Loader2, BookOpen, 
   Activity, Radio, Settings, LogOut, Moon, Sun, AlertCircle, Star, Bell,
   ArrowLeft, MapPin, Clock, Utensils, Coffee, MoreVertical, UserCog, UserMinus, 
-  Hash, Award, Flame, TrendingUp, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User, Calendar,
-  List, Grid, Lock, Crown, PlayCircle, StopCircle, History, Info, Link2, UserPlus
+  Hash, Award, Flame, TrendingUp, TrendingDown, Home, Heart, Zap, ChevronDown, Smartphone, ExternalLink, User, Calendar,
+  List, Grid, Lock, Crown, PlayCircle, StopCircle, History, Info, Link2, UserPlus, Filter
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -118,6 +118,7 @@ export default function UnifiedDashboard() {
 
   const [rosterTab, setRosterTab] = useState<"all" | "athletes" | "coach" | "supporters">("all");
   const [playbookTab, setPlaybookTab] = useState<"Offense" | "Defense" | "Special">("Offense");
+  const [playRatingFilter, setPlayRatingFilter] = useState<"all" | "high" | "medium" | "low" | "unrated">("all");
   const [statsTab, setStatsTab] = useState<"season" | "athletes" | "games">("season");
   const [athleteViewMode, setAthleteViewMode] = useState<"chart" | "table" | "cards">("chart");
   const [expandedPlay, setExpandedPlay] = useState<Play | null>(null);
@@ -457,9 +458,24 @@ export default function UnifiedDashboard() {
   const coaches = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "coach"), [teamMembers]);
   const supporters = useMemo(() => teamMembers.filter((m: TeamMember) => m.role === "supporter"), [teamMembers]);
 
-  const offensePlays = useMemo(() => teamPlays.filter((p: Play) => p.category === "Offense"), [teamPlays]);
-  const defensePlays = useMemo(() => teamPlays.filter((p: Play) => p.category === "Defense"), [teamPlays]);
-  const specialPlays = useMemo(() => teamPlays.filter((p: Play) => p.category === "Special"), [teamPlays]);
+  const getPlayRatingCategory = (playId: string): "high" | "medium" | "low" | "unrated" => {
+    const stats = (playStats as TeamPlayStats)[playId];
+    if (!stats || stats.total === 0) return "unrated";
+    const rate = stats.successRate;
+    if (rate === null) return "unrated";
+    if (rate >= 70) return "high";
+    if (rate >= 40) return "medium";
+    return "low";
+  };
+
+  const filterPlaysByRating = (plays: Play[]) => {
+    if (playRatingFilter === "all") return plays;
+    return plays.filter(p => getPlayRatingCategory(p.id) === playRatingFilter);
+  };
+
+  const offensePlays = useMemo(() => filterPlaysByRating(teamPlays.filter((p: Play) => p.category === "Offense")), [teamPlays, playStats, playRatingFilter]);
+  const defensePlays = useMemo(() => filterPlaysByRating(teamPlays.filter((p: Play) => p.category === "Defense")), [teamPlays, playStats, playRatingFilter]);
+  const specialPlays = useMemo(() => filterPlaysByRating(teamPlays.filter((p: Play) => p.category === "Special")), [teamPlays, playStats, playRatingFilter]);
 
   const upcomingEvents = useMemo(() => {
     const now = new Date();
@@ -1128,13 +1144,14 @@ export default function UnifiedDashboard() {
                 <Badge variant="outline" className="text-xs">{play.category}</Badge>
                 {totalRuns > 0 && successRate !== null && (
                   <Badge 
-                    className={`text-xs ${
+                    className={`text-xs flex items-center gap-1 ${
                       successRate >= 70 ? "bg-green-600" : 
                       successRate >= 40 ? "bg-yellow-600" : 
                       "bg-red-600"
                     }`}
                   >
-                    {successRate}% ({totalRuns} runs)
+                    {successRate >= 70 ? <TrendingUp className="h-3 w-3" /> : successRate < 40 ? <TrendingDown className="h-3 w-3" /> : null}
+                    {successRate}%
                   </Badge>
                 )}
                 {play.status && totalRuns === 0 && (
@@ -1143,6 +1160,15 @@ export default function UnifiedDashboard() {
                   </Badge>
                 )}
               </div>
+              {totalRuns > 0 && stats && (
+                <div className="flex gap-2 mt-1 text-xs">
+                  <span className="text-green-400">{stats.success} success</span>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-amber-400">{stats.needsWork} work</span>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-red-400">{stats.unsuccessful} miss</span>
+                </div>
+              )}
               {play.description && (
                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{play.description}</p>
               )}
@@ -1620,6 +1646,26 @@ export default function UnifiedDashboard() {
                   />
                 </CardContent>
               </Card>
+            )}
+            {teamPlays.length > 0 && (
+              <div className="flex items-center gap-3 mb-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select value={playRatingFilter} onValueChange={(v) => setPlayRatingFilter(v as typeof playRatingFilter)}>
+                  <SelectTrigger className="w-[180px]" data-testid="select-play-rating-filter">
+                    <SelectValue placeholder="Filter by rating" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Plays</SelectItem>
+                    <SelectItem value="high">High Success (70%+)</SelectItem>
+                    <SelectItem value="medium">Medium (40-69%)</SelectItem>
+                    <SelectItem value="low">Needs Work (&lt;40%)</SelectItem>
+                    <SelectItem value="unrated">Not Rated</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">
+                  {offensePlays.length + defensePlays.length + specialPlays.length} of {teamPlays.length}
+                </span>
+              </div>
             )}
             <Tabs value={playbookTab} onValueChange={(v) => setPlaybookTab(v as typeof playbookTab)}>
               <TabsList className="bg-background/40">
