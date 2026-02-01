@@ -122,8 +122,14 @@ export function PlaybookCanvas({
   
   // Track if current keyframe has unsaved changes
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const hasUnsavedChangesRef = useRef(false);
   const [pendingNavigationIndex, setPendingNavigationIndex] = useState<number | null>(null);
   const [showSaveConfirmDialog, setShowSaveConfirmDialog] = useState(false);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    hasUnsavedChangesRef.current = hasUnsavedChanges;
+  }, [hasUnsavedChanges]);
 
   // Helper to scale elements based on canvas width ratio
   const scaleElements = useCallback((els: DrawnElement[], fromWidth: number, toWidth: number): DrawnElement[] => {
@@ -564,8 +570,8 @@ export function PlaybookCanvas({
     // If same keyframe, do nothing
     if (index === actualCurrentIndex) return;
     
-    // If there are unsaved changes, show confirmation dialog
-    if (hasUnsavedChanges && keyframes.length > 0) {
+    // If there are unsaved changes, show confirmation dialog (use ref to avoid stale closure)
+    if (hasUnsavedChangesRef.current && keyframes.length > 0) {
       setPendingNavigationIndex(index);
       setShowSaveConfirmDialog(true);
       return;
@@ -573,7 +579,7 @@ export function PlaybookCanvas({
     
     // No unsaved changes, navigate directly
     navigateToKeyframe(index);
-  }, [hasUnsavedChanges, keyframes.length, navigateToKeyframe]);
+  }, [keyframes.length, navigateToKeyframe]);
 
   // Start playback helper
   const startPlayback = useCallback(() => {
@@ -2190,8 +2196,8 @@ export function PlaybookCanvas({
                       size="icon"
                       onClick={() => {
                         if (!isPlaying) {
-                          // Check for unsaved changes before playing
-                          if (hasUnsavedChanges) {
+                          // Check for unsaved changes before playing (use ref to avoid stale closure)
+                          if (hasUnsavedChangesRef.current) {
                             setPendingNavigationIndex(-1); // -1 means "play" action
                             setShowSaveConfirmDialog(true);
                             return;
@@ -2279,8 +2285,8 @@ export function PlaybookCanvas({
                   size="icon"
                   onClick={() => {
                     if (!isPlaying) {
-                      // Check for unsaved changes before playing
-                      if (hasUnsavedChanges) {
+                      // Check for unsaved changes before playing (use ref to avoid stale closure)
+                      if (hasUnsavedChangesRef.current) {
                         setPendingNavigationIndex(-1); // -1 means "play" action
                         setShowSaveConfirmDialog(true);
                         return;
