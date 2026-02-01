@@ -1487,21 +1487,13 @@ export function PlaybookCanvas({
     }
   };
 
-  const getCanvasPoint = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>): Point => {
+  const getCanvasPoint = (e: React.PointerEvent<HTMLCanvasElement>): Point => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
 
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-
-    if ("touches" in e) {
-      const touch = e.touches[0];
-      return {
-        x: (touch.clientX - rect.left) * scaleX,
-        y: (touch.clientY - rect.top) * scaleY,
-      };
-    }
 
     return {
       x: (e.clientX - rect.left) * scaleX,
@@ -1573,8 +1565,10 @@ export function PlaybookCanvas({
     return Math.sqrt(dx * dx + dy * dy);
   };
 
-  const handleStart = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const handleStart = (e: React.PointerEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    // Capture pointer to ensure we receive all move/up events even if pointer leaves canvas
+    (e.target as HTMLCanvasElement).setPointerCapture(e.pointerId);
     const point = getCanvasPoint(e);
 
     const clickedElement = findElementAtPoint(point);
@@ -1588,6 +1582,7 @@ export function PlaybookCanvas({
         // The deleted element will reappear if you jump back to a keyframe that contains it
         setElements((prev) => prev.filter((el) => el.id !== clickedElement.id));
       }
+      (e.target as HTMLCanvasElement).releasePointerCapture(e.pointerId);
       return;
     }
 
@@ -1645,7 +1640,7 @@ export function PlaybookCanvas({
     setCurrentPath([point]);
   };
 
-  const handleMove = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const handleMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const point = getCanvasPoint(e);
 
@@ -1701,7 +1696,10 @@ export function PlaybookCanvas({
     drawElement(ctx, tempElement);
   };
 
-  const handleEnd = () => {
+  const handleEnd = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // Release pointer capture
+    (e.target as HTMLCanvasElement).releasePointerCapture(e.pointerId);
+    
     if (isDragging && draggedElementId) {
       // Don't auto-update keyframes on drag - user must explicitly record/update keyframes
       // This preserves keyframe snapshots and allows user to preview changes before committing
@@ -2225,13 +2223,10 @@ export function PlaybookCanvas({
           width={canvasSize.width || 400}
           height={canvasSize.height || 250}
           className={`touch-none max-w-full max-h-full ${readOnly || isPlaying ? "cursor-default" : "cursor-crosshair"}`}
-          onMouseDown={!readOnly && !isPlaying ? handleStart : undefined}
-          onMouseMove={!readOnly && !isPlaying ? handleMove : undefined}
-          onMouseUp={!readOnly && !isPlaying ? handleEnd : undefined}
-          onMouseLeave={!readOnly && !isPlaying ? handleEnd : undefined}
-          onTouchStart={!readOnly && !isPlaying ? handleStart : undefined}
-          onTouchMove={!readOnly && !isPlaying ? handleMove : undefined}
-          onTouchEnd={!readOnly && !isPlaying ? handleEnd : undefined}
+          onPointerDown={!readOnly && !isPlaying ? handleStart : undefined}
+          onPointerMove={!readOnly && !isPlaying ? handleMove : undefined}
+          onPointerUp={!readOnly && !isPlaying ? handleEnd : undefined}
+          onPointerLeave={!readOnly && !isPlaying ? handleEnd : undefined}
           data-testid="playbook-canvas"
         />
       </div>
