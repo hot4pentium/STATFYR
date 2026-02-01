@@ -119,6 +119,11 @@ export function PlaybookCanvas({
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [animationFinished, setAnimationFinished] = useState(false);
   const playbackKeyframesRef = useRef<Keyframe[]>([]);
+  
+  // Track if current keyframe has unsaved changes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [pendingNavigationIndex, setPendingNavigationIndex] = useState<number | null>(null);
+  const [showSaveConfirmDialog, setShowSaveConfirmDialog] = useState(false);
 
   // Helper to scale elements based on canvas width ratio
   const scaleElements = useCallback((els: DrawnElement[], fromWidth: number, toWidth: number): DrawnElement[] => {
@@ -507,58 +512,118 @@ export function PlaybookCanvas({
     }
   }, [keyframes.length, currentKeyframeIndex]);
 
-  // Jump to a specific keyframe and RESTORE elements to exactly match the keyframe
-  // Auto-saves current keyframe changes before jumping
-  // Uses ref for currentKeyframeIndex to avoid stale closure issues with rapid timeline clicks
-  const jumpToKeyframe = useCallback((index: number) => {
+  // Save current keyframe changes
+  const saveCurrentKeyframe = useCallback(() => {
+    const actualCurrentIndex = currentKeyframeIndexRef.current;
+    if (elements.length === 0 || actualCurrentIndex >= keyframes.length) return;
+    
+    const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
+      elementId: el.id,
+      points: el.points.map(p => ({ x: p.x, y: p.y }))
+    }));
+    
+    setKeyframes(prev => prev.map((kf, idx) => 
+      idx === actualCurrentIndex 
+        ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
+        : kf
+    ));
+    setHasUnsavedChanges(false);
+  }, [elements, keyframes.length]);
+
+  // Navigate to a keyframe (restores elements from that keyframe)
+  const navigateToKeyframe = useCallback((index: number) => {
     setIsPlaying(false);
     setAnimationProgress(0);
     setAnimationFinished(false);
     
-    // Get the ACTUAL current index from ref (not stale closure)
-    const actualCurrentIndex = currentKeyframeIndexRef.current;
-    
-    // Use functional update to get latest keyframes and auto-save + restore in one operation
-    setKeyframes(prevKeyframes => {
-      // Auto-save changes to current keyframe before jumping (if we have a valid keyframe and elements)
-      let updatedKeyframes = prevKeyframes;
-      if (!readOnly && elements.length > 0 && actualCurrentIndex < prevKeyframes.length && index !== actualCurrentIndex) {
-        const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
-          elementId: el.id,
-          points: el.points.map(p => ({ x: p.x, y: p.y }))
-        }));
-        
-        updatedKeyframes = prevKeyframes.map((kf, idx) => 
-          idx === actualCurrentIndex 
-            ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
-            : kf
-        );
-      }
-      
-      // RESTORE elements to exactly match the target keyframe snapshot
-      // Use the updated keyframes to get correct data
-      if (!readOnly && updatedKeyframes[index]) {
-        const kf = updatedKeyframes[index];
-        const restoredElements: DrawnElement[] = [];
-        for (const kfPos of kf.positions) {
-          const originalEl = allElementsRef.current.get(kfPos.elementId);
-          if (originalEl && kfPos.points.length > 0) {
-            restoredElements.push({
-              ...originalEl,
-              points: kfPos.points.map(p => ({ x: p.x, y: p.y }))
-            });
-          }
+    // Restore elements from target keyframe
+    if (keyframes[index]) {
+      const kf = keyframes[index];
+      const restoredElements: DrawnElement[] = [];
+      for (const kfPos of kf.positions) {
+        const originalEl = allElementsRef.current.get(kfPos.elementId);
+        if (originalEl && kfPos.points.length > 0) {
+          restoredElements.push({
+            ...originalEl,
+            points: kfPos.points.map(p => ({ x: p.x, y: p.y }))
+          });
         }
-        setElements(restoredElements);
       }
-      
-      return updatedKeyframes;
-    });
+      setElements(restoredElements);
+    }
     
-    // Update both state and ref
     currentKeyframeIndexRef.current = index;
     setCurrentKeyframeIndex(index);
-  }, [readOnly, elements]);
+    setHasUnsavedChanges(false);
+  }, [keyframes]);
+
+  // Jump to a specific keyframe - shows confirmation if there are unsaved changes
+  const jumpToKeyframe = useCallback((index: number) => {
+    const actualCurrentIndex = currentKeyframeIndexRef.current;
+    
+    // If same keyframe, do nothing
+    if (index === actualCurrentIndex) return;
+    
+    // If there are unsaved changes, show confirmation dialog
+    if (hasUnsavedChanges && keyframes.length > 0) {
+      setPendingNavigationIndex(index);
+      setShowSaveConfirmDialog(true);
+      return;
+    }
+    
+    // No unsaved changes, navigate directly
+    navigateToKeyframe(index);
+  }, [hasUnsavedChanges, keyframes.length, navigateToKeyframe]);
+
+  // Start playback helper
+  const startPlayback = useCallback(() => {
+    playbackKeyframesRef.current = [...keyframes];
+    currentKeyframeIndexRef.current = 0;
+    setCurrentKeyframeIndex(0);
+    setAnimationProgress(0);
+    setAnimationFinished(false);
+    setHasUnsavedChanges(false);
+    setIsPlaying(true);
+  }, [keyframes]);
+
+  // Handle save confirmation dialog actions
+  const handleSaveAndNavigate = useCallback(() => {
+    saveCurrentKeyframe();
+    if (pendingNavigationIndex !== null) {
+      // -1 means "play" action, otherwise navigate to keyframe
+      if (pendingNavigationIndex === -1) {
+        setTimeout(() => {
+          startPlayback();
+          setPendingNavigationIndex(null);
+        }, 50);
+      } else {
+        setTimeout(() => {
+          navigateToKeyframe(pendingNavigationIndex);
+          setPendingNavigationIndex(null);
+        }, 50);
+      }
+    }
+    setShowSaveConfirmDialog(false);
+  }, [saveCurrentKeyframe, pendingNavigationIndex, navigateToKeyframe, startPlayback]);
+
+  const handleDiscardAndNavigate = useCallback(() => {
+    setHasUnsavedChanges(false);
+    if (pendingNavigationIndex !== null) {
+      // -1 means "play" action
+      if (pendingNavigationIndex === -1) {
+        startPlayback();
+      } else {
+        navigateToKeyframe(pendingNavigationIndex);
+      }
+      setPendingNavigationIndex(null);
+    }
+    setShowSaveConfirmDialog(false);
+  }, [pendingNavigationIndex, navigateToKeyframe, startPlayback]);
+
+  const handleCancelNavigation = useCallback(() => {
+    setPendingNavigationIndex(null);
+    setShowSaveConfirmDialog(false);
+  }, []);
 
   // Update the current keyframe with current element positions (for editing existing keyframes)
   const updateCurrentKeyframe = useCallback(() => {
@@ -1711,6 +1776,7 @@ export function PlaybookCanvas({
       };
       allElementsRef.current.set(newElement.id, newElement);
       setElements((prev) => [...prev, newElement]);
+      if (keyframes.length > 0) setHasUnsavedChanges(true);
       return;
     }
 
@@ -1732,6 +1798,7 @@ export function PlaybookCanvas({
       };
       allElementsRef.current.set(newElement.id, newElement);
       setElements((prev) => [...prev, newElement]);
+      if (keyframes.length > 0) setHasUnsavedChanges(true);
       return;
     }
 
@@ -1803,8 +1870,8 @@ export function PlaybookCanvas({
     (e.target as HTMLCanvasElement).releasePointerCapture(e.pointerId);
     
     if (isDragging && draggedElementId) {
-      // Don't auto-update keyframes on drag - user must explicitly record/update keyframes
-      // This preserves keyframe snapshots and allows user to preview changes before committing
+      // Mark keyframe as having unsaved changes after drag
+      if (keyframes.length > 0) setHasUnsavedChanges(true);
       setIsDragging(false);
       setDraggedElementId(null);
       setDragOffset({ x: 0, y: 0 });
@@ -1836,6 +1903,7 @@ export function PlaybookCanvas({
       };
       allElementsRef.current.set(newElement.id, newElement);
       setElements((prev) => [...prev, newElement]);
+      if (keyframes.length > 0) setHasUnsavedChanges(true);
     }
 
     setIsDrawing(false);
@@ -1846,6 +1914,7 @@ export function PlaybookCanvas({
 
   const handleUndo = () => {
     setElements((prev) => prev.slice(0, -1));
+    if (keyframes.length > 0) setHasUnsavedChanges(true);
   };
 
   const handleClear = () => {
@@ -2047,14 +2116,16 @@ export function PlaybookCanvas({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={updateCurrentKeyframe}
-                      disabled={elements.length === 0 || isPlaying}
+                      onClick={() => {
+                        saveCurrentKeyframe();
+                      }}
+                      disabled={elements.length === 0 || isPlaying || !hasUnsavedChanges}
                       className="gap-2 shrink-0 text-blue-500 border-blue-500/50 hover:bg-blue-500/20"
-                      title={`Update keyframe ${currentKeyframeIndex + 1} with current positions`}
+                      title={`Save changes to keyframe ${currentKeyframeIndex + 1}`}
                       data-testid="button-update-keyframe"
                     >
                       <RefreshCw className="h-4 w-4" />
-                      <span className="hidden sm:inline">Update</span>
+                      <span className="hidden sm:inline">{hasUnsavedChanges ? "Save" : "Saved"}</span>
                     </Button>
 
                     <AlertDialog>
@@ -2119,24 +2190,14 @@ export function PlaybookCanvas({
                       size="icon"
                       onClick={() => {
                         if (!isPlaying) {
-                          // Save current keyframe changes before starting playback
-                          // Use ref to get ACTUAL current index (not stale closure)
-                          const actualCurrentIndex = currentKeyframeIndexRef.current;
-                          let updatedKeyframes = keyframes;
-                          if (!readOnly && elements.length > 0 && actualCurrentIndex < keyframes.length) {
-                            const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
-                              elementId: el.id,
-                              points: el.points.map(p => ({ x: p.x, y: p.y }))
-                            }));
-                            updatedKeyframes = keyframes.map((kf, idx) => 
-                              idx === actualCurrentIndex 
-                                ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
-                                : kf
-                            );
-                            setKeyframes(updatedKeyframes);
+                          // Check for unsaved changes before playing
+                          if (hasUnsavedChanges) {
+                            setPendingNavigationIndex(-1); // -1 means "play" action
+                            setShowSaveConfirmDialog(true);
+                            return;
                           }
-                          // Immediately update the playback ref with saved keyframes
-                          playbackKeyframesRef.current = [...updatedKeyframes];
+                          // Start playback from beginning
+                          playbackKeyframesRef.current = [...keyframes];
                           currentKeyframeIndexRef.current = 0;
                           setCurrentKeyframeIndex(0);
                           setAnimationProgress(0);
@@ -2218,24 +2279,14 @@ export function PlaybookCanvas({
                   size="icon"
                   onClick={() => {
                     if (!isPlaying) {
-                      // Save current keyframe changes before starting playback
-                      // Use ref to get ACTUAL current index (not stale closure)
-                      const actualCurrentIndex = currentKeyframeIndexRef.current;
-                      let updatedKeyframes = keyframes;
-                      if (!readOnly && elements.length > 0 && actualCurrentIndex < keyframes.length) {
-                        const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
-                          elementId: el.id,
-                          points: el.points.map(p => ({ x: p.x, y: p.y }))
-                        }));
-                        updatedKeyframes = keyframes.map((kf, idx) => 
-                          idx === actualCurrentIndex 
-                            ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
-                            : kf
-                        );
-                        setKeyframes(updatedKeyframes);
+                      // Check for unsaved changes before playing
+                      if (hasUnsavedChanges) {
+                        setPendingNavigationIndex(-1); // -1 means "play" action
+                        setShowSaveConfirmDialog(true);
+                        return;
                       }
-                      // Immediately update the playback ref with saved keyframes
-                      playbackKeyframesRef.current = [...updatedKeyframes];
+                      // Start playback from beginning
+                      playbackKeyframesRef.current = [...keyframes];
                       currentKeyframeIndexRef.current = 0;
                       setCurrentKeyframeIndex(0);
                       setAnimationProgress(0);
@@ -2460,6 +2511,27 @@ export function PlaybookCanvas({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Unsaved Changes Confirmation Dialog */}
+      <AlertDialog open={showSaveConfirmDialog} onOpenChange={setShowSaveConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes to keyframe {currentKeyframeIndex + 1}. What would you like to do?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
+            <AlertDialogCancel onClick={handleCancelNavigation}>Cancel</AlertDialogCancel>
+            <Button variant="destructive" onClick={handleDiscardAndNavigate}>
+              Discard Changes
+            </Button>
+            <Button onClick={handleSaveAndNavigate}>
+              Save Changes
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
