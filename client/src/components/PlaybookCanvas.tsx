@@ -115,6 +115,7 @@ export function PlaybookCanvas({
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [animationProgress, setAnimationProgress] = useState(0);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [animationFinished, setAnimationFinished] = useState(false);
   const playbackKeyframesRef = useRef<Keyframe[]>([]);
 
   // Helper to scale elements based on canvas width ratio
@@ -270,6 +271,7 @@ export function PlaybookCanvas({
           setCurrentKeyframeIndex(frozenKeyframes.length - 1);
           setAnimationProgress(1);
           setIsPlaying(false);
+          setAnimationFinished(true);
           return;
         }
       } else {
@@ -336,9 +338,12 @@ export function PlaybookCanvas({
   // During editing, elements array is the source of truth
   // In read-only mode, always show keyframe positions
   const getInterpolatedElements = useCallback((): DrawnElement[] => {
-    // In read-only mode with keyframes but NOT playing - show current keyframe position
-    // This keeps the display on the last keyframe after animation ends
-    if (readOnly && keyframes.length > 0 && !isPlaying) {
+    // Show keyframe positions when:
+    // 1. In read-only mode with keyframes
+    // 2. Animation has finished (stay on last keyframe until user edits)
+    const shouldShowKeyframePositions = (readOnly || animationFinished) && keyframes.length > 0 && !isPlaying;
+    
+    if (shouldShowKeyframePositions) {
       const currentKf = keyframes[currentKeyframeIndex];
       if (currentKf) {
         // Build elements from current keyframe
@@ -448,7 +453,7 @@ export function PlaybookCanvas({
     });
 
     return result;
-  }, [elements, currentKeyframeIndex, animationProgress, isPlaying, readOnly, keyframes]);
+  }, [elements, currentKeyframeIndex, animationProgress, isPlaying, readOnly, keyframes, animationFinished]);
 
   // Delete a specific keyframe
   const deleteKeyframe = useCallback((keyframeId: string) => {
@@ -1591,6 +1596,7 @@ export function PlaybookCanvas({
     if (clickedElement) {
       setIsDragging(true);
       setDraggedElementId(clickedElement.id);
+      setAnimationFinished(false); // Exit keyframe view mode when user starts editing
       
       // Use elements directly - they are the source of truth
       if (clickedElement.tool === "arrow") {
@@ -1614,6 +1620,7 @@ export function PlaybookCanvas({
     if (selectedTool === "athlete") {
       if (timeSinceLastPlacement < DEBOUNCE_MS) return;
       lastPlacementTimeRef.current = now;
+      setAnimationFinished(false); // Exit keyframe view mode when adding elements
       
       const newElement: DrawnElement = {
         id: crypto.randomUUID(),
@@ -1631,6 +1638,7 @@ export function PlaybookCanvas({
     if (isShapeTool(selectedTool)) {
       if (timeSinceLastPlacement < DEBOUNCE_MS) return;
       lastPlacementTimeRef.current = now;
+      setAnimationFinished(false); // Exit keyframe view mode when adding elements
       
       const newElement: DrawnElement = {
         id: crypto.randomUUID(),
@@ -1648,6 +1656,7 @@ export function PlaybookCanvas({
     }
 
     setIsDrawing(true);
+    setAnimationFinished(false); // Exit keyframe view mode when drawing
     setStartPoint(point);
     setLastPoint(point);
     setCurrentPath([point]);
@@ -2032,6 +2041,7 @@ export function PlaybookCanvas({
                         if (!isPlaying) {
                           setCurrentKeyframeIndex(0);
                           setAnimationProgress(0);
+                          setAnimationFinished(false);
                         }
                         setIsPlaying(!isPlaying);
                       }}
@@ -2111,6 +2121,7 @@ export function PlaybookCanvas({
                     if (!isPlaying) {
                       setCurrentKeyframeIndex(0);
                       setAnimationProgress(0);
+                      setAnimationFinished(false);
                     }
                     setIsPlaying(!isPlaying);
                   }}
