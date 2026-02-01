@@ -464,10 +464,26 @@ export function PlaybookCanvas({
   }, [keyframes.length, currentKeyframeIndex]);
 
   // Jump to a specific keyframe and RESTORE elements to exactly match the keyframe
+  // Auto-saves current keyframe changes before jumping
   const jumpToKeyframe = useCallback((index: number) => {
     setIsPlaying(false);
-    setCurrentKeyframeIndex(index);
     setAnimationProgress(0);
+    
+    // Auto-save changes to current keyframe before jumping (if we have a valid keyframe and elements)
+    if (!readOnly && elements.length > 0 && currentKeyframeIndex < keyframes.length && index !== currentKeyframeIndex) {
+      const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
+        elementId: el.id,
+        points: el.points.map(p => ({ x: p.x, y: p.y }))
+      }));
+      
+      setKeyframes(prev => prev.map((kf, idx) => 
+        idx === currentKeyframeIndex 
+          ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
+          : kf
+      ));
+    }
+    
+    setCurrentKeyframeIndex(index);
     
     // RESTORE elements to exactly match the keyframe snapshot
     // This means only showing elements that exist in this keyframe, at their recorded positions
@@ -488,7 +504,7 @@ export function PlaybookCanvas({
       }
       setElements(restoredElements);
     }
-  }, [readOnly, keyframes]);
+  }, [readOnly, keyframes, elements, currentKeyframeIndex]);
 
   // Update the current keyframe with current element positions (for editing existing keyframes)
   const updateCurrentKeyframe = useCallback(() => {
