@@ -269,10 +269,27 @@ export function PlaybookCanvas({
           animationRef.current = requestAnimationFrame(animate);
         } else {
           // Stay on last keyframe when finished
-          setCurrentKeyframeIndex(frozenKeyframes.length - 1);
+          const lastIndex = frozenKeyframes.length - 1;
+          setCurrentKeyframeIndex(lastIndex);
           setAnimationProgress(1);
           setIsPlaying(false);
           setAnimationFinished(true);
+          
+          // Also restore elements to match the last keyframe positions
+          const lastKf = frozenKeyframes[lastIndex];
+          if (lastKf) {
+            const restoredElements: DrawnElement[] = [];
+            for (const kfPos of lastKf.positions) {
+              const originalEl = allElementsRef.current.get(kfPos.elementId);
+              if (originalEl && kfPos.points.length > 0) {
+                restoredElements.push({
+                  ...originalEl,
+                  points: kfPos.points.map(p => ({ x: p.x, y: p.y }))
+                });
+              }
+            }
+            setElements(restoredElements);
+          }
           return;
         }
       } else {
@@ -469,43 +486,47 @@ export function PlaybookCanvas({
   const jumpToKeyframe = useCallback((index: number) => {
     setIsPlaying(false);
     setAnimationProgress(0);
+    setAnimationFinished(false);
     
-    // Auto-save changes to current keyframe before jumping (if we have a valid keyframe and elements)
-    if (!readOnly && elements.length > 0 && currentKeyframeIndex < keyframes.length && index !== currentKeyframeIndex) {
-      const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
-        elementId: el.id,
-        points: el.points.map(p => ({ x: p.x, y: p.y }))
-      }));
+    // Use functional update to get latest keyframes and auto-save + restore in one operation
+    setKeyframes(prevKeyframes => {
+      // Auto-save changes to current keyframe before jumping (if we have a valid keyframe and elements)
+      let updatedKeyframes = prevKeyframes;
+      if (!readOnly && elements.length > 0 && currentKeyframeIndex < prevKeyframes.length && index !== currentKeyframeIndex) {
+        const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
+          elementId: el.id,
+          points: el.points.map(p => ({ x: p.x, y: p.y }))
+        }));
+        
+        updatedKeyframes = prevKeyframes.map((kf, idx) => 
+          idx === currentKeyframeIndex 
+            ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
+            : kf
+        );
+      }
       
-      setKeyframes(prev => prev.map((kf, idx) => 
-        idx === currentKeyframeIndex 
-          ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
-          : kf
-      ));
-    }
+      // RESTORE elements to exactly match the target keyframe snapshot
+      // Use the updated keyframes to get correct data
+      if (!readOnly && updatedKeyframes[index]) {
+        const kf = updatedKeyframes[index];
+        const restoredElements: DrawnElement[] = [];
+        for (const kfPos of kf.positions) {
+          const originalEl = allElementsRef.current.get(kfPos.elementId);
+          if (originalEl && kfPos.points.length > 0) {
+            restoredElements.push({
+              ...originalEl,
+              points: kfPos.points.map(p => ({ x: p.x, y: p.y }))
+            });
+          }
+        }
+        setElements(restoredElements);
+      }
+      
+      return updatedKeyframes;
+    });
     
     setCurrentKeyframeIndex(index);
-    
-    // RESTORE elements to exactly match the keyframe snapshot
-    // This means only showing elements that exist in this keyframe, at their recorded positions
-    if (!readOnly && keyframes[index]) {
-      const kf = keyframes[index];
-      // Rebuild elements array from keyframe data
-      // Use master list to get element metadata (tool, color, etc)
-      const restoredElements: DrawnElement[] = [];
-      for (const kfPos of kf.positions) {
-        // Find the original element from master list to get its metadata
-        const originalEl = allElementsRef.current.get(kfPos.elementId);
-        if (originalEl && kfPos.points.length > 0) {
-          restoredElements.push({
-            ...originalEl,
-            points: kfPos.points.map(p => ({ x: p.x, y: p.y })) // Deep copy
-          });
-        }
-      }
-      setElements(restoredElements);
-    }
-  }, [readOnly, keyframes, elements, currentKeyframeIndex]);
+  }, [readOnly, elements, currentKeyframeIndex]);
 
   // Update the current keyframe with current element positions (for editing existing keyframes)
   const updateCurrentKeyframe = useCallback(() => {
