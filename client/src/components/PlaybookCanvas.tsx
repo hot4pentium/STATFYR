@@ -96,6 +96,8 @@ export function PlaybookCanvas({
   const [elements, setElements] = useState<DrawnElement[]>(initialElements);
   // Master list of all elements ever created (for restoring from keyframes)
   const allElementsRef = useRef<Map<string, DrawnElement>>(new Map());
+  // Track last placement time to prevent duplicate element placement from rapid touch events
+  const lastPlacementTimeRef = useRef<number>(0);
   // Undo stack - stores previous states
   const [undoStack, setUndoStack] = useState<DrawnElement[][]>([]);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -1604,7 +1606,15 @@ export function PlaybookCanvas({
       return;
     }
 
+    // Debounce element placement to prevent duplicate elements from rapid touch events on mobile
+    const now = Date.now();
+    const timeSinceLastPlacement = now - lastPlacementTimeRef.current;
+    const DEBOUNCE_MS = 150; // Prevent placement within 150ms of last placement
+
     if (selectedTool === "athlete") {
+      if (timeSinceLastPlacement < DEBOUNCE_MS) return;
+      lastPlacementTimeRef.current = now;
+      
       const newElement: DrawnElement = {
         id: crypto.randomUUID(),
         tool: selectedTool,
@@ -1619,6 +1629,9 @@ export function PlaybookCanvas({
     }
 
     if (isShapeTool(selectedTool)) {
+      if (timeSinceLastPlacement < DEBOUNCE_MS) return;
+      lastPlacementTimeRef.current = now;
+      
       const newElement: DrawnElement = {
         id: crypto.randomUUID(),
         tool: selectedTool,
