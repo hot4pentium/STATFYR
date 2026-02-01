@@ -1791,7 +1791,7 @@ export function PlaybookCanvas({
       <div className="flex flex-col gap-3 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10" data-testid="playbook-toolbar">
         {/* Drawing Tools - only show when not in read-only mode */}
         {!readOnly && (
-          <div className="flex gap-2 items-center shrink-0 overflow-x-auto pb-2">
+          <div className="flex gap-2 items-center shrink-0 overflow-x-auto pb-2 toolbar-scrollbar">
                 {tools.map((tool) => (
                   <Button
                     key={tool.id}
@@ -1914,7 +1914,7 @@ export function PlaybookCanvas({
 
         {/* Animation Controls Row - separate scrollable bar */}
         {!readOnly && (
-          <div className="flex gap-2 items-center overflow-x-auto pt-2 pb-2 border-t border-white/10" data-testid="animation-toolbar">
+          <div className="flex gap-2 items-center overflow-x-auto pt-2 pb-2 border-t border-white/10 toolbar-scrollbar" data-testid="animation-toolbar">
                 {/* Animation label */}
                 <span className="text-sm font-medium text-amber-500 flex items-center gap-2 shrink-0">
                   <Film className="h-4 w-4" />
