@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/lib/userContext";
-import { getAdvancedTeamStats, getTeamAggregateStats, type AdvancedTeamStats, type TeamAggregateStats } from "@/lib/api";
+import { getAdvancedTeamStats, getTeamAggregateStats, getTeamMembers, type AdvancedTeamStats, type TeamAggregateStats } from "@/lib/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 
@@ -30,6 +31,12 @@ export default function StatsPage() {
     enabled: !!selectedTeam,
     refetchOnMount: 'always',
     staleTime: 0,
+  });
+
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['teamMembers', selectedTeam?.id],
+    queryFn: () => selectedTeam ? getTeamMembers(selectedTeam.id) : [],
+    enabled: !!selectedTeam,
   });
 
   const isLoading = loadingAggregate && !aggregateStats;
@@ -199,15 +206,25 @@ export default function StatsPage() {
               </TabsContent>
 
               <TabsContent value="athletes" className="space-y-4">
-                {athletePerformance.length === 0 ? (
-                  <Card className="bg-card border-white/5">
-                    <CardContent className="p-8 text-center">
-                      <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">No athlete stats recorded yet.</p>
-                      <p className="text-sm text-muted-foreground mt-2">Record individual stats in StatTracker to see athlete performance here.</p>
-                    </CardContent>
-                  </Card>
-                ) : (
+                {(() => {
+                  const athletesOnTeam = teamMembers.filter(m => m.role === 'athlete');
+                  const athletesWithStats = athletePerformance;
+                  const athleteIdsWithStats = new Set(athletesWithStats.map(a => a.athleteId));
+                  const athletesWithoutStats = athletesOnTeam.filter(m => !athleteIdsWithStats.has(m.userId));
+                  
+                  if (athletesOnTeam.length === 0) {
+                    return (
+                      <Card className="bg-card border-white/5">
+                        <CardContent className="p-8 text-center">
+                          <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No athletes on this team yet.</p>
+                          <p className="text-sm text-muted-foreground mt-2">Add athletes to your team to track their stats.</p>
+                        </CardContent>
+                      </Card>
+                    );
+                  }
+                  
+                  return (
                   <div className="space-y-4">
                     {athletePerformance.map((athlete, idx) => {
                       const totalStats = Object.values(athlete.stats).reduce((a, b) => a + b, 0);
@@ -318,8 +335,49 @@ export default function StatsPage() {
                         </Card>
                       );
                     })}
+                    
+                    {athletesWithoutStats.length > 0 && (
+                      <div className="space-y-3 mt-6">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          Athletes - 0 Games Played
+                        </h3>
+                        {athletesWithoutStats.map((member) => (
+                          <Card 
+                            key={member.userId} 
+                            className="bg-card/50 border-white/5"
+                            data-testid={`athlete-card-${member.userId}`}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-12 w-12">
+                                  <AvatarImage src={member.user?.avatar || undefined} />
+                                  <AvatarFallback className="bg-primary/20 text-primary">
+                                    {member.user?.firstName?.[0] || member.user?.username?.[0] || '?'}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                  <p className="font-semibold">
+                                    {member.user?.firstName && member.user?.lastName 
+                                      ? `${member.user.firstName} ${member.user.lastName}`
+                                      : member.user?.username || 'Unknown'}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    0 games played
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-2xl font-bold text-muted-foreground/50">—</p>
+                                  <p className="text-xs text-muted-foreground">no stats</p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
+                  );
+                })()}
               </TabsContent>
 
               <TabsContent value="games" className="space-y-4">
