@@ -96,8 +96,9 @@ export function PlaybookCanvas({
   const [elements, setElements] = useState<DrawnElement[]>(initialElements);
   // Master list of all elements ever created (for restoring from keyframes)
   const allElementsRef = useRef<Map<string, DrawnElement>>(new Map());
-  // Track last placement time to prevent duplicate element placement from rapid touch events
+  // Track last placement to prevent duplicate element placement from rapid touch events
   const lastPlacementTimeRef = useRef<number>(0);
+  const lastPlacementPosRef = useRef<{ x: number; y: number } | null>(null);
   // Undo stack - stores previous states
   const [undoStack, setUndoStack] = useState<DrawnElement[][]>([]);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -1631,11 +1632,18 @@ export function PlaybookCanvas({
     // Debounce element placement to prevent duplicate elements from rapid touch events on mobile
     const now = Date.now();
     const timeSinceLastPlacement = now - lastPlacementTimeRef.current;
-    const DEBOUNCE_MS = 150; // Prevent placement within 150ms of last placement
+    const DEBOUNCE_MS = 300; // Prevent placement within 300ms of last placement
+    
+    // Also check if trying to place at the same position (within 5px tolerance)
+    const lastPos = lastPlacementPosRef.current;
+    const isSamePosition = lastPos && 
+      Math.abs(point.x - lastPos.x) < 5 && 
+      Math.abs(point.y - lastPos.y) < 5;
 
     if (selectedTool === "athlete") {
-      if (timeSinceLastPlacement < DEBOUNCE_MS) return;
+      if (timeSinceLastPlacement < DEBOUNCE_MS || isSamePosition) return;
       lastPlacementTimeRef.current = now;
+      lastPlacementPosRef.current = { x: point.x, y: point.y };
       setAnimationFinished(false); // Exit keyframe view mode when adding elements
       
       const newElement: DrawnElement = {
@@ -1652,8 +1660,9 @@ export function PlaybookCanvas({
     }
 
     if (isShapeTool(selectedTool)) {
-      if (timeSinceLastPlacement < DEBOUNCE_MS) return;
+      if (timeSinceLastPlacement < DEBOUNCE_MS || isSamePosition) return;
       lastPlacementTimeRef.current = now;
+      lastPlacementPosRef.current = { x: point.x, y: point.y };
       setAnimationFinished(false); // Exit keyframe view mode when adding elements
       
       const newElement: DrawnElement = {
