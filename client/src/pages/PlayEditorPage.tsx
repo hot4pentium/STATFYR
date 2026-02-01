@@ -340,6 +340,7 @@ export default function PlayEditorPage() {
               <PlaybookCanvas 
                 key={play?.id || 'new'}
                 sport={play?.sport || "Football"}
+                readOnly={isDemo}
                 onSave={isDemo ? undefined : (isEditMode ? handleUpdatePlay : handleSave)}
                 isSaving={updatePlayMutation.isPending}
                 onHasUnsavedChanges={handleHasUnsavedChanges}
