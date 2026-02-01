@@ -1788,10 +1788,10 @@ export function PlaybookCanvas({
 
   return (
     <div className="flex flex-col gap-4" data-testid="playbook-canvas-container">
-      <div className="flex flex-col gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10" data-testid="playbook-toolbar">
+      <div className="flex flex-col gap-3 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10" data-testid="playbook-toolbar">
         {/* Drawing Tools - only show when not in read-only mode */}
         {!readOnly && (
-          <div className="flex gap-2 items-center shrink-0 overflow-x-auto pb-1">
+          <div className="flex gap-2 items-center shrink-0 overflow-x-auto pb-2">
                 {tools.map((tool) => (
                   <Button
                     key={tool.id}
