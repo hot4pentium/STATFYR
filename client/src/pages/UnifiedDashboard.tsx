@@ -1887,25 +1887,29 @@ export default function UnifiedDashboard() {
                           </Button>
                         </CardContent>
                       </Card>
-                    ) : advancedStats?.athletePerformance && advancedStats.athletePerformance.length > 0 ? (
+                    ) : athletes.length > 0 ? (
                       <>
                         {(() => {
+                          const athletePerformance = advancedStats?.athletePerformance || [];
+                          const athleteIdsWithStats = new Set(athletePerformance.map((a: any) => a.athleteId));
+                          const athletesWithoutStats = athletes.filter((m: TeamMember) => !athleteIdsWithStats.has(m.userId));
+                          
                           const allStats = new Set<string>();
-                          advancedStats.athletePerformance.forEach((a: any) => {
+                          athletePerformance.forEach((a: any) => {
                             Object.keys(a.stats || {}).forEach(k => allStats.add(k));
                           });
                           const statList = Array.from(allStats);
                           
                           const comparisonData = statList.map(stat => {
                             const entry: any = { stat };
-                            advancedStats.athletePerformance.forEach((a: any) => {
+                            athletePerformance.forEach((a: any) => {
                               const perGame = a.gamesPlayed > 0 ? Math.round(((a.stats?.[stat] || 0) / a.gamesPlayed) * 10) / 10 : 0;
                               entry[a.athleteName || a.athleteId] = perGame;
                             });
                             return entry;
                           });
                           
-                          const athleteData = advancedStats.athletePerformance.map((a: any) => {
+                          const athleteData = athletePerformance.map((a: any) => {
                             const entry: any = { name: a.athleteName || a.athleteId };
                             statList.forEach(stat => {
                               entry[stat] = a.gamesPlayed > 0 ? Math.round(((a.stats?.[stat] || 0) / a.gamesPlayed) * 10) / 10 : 0;
@@ -1913,7 +1917,7 @@ export default function UnifiedDashboard() {
                             return entry;
                           });
                           
-                          const athleteNames = advancedStats.athletePerformance.map((a: any) => a.athleteName || a.athleteId);
+                          const athleteNames = athletePerformance.map((a: any) => a.athleteName || a.athleteId);
                           const colors = ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
                           
                           return (
@@ -1996,7 +2000,7 @@ export default function UnifiedDashboard() {
                                           </tr>
                                         </thead>
                                         <tbody>
-                                          {advancedStats.athletePerformance.map((athlete: any, idx: number) => (
+                                          {athletePerformance.map((athlete: any, idx: number) => (
                                             <tr key={athlete.athleteId} className={idx % 2 === 0 ? 'bg-white/5' : ''}>
                                               <td className="p-3">
                                                 <div className="flex items-center gap-2">
@@ -2036,7 +2040,7 @@ export default function UnifiedDashboard() {
 
                               {athleteViewMode === 'cards' && (
                                 <div className="grid gap-3 md:grid-cols-2">
-                                  {advancedStats.athletePerformance.map((athlete: any, idx: number) => (
+                                  {athletePerformance.map((athlete: any, idx: number) => (
                                     <Card key={athlete.athleteId} className="bg-card/60 backdrop-blur-sm border-white/10">
                                       <CardContent className="p-4">
                                         <div className="flex items-center gap-3 mb-3">
@@ -2072,6 +2076,39 @@ export default function UnifiedDashboard() {
                                   ))}
                                 </div>
                               )}
+
+                              {athletesWithoutStats.length > 0 && (
+                                <div className="space-y-3 mt-6">
+                                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                                    Athletes - 0 Games Played
+                                  </h3>
+                                  <div className="grid gap-3 md:grid-cols-2">
+                                    {athletesWithoutStats.map((member: TeamMember) => (
+                                      <Card key={member.userId} className="bg-card/40 backdrop-blur-sm border-white/5">
+                                        <CardContent className="p-4">
+                                          <div className="flex items-center gap-3">
+                                            <div className="h-12 w-12 rounded-full flex items-center justify-center font-bold text-lg bg-muted text-muted-foreground">
+                                              {member.user?.firstName?.[0] || member.user?.username?.[0] || "?"}
+                                            </div>
+                                            <div className="flex-1">
+                                              <div className="font-semibold">
+                                                {member.user?.firstName && member.user?.lastName 
+                                                  ? `${member.user.firstName} ${member.user.lastName}`
+                                                  : member.user?.username || 'Unknown'}
+                                              </div>
+                                              <div className="text-xs text-muted-foreground">0 games played</div>
+                                            </div>
+                                            <div className="text-right">
+                                              <div className="text-2xl font-bold text-muted-foreground/50">—</div>
+                                              <div className="text-xs text-muted-foreground">no stats</div>
+                                            </div>
+                                          </div>
+                                        </CardContent>
+                                      </Card>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </>
                           );
                         })()}
@@ -2095,10 +2132,8 @@ export default function UnifiedDashboard() {
                       <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                         <CardContent className="p-8 text-center">
                           <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                          <p className="text-muted-foreground">No athlete stats yet.</p>
-                          {userRole === "supporter" && (
-                            <p className="text-sm text-muted-foreground mt-2">Track your own stats for athletes you follow when the coach uses team-only mode.</p>
-                          )}
+                          <p className="text-muted-foreground">No athletes on this team yet.</p>
+                          <p className="text-sm text-muted-foreground mt-2">Add athletes to your team to track their stats.</p>
                         </CardContent>
                       </Card>
                     )}
