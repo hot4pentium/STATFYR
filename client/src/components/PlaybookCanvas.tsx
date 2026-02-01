@@ -308,6 +308,28 @@ export function PlaybookCanvas({
     };
   }, [isPlaying, currentKeyframeIndex, playbackSpeed]);
 
+  // When animation finishes, restore elements to match the last keyframe
+  useEffect(() => {
+    if (animationFinished && keyframes.length > 0 && !isPlaying) {
+      const lastKf = keyframes[keyframes.length - 1];
+      if (lastKf) {
+        const restoredElements: DrawnElement[] = [];
+        for (const kfPos of lastKf.positions) {
+          const originalEl = allElementsRef.current.get(kfPos.elementId);
+          if (originalEl && kfPos.points.length > 0) {
+            restoredElements.push({
+              ...originalEl,
+              points: kfPos.points.map(p => ({ x: p.x, y: p.y }))
+            });
+          }
+        }
+        if (restoredElements.length > 0) {
+          setElements(restoredElements);
+        }
+      }
+    }
+  }, [animationFinished, keyframes, isPlaying]);
+
   // Record a new keyframe with current element positions
   // Save current state to undo stack before making changes
   const saveToUndoStack = useCallback(() => {
