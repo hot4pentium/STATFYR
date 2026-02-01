@@ -2108,17 +2108,22 @@ export function PlaybookCanvas({
                       onClick={() => {
                         if (!isPlaying) {
                           // Save current keyframe changes before starting playback
+                          // Compute the updated keyframes and set both state AND ref
+                          let updatedKeyframes = keyframes;
                           if (!readOnly && elements.length > 0 && currentKeyframeIndex < keyframes.length) {
                             const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
                               elementId: el.id,
                               points: el.points.map(p => ({ x: p.x, y: p.y }))
                             }));
-                            setKeyframes(prev => prev.map((kf, idx) => 
+                            updatedKeyframes = keyframes.map((kf, idx) => 
                               idx === currentKeyframeIndex 
                                 ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
                                 : kf
-                            ));
+                            );
+                            setKeyframes(updatedKeyframes);
                           }
+                          // Immediately update the playback ref with saved keyframes
+                          playbackKeyframesRef.current = [...updatedKeyframes];
                           setCurrentKeyframeIndex(0);
                           setAnimationProgress(0);
                           setAnimationFinished(false);
@@ -2200,17 +2205,22 @@ export function PlaybookCanvas({
                   onClick={() => {
                     if (!isPlaying) {
                       // Save current keyframe changes before starting playback
+                      // Compute the updated keyframes and set both state AND ref
+                      let updatedKeyframes = keyframes;
                       if (!readOnly && elements.length > 0 && currentKeyframeIndex < keyframes.length) {
                         const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
                           elementId: el.id,
                           points: el.points.map(p => ({ x: p.x, y: p.y }))
                         }));
-                        setKeyframes(prev => prev.map((kf, idx) => 
+                        updatedKeyframes = keyframes.map((kf, idx) => 
                           idx === currentKeyframeIndex 
                             ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
                             : kf
-                        ));
+                        );
+                        setKeyframes(updatedKeyframes);
                       }
+                      // Immediately update the playback ref with saved keyframes
+                      playbackKeyframesRef.current = [...updatedKeyframes];
                       setCurrentKeyframeIndex(0);
                       setAnimationProgress(0);
                       setAnimationFinished(false);
