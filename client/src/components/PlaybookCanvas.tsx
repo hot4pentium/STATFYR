@@ -1788,10 +1788,10 @@ export function PlaybookCanvas({
 
   return (
     <div className="flex flex-col gap-4" data-testid="playbook-canvas-container">
-      <div className="flex gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10 overflow-x-auto" data-testid="playbook-toolbar">
+      <div className="flex flex-col gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10" data-testid="playbook-toolbar">
         {/* Drawing Tools - only show when not in read-only mode */}
         {!readOnly && (
-          <div className="flex gap-2 items-center shrink-0">
+          <div className="flex gap-2 items-center shrink-0 overflow-x-auto pb-1">
                 {tools.map((tool) => (
                   <Button
                     key={tool.id}
@@ -1909,10 +1909,12 @@ export function PlaybookCanvas({
                     <span className="hidden sm:inline">{activeHalf === "offense" ? "Offense" : "Defense"}</span>
                   </Button>
                 )}
+          </div>
+        )}
 
-                {/* Separator between drawing tools and animation tools */}
-                <div className="h-6 w-px bg-amber-500/50 mx-2 shrink-0" />
-                
+        {/* Animation Controls Row - separate scrollable bar */}
+        {!readOnly && (
+          <div className="flex gap-2 items-center overflow-x-auto pt-1 border-t border-white/10" data-testid="animation-toolbar">
                 {/* Animation label */}
                 <span className="text-sm font-medium text-amber-500 flex items-center gap-2 shrink-0">
                   <Film className="h-4 w-4" />
@@ -2041,14 +2043,30 @@ export function PlaybookCanvas({
                     </span>
                   </>
                 )}
+                
+                {/* Spacer and Save button at end of animation row */}
+                <div className="flex-1 shrink-0 min-w-4" />
+                
+                {onSave && (
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    disabled={elements.length === 0} 
+                    onClick={() => setIsSaveDialogOpen(true)}
+                    className="gap-2 shrink-0 bg-green-600 hover:bg-green-700" 
+                    data-testid="tool-save-animation-row"
+                  >
+                    <Save className="h-5 w-5" />
+                    <span className="hidden sm:inline">Save</span>
+                  </Button>
+                )}
           </div>
         )}
 
         {/* Read-only Playback Controls */}
         {readOnly && keyframes.length >= 2 && (
-          <>
-                <div className="h-6 w-px bg-amber-500/50 mx-2" />
-                <span className="text-sm font-medium text-amber-500 flex items-center gap-2">
+          <div className="flex gap-2 items-center overflow-x-auto pt-1 border-t border-white/10">
+                <span className="text-sm font-medium text-amber-500 flex items-center gap-2 shrink-0">
                   <Film className="h-4 w-4" />
                   Play
                 </span>
@@ -2115,25 +2133,12 @@ export function PlaybookCanvas({
                   />
                   <span className="text-xs font-medium">{playbackSpeed}x</span>
                 </div>
-              </>
-            )}
+          </div>
+        )}
 
-        <div className="flex-1" />
-
+        {/* Save Dialog - controlled by state from animation row button */}
         {onSave && (
           <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                variant="default" 
-                size="sm" 
-                disabled={elements.length === 0} 
-                className="gap-2 bg-green-600 hover:bg-green-700" 
-                data-testid="tool-save"
-              >
-                <Save className="h-5 w-5" />
-                <span className="hidden sm:inline">Save Play</span>
-              </Button>
-            </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Save Play</DialogTitle>
