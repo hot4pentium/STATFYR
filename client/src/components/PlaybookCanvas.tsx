@@ -1788,17 +1788,17 @@ export function PlaybookCanvas({
 
   return (
     <div className="flex flex-col gap-4" data-testid="playbook-canvas-container">
-      <div className="flex flex-wrap gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10" data-testid="playbook-toolbar">
+      <div className="flex gap-2 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10 overflow-x-auto" data-testid="playbook-toolbar">
         {/* Drawing Tools - only show when not in read-only mode */}
         {!readOnly && (
-          <>
+          <div className="flex gap-2 items-center shrink-0">
                 {tools.map((tool) => (
                   <Button
                     key={tool.id}
                     variant={selectedTool === tool.id ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSelectedTool(tool.id)}
-                    className={`gap-2 ${tool.color === "red" ? "text-red-500 hover:text-red-400" : ""}`}
+                    className={`gap-2 shrink-0 ${tool.color === "red" ? "text-red-500 hover:text-red-400" : ""}`}
                     data-testid={`tool-${tool.id}`}
                   >
                     {tool.icon}
@@ -1811,7 +1811,7 @@ export function PlaybookCanvas({
                     <Button
                       variant={selectedTool === "athlete" ? "default" : "outline"}
                       size="sm"
-                      className="gap-2 text-blue-500 hover:text-blue-400"
+                      className="gap-2 shrink-0 text-blue-500 hover:text-blue-400"
                       data-testid="tool-athlete"
                     >
                       <Circle className="h-5 w-5 fill-blue-500" />
@@ -1867,7 +1867,7 @@ export function PlaybookCanvas({
                   variant={selectedTool === "ball" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedTool("ball")}
-                  className="gap-2"
+                  className="gap-2 shrink-0"
                   data-testid="tool-ball"
                 >
                   {getBallIcon()}
@@ -1878,7 +1878,7 @@ export function PlaybookCanvas({
                   variant={selectedTool === "delete" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedTool("delete")}
-                  className="gap-2 text-orange-500 hover:text-orange-400"
+                  className="gap-2 shrink-0 text-orange-500 hover:text-orange-400"
                   data-testid="tool-delete"
                 >
                   <MousePointerClick className="h-5 w-5" />
@@ -1890,7 +1890,7 @@ export function PlaybookCanvas({
                   size="sm"
                   onClick={undo}
                   disabled={undoStack.length === 0}
-                  className="gap-2 text-blue-500 hover:text-blue-400"
+                  className="gap-2 shrink-0 text-blue-500 hover:text-blue-400"
                   data-testid="button-undo"
                 >
                   <Undo2 className="h-5 w-5" />
@@ -1902,7 +1902,7 @@ export function PlaybookCanvas({
                     variant="outline"
                     size="sm"
                     onClick={() => setActiveHalf(activeHalf === "offense" ? "defense" : "offense")}
-                    className={`gap-2 ${activeHalf === "offense" ? "text-green-500 border-green-500/50" : "text-red-500 border-red-500/50"}`}
+                    className={`gap-2 shrink-0 ${activeHalf === "offense" ? "text-green-500 border-green-500/50" : "text-red-500 border-red-500/50"}`}
                     data-testid="toggle-half"
                   >
                     {activeHalf === "offense" ? <Swords className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
@@ -1911,10 +1911,10 @@ export function PlaybookCanvas({
                 )}
 
                 {/* Separator between drawing tools and animation tools */}
-                <div className="h-6 w-px bg-amber-500/50 mx-2" />
+                <div className="h-6 w-px bg-amber-500/50 mx-2 shrink-0" />
                 
                 {/* Animation label */}
-                <span className="text-sm font-medium text-amber-500 flex items-center gap-2">
+                <span className="text-sm font-medium text-amber-500 flex items-center gap-2 shrink-0">
                   <Film className="h-4 w-4" />
                   <span className="hidden sm:inline">Animation</span>
                 </span>
@@ -1925,7 +1925,7 @@ export function PlaybookCanvas({
                   size="sm"
                   onClick={recordKeyframe}
                   disabled={elements.length === 0 || isPlaying}
-                  className="gap-2 text-amber-500 border-amber-500/50 hover:bg-amber-500/20"
+                  className="gap-2 shrink-0 text-amber-500 border-amber-500/50 hover:bg-amber-500/20"
                   title="Record current positions as a new keyframe"
                   data-testid="button-record-keyframe"
                 >
@@ -1945,7 +1945,7 @@ export function PlaybookCanvas({
                       size="sm"
                       onClick={updateCurrentKeyframe}
                       disabled={elements.length === 0 || isPlaying}
-                      className="gap-2 text-blue-500 border-blue-500/50 hover:bg-blue-500/20"
+                      className="gap-2 shrink-0 text-blue-500 border-blue-500/50 hover:bg-blue-500/20"
                       title={`Update keyframe ${currentKeyframeIndex + 1} with current positions`}
                       data-testid="button-update-keyframe"
                     >
@@ -1959,7 +1959,7 @@ export function PlaybookCanvas({
                           variant="outline"
                           size="sm"
                           disabled={isPlaying}
-                          className="gap-2 text-red-500 border-red-500/50 hover:bg-red-500/20"
+                          className="gap-2 shrink-0 text-red-500 border-red-500/50 hover:bg-red-500/20"
                           title="Clear all keyframes"
                           data-testid="button-clear-keyframes"
                         >
@@ -1988,13 +1988,13 @@ export function PlaybookCanvas({
                 {/* Playback Controls */}
                 {keyframes.length >= 2 && (
                   <>
-                    <div className="h-6 w-px bg-white/20 mx-1" />
+                    <div className="h-6 w-px bg-white/20 mx-1 shrink-0" />
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={resetAnimation}
                       disabled={currentKeyframeIndex === 0 && !isPlaying}
-                      className="h-8 w-8"
+                      className="h-8 w-8 shrink-0"
                       title="Reset to start"
                       data-testid="button-reset-animation"
                     >
@@ -2005,7 +2005,7 @@ export function PlaybookCanvas({
                       size="icon"
                       onClick={() => jumpToKeyframe(Math.max(0, currentKeyframeIndex - 1))}
                       disabled={currentKeyframeIndex === 0 || isPlaying}
-                      className="h-8 w-8"
+                      className="h-8 w-8 shrink-0"
                       data-testid="button-prev-keyframe"
                     >
                       <ChevronLeft className="h-4 w-4" />
@@ -2020,7 +2020,7 @@ export function PlaybookCanvas({
                         }
                         setIsPlaying(!isPlaying);
                       }}
-                      className={`h-8 w-8 ${isPlaying ? "bg-green-600 hover:bg-green-700" : ""}`}
+                      className={`h-8 w-8 shrink-0 ${isPlaying ? "bg-green-600 hover:bg-green-700" : ""}`}
                       title={isPlaying ? "Pause" : "Play animation"}
                       data-testid="button-play-animation"
                     >
@@ -2031,17 +2031,17 @@ export function PlaybookCanvas({
                       size="icon"
                       onClick={() => jumpToKeyframe(Math.min(keyframes.length - 1, currentKeyframeIndex + 1))}
                       disabled={currentKeyframeIndex >= keyframes.length - 1 || isPlaying}
-                      className="h-8 w-8"
+                      className="h-8 w-8 shrink-0"
                       data-testid="button-next-keyframe"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-medium shrink-0">
                       {currentKeyframeIndex + 1}/{keyframes.length}
                     </span>
                   </>
                 )}
-          </>
+          </div>
         )}
 
         {/* Read-only Playback Controls */}
@@ -2057,7 +2057,7 @@ export function PlaybookCanvas({
                   size="icon"
                   onClick={resetAnimation}
                   disabled={currentKeyframeIndex === 0 && !isPlaying}
-                  className="h-8 w-8"
+                  className="h-8 w-8 shrink-0"
                   title="Reset to start"
                   data-testid="button-reset-animation"
                 >
@@ -2068,7 +2068,7 @@ export function PlaybookCanvas({
                   size="icon"
                   onClick={() => jumpToKeyframe(Math.max(0, currentKeyframeIndex - 1))}
                   disabled={currentKeyframeIndex === 0 || isPlaying}
-                  className="h-8 w-8"
+                  className="h-8 w-8 shrink-0"
                   data-testid="button-prev-keyframe"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -2083,7 +2083,7 @@ export function PlaybookCanvas({
                     }
                     setIsPlaying(!isPlaying);
                   }}
-                  className={`h-8 w-8 ${isPlaying ? "bg-green-600 hover:bg-green-700" : ""}`}
+                  className={`h-8 w-8 shrink-0 ${isPlaying ? "bg-green-600 hover:bg-green-700" : ""}`}
                   title={isPlaying ? "Pause" : "Play animation"}
                   data-testid="button-play-animation"
                 >
@@ -2094,15 +2094,15 @@ export function PlaybookCanvas({
                   size="icon"
                   onClick={() => jumpToKeyframe(Math.min(keyframes.length - 1, currentKeyframeIndex + 1))}
                   disabled={currentKeyframeIndex >= keyframes.length - 1 || isPlaying}
-                  className="h-8 w-8"
+                  className="h-8 w-8 shrink-0"
                   data-testid="button-next-keyframe"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
-                <span className="text-sm font-medium ml-2">
+                <span className="text-sm font-medium ml-2 shrink-0">
                   {currentKeyframeIndex + 1}/{keyframes.length}
                 </span>
-                <div className="hidden sm:flex items-center gap-2 ml-4">
+                <div className="hidden sm:flex items-center gap-2 ml-4 shrink-0">
                   <span className="text-xs text-muted-foreground">Speed:</span>
                   <Slider
                     value={[playbackSpeed]}
