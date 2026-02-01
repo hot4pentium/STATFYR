@@ -129,6 +129,7 @@ export function PlaybookCanvas({
   // Keep ref in sync with state
   useEffect(() => {
     hasUnsavedChangesRef.current = hasUnsavedChanges;
+    console.log('[hasUnsavedChanges sync] state:', hasUnsavedChanges, 'ref:', hasUnsavedChangesRef.current);
   }, [hasUnsavedChanges]);
 
   // Helper to scale elements based on canvas width ratio
@@ -570,8 +571,11 @@ export function PlaybookCanvas({
     // If same keyframe, do nothing
     if (index === actualCurrentIndex) return;
     
+    console.log('[jumpToKeyframe] hasUnsavedChangesRef:', hasUnsavedChangesRef.current, 'keyframes.length:', keyframes.length);
+    
     // If there are unsaved changes, show confirmation dialog (use ref to avoid stale closure)
     if (hasUnsavedChangesRef.current && keyframes.length > 0) {
+      console.log('[jumpToKeyframe] Showing confirmation dialog');
       setPendingNavigationIndex(index);
       setShowSaveConfirmDialog(true);
       return;
