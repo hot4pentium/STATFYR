@@ -2196,30 +2196,6 @@ export function PlaybookCanvas({
           </Dialog>
         )}
 
-        <Button variant="outline" size="sm" onClick={handleUndo} disabled={elements.length === 0} className="gap-2" data-testid="tool-undo">
-          <Undo2 className="h-5 w-5" />
-          <span className="hidden sm:inline">Undo</span>
-        </Button>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="outline" size="sm" disabled={elements.length === 0} className="gap-2 text-red-500 hover:text-red-400" data-testid="tool-clear">
-              <Trash2 className="h-5 w-5" />
-              <span className="hidden sm:inline">Clear</span>
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Clear Canvas</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to clear the canvas? This will remove all your drawings and cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleClear} className="bg-red-500 hover:bg-red-600">Clear</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
 
       <div ref={containerRef} className="relative w-full rounded-lg border border-white/10">
