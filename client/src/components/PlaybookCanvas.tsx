@@ -2412,11 +2412,11 @@ export function PlaybookCanvas({
             <span className="text-xs font-medium text-muted-foreground">Timeline</span>
             <span className="text-xs text-amber-500">({keyframes.length} keyframes)</span>
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          <div className="flex items-center gap-2 overflow-x-auto py-2 px-1">
             {keyframes.map((kf, index) => (
               <div
                 key={kf.id}
-                className={`relative flex-shrink-0 w-12 h-12 rounded-lg border-2 cursor-pointer transition-all ${
+                className={`relative flex-shrink-0 w-14 h-14 rounded-lg border-2 cursor-pointer transition-all ${
                   index === currentKeyframeIndex
                     ? "border-primary bg-primary/20 ring-2 ring-primary/50"
                     : "border-white/20 bg-white/5 hover:border-white/40"
