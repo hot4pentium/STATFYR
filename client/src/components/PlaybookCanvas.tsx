@@ -113,6 +113,7 @@ export function PlaybookCanvas({
   const [keyframes, setKeyframes] = useState<Keyframe[]>(initialKeyframes);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentKeyframeIndex, setCurrentKeyframeIndex] = useState(0);
+  const currentKeyframeIndexRef = useRef(0); // Always-current ref for timeline clicks
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [animationProgress, setAnimationProgress] = useState(0);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -264,12 +265,14 @@ export function PlaybookCanvas({
         if (nextIndex < frozenKeyframes.length - 1) {
           // Reset progress BEFORE updating keyframe index to prevent destination blink
           setAnimationProgress(0);
+          currentKeyframeIndexRef.current = nextIndex;
           setCurrentKeyframeIndex(nextIndex);
           startTime = null;
           animationRef.current = requestAnimationFrame(animate);
         } else {
           // Stay on last keyframe when finished
           const lastIndex = frozenKeyframes.length - 1;
+          currentKeyframeIndexRef.current = lastIndex;
           setCurrentKeyframeIndex(lastIndex);
           setAnimationProgress(1);
           setIsPlaying(false);
@@ -371,6 +374,7 @@ export function PlaybookCanvas({
 
     setKeyframes(prev => [...prev, newKeyframe]);
     // Auto-navigate to the newly recorded keyframe (use callback to get correct length)
+    currentKeyframeIndexRef.current = keyframes.length;
     setCurrentKeyframeIndex(keyframes.length); // This will be the index of the new keyframe
   }, [elements, keyframes.length]);
 
@@ -505,23 +509,27 @@ export function PlaybookCanvas({
 
   // Jump to a specific keyframe and RESTORE elements to exactly match the keyframe
   // Auto-saves current keyframe changes before jumping
+  // Uses ref for currentKeyframeIndex to avoid stale closure issues with rapid timeline clicks
   const jumpToKeyframe = useCallback((index: number) => {
     setIsPlaying(false);
     setAnimationProgress(0);
     setAnimationFinished(false);
     
+    // Get the ACTUAL current index from ref (not stale closure)
+    const actualCurrentIndex = currentKeyframeIndexRef.current;
+    
     // Use functional update to get latest keyframes and auto-save + restore in one operation
     setKeyframes(prevKeyframes => {
       // Auto-save changes to current keyframe before jumping (if we have a valid keyframe and elements)
       let updatedKeyframes = prevKeyframes;
-      if (!readOnly && elements.length > 0 && currentKeyframeIndex < prevKeyframes.length && index !== currentKeyframeIndex) {
+      if (!readOnly && elements.length > 0 && actualCurrentIndex < prevKeyframes.length && index !== actualCurrentIndex) {
         const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
           elementId: el.id,
           points: el.points.map(p => ({ x: p.x, y: p.y }))
         }));
         
         updatedKeyframes = prevKeyframes.map((kf, idx) => 
-          idx === currentKeyframeIndex 
+          idx === actualCurrentIndex 
             ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
             : kf
         );
@@ -547,8 +555,10 @@ export function PlaybookCanvas({
       return updatedKeyframes;
     });
     
+    // Update both state and ref
+    currentKeyframeIndexRef.current = index;
     setCurrentKeyframeIndex(index);
-  }, [readOnly, elements, currentKeyframeIndex]);
+  }, [readOnly, elements]);
 
   // Update the current keyframe with current element positions (for editing existing keyframes)
   const updateCurrentKeyframe = useCallback(() => {
@@ -569,6 +579,7 @@ export function PlaybookCanvas({
   // Clear all keyframes and start fresh
   const clearAllKeyframes = useCallback(() => {
     setKeyframes([]);
+    currentKeyframeIndexRef.current = 0;
     setCurrentKeyframeIndex(0);
     setAnimationProgress(0);
     setIsPlaying(false);
@@ -577,6 +588,7 @@ export function PlaybookCanvas({
   // Reset animation to start - updates elements to first keyframe state
   const resetAnimation = useCallback(() => {
     setIsPlaying(false);
+    currentKeyframeIndexRef.current = 0;
     setCurrentKeyframeIndex(0);
     setAnimationProgress(0);
     
@@ -2108,15 +2120,16 @@ export function PlaybookCanvas({
                       onClick={() => {
                         if (!isPlaying) {
                           // Save current keyframe changes before starting playback
-                          // Compute the updated keyframes and set both state AND ref
+                          // Use ref to get ACTUAL current index (not stale closure)
+                          const actualCurrentIndex = currentKeyframeIndexRef.current;
                           let updatedKeyframes = keyframes;
-                          if (!readOnly && elements.length > 0 && currentKeyframeIndex < keyframes.length) {
+                          if (!readOnly && elements.length > 0 && actualCurrentIndex < keyframes.length) {
                             const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
                               elementId: el.id,
                               points: el.points.map(p => ({ x: p.x, y: p.y }))
                             }));
                             updatedKeyframes = keyframes.map((kf, idx) => 
-                              idx === currentKeyframeIndex 
+                              idx === actualCurrentIndex 
                                 ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
                                 : kf
                             );
@@ -2124,6 +2137,7 @@ export function PlaybookCanvas({
                           }
                           // Immediately update the playback ref with saved keyframes
                           playbackKeyframesRef.current = [...updatedKeyframes];
+                          currentKeyframeIndexRef.current = 0;
                           setCurrentKeyframeIndex(0);
                           setAnimationProgress(0);
                           setAnimationFinished(false);
@@ -2205,15 +2219,16 @@ export function PlaybookCanvas({
                   onClick={() => {
                     if (!isPlaying) {
                       // Save current keyframe changes before starting playback
-                      // Compute the updated keyframes and set both state AND ref
+                      // Use ref to get ACTUAL current index (not stale closure)
+                      const actualCurrentIndex = currentKeyframeIndexRef.current;
                       let updatedKeyframes = keyframes;
-                      if (!readOnly && elements.length > 0 && currentKeyframeIndex < keyframes.length) {
+                      if (!readOnly && elements.length > 0 && actualCurrentIndex < keyframes.length) {
                         const updatedPositions: KeyframeElementPosition[] = elements.map(el => ({
                           elementId: el.id,
                           points: el.points.map(p => ({ x: p.x, y: p.y }))
                         }));
                         updatedKeyframes = keyframes.map((kf, idx) => 
-                          idx === currentKeyframeIndex 
+                          idx === actualCurrentIndex 
                             ? { ...kf, positions: updatedPositions, timestamp: Date.now() }
                             : kf
                         );
@@ -2221,6 +2236,7 @@ export function PlaybookCanvas({
                       }
                       // Immediately update the playback ref with saved keyframes
                       playbackKeyframesRef.current = [...updatedKeyframes];
+                      currentKeyframeIndexRef.current = 0;
                       setCurrentKeyframeIndex(0);
                       setAnimationProgress(0);
                       setAnimationFinished(false);
