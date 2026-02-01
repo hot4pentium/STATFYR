@@ -1914,7 +1914,7 @@ export function PlaybookCanvas({
 
         {/* Animation Controls Row - separate scrollable bar */}
         {!readOnly && (
-          <div className="flex gap-2 items-center overflow-x-auto pt-1 border-t border-white/10" data-testid="animation-toolbar">
+          <div className="flex gap-2 items-center overflow-x-auto pt-2 pb-2 border-t border-white/10" data-testid="animation-toolbar">
                 {/* Animation label */}
                 <span className="text-sm font-medium text-amber-500 flex items-center gap-2 shrink-0">
                   <Film className="h-4 w-4" />
