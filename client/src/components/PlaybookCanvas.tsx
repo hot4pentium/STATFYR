@@ -126,6 +126,10 @@ export function PlaybookCanvas({
   const [pendingNavigationIndex, setPendingNavigationIndex] = useState<number | null>(null);
   const [showSaveConfirmDialog, setShowSaveConfirmDialog] = useState(false);
   
+  // Explicit edit mode for keyframes
+  const [isEditingKeyframe, setIsEditingKeyframe] = useState(false);
+  const [editingKeyframeId, setEditingKeyframeId] = useState<string | null>(null);
+  
   // Keep keyframes ref in sync to avoid stale closures in pointer handlers
   const keyframesRef = useRef<Keyframe[]>([]);
   useEffect(() => {
@@ -657,6 +661,54 @@ export function PlaybookCanvas({
     setPendingNavigationIndex(null);
     setShowSaveConfirmDialog(false);
   }, []);
+
+  // Enter edit mode for a specific keyframe
+  const enterEditMode = useCallback((keyframeId: string) => {
+    const index = keyframes.findIndex(kf => kf.id === keyframeId);
+    if (index < 0) return;
+    
+    // Navigate to the keyframe first
+    navigateToKeyframe(index);
+    
+    // Enter edit mode
+    setIsEditingKeyframe(true);
+    setEditingKeyframeId(keyframeId);
+    setHasUnsavedChanges(false);
+  }, [keyframes, navigateToKeyframe]);
+
+  // Save changes and exit edit mode
+  const saveAndExitEditMode = useCallback(() => {
+    if (!editingKeyframeId) return;
+    
+    // Save changes to the keyframe
+    saveCurrentKeyframe();
+    
+    // Exit edit mode
+    setIsEditingKeyframe(false);
+    setEditingKeyframeId(null);
+    setHasUnsavedChanges(false);
+  }, [editingKeyframeId, saveCurrentKeyframe]);
+
+  // Cancel edit mode and restore original keyframe state
+  const cancelEditMode = useCallback(() => {
+    if (!editingKeyframeId) return;
+    
+    // Restore the keyframe's original state
+    const index = keyframes.findIndex(kf => kf.id === editingKeyframeId);
+    if (index >= 0) {
+      navigateToKeyframe(index);
+    }
+    
+    // Exit edit mode
+    setIsEditingKeyframe(false);
+    setEditingKeyframeId(null);
+    setHasUnsavedChanges(false);
+  }, [editingKeyframeId, keyframes, navigateToKeyframe]);
+
+  // Get the keyframe number being edited
+  const editingKeyframeNumber = editingKeyframeId 
+    ? keyframes.findIndex(kf => kf.id === editingKeyframeId) + 1 
+    : null;
 
   // Update the current keyframe with current element positions (for editing existing keyframes)
   const updateCurrentKeyframe = useCallback(() => {
