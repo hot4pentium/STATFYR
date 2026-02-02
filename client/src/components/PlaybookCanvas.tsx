@@ -1837,13 +1837,13 @@ export function PlaybookCanvas({
     // Debounce element placement to prevent duplicate elements from rapid touch events on mobile
     const now = Date.now();
     const timeSinceLastPlacement = now - lastPlacementTimeRef.current;
-    const DEBOUNCE_MS = 300; // Prevent placement within 300ms of last placement
+    const DEBOUNCE_MS = 500; // Prevent placement within 500ms of last placement (increased for iOS)
     
-    // Also check if trying to place at the same position (within 5px tolerance)
+    // Also check if trying to place at the same position (within 20px tolerance - increased for touch)
     const lastPos = lastPlacementPosRef.current;
     const isSamePosition = lastPos && 
-      Math.abs(point.x - lastPos.x) < 5 && 
-      Math.abs(point.y - lastPos.y) < 5;
+      Math.abs(point.x - lastPos.x) < 20 && 
+      Math.abs(point.y - lastPos.y) < 20;
 
     if (selectedTool === "athlete") {
       if (timeSinceLastPlacement < DEBOUNCE_MS || isSamePosition) return;
@@ -2552,9 +2552,9 @@ export function PlaybookCanvas({
                 </div>
                 {!readOnly && !isEditingKeyframe && (
                   <>
-                    {/* Edit button */}
+                    {/* Edit button - always visible */}
                     <button
-                      className="absolute -top-1 -left-1 w-5 h-5 bg-amber-500 rounded-full text-white text-xs flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+                      className="absolute -top-2 -left-2 w-6 h-6 bg-amber-500 rounded-full text-white flex items-center justify-center shadow-md border border-amber-400"
                       onClick={(e) => {
                         e.stopPropagation();
                         enterEditMode(kf.id);
@@ -2562,11 +2562,11 @@ export function PlaybookCanvas({
                       title={`Edit keyframe ${index + 1}`}
                       data-testid={`edit-keyframe-${index}`}
                     >
-                      <Pencil className="h-2.5 w-2.5" />
+                      <Pencil className="h-3 w-3" />
                     </button>
                     {/* Delete button */}
                     <button
-                      className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white flex items-center justify-center shadow-md border border-red-400"
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteKeyframe(kf.id);
