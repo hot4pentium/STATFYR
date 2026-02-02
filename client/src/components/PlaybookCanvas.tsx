@@ -126,6 +126,12 @@ export function PlaybookCanvas({
   const [pendingNavigationIndex, setPendingNavigationIndex] = useState<number | null>(null);
   const [showSaveConfirmDialog, setShowSaveConfirmDialog] = useState(false);
   
+  // Keep keyframes ref in sync to avoid stale closures in pointer handlers
+  const keyframesRef = useRef<Keyframe[]>([]);
+  useEffect(() => {
+    keyframesRef.current = keyframes;
+  }, [keyframes]);
+  
   // Keep ref in sync with state
   useEffect(() => {
     hasUnsavedChangesRef.current = hasUnsavedChanges;
@@ -372,11 +378,27 @@ export function PlaybookCanvas({
     });
   }, [undoStack]);
 
+  // Track pending navigation to new keyframe after recording (by keyframe ID for robustness)
+  const [pendingRecordedKeyframeId, setPendingRecordedKeyframeId] = useState<string | null>(null);
+  
+  // Navigate to newly recorded keyframe after state updates - find by ID for deterministic navigation
+  useEffect(() => {
+    if (pendingRecordedKeyframeId !== null) {
+      const newIndex = keyframes.findIndex(kf => kf.id === pendingRecordedKeyframeId);
+      if (newIndex >= 0) {
+        currentKeyframeIndexRef.current = newIndex;
+        setCurrentKeyframeIndex(newIndex);
+        setPendingRecordedKeyframeId(null);
+      }
+    }
+  }, [keyframes, pendingRecordedKeyframeId]);
+  
   const recordKeyframe = useCallback(() => {
     if (elements.length === 0) return;
 
+    const keyframeId = `kf-${Date.now()}`;
     const newKeyframe: Keyframe = {
-      id: `kf-${Date.now()}`,
+      id: keyframeId,
       positions: elements.map(el => ({
         elementId: el.id,
         points: el.points.map(p => ({ ...p }))
@@ -385,10 +407,11 @@ export function PlaybookCanvas({
     };
 
     setKeyframes(prev => [...prev, newKeyframe]);
-    // Auto-navigate to the newly recorded keyframe (use callback to get correct length)
-    currentKeyframeIndexRef.current = keyframes.length;
-    setCurrentKeyframeIndex(keyframes.length); // This will be the index of the new keyframe
-  }, [elements, keyframes.length]);
+    // Schedule navigation to new keyframe via effect (by ID for determinism)
+    setPendingRecordedKeyframeId(keyframeId);
+    // Changes are now saved in the new keyframe, so reset unsaved changes flag
+    setHasUnsavedChanges(false);
+  }, [elements]);
 
   // Get interpolated element positions for animation playback
   // During editing, elements array is the source of truth
@@ -571,10 +594,10 @@ export function PlaybookCanvas({
     // If same keyframe, do nothing
     if (index === actualCurrentIndex) return;
     
-    console.log('[jumpToKeyframe] hasUnsavedChangesRef:', hasUnsavedChangesRef.current, 'keyframes.length:', keyframes.length);
+    console.log('[jumpToKeyframe] hasUnsavedChangesRef:', hasUnsavedChangesRef.current, 'keyframesRef.length:', keyframesRef.current.length);
     
-    // If there are unsaved changes, show confirmation dialog (use ref to avoid stale closure)
-    if (hasUnsavedChangesRef.current && keyframes.length > 0) {
+    // If there are unsaved changes, show confirmation dialog (use refs to avoid stale closures)
+    if (hasUnsavedChangesRef.current && keyframesRef.current.length > 0) {
       console.log('[jumpToKeyframe] Showing confirmation dialog');
       setPendingNavigationIndex(index);
       setShowSaveConfirmDialog(true);
@@ -583,7 +606,7 @@ export function PlaybookCanvas({
     
     // No unsaved changes, navigate directly
     navigateToKeyframe(index);
-  }, [keyframes.length, navigateToKeyframe]);
+  }, [navigateToKeyframe]);
 
   // Start playback helper
   const startPlayback = useCallback(() => {
@@ -1786,7 +1809,7 @@ export function PlaybookCanvas({
       };
       allElementsRef.current.set(newElement.id, newElement);
       setElements((prev) => [...prev, newElement]);
-      if (keyframes.length > 0) setHasUnsavedChanges(true);
+      if (keyframesRef.current.length > 0) setHasUnsavedChanges(true);
       return;
     }
 
@@ -1808,7 +1831,7 @@ export function PlaybookCanvas({
       };
       allElementsRef.current.set(newElement.id, newElement);
       setElements((prev) => [...prev, newElement]);
-      if (keyframes.length > 0) setHasUnsavedChanges(true);
+      if (keyframesRef.current.length > 0) setHasUnsavedChanges(true);
       return;
     }
 
@@ -1881,7 +1904,7 @@ export function PlaybookCanvas({
     
     if (isDragging && draggedElementId) {
       // Mark keyframe as having unsaved changes after drag
-      if (keyframes.length > 0) setHasUnsavedChanges(true);
+      if (keyframesRef.current.length > 0) setHasUnsavedChanges(true);
       setIsDragging(false);
       setDraggedElementId(null);
       setDragOffset({ x: 0, y: 0 });
@@ -1913,7 +1936,7 @@ export function PlaybookCanvas({
       };
       allElementsRef.current.set(newElement.id, newElement);
       setElements((prev) => [...prev, newElement]);
-      if (keyframes.length > 0) setHasUnsavedChanges(true);
+      if (keyframesRef.current.length > 0) setHasUnsavedChanges(true);
     }
 
     setIsDrawing(false);
@@ -1924,7 +1947,7 @@ export function PlaybookCanvas({
 
   const handleUndo = () => {
     setElements((prev) => prev.slice(0, -1));
-    if (keyframes.length > 0) setHasUnsavedChanges(true);
+    if (keyframesRef.current.length > 0) setHasUnsavedChanges(true);
   };
 
   const handleClear = () => {
