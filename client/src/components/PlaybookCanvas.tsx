@@ -2196,7 +2196,7 @@ export function PlaybookCanvas({
                   )}
                 </Button>
 
-                {keyframes.length > 0 && (
+                {keyframes.length > 0 && !isEditingKeyframe && (
                   <>
                     <Button
                       variant="outline"
@@ -2476,6 +2476,42 @@ export function PlaybookCanvas({
 
       </div>
 
+      {/* Edit Mode Banner */}
+      {isEditingKeyframe && editingKeyframeNumber && (
+        <div className="mb-2 p-3 bg-amber-500/20 border border-amber-500/50 rounded-lg flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Pencil className="h-4 w-4 text-amber-500" />
+            <span className="text-sm font-medium text-amber-500">
+              Editing Keyframe {editingKeyframeNumber}
+            </span>
+            {hasUnsavedChanges && (
+              <span className="text-xs text-amber-400/70">(unsaved changes)</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={cancelEditMode}
+              className="text-muted-foreground border-white/20 hover:bg-white/10"
+              data-testid="button-cancel-edit"
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={saveAndExitEditMode}
+              disabled={!hasUnsavedChanges}
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+              data-testid="button-save-keyframe-edit"
+            >
+              <Save className="h-4 w-4 mr-1" />
+              Update Keyframe {editingKeyframeNumber}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div ref={containerRef} className="relative w-full rounded-lg border border-white/10">
         <canvas
           ref={canvasRef}
@@ -2502,27 +2538,50 @@ export function PlaybookCanvas({
               <div
                 key={kf.id}
                 className={`relative flex-shrink-0 w-14 h-14 rounded-lg border-2 cursor-pointer transition-all ${
-                  index === currentKeyframeIndex
+                  editingKeyframeId === kf.id
+                    ? "border-amber-500 bg-amber-500/20 ring-2 ring-amber-500/50"
+                    : index === currentKeyframeIndex
                     ? "border-primary bg-primary/20 ring-2 ring-primary/50"
                     : "border-white/20 bg-white/5 hover:border-white/40"
                 }`}
-                onClick={() => jumpToKeyframe(index)}
+                onClick={() => !isEditingKeyframe && jumpToKeyframe(index)}
                 data-testid={`keyframe-${index}`}
               >
                 <div className="absolute inset-0 flex items-center justify-center text-xs font-bold">
                   {index + 1}
                 </div>
-                {!readOnly && (
-                  <button
-                    className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteKeyframe(kf.id);
-                    }}
-                    title="Delete keyframe"
-                  >
-                    ×
-                  </button>
+                {!readOnly && !isEditingKeyframe && (
+                  <>
+                    {/* Edit button */}
+                    <button
+                      className="absolute -top-1 -left-1 w-5 h-5 bg-amber-500 rounded-full text-white text-xs flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        enterEditMode(kf.id);
+                      }}
+                      title={`Edit keyframe ${index + 1}`}
+                      data-testid={`edit-keyframe-${index}`}
+                    >
+                      <Pencil className="h-2.5 w-2.5" />
+                    </button>
+                    {/* Delete button */}
+                    <button
+                      className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteKeyframe(kf.id);
+                      }}
+                      title="Delete keyframe"
+                    >
+                      ×
+                    </button>
+                  </>
+                )}
+                {/* Show editing indicator on the keyframe being edited */}
+                {editingKeyframeId === kf.id && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[8px] px-1 rounded font-medium">
+                    EDITING
+                  </div>
                 )}
               </div>
             ))}
