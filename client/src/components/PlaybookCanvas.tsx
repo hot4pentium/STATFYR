@@ -2378,43 +2378,6 @@ export function PlaybookCanvas({
 
       </div>
 
-      {/* Edit Mode Banner */}
-      {isEditingKeyframe && editingKeyframeNumber && (
-        <div className="mb-2 p-3 bg-amber-600/20 border border-amber-600/50 rounded-lg flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <Pencil className="h-4 w-4 text-amber-300 shrink-0" />
-            <span className="text-sm font-medium text-amber-300 truncate">
-              Editing #{editingKeyframeNumber}
-            </span>
-            {hasUnsavedChanges && (
-              <span className="text-xs text-amber-200/80 shrink-0">*</span>
-            )}
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={cancelEditMode}
-              className="text-muted-foreground border-white/20 hover:bg-white/10 px-2 sm:px-3"
-              data-testid="button-cancel-edit"
-            >
-              <span className="hidden sm:inline">Cancel</span>
-              <XIcon className="h-4 w-4 sm:hidden" />
-            </Button>
-            <Button
-              size="sm"
-              onClick={saveAndExitEditMode}
-              disabled={!hasUnsavedChanges}
-              className="bg-amber-600 hover:bg-amber-700 text-white px-2 sm:px-3"
-              data-testid="button-save-keyframe-edit"
-            >
-              <Save className="h-4 w-4 sm:mr-1" />
-              <span className="hidden sm:inline">Save</span>
-            </Button>
-          </div>
-        </div>
-      )}
-
       <div ref={containerRef} className="relative w-full rounded-lg border border-white/10">
         <canvas
           ref={canvasRef}
@@ -2590,6 +2553,43 @@ export function PlaybookCanvas({
                 <span className="hidden sm:inline">Save Play</span>
               </Button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Mode Banner - Above Timeline */}
+      {isEditingKeyframe && editingKeyframeNumber && (
+        <div className="mt-3 p-3 bg-amber-100 border border-amber-300 rounded-lg flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Pencil className="h-4 w-4 text-amber-600 shrink-0" />
+            <span className="text-sm font-medium text-slate-900 truncate">
+              Editing #{editingKeyframeNumber}
+            </span>
+            {hasUnsavedChanges && (
+              <span className="text-xs text-slate-600 shrink-0">*</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={cancelEditMode}
+              className="text-slate-600 border-slate-300 hover:bg-slate-200 px-2 sm:px-3"
+              data-testid="button-cancel-edit"
+            >
+              <span className="hidden sm:inline">Cancel</span>
+              <XIcon className="h-4 w-4 sm:hidden" />
+            </Button>
+            <Button
+              size="sm"
+              onClick={saveAndExitEditMode}
+              disabled={!hasUnsavedChanges}
+              className="bg-amber-600 hover:bg-amber-700 text-white px-2 sm:px-3"
+              data-testid="button-save-keyframe-edit"
+            >
+              <Save className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">Save</span>
+            </Button>
           </div>
         </div>
       )}
