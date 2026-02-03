@@ -962,10 +962,19 @@ export function PlaybookCanvas({
       let width = containerWidth;
       let height = Math.round(width * aspectRatio);
       
-      // In portrait mode, limit height to 50% of viewport to leave room for toolbar/timeline
+      // Limit canvas height to fit within viewport with room for toolbar/timeline
       const isPortrait = window.innerHeight > window.innerWidth;
       if (isPortrait) {
+        // In portrait mode, limit height to 50% of viewport
         const maxHeight = Math.round(window.innerHeight * 0.5);
+        if (height > maxHeight) {
+          height = maxHeight;
+          width = Math.round(height / aspectRatio);
+        }
+      } else {
+        // In landscape mode, limit height to ~40% of viewport to ensure 
+        // canvas + toolbar + timeline all fit without scrolling
+        const maxHeight = Math.round(window.innerHeight * 0.4);
         if (height > maxHeight) {
           height = maxHeight;
           width = Math.round(height / aspectRatio);
