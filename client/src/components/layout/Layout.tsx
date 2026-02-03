@@ -1,6 +1,5 @@
 import { ThemeToggle } from "./ThemeToggle";
 import { DashboardBackground } from "./DashboardBackground";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Settings, LogOut, AlertCircle, Bell, Shield } from "lucide-react";
 import { useEffect } from "react";
@@ -37,16 +36,15 @@ export function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background flex relative">
+    <div className="h-screen bg-background flex flex-col relative overflow-hidden">
       <DashboardBackground />
-      <main className="flex-1 h-screen overflow-hidden flex flex-col relative z-10">
-        <header 
-          className="border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-10 px-4 md:px-8 flex items-center justify-between gap-4"
-          style={{ 
-            paddingTop: 'max(env(safe-area-inset-top), 8px)',
-            minHeight: 'calc(64px + env(safe-area-inset-top, 0px))'
-          }}
-        >
+      <header 
+        className="border-b border-border bg-background/80 backdrop-blur-md shrink-0 px-4 md:px-8 flex items-center justify-between gap-4"
+        style={{ 
+          paddingTop: 'max(env(safe-area-inset-top), 8px)',
+          minHeight: 'calc(64px + env(safe-area-inset-top, 0px))'
+        }}
+      >
           <div className="flex items-center gap-3">
             <img src={logoImage} alt="STATFYR" className="h-8 w-8" />
             <span className="text-lg md:text-xl font-display font-bold text-slate-900 dark:text-white">
@@ -96,14 +94,15 @@ export function Layout({ children }: LayoutProps) {
               data-testid="button-logout"
             >
               <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
-        </header>
-        <ScrollArea className="flex-1 p-4 md:p-8">
+          </Button>
+        </div>
+      </header>
+      <main className="flex-1 relative z-10 overflow-y-auto overflow-x-hidden">
+        <div className="p-4 md:p-8">
           <div className="max-w-7xl mx-auto pb-20">
             {children}
           </div>
-        </ScrollArea>
+        </div>
       </main>
     </div>
   );
