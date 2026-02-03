@@ -187,6 +187,24 @@ export default function UnifiedDashboard() {
 
   useEffect(() => { setMounted(true); }, []);
 
+  // Fix iOS WebView touch target alignment by scrolling to top and forcing re-layout
+  useEffect(() => {
+    if (mounted) {
+      // Scroll to top to ensure proper touch target alignment
+      window.scrollTo(0, 0);
+      // Force a re-layout by triggering a small resize event
+      const forceReflow = () => {
+        document.body.style.transform = 'translateZ(0)';
+        requestAnimationFrame(() => {
+          document.body.style.transform = '';
+        });
+      };
+      // Small delay to ensure DOM is fully ready
+      const timer = setTimeout(forceReflow, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [mounted]);
+
   useEffect(() => {
     const checkLandscape = () => {
       setIsLandscape(window.matchMedia("(orientation: landscape)").matches && window.innerWidth > 600);
@@ -2759,10 +2777,10 @@ export default function UnifiedDashboard() {
           
           <div 
             className="relative z-10 px-4 pb-8"
-            style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1.5rem)' }}
+            style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 20px)' }}
           >
-            {/* Top Bar */}
-            <div className="flex items-center justify-between mb-6">
+            {/* Top Bar - with touch-action for iOS */}
+            <div className="flex items-center justify-between mb-6 mt-2" style={{ touchAction: 'manipulation' }}>
               <div className="flex items-center gap-2">
                 <img src={logoImage} alt="STATFYR" className="h-8 w-8" />
                 <span className="font-display font-bold text-lg tracking-wide text-slate-900 dark:text-white">
@@ -2831,7 +2849,7 @@ export default function UnifiedDashboard() {
                 {/* Settings Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="ghost" data-testid="button-settings-menu">
+                    <Button size="icon" variant="ghost" data-testid="button-settings-menu" style={{ touchAction: 'manipulation' }}>
                       <Settings className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
