@@ -966,9 +966,12 @@ export function PlaybookCanvas({
     });
   }, [elements, sport, activeHalf, isPlaying, keyframes.length, readOnly, isDragging, getInterpolatedElements]);
 
+  // Main redraw effect - triggers on canvas size, sport, active half, animation, and image load
   useEffect(() => {
-    redrawCanvas();
-  }, [canvasSize, redrawCanvas, animationProgress, currentKeyframeIndex, soccerFieldImageLoaded]);
+    if (canvasSize.width > 0 && canvasSize.height > 0) {
+      redrawCanvas();
+    }
+  }, [canvasSize, redrawCanvas, animationProgress, currentKeyframeIndex, soccerFieldImageLoaded, sport, activeHalf]);
 
   // Consistent styling constants
   const FIELD_GREEN = "#2d5a27";

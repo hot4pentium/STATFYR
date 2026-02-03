@@ -1659,14 +1659,15 @@ export default function UnifiedDashboard() {
         )}
         {(selectedCard === "playmaker" || selectedCard === "playbook") && (
           <div className="space-y-4">
-            {(userRole === "coach" || isStaff) && selectedCard === "playmaker" && (
+            {(userRole === "coach" || isStaff) && selectedCard === "playmaker" && currentTeam?.sport && (
               <Card className="bg-card/60 backdrop-blur-sm border-white/10">
                 <CardHeader>
                   <CardTitle className="text-lg">Create New Play</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <PlaybookCanvas 
-                    sport={currentTeam?.sport} 
+                    key={currentTeam.sport}
+                    sport={currentTeam.sport} 
                     onSave={async (data) => { 
                       createPlayMutation.mutate(data);
                       setHasPlaymakerUnsavedChanges(false);

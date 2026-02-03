@@ -997,14 +997,21 @@ export default function CoachDashboard() {
                 <p className="text-sm text-muted-foreground">Draw and design your team's plays</p>
               </div>
             </div>
-            <PlaybookCanvas 
-              athletes={athletes.map(a => ({ id: a.user.id, firstName: a.user.firstName || "", lastName: a.user.lastName || "" }))} 
-              sport={currentTeam?.sport}
-              onSave={async (data) => {
-                await createPlayMutation.mutateAsync(data);
-              }}
-              isSaving={createPlayMutation.isPending}
-            />
+            {currentTeam?.sport ? (
+              <PlaybookCanvas 
+                key={currentTeam.sport}
+                athletes={athletes.map(a => ({ id: a.user.id, firstName: a.user.firstName || "", lastName: a.user.lastName || "" }))} 
+                sport={currentTeam.sport}
+                onSave={async (data) => {
+                  await createPlayMutation.mutateAsync(data);
+                }}
+                isSaving={createPlayMutation.isPending}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-48 text-muted-foreground">
+                Loading field...
+              </div>
+            )}
           </div>
         );
       case "playbook":
