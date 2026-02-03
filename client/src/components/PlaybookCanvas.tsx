@@ -886,14 +886,34 @@ export function PlaybookCanvas({
 
   // Calculate canvas size - half field + a bit past midfield (except baseball = full)
   useEffect(() => {
+    if (!canvasActive) return;
+    
+    let retryCount = 0;
+    const maxRetries = 10;
+    let retryTimeout: NodeJS.Timeout | null = null;
+    
     const calculateSize = () => {
       const container = containerRef.current;
-      if (!container) return;
+      if (!container) {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          retryTimeout = setTimeout(calculateSize, 50);
+        }
+        return;
+      }
       
       // Don't recalculate if dimensions are locked (prevents scroll-triggered changes)
       if (dimensionsLocked && canvasSize.width > 0) return;
       
       const containerWidth = container.clientWidth;
+      if (containerWidth === 0) {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          retryTimeout = setTimeout(calculateSize, 50);
+        }
+        return;
+      }
+      
       const normalizedSport = sport?.toLowerCase();
       
       // Aspect ratio: height/width for half field + bit past midfield (~60% of field)
@@ -930,7 +950,10 @@ export function PlaybookCanvas({
       setDimensionsLocked(true);
     };
     
-    calculateSize();
+    // Use requestAnimationFrame to ensure DOM has rendered before measuring
+    const rafId = requestAnimationFrame(() => {
+      calculateSize();
+    });
     
     // Only recalculate on significant resize (orientation change)
     const handleResize = () => {
@@ -944,8 +967,12 @@ export function PlaybookCanvas({
     };
     
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [sport, dimensionsLocked, canvasSize.width]);
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (retryTimeout) clearTimeout(retryTimeout);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [sport, dimensionsLocked, canvasSize.width, canvasActive]);
 
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
