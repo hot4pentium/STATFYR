@@ -22,15 +22,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// Hook to detect landscape orientation on mobile only (desktop is always allowed)
-function useIsMobileLandscape() {
-  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
+// Hook to detect landscape orientation on ALL devices (PlayMaker is portrait-only)
+function useIsLandscape() {
+  const [isLandscape, setIsLandscape] = useState(false);
 
   useEffect(() => {
     const checkOrientation = () => {
-      const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
-      const isLandscape = window.innerWidth > window.innerHeight;
-      setIsMobileLandscape(isMobile && isLandscape);
+      const landscape = window.innerWidth > window.innerHeight;
+      setIsLandscape(landscape);
     };
     
     checkOrientation();
@@ -43,7 +42,7 @@ function useIsMobileLandscape() {
     };
   }, []);
 
-  return isMobileLandscape;
+  return isLandscape;
 }
 
 export default function PlayEditorPage() {
@@ -55,7 +54,7 @@ export default function PlayEditorPage() {
   const { user } = useUser();
   const queryClient = useQueryClient();
   const [play, setPlay] = useState<any>(null);
-  const isMobileLandscape = useIsMobileLandscape();
+  const isLandscape = useIsLandscape();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
@@ -217,7 +216,7 @@ export default function PlayEditorPage() {
   const backUrl = isDemo ? "/playbook?demo=true" : "/dashboard";
 
   // Show rotate message in landscape mode
-  if (isMobileLandscape) {
+  if (isLandscape) {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
