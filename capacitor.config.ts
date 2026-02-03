@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
     androidScheme: "https",
     iosScheme: "https",
     hostname: "statfyr.com",
-    //url: "https://statfyr.replit.app", //
+    url: "https://statfyr.replit.app",
   },
   plugins: {
     App: {
