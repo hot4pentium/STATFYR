@@ -79,13 +79,17 @@ export function PlaybookCanvas({
   readOnly = false,
   originalCanvasWidth
 }: PlaybookCanvasProps) {
-  // Landscape detection - PlayMaker is portrait-only
-  const [isLandscape, setIsLandscape] = useState(false);
+  // Landscape detection - PlayMaker is portrait-only on mobile devices
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
   
   useEffect(() => {
     const checkOrientation = () => {
+      // Only enforce portrait on mobile devices (tablets and phones)
+      // Desktop/laptop users can use landscape freely
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+        || ('ontouchstart' in window && window.innerWidth < 1024);
       const landscape = window.innerWidth > window.innerHeight;
-      setIsLandscape(landscape);
+      setIsMobileLandscape(isMobileDevice && landscape);
     };
     
     checkOrientation();
@@ -2122,8 +2126,8 @@ export function PlaybookCanvas({
 
   const isSoccerReady = sport?.toLowerCase() !== 'soccer' || soccerFieldImageLoaded;
   
-  // Show rotate message in landscape mode (PlayMaker is portrait-only)
-  if (isLandscape && !readOnly) {
+  // Show rotate message in landscape mode on mobile devices only
+  if (isMobileLandscape && !readOnly) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 p-8 min-h-[300px] bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-lg border border-white/10">
         <RotateCcw className="w-16 h-16 text-primary animate-pulse" />
