@@ -1323,6 +1323,10 @@ export function PlaybookCanvas({
   const drawSoccerPitch = (ctx: CanvasRenderingContext2D, width: number, height: number, half: "offense" | "defense") => {
     ctx.save();
     
+    // Fill background with white first
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+    
     // Use the soccer field clipboard image if loaded
     if (soccerFieldImageRef.current && soccerFieldImageLoaded) {
       const img = soccerFieldImageRef.current;
@@ -1333,13 +1337,30 @@ export function PlaybookCanvas({
         ctx.scale(1, -1);
       }
       
-      // Draw the image scaled to fit the canvas
-      ctx.drawImage(img, 0, 0, width, height);
-    } else {
-      // Fallback: simple white background with field outline
-      ctx.fillStyle = "#f5f5f5";
-      ctx.fillRect(0, 0, width, height);
+      // Calculate aspect ratio to contain the full image
+      const imgAspect = img.width / img.height;
+      const canvasAspect = width / height;
       
+      let drawWidth, drawHeight, offsetX, offsetY;
+      
+      if (imgAspect > canvasAspect) {
+        // Image is wider - fit to width
+        drawWidth = width;
+        drawHeight = width / imgAspect;
+        offsetX = 0;
+        offsetY = (height - drawHeight) / 2;
+      } else {
+        // Image is taller - fit to height
+        drawHeight = height;
+        drawWidth = height * imgAspect;
+        offsetX = (width - drawWidth) / 2;
+        offsetY = 0;
+      }
+      
+      // Draw the image centered and fully visible
+      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+    } else {
+      // Fallback: simple field outline
       if (half === "defense") {
         ctx.translate(0, height);
         ctx.scale(1, -1);
