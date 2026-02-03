@@ -1824,6 +1824,8 @@ export function PlaybookCanvas({
         // Keyframes are immutable snapshots - don't modify them
         // The deleted element will reappear if you jump back to a keyframe that contains it
         setElements((prev) => prev.filter((el) => el.id !== clickedElement.id));
+        // Mark as having unsaved changes when deleting a shape
+        if (keyframesRef.current.length > 0) setHasUnsavedChanges(true);
       }
       (e.target as HTMLCanvasElement).releasePointerCapture(e.pointerId);
       return;
