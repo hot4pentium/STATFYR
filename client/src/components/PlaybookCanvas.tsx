@@ -1510,7 +1510,6 @@ export function PlaybookCanvas({
         const angle = Math.atan2(end.y - start.y, end.x - start.x);
         const headLen = 15;
 
-        ctx.strokeStyle = "#ffffff";
         ctx.beginPath();
         ctx.moveTo(start.x, start.y);
         ctx.lineTo(end.x, end.y);
