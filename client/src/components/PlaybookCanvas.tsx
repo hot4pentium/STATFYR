@@ -966,7 +966,7 @@ export function PlaybookCanvas({
 
   useEffect(() => {
     redrawCanvas();
-  }, [canvasSize, redrawCanvas, animationProgress, currentKeyframeIndex]);
+  }, [canvasSize, redrawCanvas, animationProgress, currentKeyframeIndex, soccerFieldImageLoaded]);
 
   // Consistent styling constants
   const FIELD_GREEN = "#2d5a27";
