@@ -807,7 +807,9 @@ export function PlaybookCanvas({
       case "xshape": return "#000000";
       case "triangle": return "#eab308";
       case "athlete": return "#3b82f6";
-      default: return "#ffffff";
+      case "freedraw": return "#000000";
+      case "arrow": return "#000000";
+      default: return "#000000";
     }
   };
 
