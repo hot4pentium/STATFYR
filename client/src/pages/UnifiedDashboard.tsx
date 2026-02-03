@@ -2829,7 +2829,7 @@ export default function UnifiedDashboard() {
                 )}
                 
                 {/* Settings Menu */}
-                <DropdownMenu modal={false}>
+                <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button size="icon" variant="ghost" data-testid="button-settings-menu">
                       <Settings className="h-5 w-5" />
