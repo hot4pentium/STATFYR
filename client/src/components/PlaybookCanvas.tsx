@@ -995,9 +995,12 @@ export function PlaybookCanvas({
           width = Math.round(height / aspectRatio);
         }
       } else {
-        // In landscape mode, limit height to ~40% of viewport to ensure 
-        // canvas + toolbar + timeline all fit without scrolling
-        const maxHeight = Math.round(window.innerHeight * 0.4);
+        // In landscape mode on desktop, allow much larger canvas
+        // Check if this is a desktop/laptop (larger screen without touch)
+        const isDesktop = window.innerWidth >= 1024 && !('ontouchstart' in window);
+        // Desktop: 70% of viewport height, Mobile landscape: 40%
+        const maxHeightPercent = isDesktop ? 0.7 : 0.4;
+        const maxHeight = Math.round(window.innerHeight * maxHeightPercent);
         if (height > maxHeight) {
           height = maxHeight;
           width = Math.round(height / aspectRatio);
