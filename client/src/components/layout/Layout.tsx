@@ -39,10 +39,10 @@ export function Layout({ children }: LayoutProps) {
     <div className="h-screen bg-background flex flex-col relative overflow-hidden">
       <DashboardBackground />
       <header 
-        className="border-b border-border bg-background/80 backdrop-blur-md shrink-0 px-4 md:px-8 flex items-center justify-between gap-4"
+        className="border-b border-border bg-background/80 backdrop-blur-md shrink-0 px-4 md:px-8 flex items-center justify-between gap-4 pt-2 pb-2"
         style={{ 
-          paddingTop: 'max(env(safe-area-inset-top), 8px)',
-          minHeight: 'calc(64px + env(safe-area-inset-top, 0px))'
+          paddingTop: 'env(safe-area-inset-top, 8px)',
+          minHeight: '56px'
         }}
       >
           <div className="flex items-center gap-3">
