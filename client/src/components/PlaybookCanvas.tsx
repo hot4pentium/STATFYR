@@ -2199,7 +2199,7 @@ export function PlaybookCanvas({
         {/* Read-only Playback Controls */}
         {readOnly && keyframes.length >= 2 && (
           <div className="flex gap-2 items-center overflow-x-auto pt-2 pb-2 border-t border-white/10 toolbar-scrollbar">
-                <span className="text-sm font-medium text-amber-500 flex items-center gap-2 shrink-0">
+                <span className="text-sm font-medium text-amber-300 flex items-center gap-2 shrink-0">
                   <Film className="h-4 w-4" />
                   Play
                 </span>
@@ -2343,35 +2343,36 @@ export function PlaybookCanvas({
 
       {/* Edit Mode Banner */}
       {isEditingKeyframe && editingKeyframeNumber && (
-        <div className="mb-2 p-3 bg-amber-500/20 border border-amber-500/50 rounded-lg flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Pencil className="h-4 w-4 text-amber-500" />
-            <span className="text-sm font-medium text-amber-500">
-              Editing Keyframe {editingKeyframeNumber}
+        <div className="mb-2 p-3 bg-amber-600/20 border border-amber-600/50 rounded-lg flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Pencil className="h-4 w-4 text-amber-300 shrink-0" />
+            <span className="text-sm font-medium text-amber-300 truncate">
+              Editing #{editingKeyframeNumber}
             </span>
             {hasUnsavedChanges && (
-              <span className="text-xs text-amber-400/70">(unsaved changes)</span>
+              <span className="text-xs text-amber-200/80 shrink-0">*</span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="outline"
               size="sm"
               onClick={cancelEditMode}
-              className="text-muted-foreground border-white/20 hover:bg-white/10"
+              className="text-muted-foreground border-white/20 hover:bg-white/10 px-2 sm:px-3"
               data-testid="button-cancel-edit"
             >
-              Cancel
+              <span className="hidden sm:inline">Cancel</span>
+              <XIcon className="h-4 w-4 sm:hidden" />
             </Button>
             <Button
               size="sm"
               onClick={saveAndExitEditMode}
               disabled={!hasUnsavedChanges}
-              className="bg-amber-500 hover:bg-amber-600 text-white"
+              className="bg-amber-600 hover:bg-amber-700 text-white px-2 sm:px-3"
               data-testid="button-save-keyframe-edit"
             >
-              <Save className="h-4 w-4 mr-1" />
-              Update Keyframe {editingKeyframeNumber}
+              <Save className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">Save</span>
             </Button>
           </div>
         </div>
@@ -2396,7 +2397,7 @@ export function PlaybookCanvas({
         <div className="mt-3 p-3 bg-black/60 rounded-lg border border-white/20">
           <div className="flex gap-2 items-center overflow-x-auto toolbar-scrollbar" data-testid="animation-toolbar">
             {/* Animation label */}
-            <span className="text-sm font-medium text-amber-500 flex items-center gap-2 shrink-0">
+            <span className="text-sm font-medium text-amber-300 flex items-center gap-2 shrink-0">
               <Film className="h-4 w-4" />
               <span className="hidden sm:inline">Animation</span>
             </span>
@@ -2407,14 +2408,14 @@ export function PlaybookCanvas({
               size="sm"
               onClick={recordKeyframe}
               disabled={elements.length === 0 || isPlaying}
-              className="gap-2 shrink-0 text-amber-500 border-amber-500/50 hover:bg-amber-500/20"
+              className="gap-2 shrink-0 text-amber-300 border-amber-400/50 hover:bg-amber-400/20"
               title="Record current positions as a new keyframe"
               data-testid="button-record-keyframe"
             >
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Record</span>
               {keyframes.length > 0 && (
-                <span className="px-1.5 py-0.5 text-xs bg-amber-500/20 text-amber-400 rounded">
+                <span className="px-1.5 py-0.5 text-xs bg-amber-400/20 text-amber-200 rounded">
                   {keyframes.length}
                 </span>
               )}
@@ -2561,7 +2562,7 @@ export function PlaybookCanvas({
         <div className="mt-3 p-3 bg-black/30 rounded-lg border border-white/10">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xs font-medium text-muted-foreground">Timeline</span>
-            <span className="text-xs text-amber-500">({keyframes.length} keyframes)</span>
+            <span className="text-xs text-amber-300">({keyframes.length} keyframes)</span>
           </div>
           <div className="flex items-center gap-2 overflow-x-auto py-2 px-1">
             {keyframes.map((kf, index) => (
@@ -2644,7 +2645,7 @@ export function PlaybookCanvas({
                 <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-bold flex-shrink-0">2</div>
                 <div>
                   <p className="font-medium">Record your first keyframe</p>
-                  <p className="text-sm text-muted-foreground">Click the <span className="text-amber-500 font-medium">+ Keyframe</span> button to save the starting positions.</p>
+                  <p className="text-sm text-muted-foreground">Click the <span className="text-amber-300 font-medium">+ Keyframe</span> button to save the starting positions.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -2658,7 +2659,7 @@ export function PlaybookCanvas({
                 <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-bold flex-shrink-0">4</div>
                 <div>
                   <p className="font-medium">Record another keyframe</p>
-                  <p className="text-sm text-muted-foreground">Click <span className="text-amber-500 font-medium">+ Keyframe</span> again. Repeat steps 3-4 for each movement phase.</p>
+                  <p className="text-sm text-muted-foreground">Click <span className="text-amber-300 font-medium">+ Keyframe</span> again. Repeat steps 3-4 for each movement phase.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
