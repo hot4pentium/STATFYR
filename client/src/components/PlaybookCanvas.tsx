@@ -133,6 +133,9 @@ export function PlaybookCanvas({
   const [isEditingKeyframe, setIsEditingKeyframe] = useState(false);
   const [editingKeyframeId, setEditingKeyframeId] = useState<string | null>(null);
   
+  // Undo stack for deleted keyframes
+  const [deletedKeyframesStack, setDeletedKeyframesStack] = useState<{keyframe: Keyframe, originalIndex: number}[]>([]);
+  
   // Keep keyframes ref in sync to avoid stale closures in pointer handlers
   const keyframesRef = useRef<Keyframe[]>([]);
   useEffect(() => {
@@ -554,6 +557,13 @@ export function PlaybookCanvas({
 
   // Delete a specific keyframe
   const deleteKeyframe = useCallback((keyframeId: string) => {
+    // Save deleted keyframe to undo stack before removing
+    const deletedIndex = keyframes.findIndex(kf => kf.id === keyframeId);
+    const deletedKeyframe = keyframes.find(kf => kf.id === keyframeId);
+    if (deletedKeyframe && deletedIndex !== -1) {
+      setDeletedKeyframesStack(prev => [...prev, { keyframe: deletedKeyframe, originalIndex: deletedIndex }]);
+    }
+    
     setKeyframes(prev => {
       const newKeyframes = prev.filter(kf => kf.id !== keyframeId);
       // If all keyframes are deleted, clear the canvas completely
@@ -572,7 +582,23 @@ export function PlaybookCanvas({
     if (currentKeyframeIndex >= keyframes.length - 1) {
       setCurrentKeyframeIndex(Math.max(0, keyframes.length - 2));
     }
-  }, [keyframes.length, currentKeyframeIndex]);
+  }, [keyframes, currentKeyframeIndex]);
+  
+  // Undo last deleted keyframe
+  const undoDeleteKeyframe = useCallback(() => {
+    if (deletedKeyframesStack.length === 0) return;
+    
+    const lastDeleted = deletedKeyframesStack[deletedKeyframesStack.length - 1];
+    setDeletedKeyframesStack(prev => prev.slice(0, -1));
+    
+    // Re-insert the keyframe at its original position (or at the end if index is out of bounds)
+    setKeyframes(prev => {
+      const insertIndex = Math.min(lastDeleted.originalIndex, prev.length);
+      const newKeyframes = [...prev];
+      newKeyframes.splice(insertIndex, 0, lastDeleted.keyframe);
+      return newKeyframes;
+    });
+  }, [deletedKeyframesStack]);
 
   // Save current keyframe changes
   const saveCurrentKeyframe = useCallback(() => {
@@ -2600,6 +2626,19 @@ export function PlaybookCanvas({
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xs font-medium text-muted-foreground">Timeline</span>
             <span className="text-xs text-amber-300">({keyframes.length} keyframes)</span>
+            {!readOnly && deletedKeyframesStack.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={undoDeleteKeyframe}
+                className="h-6 px-2 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 ml-auto"
+                title="Undo delete keyframe"
+                data-testid="button-undo-delete-keyframe"
+              >
+                <Undo2 className="h-3.5 w-3.5 mr-1" />
+                Undo
+              </Button>
+            )}
           </div>
           <div className="flex items-center gap-2 overflow-x-auto py-2 px-1">
             {keyframes.map((kf, index) => (
@@ -2654,6 +2693,23 @@ export function PlaybookCanvas({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Undo button when all keyframes deleted */}
+      {!readOnly && keyframes.length === 0 && deletedKeyframesStack.length > 0 && (
+        <div className="mt-3 p-3 bg-black/30 rounded-lg border border-white/10">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={undoDeleteKeyframe}
+            className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
+            title="Undo delete keyframe"
+            data-testid="button-undo-delete-keyframe-empty"
+          >
+            <Undo2 className="h-4 w-4 mr-2" />
+            Undo Delete ({deletedKeyframesStack.length})
+          </Button>
         </div>
       )}
 
