@@ -540,7 +540,21 @@ export function PlaybookCanvas({
 
   // Delete a specific keyframe
   const deleteKeyframe = useCallback((keyframeId: string) => {
-    setKeyframes(prev => prev.filter(kf => kf.id !== keyframeId));
+    setKeyframes(prev => {
+      const newKeyframes = prev.filter(kf => kf.id !== keyframeId);
+      // If all keyframes are deleted, clear the canvas completely
+      if (newKeyframes.length === 0) {
+        setElements([]);
+        allElementsRef.current.clear();
+        currentKeyframeIndexRef.current = 0;
+        setCurrentKeyframeIndex(0);
+        setAnimationProgress(0);
+        setIsPlaying(false);
+        setHasUnsavedChanges(false);
+        setUndoStack([]);
+      }
+      return newKeyframes;
+    });
     if (currentKeyframeIndex >= keyframes.length - 1) {
       setCurrentKeyframeIndex(Math.max(0, keyframes.length - 2));
     }
@@ -2151,6 +2165,18 @@ export function PlaybookCanvas({
                 >
                   <Undo2 className="h-5 w-5" />
                   <span className="hidden sm:inline">Undo</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClear}
+                  disabled={elements.length === 0}
+                  className="gap-2 shrink-0 text-red-500 hover:text-red-400"
+                  data-testid="button-clear"
+                >
+                  <Trash2 className="h-5 w-5" />
+                  <span className="hidden sm:inline">Clear</span>
                 </Button>
 
                 {sport?.toLowerCase() !== "baseball" && (
