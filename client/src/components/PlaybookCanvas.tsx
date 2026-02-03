@@ -2565,7 +2565,7 @@ export function PlaybookCanvas({
             {keyframes.map((kf, index) => (
               <div
                 key={kf.id}
-                className={`relative flex-shrink-0 w-14 h-14 rounded-lg border-2 cursor-pointer transition-all ${
+                className={`relative flex-shrink-0 w-20 h-20 rounded-lg border-2 cursor-pointer transition-all ${
                   editingKeyframeId === kf.id
                     ? "border-amber-500 bg-amber-500/20 ring-2 ring-amber-500/50"
                     : index === currentKeyframeIndex
