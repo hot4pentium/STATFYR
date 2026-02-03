@@ -2047,7 +2047,7 @@ export function PlaybookCanvas({
       <div className="flex flex-col gap-3 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10" data-testid="playbook-toolbar">
         {/* Drawing Tools - only show when not in read-only mode */}
         {!readOnly && (
-          <div className="flex gap-2 items-center shrink-0 overflow-x-auto pb-2 toolbar-scrollbar">
+          <div className="flex gap-2 items-center shrink-0 overflow-x-auto pb-2 toolbar-scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
                 {tools.map((tool) => (
                   <Button
                     key={tool.id}
@@ -2365,7 +2365,7 @@ export function PlaybookCanvas({
 
       {/* Animation Controls - Above Timeline */}
       {!readOnly && (
-        <div className="mt-3 p-3 bg-black/30 rounded-lg border border-white/10">
+        <div className="mt-3 p-3 bg-black/60 rounded-lg border border-white/20">
           <div className="flex gap-2 items-center overflow-x-auto toolbar-scrollbar" data-testid="animation-toolbar">
             {/* Animation label */}
             <span className="text-sm font-medium text-amber-500 flex items-center gap-2 shrink-0">
@@ -2554,9 +2554,9 @@ export function PlaybookCanvas({
                 </div>
                 {!readOnly && !isEditingKeyframe && (
                   <>
-                    {/* Edit button - always visible */}
+                    {/* Edit button - on top center */}
                     <button
-                      className="absolute -top-2 -left-2 w-6 h-6 bg-amber-500 rounded-full text-white flex items-center justify-center shadow-md border border-amber-400"
+                      className="absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-6 bg-amber-500 rounded-full text-white flex items-center justify-center shadow-md border border-amber-400"
                       onClick={(e) => {
                         e.stopPropagation();
                         enterEditMode(kf.id);
@@ -2566,9 +2566,9 @@ export function PlaybookCanvas({
                     >
                       <Pencil className="h-3 w-3" />
                     </button>
-                    {/* Delete button */}
+                    {/* Delete button - on bottom center */}
                     <button
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white flex items-center justify-center shadow-md border border-red-400"
+                      className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-6 bg-red-500 rounded-full text-white flex items-center justify-center shadow-md border border-red-400"
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteKeyframe(kf.id);
