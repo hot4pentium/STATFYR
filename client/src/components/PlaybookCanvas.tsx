@@ -2169,7 +2169,7 @@ export function PlaybookCanvas({
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-2xl mx-auto" data-testid="playbook-canvas-container">
+    <div className="flex flex-col gap-4 w-full max-w-4xl mx-auto" data-testid="playbook-canvas-container">
       <div className="flex flex-col gap-3 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10" data-testid="playbook-toolbar">
         {/* Drawing Tools - only show when not in read-only mode */}
         {!readOnly && (
