@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, MousePointer, Save, Shield, Swords, Play, Pause, RotateCcw, Plus, HelpCircle, ChevronLeft, ChevronRight, RefreshCw, Film } from "lucide-react";
+import { Pencil, ArrowRight, Square, Triangle, Circle, X as XIcon, Undo2, Trash2, MousePointerClick, MousePointer, Save, Shield, Swords, Play, Pause, RotateCcw, Plus, HelpCircle, ChevronLeft, ChevronRight, RefreshCw, Film, Loader2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -84,6 +84,7 @@ export function PlaybookCanvas({
   const animationRef = useRef<number | null>(null);
   const soccerFieldImageRef = useRef<HTMLImageElement | null>(null);
   const [soccerFieldImageLoaded, setSoccerFieldImageLoaded] = useState(false);
+  const [canvasActive, setCanvasActive] = useState(readOnly || initialElements.length > 0 || initialKeyframes.length > 0);
   const [selectedTool, setSelectedTool] = useState<Tool>("select");
   const [isAnimationMode, setIsAnimationMode] = useState(false);
   const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
@@ -230,6 +231,7 @@ export function PlaybookCanvas({
     if (!readOnly && initialElements.length === 0) {
       setElements([]);
       setDimensionsLocked(false);
+      setCanvasActive(false);
     }
   }, [sport, readOnly, initialElements.length]);
 
@@ -2036,6 +2038,35 @@ export function PlaybookCanvas({
     setKeyframes([]);
     setElements([]);
   };
+
+  const isSoccerReady = sport?.toLowerCase() !== 'soccer' || soccerFieldImageLoaded;
+  
+  if (!canvasActive) {
+    return (
+      <div 
+        className="flex flex-col items-center justify-center gap-4 p-8 min-h-[300px] bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-lg border border-white/10 cursor-pointer hover:border-amber-500/50 hover:bg-slate-800/60 transition-all duration-200"
+        onClick={() => isSoccerReady && setCanvasActive(true)}
+        data-testid="playbook-canvas-placeholder"
+      >
+        <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center">
+          {isSoccerReady ? (
+            <Plus className="h-8 w-8 text-amber-400" />
+          ) : (
+            <Loader2 className="h-8 w-8 text-amber-400 animate-spin" />
+          )}
+        </div>
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-white mb-1">Create a New Play</h3>
+          <p className="text-sm text-muted-foreground">
+            {isSoccerReady 
+              ? `Tap here to open the ${sport} field and start designing`
+              : `Loading ${sport} field...`
+            }
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4" data-testid="playbook-canvas-container">
