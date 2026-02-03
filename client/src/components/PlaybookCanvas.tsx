@@ -2631,7 +2631,7 @@ export function PlaybookCanvas({
                 variant="ghost"
                 size="sm"
                 onClick={undoDeleteKeyframe}
-                className="h-6 px-2 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 ml-auto"
+                className="h-6 px-2 text-xs text-red-500 hover:text-red-400 hover:bg-red-500/20 ml-auto font-medium"
                 title="Undo delete keyframe"
                 data-testid="button-undo-delete-keyframe"
               >
@@ -2703,7 +2703,7 @@ export function PlaybookCanvas({
             variant="ghost"
             size="sm"
             onClick={undoDeleteKeyframe}
-            className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
+            className="text-red-500 hover:text-red-400 hover:bg-red-500/20 font-medium"
             title="Undo delete keyframe"
             data-testid="button-undo-delete-keyframe-empty"
           >
