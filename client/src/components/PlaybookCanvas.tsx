@@ -82,6 +82,8 @@ export function PlaybookCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
+  const soccerFieldImageRef = useRef<HTMLImageElement | null>(null);
+  const [soccerFieldImageLoaded, setSoccerFieldImageLoaded] = useState(false);
   const [selectedTool, setSelectedTool] = useState<Tool>("select");
   const [isAnimationMode, setIsAnimationMode] = useState(false);
   const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
@@ -235,6 +237,16 @@ export function PlaybookCanvas({
   useEffect(() => {
     onHasUnsavedChanges?.(elements.length > 0 || keyframes.length > 0);
   }, [elements.length, keyframes.length, onHasUnsavedChanges]);
+
+  // Load soccer field image
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/fields/soccer-clipboard.png';
+    img.onload = () => {
+      soccerFieldImageRef.current = img;
+      setSoccerFieldImageLoaded(true);
+    };
+  }, []);
 
   // Reset keyframes when sport changes (only in edit mode, not when viewing saved plays)
   useEffect(() => {
@@ -1307,106 +1319,48 @@ export function PlaybookCanvas({
     ctx.restore();
   };
 
-  // Soccer - Half pitch + past center
+  // Soccer - Half pitch using clipboard image
   const drawSoccerPitch = (ctx: CanvasRenderingContext2D, width: number, height: number, half: "offense" | "defense") => {
-    // Flip coordinate system for defense view
     ctx.save();
-    if (half === "defense") {
-      ctx.translate(0, height);
-      ctx.scale(1, -1);
-    }
     
-    // Green grass
-    ctx.fillStyle = FIELD_GREEN;
-    ctx.fillRect(0, 0, width, height);
-    
-    // Grass stripes
-    const stripeHeight = height / 10;
-    for (let i = 0; i < 10; i++) {
-      if (i % 2 === 1) {
-        ctx.fillStyle = FIELD_GREEN_STRIPE;
-        ctx.fillRect(0, i * stripeHeight, width, stripeHeight);
+    // Use the soccer field clipboard image if loaded
+    if (soccerFieldImageRef.current && soccerFieldImageLoaded) {
+      const img = soccerFieldImageRef.current;
+      
+      // For defense view, flip the image
+      if (half === "defense") {
+        ctx.translate(0, height);
+        ctx.scale(1, -1);
       }
-    }
-    
-    ctx.strokeStyle = LINE_WHITE;
-    ctx.lineWidth = LINE_WIDTH;
-    
-    // Pitch boundary
-    const margin = width * 0.05;
-    ctx.strokeRect(margin, margin, width - margin * 2, height - margin * 2);
-    
-    // Center line (at ~85% from top)
-    const centerY = height * 0.85;
-    ctx.beginPath();
-    ctx.moveTo(margin, centerY);
-    ctx.lineTo(width - margin, centerY);
-    ctx.stroke();
-    
-    // Center circle (partial)
-    const centerCircleRadius = width * 0.18;
-    ctx.beginPath();
-    ctx.arc(width / 2, centerY, centerCircleRadius, Math.PI, 2 * Math.PI);
-    ctx.stroke();
-    
-    // Center spot
-    ctx.fillStyle = LINE_WHITE;
-    ctx.beginPath();
-    ctx.arc(width / 2, centerY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    
-    // Penalty area (18-yard box) - narrower width
-    const penaltyWidth = width * 0.55;
-    const penaltyHeight = height * 0.2;
-    const penaltyX = (width - penaltyWidth) / 2;
-    ctx.strokeRect(penaltyX, margin, penaltyWidth, penaltyHeight);
-    
-    // Goal area (6-yard box)
-    const goalAreaWidth = width * 0.28;
-    const goalAreaHeight = height * 0.07;
-    const goalAreaX = (width - goalAreaWidth) / 2;
-    ctx.strokeRect(goalAreaX, margin, goalAreaWidth, goalAreaHeight);
-    
-    // Penalty spot
-    const penaltySpotY = margin + penaltyHeight * 0.65;
-    ctx.fillStyle = LINE_WHITE;
-    ctx.beginPath();
-    ctx.arc(width / 2, penaltySpotY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    
-    // Penalty arc (the "D") - at the top of the penalty box, curving outward
-    const penaltyBoxBottom = margin + penaltyHeight;
-    const arcRadius = width * 0.12;
-    // Calculate the angle where arc meets penalty box edges
-    const halfPenaltyWidth = penaltyWidth / 2;
-    // The arc is centered on penalty spot but only draw the part outside the box
-    const angleAtBox = Math.asin((penaltyBoxBottom - penaltySpotY) / arcRadius);
-    ctx.beginPath();
-    ctx.arc(width / 2, penaltySpotY, arcRadius, angleAtBox, Math.PI - angleAtBox);
-    ctx.stroke();
-    
-    // Goal (behind the endline)
-    const goalWidth = width * 0.18;
-    const goalDepth = margin * 0.7;
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = LINE_WHITE;
-    // Goal posts and crossbar
-    ctx.beginPath();
-    ctx.moveTo((width - goalWidth) / 2, margin);
-    ctx.lineTo((width - goalWidth) / 2, margin - goalDepth);
-    ctx.lineTo((width + goalWidth) / 2, margin - goalDepth);
-    ctx.lineTo((width + goalWidth) / 2, margin);
-    ctx.stroke();
-    
-    // Goal net effect (simple lines)
-    ctx.lineWidth = 0.5;
-    ctx.strokeStyle = "#cccccc";
-    const netSpacing = goalWidth / 6;
-    for (let i = 1; i < 6; i++) {
-      const x = (width - goalWidth) / 2 + netSpacing * i;
+      
+      // Draw the image scaled to fit the canvas
+      ctx.drawImage(img, 0, 0, width, height);
+    } else {
+      // Fallback: simple white background with field outline
+      ctx.fillStyle = "#f5f5f5";
+      ctx.fillRect(0, 0, width, height);
+      
+      if (half === "defense") {
+        ctx.translate(0, height);
+        ctx.scale(1, -1);
+      }
+      
+      ctx.strokeStyle = "#333333";
+      ctx.lineWidth = 2;
+      
+      const margin = width * 0.05;
+      ctx.strokeRect(margin, margin, width - margin * 2, height - margin * 2);
+      
+      // Center line
+      const centerY = height * 0.85;
       ctx.beginPath();
-      ctx.moveTo(x, margin);
-      ctx.lineTo(x, margin - goalDepth);
+      ctx.moveTo(margin, centerY);
+      ctx.lineTo(width - margin, centerY);
+      ctx.stroke();
+      
+      // Center circle
+      ctx.beginPath();
+      ctx.arc(width / 2, centerY, width * 0.18, Math.PI, 2 * Math.PI);
       ctx.stroke();
     }
     
