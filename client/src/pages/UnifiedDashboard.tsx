@@ -2990,7 +2990,7 @@ export default function UnifiedDashboard() {
         {/* Main Content - switches based on supporter view mode */}
         {userRole === "supporter" && supporterViewMode === "athlete" && selectedManagedAthlete ? (
           /* Athlete Profile View for Supporters - matches coach layout */
-          (<div className="relative z-20 px-4 pt-6 pb-8">
+          (<div className="relative z-20 px-4 md:px-8 lg:px-12 pt-6 md:pt-8 pb-8">
             {/* Two-column layout on landscape - matching coach dashboard */}
             <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
               {/* Left Column - Cards (slides left when content selected on mobile) */}
@@ -3096,11 +3096,11 @@ export default function UnifiedDashboard() {
                   </CardContent>
                 </Card>
 
-                <div className="flex items-center gap-3 mb-4 landscape:mb-5">
-                  <h2 className="text-xl landscape:text-2xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
+                <div className="flex items-center gap-3 mb-4 md:mb-6 landscape:mb-5">
+                  <h2 className="text-xl md:text-2xl landscape:text-2xl font-display font-bold uppercase tracking-wide">Quick Access</h2>
                 </div>
                 {/* Cards Grid */}
-                <div className="grid grid-cols-2 landscape:grid-cols-1 xl:grid-cols-2 gap-3 landscape:gap-3">
+                <div className="grid grid-cols-2 landscape:grid-cols-1 xl:grid-cols-2 gap-3 md:gap-5 landscape:gap-3">
                   {visibleCards.map((card) => {
                     const locked = isCardLocked(card.id);
                     return (
@@ -3110,24 +3110,24 @@ export default function UnifiedDashboard() {
                         onClick={() => handleCardClick(card.id)}
                         data-testid={`card-${card.id}`}
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="shrink-0 h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <CardContent className="p-4 md:p-6">
+                          <div className="flex items-center gap-3 md:gap-4">
+                            <div className="shrink-0 h-10 w-10 md:h-14 md:w-14 rounded-lg bg-primary/10 flex items-center justify-center">
                               {locked ? (
                                 <div className="relative">
-                                  <card.icon className="h-5 w-5 text-muted-foreground" />
-                                  <Lock className="h-3 w-3 absolute -bottom-1 -right-1 text-yellow-500" />
+                                  <card.icon className="h-5 w-5 md:h-7 md:w-7 text-muted-foreground" />
+                                  <Lock className="h-3 w-3 md:h-4 md:w-4 absolute -bottom-1 -right-1 text-yellow-500" />
                                 </div>
                               ) : (
-                                <card.icon className={`h-5 w-5 ${card.color}`} />
+                                <card.icon className={`h-5 w-5 md:h-7 md:w-7 ${card.color}`} />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <p className="font-bold text-sm uppercase tracking-wide">{card.name}</p>
-                                {locked && <Crown className="h-3 w-3 text-yellow-500" />}
+                                <p className="font-bold text-sm md:text-lg uppercase tracking-wide">{card.name}</p>
+                                {locked && <Crown className="h-3 w-3 md:h-4 md:w-4 text-yellow-500" />}
                               </div>
-                              <p className="text-xs text-muted-foreground">{card.description}</p>
+                              <p className="text-xs md:text-sm text-muted-foreground">{card.description}</p>
                             </div>
                           </div>
                         </CardContent>
@@ -3156,7 +3156,7 @@ export default function UnifiedDashboard() {
           </div>)
         ) : (
           /* Normal Dashboard View - Quick Access Section */
-          (<div className="relative z-20 px-4 pt-6 pb-8">
+          (<div className="relative z-20 px-4 md:px-8 lg:px-12 pt-6 md:pt-8 pb-8">
             {/* Two-column layout on landscape, sliding panels on portrait */}
             <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
               {/* Left Column - Cards (slides left when content selected on mobile) */}
@@ -3637,7 +3637,7 @@ export default function UnifiedDashboard() {
                   )}
                 </div>
                 {/* Cards Grid */}
-                <div className="grid grid-cols-2 landscape:grid-cols-1 xl:grid-cols-2 gap-3 landscape:gap-3">
+                <div className="grid grid-cols-2 landscape:grid-cols-1 xl:grid-cols-2 gap-3 md:gap-5 landscape:gap-3">
                   {visibleCards.map((card) => {
                     const locked = isCardLocked(card.id);
                     return (
@@ -3647,24 +3647,24 @@ export default function UnifiedDashboard() {
                         onClick={() => handleCardClick(card.id)}
                         data-testid={`card-${card.id}`}
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="shrink-0 h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <CardContent className="p-4 md:p-6">
+                          <div className="flex items-center gap-3 md:gap-4">
+                            <div className="shrink-0 h-10 w-10 md:h-14 md:w-14 rounded-lg bg-primary/10 flex items-center justify-center">
                               {locked ? (
                                 <div className="relative">
-                                  <card.icon className="h-5 w-5 text-muted-foreground" />
-                                  <Lock className="h-3 w-3 absolute -bottom-1 -right-1 text-yellow-500" />
+                                  <card.icon className="h-5 w-5 md:h-7 md:w-7 text-muted-foreground" />
+                                  <Lock className="h-3 w-3 md:h-4 md:w-4 absolute -bottom-1 -right-1 text-yellow-500" />
                                 </div>
                               ) : (
-                                <card.icon className={`h-5 w-5 ${card.color}`} />
+                                <card.icon className={`h-5 w-5 md:h-7 md:w-7 ${card.color}`} />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <p className="font-bold text-sm uppercase tracking-wide">{card.name}</p>
-                                {locked && <Crown className="h-3 w-3 text-yellow-500" />}
+                                <p className="font-bold text-sm md:text-lg uppercase tracking-wide">{card.name}</p>
+                                {locked && <Crown className="h-3 w-3 md:h-4 md:w-4 text-yellow-500" />}
                               </div>
-                              <p className="text-xs text-muted-foreground">{card.description}</p>
+                              <p className="text-xs md:text-sm text-muted-foreground">{card.description}</p>
                             </div>
                           </div>
                         </CardContent>
