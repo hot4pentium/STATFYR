@@ -1000,8 +1000,8 @@ export function PlaybookCanvas({
         const isDesktop = window.innerWidth >= 1024 && !('ontouchstart' in window);
         if (isDesktop) {
           // Desktop: limit height so canvas + toolbars fit in viewport
-          // Cap at 65% of viewport height to leave room for toolbars
-          const maxHeight = Math.round(window.innerHeight * 0.65);
+          // Cap at ~85% of viewport height (1/3 larger than 65%)
+          const maxHeight = Math.round(window.innerHeight * 0.85);
           if (height > maxHeight) {
             height = maxHeight;
             width = Math.round(height / aspectRatio);
