@@ -84,12 +84,16 @@ export function PlaybookCanvas({
   
   useEffect(() => {
     const checkOrientation = () => {
-      // Only enforce portrait on mobile devices (tablets and phones)
+      // Enforce portrait on mobile devices AND tablets (including iPads)
       // Desktop/laptop users can use landscape freely
-      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-        || ('ontouchstart' in window && window.innerWidth < 1024);
+      // iPadOS 13+ reports as "Macintosh" so we detect via touch + platform
+      const isIPad = /iPad/i.test(navigator.userAgent) || 
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const isMobileOrTablet = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+        || isIPad
+        || ('ontouchstart' in window && navigator.maxTouchPoints > 1);
       const landscape = window.innerWidth > window.innerHeight;
-      setIsMobileLandscape(isMobileDevice && landscape);
+      setIsMobileLandscape(isMobileOrTablet && landscape);
     };
     
     checkOrientation();
