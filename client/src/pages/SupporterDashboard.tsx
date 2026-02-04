@@ -65,6 +65,9 @@ export default function SupporterDashboard() {
     queryKey: ["/api/teams", currentTeam?.id, "members"],
     queryFn: () => currentTeam ? getTeamMembers(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
+    staleTime: 0,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
   });
 
   const { data: teamEvents = [] } = useQuery({

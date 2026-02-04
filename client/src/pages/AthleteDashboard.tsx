@@ -81,7 +81,9 @@ export default function AthleteDashboard() {
     queryKey: ["/api/teams", currentTeam?.id, "members"],
     queryFn: () => currentTeam ? getTeamMembers(currentTeam.id) : Promise.resolve([]),
     enabled: !!currentTeam,
-    refetchInterval: 5000,
+    staleTime: 0,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
   });
 
   const { data: teamEvents = [] } = useQuery({
