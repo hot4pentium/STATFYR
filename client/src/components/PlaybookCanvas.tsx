@@ -998,8 +998,8 @@ export function PlaybookCanvas({
         // In landscape mode on desktop, allow much larger canvas
         // Check if this is a desktop/laptop (larger screen without touch)
         const isDesktop = window.innerWidth >= 1024 && !('ontouchstart' in window);
-        // Desktop: 70% of viewport height, Mobile landscape: 40%
-        const maxHeightPercent = isDesktop ? 0.7 : 0.4;
+        // Desktop: 85% of viewport height, Mobile landscape: 40%
+        const maxHeightPercent = isDesktop ? 0.85 : 0.4;
         const maxHeight = Math.round(window.innerHeight * maxHeightPercent);
         if (height > maxHeight) {
           height = maxHeight;
