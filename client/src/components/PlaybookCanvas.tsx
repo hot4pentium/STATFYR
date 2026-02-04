@@ -2182,7 +2182,7 @@ export function PlaybookCanvas({
 
   return (
     <div className="flex flex-col gap-4 w-full" data-testid="playbook-canvas-container">
-      <div className="flex flex-col gap-3 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10 w-full" data-testid="playbook-toolbar">
+      <div className="flex flex-col gap-3 p-3 bg-background/95 dark:bg-card/95 rounded-lg border border-white/10 backdrop-blur-sm shadow-lg sticky top-0 z-10" style={{ width: canvasSize.width > 0 ? canvasSize.width : '100%' }} data-testid="playbook-toolbar">
         {/* Drawing Tools - only show when not in read-only mode */}
         {!readOnly && (
           <div className="flex gap-2 items-center shrink-0 overflow-x-auto pb-2 toolbar-scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
@@ -2463,7 +2463,7 @@ export function PlaybookCanvas({
 
       </div>
 
-      <div ref={containerRef} className="relative w-full rounded-lg border border-white/10 flex justify-center">
+      <div ref={containerRef} className="relative rounded-lg border border-white/10" style={{ width: canvasSize.width > 0 ? canvasSize.width : '100%' }}>
         <canvas
           ref={canvasRef}
           width={canvasSize.width || 400}
@@ -2479,7 +2479,7 @@ export function PlaybookCanvas({
 
       {/* Animation Controls - Above Timeline */}
       {!readOnly && (
-        <div className="mt-3 p-3 bg-black/60 rounded-lg border border-white/20 w-full">
+        <div className="mt-3 p-3 bg-black/60 rounded-lg border border-white/20" style={{ width: canvasSize.width > 0 ? canvasSize.width : '100%' }}>
           <div className="flex gap-2 items-center overflow-x-auto toolbar-scrollbar" data-testid="animation-toolbar">
             {/* Animation label */}
             <span className="text-sm font-medium text-amber-300 flex items-center gap-2 shrink-0">
