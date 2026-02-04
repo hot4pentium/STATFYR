@@ -116,6 +116,7 @@ export default function UnifiedDashboard() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
 
   const [rosterTab, setRosterTab] = useState<"all" | "athletes" | "coach" | "supporters">("all");
   const [playbookTab, setPlaybookTab] = useState<"Offense" | "Defense" | "Special">("Offense");
@@ -992,8 +993,19 @@ export default function UnifiedDashboard() {
       }
       return;
     }
-    setSelectedCard(selectedCard === cardId ? null : cardId);
-    setTimeout(() => contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    const isDeselecting = selectedCard === cardId;
+    setSelectedCard(isDeselecting ? null : cardId);
+    
+    if (isDeselecting) {
+      setTimeout(() => cardsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    } else {
+      setTimeout(() => contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    }
+  };
+  
+  const handleCloseContent = () => {
+    setSelectedCard(null);
+    setTimeout(() => cardsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
   };
 
   const handleLogout = async () => {
@@ -2993,11 +3005,10 @@ export default function UnifiedDashboard() {
           (<div className="relative z-20 px-4 md:px-8 lg:px-12 pt-6 md:pt-8 pb-8">
             {/* Two-column layout on landscape - matching coach dashboard */}
             <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
-              {/* Left Column - Cards (slides left when content selected on mobile) */}
+              {/* Left Column - Cards (stays visible in portrait) */}
               <div 
-                className={`landscape:w-1/3 landscape:shrink-0 transition-all duration-500 ease-out ${
-                  selectedCard ? 'portrait:-translate-x-full portrait:absolute portrait:opacity-0' : 'portrait:translate-x-0'
-                }`}
+                ref={cardsRef}
+                className="landscape:w-1/3 landscape:shrink-0"
               >
                 {/* Athlete HYPE Card Preview */}
                 <Card className="bg-card/60 backdrop-blur-sm border-white/10 mb-4 landscape:mb-5">
@@ -3137,16 +3148,30 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
 
-              {/* Right Column - Content Area (slides up on mobile) */}
+              {/* Right Column - Content Area (shows below cards in portrait) */}
               <div 
                 ref={contentRef}
                 className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-300 ease-out ${
                   selectedCard 
-                    ? 'portrait:mt-4 portrait:animate-in portrait:fade-in portrait:slide-in-from-bottom-4' 
+                    ? 'portrait:mt-6 portrait:animate-in portrait:fade-in portrait:slide-in-from-bottom-4' 
                     : 'portrait:hidden landscape:opacity-50'
                 }`}
               >
-                {selectedCard ? renderContent() : (
+                {selectedCard ? (
+                  <div className="relative">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute -top-1 right-0 portrait:flex landscape:hidden z-10 gap-1 text-muted-foreground hover:text-foreground"
+                      onClick={handleCloseContent}
+                      data-testid="button-close-content"
+                    >
+                      <X className="h-4 w-4" />
+                      Close
+                    </Button>
+                    {renderContent()}
+                  </div>
+                ) : (
                   <div className="hidden landscape:flex items-center justify-center h-full text-muted-foreground">
                     <p>Select a card to view details</p>
                   </div>
@@ -3159,11 +3184,10 @@ export default function UnifiedDashboard() {
           (<div className="relative z-20 px-4 md:px-8 lg:px-12 pt-6 md:pt-8 pb-8">
             {/* Two-column layout on landscape, sliding panels on portrait */}
             <div className="flex flex-col landscape:flex-row landscape:gap-6 relative">
-              {/* Left Column - Cards (slides left when content selected on mobile) */}
+              {/* Left Column - Cards (stays visible in portrait) */}
               <div 
-                className={`landscape:w-1/3 landscape:shrink-0 transition-all duration-500 ease-out ${
-                  selectedCard ? 'portrait:-translate-x-full portrait:absolute portrait:opacity-0' : 'portrait:translate-x-0'
-                }`}
+                ref={cardsRef}
+                className="landscape:w-1/3 landscape:shrink-0"
               >
                 {/* HYPE Cards - Athletes Only - Above Quick Access */}
                 {userRole === "athlete" && (
@@ -3674,16 +3698,30 @@ export default function UnifiedDashboard() {
                 </div>
               </div>
 
-              {/* Right Column - Content Area (slides up on mobile) */}
+              {/* Right Column - Content Area (shows below cards in portrait) */}
               <div 
                 ref={contentRef}
                 className={`landscape:flex-1 landscape:mt-0 landscape:min-h-[400px] transition-all duration-300 ease-out ${
                   selectedCard 
-                    ? 'portrait:mt-4 portrait:animate-in portrait:fade-in portrait:slide-in-from-bottom-4' 
+                    ? 'portrait:mt-6 portrait:animate-in portrait:fade-in portrait:slide-in-from-bottom-4' 
                     : 'portrait:hidden landscape:opacity-50'
                 }`}
               >
-                {selectedCard ? renderContent() : (
+                {selectedCard ? (
+                  <div className="relative">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute -top-1 right-0 portrait:flex landscape:hidden z-10 gap-1 text-muted-foreground hover:text-foreground"
+                      onClick={handleCloseContent}
+                      data-testid="button-close-content"
+                    >
+                      <X className="h-4 w-4" />
+                      Close
+                    </Button>
+                    {renderContent()}
+                  </div>
+                ) : (
                   <div className="hidden landscape:flex items-center justify-center h-full text-muted-foreground">
                     <p>Select a card to view details</p>
                   </div>
