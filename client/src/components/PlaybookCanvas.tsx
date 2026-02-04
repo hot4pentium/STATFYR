@@ -995,15 +995,24 @@ export function PlaybookCanvas({
           width = Math.round(height / aspectRatio);
         }
       } else {
-        // In landscape mode on desktop, allow much larger canvas
+        // In landscape mode on desktop, allow full-size canvas (user can scroll)
         // Check if this is a desktop/laptop (larger screen without touch)
         const isDesktop = window.innerWidth >= 1024 && !('ontouchstart' in window);
-        // Desktop: 85% of viewport height, Mobile landscape: 40%
-        const maxHeightPercent = isDesktop ? 0.85 : 0.4;
-        const maxHeight = Math.round(window.innerHeight * maxHeightPercent);
-        if (height > maxHeight) {
-          height = maxHeight;
-          width = Math.round(height / aspectRatio);
+        if (isDesktop) {
+          // Desktop: no height limit, canvas can be full size
+          // Just cap at reasonable max to prevent extreme sizes
+          const maxHeight = Math.min(height, 900);
+          if (height > maxHeight) {
+            height = maxHeight;
+            width = Math.round(height / aspectRatio);
+          }
+        } else {
+          // Mobile landscape: limit to 40% of viewport
+          const maxHeight = Math.round(window.innerHeight * 0.4);
+          if (height > maxHeight) {
+            height = maxHeight;
+            width = Math.round(height / aspectRatio);
+          }
         }
       }
       
