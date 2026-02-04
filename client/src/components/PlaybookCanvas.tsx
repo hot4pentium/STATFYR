@@ -2454,7 +2454,7 @@ export function PlaybookCanvas({
 
       </div>
 
-      <div ref={containerRef} className="relative w-full rounded-lg border border-white/10 mx-auto">
+      <div ref={containerRef} className="relative rounded-lg border border-white/10 mx-auto" style={{ width: canvasSize.width > 0 ? canvasSize.width : 'auto' }}>
         <canvas
           ref={canvasRef}
           width={canvasSize.width || 400}
