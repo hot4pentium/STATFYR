@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, Copy, Check, ArrowLeft, Crown } from "lucide-react";
+import { Shield, Copy, Check, ArrowLeft, Crown, Upload, User } from "lucide-react";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 import { HibernateTeamDialog } from "@/components/HibernateTeamDialog";
 import { useState, useEffect } from "react";
@@ -60,6 +60,8 @@ export default function CoachSettings() {
   const [selectedColor, setSelectedColor] = useState(currentTeam?.teamColor || "");
   const [copied, setCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (currentTeam?.badgeId) {
@@ -87,6 +89,7 @@ export default function CoachSettings() {
         firstName: user.firstName || "",
         lastName: user.lastName || ""
       });
+      setAvatarPreview(user.avatar || null);
     }
   }, [user]);
 
@@ -120,6 +123,48 @@ export default function CoachSettings() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const avatarData = event.target?.result as string;
+      setAvatarPreview(avatarData);
+
+      try {
+        const response = await fetch(`/api/users/${user.id}?requesterId=${user.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ avatar: avatarData }),
+        });
+
+        if (!response.ok) throw new Error("Failed to save avatar");
+
+        const updatedUser = await response.json();
+        setUser({ ...user, ...updatedUser });
+        toast.success("Avatar saved!");
+      } catch (error) {
+        console.error("Avatar save failed:", error);
+        toast.error("Failed to save avatar. Please try again.");
+      } finally {
+        setIsUploadingAvatar(false);
+      }
+    };
+    reader.onerror = () => {
+      toast.error("Failed to read image file");
+      setIsUploadingAvatar(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSaveTeam = async () => {
@@ -226,6 +271,43 @@ export default function CoachSettings() {
                   <CardTitle className="text-lg font-display font-bold uppercase tracking-wide">Your Profile</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-accent shadow-lg flex-shrink-0 bg-background/50 flex items-center justify-center">
+                      {avatarPreview ? (
+                        <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="h-10 w-10 text-muted-foreground" />
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="avatar-upload" className="text-sm font-medium uppercase tracking-wider">Profile Photo</Label>
+                      <div className="relative">
+                        <input
+                          id="avatar-upload"
+                          data-testid="input-avatar-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarUpload}
+                          disabled={isUploadingAvatar}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="border-white/10 hover:bg-white/5"
+                          onClick={() => document.getElementById("avatar-upload")?.click()}
+                          data-testid="button-upload-avatar"
+                          disabled={isUploadingAvatar}
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          {isUploadingAvatar ? "Uploading..." : "Upload Photo"}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Max 5MB, JPG or PNG</p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="first-name" className="text-sm font-medium uppercase tracking-wider">First Name</Label>
