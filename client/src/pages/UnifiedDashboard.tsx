@@ -2899,7 +2899,7 @@ export default function UnifiedDashboard() {
             </div>
 
             {/* Profile Section */}
-            <div className="relative flex items-start gap-4 landscape:justify-center landscape:items-center landscape:gap-6">
+            <div className="relative flex flex-col items-center gap-4 landscape:flex-row landscape:justify-center landscape:gap-6">
               <div className="h-20 w-20 landscape:h-24 landscape:w-24 border-2 border-primary/50 rounded-xl overflow-hidden shrink-0">
                 {user.avatar ? (
                   <img src={user.avatar} alt="" className="w-full h-full object-cover" />
@@ -2909,11 +2909,11 @@ export default function UnifiedDashboard() {
                   </div>
                 )}
               </div>
-              <div className="flex-1 landscape:flex-none landscape:text-center">
+              <div className="text-center landscape:text-center">
                 {currentTeam && (
                   <p className="font-marker text-lg landscape:text-2xl -rotate-2 mb-1 text-[#de8816e6]">{currentTeam.name}</p>
                 )}
-                <div className="flex items-center gap-2 landscape:justify-center">
+                <div className="flex items-center justify-center gap-2">
                   <h1 className="text-2xl landscape:text-3xl font-display font-bold text-primary uppercase tracking-wide">
                     {roleConfig[userRole].title}
                   </h1>
