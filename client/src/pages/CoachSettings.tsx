@@ -19,21 +19,11 @@ import { TEAM_BADGES } from "@shared/badges";
 import { TeamBadge } from "@/components/TeamBadge";
 
 const SPORTS = [
+  "Baseball",
+  "Basketball",
   "Football",
   "Soccer", 
-  "Basketball",
-  "Baseball",
   "Volleyball",
-  "Hockey",
-  "Tennis",
-  "Swimming",
-  "Track & Field",
-  "Lacrosse",
-  "Rugby",
-  "Softball",
-  "Wrestling",
-  "Golf",
-  "Other"
 ];
 
 const TEAM_COLORS = [
