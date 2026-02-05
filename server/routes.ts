@@ -7002,11 +7002,12 @@ function computeEntitlements(tier: string, isCoach: boolean, isStaff: boolean, i
     base.canViewRoster = true;
     base.canViewPlaybook = true;
     
-    if (tier === 'coach') {
+    if (tier === 'coach' || tier === 'coach_pro') {
       base.canUseStatTracker = true;
       base.canEditPlayMaker = true;
       base.canViewIndividualStats = true;
       base.canPromoteMembers = true;
+      base.canUploadHighlights = true;
     }
   }
 
