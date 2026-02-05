@@ -72,6 +72,7 @@ export async function registerUser(data: {
   lastName: string;
   email: string;
   name: string;
+  birthDate?: string;
 }): Promise<User> {
   const res = await apiRequest("POST", "/api/auth/register", data);
   return res.json();

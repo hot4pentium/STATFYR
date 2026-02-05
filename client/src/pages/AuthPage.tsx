@@ -59,6 +59,7 @@ export default function AuthPage() {
     lastName: "",
     email: "",
     password: "",
+    birthDate: "",
     role: "" as "coach" | "athlete" | "supporter" | "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -135,6 +136,9 @@ export default function AuthPage() {
     } else if (signupData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
+    if (!signupData.birthDate) {
+      newErrors.birthDate = "Birth date is required";
+    }
     if (!signupData.role) {
       newErrors.role = "Please select a role";
     }
@@ -156,6 +160,7 @@ export default function AuthPage() {
         lastName: signupData.lastName.trim(),
         name: `${signupData.firstName.trim()} ${signupData.lastName.trim()}`,
         role: signupData.role,
+        birthDate: signupData.birthDate,
       });
       setUser(user);
       
@@ -306,6 +311,20 @@ export default function AuthPage() {
                     </div>
                     {errors.password && (
                       <p className="text-xs text-red-500">{errors.password}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-birthdate">Birth Date</Label>
+                    <Input
+                      id="signup-birthdate"
+                      type="date"
+                      value={signupData.birthDate}
+                      onChange={(e) => setSignupData(prev => ({ ...prev, birthDate: e.target.value }))}
+                      className={errors.birthDate ? "border-red-500" : ""}
+                      data-testid="input-signup-birthdate"
+                    />
+                    {errors.birthDate && (
+                      <p className="text-xs text-red-500">{errors.birthDate}</p>
                     )}
                   </div>
                   <div className="space-y-2">
