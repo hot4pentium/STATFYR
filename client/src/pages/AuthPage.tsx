@@ -358,7 +358,7 @@ export default function AuthPage() {
                         <SelectTrigger className={errors.birthDate ? "border-red-500" : ""} data-testid="select-birth-year">
                           <SelectValue placeholder="Year" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-[200px] overflow-y-auto">
                           {Array.from({ length: 100 }, (_, i) => {
                             const year = new Date().getFullYear() - i;
                             return <SelectItem key={year} value={String(year)}>{year}</SelectItem>;
