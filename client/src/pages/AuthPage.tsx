@@ -5,9 +5,10 @@ import { Label } from "@/components/ui/label";
 import { useLocation, useSearch } from "wouter";
 import { Eye, EyeOff, LogOut, ArrowLeft } from "lucide-react";
 import { useUser } from "@/lib/userContext";
-import { loginUser, getUserTeams } from "@/lib/api";
+import { loginUser, registerUser, getUserTeams } from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
@@ -47,9 +48,18 @@ export default function AuthPage() {
     }
   }, [user, isUserLoading, redirectTo, setLocation]);
   
+  const [isSignup, setIsSignup] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
+  });
+  const [signupData, setSignupData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    role: "" as "coach" | "athlete" | "supporter" | "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -107,7 +117,64 @@ export default function AuthPage() {
     }
   };
 
-  
+  const validateSignupForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!signupData.firstName.trim()) {
+      newErrors.firstName = "First name is required";
+    }
+    if (!signupData.lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+    }
+    if (!signupData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(signupData.email)) {
+      newErrors.email = "Please enter a valid email";
+    }
+    if (!signupData.password) {
+      newErrors.password = "Password is required";
+    } else if (signupData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+    if (!signupData.role) {
+      newErrors.role = "Please select a role";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateSignupForm()) return;
+
+    setLoading(true);
+    try {
+      const user = await registerUser({
+        username: signupData.email.trim(),
+        email: signupData.email.trim(),
+        password: signupData.password,
+        firstName: signupData.firstName.trim(),
+        lastName: signupData.lastName.trim(),
+        name: `${signupData.firstName.trim()} ${signupData.lastName.trim()}`,
+        role: signupData.role,
+      });
+      setUser(user);
+      
+      // Redirect based on role
+      if (user.role === 'coach') {
+        setLocation("/dashboard");
+      } else if (user.role === 'athlete') {
+        setLocation("/athlete/dashboard");
+      } else {
+        setLocation("/supporter/dashboard");
+      }
+    } catch (error: any) {
+      console.error("Signup failed:", error);
+      const message = error?.message || "Failed to create account";
+      setErrors({ submit: message });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
@@ -159,10 +226,131 @@ export default function AuthPage() {
 
         <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl">
             <CardHeader>
-              <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">Welcome Back</CardTitle>
-              <CardDescription className="text-center">Sign in with your account</CardDescription>
+              <CardTitle className="font-display text-2xl uppercase tracking-wide text-center">
+                {isSignup ? "Create Account" : "Welcome Back"}
+              </CardTitle>
+              <CardDescription className="text-center">
+                {isSignup ? "Sign up to get started" : "Sign in with your account"}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {isSignup ? (
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-firstname">First Name</Label>
+                      <Input
+                        id="signup-firstname"
+                        type="text"
+                        placeholder="John"
+                        value={signupData.firstName}
+                        onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
+                        className={errors.firstName ? "border-red-500" : ""}
+                        data-testid="input-signup-firstname"
+                      />
+                      {errors.firstName && (
+                        <p className="text-xs text-red-500">{errors.firstName}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-lastname">Last Name</Label>
+                      <Input
+                        id="signup-lastname"
+                        type="text"
+                        placeholder="Doe"
+                        value={signupData.lastName}
+                        onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
+                        className={errors.lastName ? "border-red-500" : ""}
+                        data-testid="input-signup-lastname"
+                      />
+                      {errors.lastName && (
+                        <p className="text-xs text-red-500">{errors.lastName}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Email Address</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="john@example.com"
+                      value={signupData.email}
+                      onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
+                      className={errors.email ? "border-red-500" : ""}
+                      data-testid="input-signup-email"
+                    />
+                    {errors.email && (
+                      <p className="text-xs text-red-500">{errors.email}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="signup-password"
+                        type={showSignupPassword ? "text" : "password"}
+                        placeholder="Choose a password"
+                        value={signupData.password}
+                        onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
+                        className={errors.password ? "border-red-500 pr-10" : "pr-10"}
+                        data-testid="input-signup-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSignupPassword(!showSignupPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        data-testid="toggle-signup-password"
+                      >
+                        {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {errors.password && (
+                      <p className="text-xs text-red-500">{errors.password}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-role">I am a...</Label>
+                    <Select
+                      value={signupData.role}
+                      onValueChange={(value: "coach" | "athlete" | "supporter") => setSignupData(prev => ({ ...prev, role: value }))}
+                    >
+                      <SelectTrigger className={errors.role ? "border-red-500" : ""} data-testid="select-signup-role">
+                        <SelectValue placeholder="Select your role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="coach">Coach / Team Manager</SelectItem>
+                        <SelectItem value="athlete">Athlete / Player</SelectItem>
+                        <SelectItem value="supporter">Parent / Supporter</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.role && (
+                      <p className="text-xs text-red-500">{errors.role}</p>
+                    )}
+                  </div>
+                  {errors.submit && (
+                    <p className="text-sm text-red-500 text-center">{errors.submit}</p>
+                  )}
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full"
+                    disabled={loading}
+                    data-testid="button-signup-submit"
+                  >
+                    {loading ? "Creating Account..." : "Create Account"}
+                  </Button>
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => { setIsSignup(false); setErrors({}); }}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                      data-testid="link-switch-to-login"
+                    >
+                      Already have an account? <span className="underline">Sign in</span>
+                    </button>
+                  </div>
+                </form>
+              ) : (
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email Address</Label>
@@ -266,22 +454,18 @@ export default function AuthPage() {
                   </Button>
                 </div>
                 
-                <div 
-                  className="relative rounded-xl p-4 border border-white/10 shadow-lg shadow-black/30 mt-4"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-                  }}
-                >
-                  <div className="text-center mb-3">
-                    <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                      New to STATFYR?
-                    </span>
+                <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => { setIsSignup(true); setErrors({}); }}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                      data-testid="link-switch-to-signup"
+                    >
+                      New to STATFYR? <span className="underline">Create an account</span>
+                    </button>
                   </div>
-                  <p className="text-center text-sm text-muted-foreground">
-                    Mobile app coming soon to iOS & Android
-                  </p>
-                </div>
               </form>
+              )}
             </CardContent>
           </Card>
       </div>
