@@ -115,7 +115,12 @@ export async function registerRoutes(
 
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const parsed = insertUserSchema.parse(req.body);
+      // Convert birthDate string to Date before validation
+      const bodyWithDate = {
+        ...req.body,
+        birthDate: req.body.birthDate ? new Date(req.body.birthDate) : undefined,
+      };
+      const parsed = insertUserSchema.parse(bodyWithDate);
       
       // For email/password registration, username and password are required
       if (!parsed.username) {
