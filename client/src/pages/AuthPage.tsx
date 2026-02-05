@@ -314,15 +314,58 @@ export default function AuthPage() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-birthdate">Birth Date</Label>
-                    <Input
-                      id="signup-birthdate"
-                      type="date"
-                      value={signupData.birthDate}
-                      onChange={(e) => setSignupData(prev => ({ ...prev, birthDate: e.target.value }))}
-                      className={errors.birthDate ? "border-red-500" : ""}
-                      data-testid="input-signup-birthdate"
-                    />
+                    <Label>Birth Date</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Select
+                        value={signupData.birthDate.split('-')[1] || ''}
+                        onValueChange={(month) => {
+                          const [year, , day] = signupData.birthDate.split('-');
+                          setSignupData(prev => ({ ...prev, birthDate: `${year || '2000'}-${month}-${day || '01'}` }));
+                        }}
+                      >
+                        <SelectTrigger className={errors.birthDate ? "border-red-500" : ""} data-testid="select-birth-month">
+                          <SelectValue placeholder="Month" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((m, i) => (
+                            <SelectItem key={m} value={String(i + 1).padStart(2, '0')}>{m}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select
+                        value={signupData.birthDate.split('-')[2] || ''}
+                        onValueChange={(day) => {
+                          const [year, month] = signupData.birthDate.split('-');
+                          setSignupData(prev => ({ ...prev, birthDate: `${year || '2000'}-${month || '01'}-${day}` }));
+                        }}
+                      >
+                        <SelectTrigger className={errors.birthDate ? "border-red-500" : ""} data-testid="select-birth-day">
+                          <SelectValue placeholder="Day" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 31 }, (_, i) => (
+                            <SelectItem key={i + 1} value={String(i + 1).padStart(2, '0')}>{i + 1}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select
+                        value={signupData.birthDate.split('-')[0] || ''}
+                        onValueChange={(year) => {
+                          const [, month, day] = signupData.birthDate.split('-');
+                          setSignupData(prev => ({ ...prev, birthDate: `${year}-${month || '01'}-${day || '01'}` }));
+                        }}
+                      >
+                        <SelectTrigger className={errors.birthDate ? "border-red-500" : ""} data-testid="select-birth-year">
+                          <SelectValue placeholder="Year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 100 }, (_, i) => {
+                            const year = new Date().getFullYear() - i;
+                            return <SelectItem key={year} value={String(year)}>{year}</SelectItem>;
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     {errors.birthDate && (
                       <p className="text-xs text-red-500">{errors.birthDate}</p>
                     )}
